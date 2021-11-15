@@ -7,3 +7,4 @@ node_modules
 .hypothesis
 __pycache__
 test-ledger
+mocked_state
