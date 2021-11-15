@@ -1,0 +1,12 @@
+[programs.localnet]
+turnstile = "Cn1Xg8FR4fnXH9GEgNcYrCoAYnHV7izyJBUBTuamanLS"
+
+[registry]
+url = "https://anchor.projectserum.com"
+
+[provider]
+cluster = "localnet"
+wallet = "./keys/id.json"
+
+[scripts]
+test = "ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"

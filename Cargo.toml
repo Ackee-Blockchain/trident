@@ -1,0 +1,5 @@
+[workspace]
+members = [
+    "crates/trdelnik_client",
+    "crates/trdelnik_cli",
+]
