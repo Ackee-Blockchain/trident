@@ -3,7 +3,8 @@ from hypothesis import note, settings
 from hypothesis.stateful import RuleBasedStateMachine, initialize, precondition, rule, invariant
 
 def get_state_client():
-    stream = os.popen('ANCHOR_WALLET=./keys/id.json node ./js_client/getState.js')
+    # stream = os.popen('ANCHOR_WALLET=./keys/id.json node ./js_client/getState.js')
+    stream = os.popen('ANCHOR_WALLET=./keys/id.json ./target/debug/client get-state')
     output = stream.readlines()
     
     res = []
@@ -18,15 +19,18 @@ def get_state_client():
     return (res[0], res[1])
 
 def coin_client():
-    stream = os.popen('ANCHOR_WALLET=./keys/id.json node ./js_client/coin.js')
+    # stream = os.popen('ANCHOR_WALLET=./keys/id.json node ./js_client/coin.js')
+    stream = os.popen('ANCHOR_WALLET=./keys/id.json ./target/debug/client coin')
     _ = stream.readlines()
 
 def push_client():
-    stream = os.popen('ANCHOR_WALLET=./keys/id.json node ./js_client/push.js')
+    # stream = os.popen('ANCHOR_WALLET=./keys/id.json node ./js_client/push.js')
+    stream = os.popen('ANCHOR_WALLET=./keys/id.json ./target/debug/client push')
     _ = stream.readlines()
 
 def init_client():
-    stream = os.popen('ANCHOR_WALLET=./keys/id.json node ./js_client/init.js')
+    # stream = os.popen('ANCHOR_WALLET=./keys/id.json node ./js_client/init.js')
+    stream = os.popen('ANCHOR_WALLET=./keys/id.json ./target/debug/client init')
     _ = stream.readlines()
 
 class Turnstile(RuleBasedStateMachine):
@@ -89,7 +93,7 @@ class Turnstile(RuleBasedStateMachine):
 
         # update  
         self.locked = True
-        # ensure that pushing fails and turnstile is locked
+        # ensure that pushing passes and turnstile is locked
         assert res and after and not(before)
 
 

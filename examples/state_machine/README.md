@@ -14,4 +14,5 @@
 1. `solana airdrop -C ./config.yml 1 ./keys/id.json`
 1. `solana program deploy -C ./config.yml --program-id ./keys/program.json ./target/deploy/turnstile.so`
 1. `ANCHOR_WALLET=./keys/id.json node ./js_client/init.js`
+1. `cargo build` in `./client`
 1. `pytest turnstile.py`
