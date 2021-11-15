@@ -3,7 +3,7 @@ from hypothesis import note, settings
 from hypothesis.stateful import RuleBasedStateMachine, initialize, precondition, rule, invariant
 
 def get_state_client():
-    stream = os.popen('ANCHOR_WALLET=./keys/id.json node client/getState.js')
+    stream = os.popen('ANCHOR_WALLET=./keys/id.json node ./js_client/getState.js')
     output = stream.readlines()
     
     res = []
@@ -18,21 +18,21 @@ def get_state_client():
     return (res[0], res[1])
 
 def coin_client():
-    stream = os.popen('ANCHOR_WALLET=./keys/id.json node client/coin.js')
+    stream = os.popen('ANCHOR_WALLET=./keys/id.json node ./js_client/coin.js')
     _ = stream.readlines()
 
 def push_client():
-    stream = os.popen('ANCHOR_WALLET=./keys/id.json node client/push.js')
+    stream = os.popen('ANCHOR_WALLET=./keys/id.json node ./js_client/push.js')
     _ = stream.readlines()
 
 def init_client():
-    stream = os.popen('ANCHOR_WALLET=./keys/id.json node client/init.js')
+    stream = os.popen('ANCHOR_WALLET=./keys/id.json node ./js_client/init.js')
     _ = stream.readlines()
 
 class Turnstile(RuleBasedStateMachine):
     locked = True
-    lockedSUT = True
-    resSUT = False
+    # lockedSUT = True
+    # resSUT = False
 
     @rule()
     def coin(self):
@@ -49,7 +49,6 @@ class Turnstile(RuleBasedStateMachine):
         
         # ensure that coin insert unlocks turnstile
         assert not(after)
-
 
     @precondition(lambda self: self.locked == True)
     @rule()
