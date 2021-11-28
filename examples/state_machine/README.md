@@ -7,8 +7,6 @@
 1. `pip install hypothesis`
 1. `pip install pytest`
 1. `anchor build`
-1. `solana-test-validator -C ./config.yml` (add `-r` for reset)
-1. `solana airdrop -C ./config.yml 1 ./keys/id.json`
-1. `solana program deploy -C ./config.yml --program-id ./keys/program.json ./target/deploy/turnstile.so`
+1. `solana-test-validator -C ./config.yml -r`
 1. ANCHOR_WALLET=./keys/id.json cargo run --manifest-path="client/Cargo.toml" init
 1. `pytest turnstile.py`
