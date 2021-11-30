@@ -17,3 +17,4 @@ serde_json = "1.0.72"
 futures = "0.3.18"
 
 turnstile = { path = "../programs/turnstile", features = ["no-entrypoint"] }
+trdelnik_client = { path = "../../../crates/trdelnik_client" }
