@@ -3,7 +3,6 @@ use fehler::throws;
 use structopt::StructOpt;
 
 mod command;
-mod anchor_helpers;
 
 #[derive(Debug, StructOpt)]
 enum Opt {

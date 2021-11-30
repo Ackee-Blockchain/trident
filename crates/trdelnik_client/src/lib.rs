@@ -4,6 +4,7 @@ use anchor_client::{
     Cluster,
     solana_client::client_error::ClientErrorKind,
     ClientError,
+    Program,
 };
 use solana_sdk::{
     commitment_config::CommitmentConfig,
@@ -16,9 +17,29 @@ use solana_sdk::{
 use tokio::{fs, task};
 use std::{time::Duration, thread::sleep, str::FromStr};
 use futures::future::try_join_all;
+use fehler::throws;
+use anyhow::Error;
+
+// @TODO REFACTOR
+
+// @TODO define custom errors with `thiserror` and remove `anyhow` from deps 
+
+#[throws]
+pub async fn read_pubkey(name: &str) -> Pubkey {
+    let path = format!("./keys/{}_pub.json", name);
+    let key: String = serde_json::from_str(&fs::read_to_string(path).await?)?;
+    Pubkey::from_str(&key)?
+}
+
+#[throws]
+pub async fn read_keypair(name: &str) -> Keypair {
+    let path = format!("./keys/{}.json", name);
+    let bytes: Vec<u8> = serde_json::from_str(&fs::read_to_string(path).await?)?;
+    Keypair::from_bytes(&bytes)?
+}
 
 pub struct TrdelnikClient {
-    pub anchor_client: AnchorClient
+    anchor_client: AnchorClient
 }
 
 impl TrdelnikClient {
@@ -30,6 +51,14 @@ impl TrdelnikClient {
                 CommitmentConfig::confirmed(),
             )
         }
+    }
+
+    pub fn anchor_client(&self) -> &AnchorClient {
+        &self.anchor_client
+    }
+
+    pub fn program(&self, program_id: Pubkey) -> Program {
+        self.anchor_client.program(program_id)
     }
 
     pub async fn airdrop(&self, address: Pubkey, lamports: u64) -> Result<(), ClientError> {
