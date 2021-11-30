@@ -585,6 +585,7 @@ dependencies = [
  "anchor-client",
  "anyhow",
  "fehler",
+ "futures",
  "serde_json",
  "solana-sdk",
  "structopt",

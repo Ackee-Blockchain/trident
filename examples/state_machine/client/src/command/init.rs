@@ -1,18 +1,19 @@
 use anyhow::Error;
 use fehler::throws;
-use tokio::{task, fs, time::{sleep, Duration}};
+use tokio::{task, fs};
 use crate::anchor_helpers::{new_client, read_keypair};
 use anchor_client::{
     anchor_lang::{System, Id},
     solana_sdk::{
-        signer::Signer, 
+        signer::{Signer, keypair::Keypair}, 
         loader_instruction, 
         bpf_loader, 
         system_instruction, 
-        commitment_config::CommitmentConfig
     },
-    solana_client::rpc_config::RpcRequestAirdropConfig,
+    solana_client::client_error::{ClientErrorKind, ClientError}
 };
+use futures::future::try_join_all;
+use std::{time::Duration, thread::sleep};
 
 #[throws]
 pub async fn init() {
@@ -26,29 +27,23 @@ pub async fn init() {
 
     println!("AIRDROP started");
 
-    // @TODO commitment finalize? To make sure we have lamports available for the next step. 
-
     let rpc_client = system_program.rpc();
-    task::spawn_blocking(move || {
-        rpc_client.request_airdrop(
+    task::spawn_blocking(move || -> Result<(), ClientError> {
+        let signature = rpc_client.request_airdrop(
             &id_pubkey, 
             5_000_000_000,
-        )
-        // @TODO how to wait for airdropped lamports?
-        // rpc_client.request_airdrop_with_config(
-        //     &id_pubkey, 
-        //     1_000_000_000,
-        //     RpcRequestAirdropConfig {
-        //         recent_blockhash: None,
-        //         commitment: Some(CommitmentConfig::finalized()),
-        //     }
-        // )
+        )?;
+        for _ in 0..5 {
+            match rpc_client.get_signature_status(&signature)? {
+                Some(Ok(_)) => return Ok(()),
+                Some(Err(transaction_error)) => Err(transaction_error)?,
+                None => sleep(Duration::from_millis(500)),
+            }
+        }
+        Err(ClientErrorKind::Custom("Airdrop transaction has not been processed yet".to_owned()))?
     }).await??;
 
     println!("AIRDROP finished");
-
-    // @TODO how to wait for airdropped lamports?
-    sleep(Duration::from_secs(1)).await;
 
     // -- deploy --
 
@@ -63,21 +58,29 @@ pub async fn init() {
 
     println!("create program account");
 
+    let rpc_client = system_program.rpc();
+    let min_balance_for_rent_exemption = task::spawn_blocking(move || {
+        rpc_client.get_minimum_balance_for_rent_exemption(program_data_len)
+    }).await??;
+
     let create_account_ix = system_instruction::create_account(
         &system_program.payer(),
         &program_pubkey,
-        // TODO make async
-        system_program.rpc().get_minimum_balance_for_rent_exemption(program_data_len)?,
+        min_balance_for_rent_exemption,
         program_data_len as u64,
         &bpf_loader::id(),
     );
-    let create_program_result = system_program
-        .request()
-        .instruction(create_account_ix)
-        .signer(&program_keypair)
-        // @TODO how to wait for airdropped lamports?
-        // .options(CommitmentConfig::finalized())
-        .send(); // TODO make async
+    let create_program_result = {
+        let system_program = client.program(System::id());
+        let program_keypair = Keypair::from_bytes(&program_keypair.to_bytes()).unwrap();
+        task::spawn_blocking(move || {
+            system_program
+                .request()
+                .instruction(create_account_ix)
+                .signer(&program_keypair)
+                .send()
+        }).await?
+    };
     if let Err(error) = create_program_result {
         eprintln!("create_program error: '{}'", error);
     }
@@ -88,37 +91,45 @@ pub async fn init() {
     // https://github.com/solana-labs/solana/blob/3c7cb2522c23ace076af88dc1433516364fba16d/cli/src/program.rs#L1786
     // https://github.com/neodyme-labs/solana-poc-framework/blob/5ad2f995ea9d45bc7c6f2ea0f37ef5eb8c2dd77f/src/lib.rs#L270
     let mut offset = 0usize;
-    // @TODO make async!
+    let mut futures = Vec::new();
     for chunk in program_data.chunks(900) {
-        println!("writing program bytes {} to {}", offset, offset + chunk.len());
+        let program_keypair = Keypair::from_bytes(&program_keypair.to_bytes()).unwrap();
+        // println!("writing program bytes {} to {}", offset, offset + chunk.len());
         let loader_write_ix = loader_instruction::write(
             &program_pubkey, 
             &bpf_loader::id(),
             offset as u32,
             chunk.to_vec(), // @TODO optimize?
         );
-        system_program
-            .request()
-            .instruction(loader_write_ix)
-            .signer(&program_keypair)
-            .options(CommitmentConfig::processed()) // @TODO remove?
-            .send()?; // @TODO make async
+        let system_program = client.program(System::id());
+        futures.push(task::spawn_blocking(move || {
+            system_program
+                .request()
+                .instruction(loader_write_ix)
+                .signer(&program_keypair)
+                .send()
+        }));
         offset += chunk.len();
     }
+    try_join_all(futures).await?;
 
-    println!("start program");
+    println!("finalize program");
     
     let loader_finalize_ix = loader_instruction::finalize(
         &program_pubkey, 
         &bpf_loader::id(),
     );
-    system_program
-        .request()
-        .instruction(loader_finalize_ix)
-        .signer(&program_keypair)
-        .send()?; // TODO make async
-
-    println!("send transaction");
+    {
+        let system_program = client.program(System::id());
+        let program_keypair = Keypair::from_bytes(&program_keypair.to_bytes()).unwrap();
+        task::spawn_blocking(move || {
+            system_program
+                .request()
+                .instruction(loader_finalize_ix)
+                .signer(&program_keypair)
+                .send()
+        }).await??;
+    }
 
     println!("DEPLOY finished");
 
