@@ -1,12 +1,19 @@
 use anyhow::Error;
 use fehler::throws;
-use sled::Db;
+use tokio::task;
+use trdelnik_client::{TrdelnikClient, read_keypair, read_pubkey};
 
 #[throws]
-pub async fn coin(db: Db) {
-    db.transaction::<_, _, sled::Error>(|tx_db| {
-        tx_db.insert(b"locked", b"false")?;
-        tx_db.insert(b"res", b"true")?;
-        Ok(())
-    })?;
+pub async fn coin() {
+    let trdelnik = TrdelnikClient::new(read_keypair("id").await?);
+    let program = trdelnik.program(read_pubkey("program").await?);
+    let state = read_pubkey("state").await?;
+    
+    task::spawn_blocking(move || {
+        program
+            .request()
+            .args(turnstile::instruction::Coin)
+            .accounts(turnstile::accounts::UpdateState { state })
+            .send()
+    }).await??
 }

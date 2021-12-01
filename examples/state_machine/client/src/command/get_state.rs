@@ -1,13 +1,19 @@
 use anyhow::Error;
 use fehler::throws;
-use sled::Db;
+use tokio::task;
+use trdelnik_client::{TrdelnikClient, read_keypair, read_pubkey};
 
 #[throws]
-pub async fn get_state(db: Db) {
-    db.transaction::<_, _, sled::Error>(|tx_db| {
-        let locked = tx_db.get(b"locked")?.unwrap_or_default() == b"true";
-        let res = tx_db.get(b"res")?.unwrap_or_default() == b"true";
-        println!("{}\n{}", locked, res);
-        Ok(())
-    })?;
+pub async fn get_state() {
+    let trdelnik = TrdelnikClient::new(read_keypair("id").await?);
+    let program = trdelnik.program(read_pubkey("program").await?);
+    let state = read_pubkey("state").await?;
+    
+    let pre_account = task::spawn_blocking(move || {
+        program.account::<turnstile::State>(state)
+    })
+    .await??;
+
+    println!("{}", pre_account.locked);
+    println!("{}", pre_account.res);
 }

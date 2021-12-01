@@ -1,0 +1,17 @@
+{
+    "rust-analyzer.linkedProjects": [
+        // rust-analyzer ignores `main.rs` when `linkedProjects` are set
+        "crates/trdelnik_cli/Cargo.toml",
+        // examples are ignored because they have own workspaces
+        "examples/state_machine/client/Cargo.toml",
+        "examples/state_machine/Cargo.toml",
+    ],
+    "rust-analyzer.diagnostics.disabled": [
+        "missing-unsafe",
+        "add-reference-here",
+    ],
+    "rust-analyzer.procMacro.enable": true,
+    "rust-analyzer.cargo.allFeatures": true,
+    "rust-analyzer.completion.autoimport.enable": false,
+    "rust-analyzer.updates.channel": "nightly"
+}
