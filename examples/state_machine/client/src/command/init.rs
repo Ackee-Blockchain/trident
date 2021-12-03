@@ -1,48 +1,38 @@
 use anyhow::Error;
 use fehler::throws;
-use tokio::{task, fs};
-use anchor_client::{
-    anchor_lang::{System, Id},
-    solana_sdk::signer::Signer, 
-};
-use trdelnik_client::{TrdelnikClient, read_keypair};
+use trdelnik_client::*;
 
 #[throws]
 pub async fn init() {
-    let id_keypair = read_keypair("id").await?;
-    let id_pubkey = id_keypair.pubkey();
+    let reader = TrdelnikReader::new();
 
-    let trdelnik = TrdelnikClient::new(id_keypair);
+    let payer = reader.keypair("id").await?;
+    let payer_pubkey = payer.pubkey();
 
-    let program_keypair = read_keypair("program").await?;
+    let program_keypair = reader.keypair("program").await?;
     let program_pubkey = program_keypair.pubkey();
-    let program_data = fs::read("./target/deploy/turnstile.so").await?;
-    let program = trdelnik.program(program_pubkey);
+    let program_data = reader.program_data("turnstile").await?;
 
-    let state = read_keypair("state").await?;
-
-    // --
+    let client = TrdelnikClient::new(payer);
 
     println!("AIRDROP");
-    trdelnik.airdrop(id_pubkey, 5_000_000_000).await?;
+    client.airdrop(payer_pubkey, 5_000_000_000).await?;
 
     println!("DEPLOY");
-    trdelnik.deploy(program_keypair, program_data).await?;
+    client.deploy(program_keypair, program_data).await?;
 
     println!("INIT STATE");
-    // @TODO design better and async API for `Program` and `Request(Builder)`
-    task::spawn_blocking(move || {
-        program
-            .request()
-            .args(turnstile::instruction::Initialize)
-            .accounts(turnstile::accounts::Initialize { 
-                state: state.pubkey(),
-                user: program.payer(),
-                system_program: System::id()
-            })
-            .signer(&state)
-            .send()
-    }).await??;
+    let state = reader.keypair("state").await?;
+    client.send_instruction(
+        program_pubkey,
+        turnstile::instruction::Initialize,
+        turnstile::accounts::Initialize { 
+            state: state.pubkey(),
+            user: payer_pubkey,
+            system_program: System::id()
+        },
+        Some(state),
+    ).await?;
 
     println!("Initialized");
 }

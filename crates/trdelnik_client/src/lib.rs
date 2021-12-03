@@ -1,18 +1,17 @@
 use anchor_client::{
-    anchor_lang::{System, Id},
+    anchor_lang::{ToAccountMetas, InstructionData, AccountDeserialize},
     Client as AnchorClient, 
     Cluster,
     solana_client::client_error::ClientErrorKind,
     ClientError,
     Program,
-};
-use solana_sdk::{
-    commitment_config::CommitmentConfig,
-    pubkey::Pubkey,
-    signer::{Signer, keypair::Keypair}, 
-    loader_instruction, 
-    bpf_loader, 
-    system_instruction, 
+    solana_sdk::{
+        commitment_config::CommitmentConfig,
+        loader_instruction, 
+        bpf_loader, 
+        system_instruction, 
+        signature::Signature,
+    }
 };
 use tokio::{fs, task};
 use std::{time::Duration, thread::sleep, str::FromStr};
@@ -20,22 +19,45 @@ use futures::future::try_join_all;
 use fehler::throws;
 use anyhow::Error;
 
+pub use anchor_client::{
+    self,
+    anchor_lang::{System, Id},
+    solana_sdk::{
+        signer::{Signer, keypair::Keypair},
+        pubkey::Pubkey,
+    }, 
+};
+
 // @TODO REFACTOR
 
 // @TODO define custom errors with `thiserror` and remove `anyhow` from deps 
 
-#[throws]
-pub async fn read_pubkey(name: &str) -> Pubkey {
-    let path = format!("./keys/{}_pub.json", name);
-    let key: String = serde_json::from_str(&fs::read_to_string(path).await?)?;
-    Pubkey::from_str(&key)?
-}
+#[derive(Default)]
+pub struct TrdelnikReader;
 
-#[throws]
-pub async fn read_keypair(name: &str) -> Keypair {
-    let path = format!("./keys/{}.json", name);
-    let bytes: Vec<u8> = serde_json::from_str(&fs::read_to_string(path).await?)?;
-    Keypair::from_bytes(&bytes)?
+impl TrdelnikReader {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    #[throws]
+    pub async fn pubkey(&self, name: &str) -> Pubkey {
+        let path = format!("./keys/{}_pub.json", name);
+        let key: String = serde_json::from_str(&fs::read_to_string(path).await?)?;
+        Pubkey::from_str(&key)?
+    }
+
+    #[throws]
+    pub async fn keypair(&self, name: &str) -> Keypair {
+        let path = format!("./keys/{}.json", name);
+        let bytes: Vec<u8> = serde_json::from_str(&fs::read_to_string(path).await?)?;
+        Keypair::from_bytes(&bytes)?
+    }
+
+    #[throws]
+    pub async fn program_data(&self, name: &str) -> Vec<u8> {
+        fs::read(format!("./target/deploy/{}.so", name)).await?
+    }
 }
 
 pub struct TrdelnikClient {
@@ -59,6 +81,38 @@ impl TrdelnikClient {
 
     pub fn program(&self, program_id: Pubkey) -> Program {
         self.anchor_client.program(program_id)
+    }
+
+    pub async fn account_data<T>(&self, account: Pubkey) -> Result<T, ClientError>
+        where T: AccountDeserialize + Send + 'static
+    {
+        let dummy_pubkey = Pubkey::new_from_array([0; 32]);
+        let program = self.program(dummy_pubkey);
+        task::spawn_blocking(move || {
+            program.account::<T>(account)
+        })
+        .await.expect("account_data task failed")
+    }
+
+    pub async fn send_instruction(
+        &self, 
+        program: Pubkey,
+        instruction: impl InstructionData + Send + 'static,
+        accounts: impl ToAccountMetas + Send + 'static,
+        signers: impl IntoIterator<Item = Keypair> + Send + 'static,
+    ) -> Result<Signature, ClientError> {
+        let program = self.program(program);
+        task::spawn_blocking(move || {
+            let mut request = program
+                .request()
+                .args(instruction)
+                .accounts(accounts);
+            let signers = signers.into_iter().collect::<Vec<_>>();
+            for signer in &signers {
+                request = request.signer(signer);
+            }
+            request.send()
+        }).await.expect("send instruction task failed")
     }
 
     pub async fn airdrop(&self, address: Pubkey, lamports: u64) -> Result<(), ClientError> {

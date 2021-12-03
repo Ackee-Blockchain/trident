@@ -1,19 +1,17 @@
 use anyhow::Error;
 use fehler::throws;
-use tokio::task;
-use trdelnik_client::{TrdelnikClient, read_keypair, read_pubkey};
+use trdelnik_client::*;
 
 #[throws]
 pub async fn push() {
-    let trdelnik = TrdelnikClient::new(read_keypair("id").await?);
-    let program = trdelnik.program(read_pubkey("program").await?);
-    let state = read_pubkey("state").await?;
-    
-    task::spawn_blocking(move || {
-        program
-            .request()
-            .args(turnstile::instruction::Push)
-            .accounts(turnstile::accounts::UpdateState { state })
-            .send()
-    }).await??
+    let reader = TrdelnikReader::new();
+    let payer = reader.keypair("id").await?;
+    TrdelnikClient::new(payer).send_instruction(
+        reader.pubkey("program").await?,
+        turnstile::instruction::Push,
+        turnstile::accounts::UpdateState { 
+            state: reader.pubkey("state").await?
+        },
+        None,
+    ).await?;
 }
