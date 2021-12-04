@@ -1,6 +1,6 @@
 use anchor_lang::{
     prelude::*,
-    solana_program::{system_program},
+    solana_program::system_program,
 };
 
 declare_id!("FZ2Q3Bpdg3mgoSjRi8xsPgycgVDgFNGQ77SErk8mCaki");

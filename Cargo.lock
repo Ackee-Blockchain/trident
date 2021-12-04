@@ -3568,21 +3568,22 @@ dependencies = [
 ]
 
 [[package]]
-name = "trdelnik_cli"
-version = "0.1.0"
-
-[[package]]
-name = "trdelnik_client"
+name = "trdelnik"
 version = "0.1.0"
 dependencies = [
  "anchor-client",
- "anyhow",
+ "ed25519-dalek",
  "fehler",
  "futures",
  "serde_json",
  "solana-sdk",
+ "thiserror",
  "tokio",
 ]
+
+[[package]]
+name = "trdelnik_cli"
+version = "0.1.0"
 
 [[package]]
 name = "try-lock"

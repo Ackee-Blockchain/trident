@@ -1,10 +1,10 @@
 use anyhow::Error;
 use fehler::throws;
-use trdelnik_client::*;
+use trdelnik::*;
 
 #[throws]
 pub async fn init() {
-    let reader = TrdelnikReader::new();
+    let reader = Reader::new();
 
     let payer = reader.keypair("id").await?;
     let payer_pubkey = payer.pubkey();
@@ -13,7 +13,7 @@ pub async fn init() {
     let program_pubkey = program_keypair.pubkey();
     let program_data = reader.program_data("turnstile").await?;
 
-    let client = TrdelnikClient::new(payer);
+    let client = Client::new(payer);
 
     println!("AIRDROP");
     client.airdrop(payer_pubkey, 5_000_000_000).await?;

@@ -590,7 +590,7 @@ dependencies = [
  "solana-sdk",
  "structopt",
  "tokio",
- "trdelnik_client",
+ "trdelnik",
  "turnstile",
 ]
 
@@ -3602,15 +3602,16 @@ dependencies = [
 ]
 
 [[package]]
-name = "trdelnik_client"
+name = "trdelnik"
 version = "0.1.0"
 dependencies = [
  "anchor-client",
- "anyhow",
+ "ed25519-dalek",
  "fehler",
  "futures",
  "serde_json",
  "solana-sdk",
+ "thiserror",
  "tokio",
 ]
 

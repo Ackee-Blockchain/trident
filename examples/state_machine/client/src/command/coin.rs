@@ -1,12 +1,12 @@
 use anyhow::Error;
 use fehler::throws;
-use trdelnik_client::*;
+use trdelnik::*;
 
 #[throws]
 pub async fn coin() {
-    let reader = TrdelnikReader::new();
+    let reader = Reader::new();
     let payer = reader.keypair("id").await?;
-    TrdelnikClient::new(payer).send_instruction(
+    Client::new(payer).send_instruction(
         reader.pubkey("program").await?,
         turnstile::instruction::Coin,
         turnstile::accounts::UpdateState { 
@@ -14,4 +14,5 @@ pub async fn coin() {
         },
         None,
     ).await?;
+
 }

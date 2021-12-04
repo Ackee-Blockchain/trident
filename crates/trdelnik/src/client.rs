@@ -1,70 +1,30 @@
 use anchor_client::{
-    anchor_lang::{ToAccountMetas, InstructionData, AccountDeserialize},
+    anchor_lang::{ToAccountMetas, InstructionData, AccountDeserialize, System, Id},
     Client as AnchorClient, 
     Cluster,
     solana_client::client_error::ClientErrorKind,
-    ClientError,
+    ClientError as Error,
     Program,
     solana_sdk::{
         commitment_config::CommitmentConfig,
         loader_instruction, 
         bpf_loader, 
-        system_instruction, 
+        system_instruction,
+        signer::{Signer, keypair::Keypair},
+        pubkey::Pubkey,
         signature::Signature,
     }
 };
-use tokio::{fs, task};
-use std::{time::Duration, thread::sleep, str::FromStr};
+use tokio::task;
+use std::{time::Duration, thread::sleep};
 use futures::future::try_join_all;
 use fehler::throws;
-use anyhow::Error;
 
-pub use anchor_client::{
-    self,
-    anchor_lang::{System, Id},
-    solana_sdk::{
-        signer::{Signer, keypair::Keypair},
-        pubkey::Pubkey,
-    }, 
-};
-
-// @TODO REFACTOR
-
-// @TODO define custom errors with `thiserror` and remove `anyhow` from deps 
-
-#[derive(Default)]
-pub struct TrdelnikReader;
-
-impl TrdelnikReader {
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    #[throws]
-    pub async fn pubkey(&self, name: &str) -> Pubkey {
-        let path = format!("./keys/{}_pub.json", name);
-        let key: String = serde_json::from_str(&fs::read_to_string(path).await?)?;
-        Pubkey::from_str(&key)?
-    }
-
-    #[throws]
-    pub async fn keypair(&self, name: &str) -> Keypair {
-        let path = format!("./keys/{}.json", name);
-        let bytes: Vec<u8> = serde_json::from_str(&fs::read_to_string(path).await?)?;
-        Keypair::from_bytes(&bytes)?
-    }
-
-    #[throws]
-    pub async fn program_data(&self, name: &str) -> Vec<u8> {
-        fs::read(format!("./target/deploy/{}.so", name)).await?
-    }
-}
-
-pub struct TrdelnikClient {
+pub struct Client {
     anchor_client: AnchorClient
 }
 
-impl TrdelnikClient {
+impl Client {
     pub fn new(payer: Keypair) -> Self {
         Self {
             anchor_client: AnchorClient::new_with_options(
@@ -83,7 +43,8 @@ impl TrdelnikClient {
         self.anchor_client.program(program_id)
     }
 
-    pub async fn account_data<T>(&self, account: Pubkey) -> Result<T, ClientError>
+    #[throws]
+    pub async fn account_data<T>(&self, account: Pubkey) -> T
         where T: AccountDeserialize + Send + 'static
     {
         let dummy_pubkey = Pubkey::new_from_array([0; 32]);
@@ -91,16 +52,17 @@ impl TrdelnikClient {
         task::spawn_blocking(move || {
             program.account::<T>(account)
         })
-        .await.expect("account_data task failed")
+        .await.expect("account_data task failed")?
     }
 
+    #[throws]
     pub async fn send_instruction(
         &self, 
         program: Pubkey,
         instruction: impl InstructionData + Send + 'static,
         accounts: impl ToAccountMetas + Send + 'static,
         signers: impl IntoIterator<Item = Keypair> + Send + 'static,
-    ) -> Result<Signature, ClientError> {
+    ) -> Signature {
         let program = self.program(program);
         task::spawn_blocking(move || {
             let mut request = program
@@ -112,12 +74,13 @@ impl TrdelnikClient {
                 request = request.signer(signer);
             }
             request.send()
-        }).await.expect("send instruction task failed")
+        }).await.expect("send instruction task failed")?
     }
 
-    pub async fn airdrop(&self, address: Pubkey, lamports: u64) -> Result<(), ClientError> {
+    #[throws]
+    pub async fn airdrop(&self, address: Pubkey, lamports: u64) {
         let rpc_client = self.anchor_client.program(System::id()).rpc();
-        task::spawn_blocking(move || -> Result<(), ClientError> {
+        task::spawn_blocking(move || -> Result<(), Error> {
             let signature = rpc_client.request_airdrop(
                 &address, 
                 lamports,
@@ -128,15 +91,16 @@ impl TrdelnikClient {
                         println!("{} lamports airdropped", lamports);
                         return Ok(())
                     },
-                    Some(Err(transaction_error)) => Err(ClientError::SolanaClientError(transaction_error.into()))?,
+                    Some(Err(transaction_error)) => Err(Error::SolanaClientError(transaction_error.into()))?,
                     None => sleep(Duration::from_millis(500)),
                 }
             }
-            Err(ClientError::SolanaClientError(ClientErrorKind::Custom("Airdrop transaction has not been processed yet".to_owned()).into()))?
-        }).await.expect("airdrop task failed")
+            Err(Error::SolanaClientError(ClientErrorKind::Custom("Airdrop transaction has not been processed yet".to_owned()).into()))?
+        }).await.expect("airdrop task failed")?
     }
 
-    pub async fn deploy(&self, program_keypair: Keypair, program_data: Vec<u8>) -> Result<(), ClientError> {
+    #[throws]
+    pub async fn deploy(&self, program_keypair: Keypair, program_data: Vec<u8>) {
         let program_pubkey = program_keypair.pubkey();
         let system_program = self.anchor_client.program(System::id());
 
@@ -212,6 +176,5 @@ impl TrdelnikClient {
                 .signer(&program_keypair)
                 .send()
         }).await.expect("finalize program account task failed")?;
-        Ok(())
     }
 }

@@ -1,13 +1,13 @@
 use anyhow::Error;
 use fehler::throws;
-use trdelnik_client::*;
+use trdelnik::*;
 
 #[throws]
 pub async fn get_state() {
-    let reader = TrdelnikReader::new();
+    let reader = Reader::new();
     let account_pubkey = reader.pubkey("state").await?;
-    let trdelnik = TrdelnikClient::new(reader.keypair("id").await?);
-    let state: turnstile::State = trdelnik.account_data(account_pubkey).await?;
+    let client = Client::new(reader.keypair("id").await?);
+    let state: turnstile::State = client.account_data(account_pubkey).await?;
     println!("{}", state.locked);
     println!("{}", state.res);
 }
