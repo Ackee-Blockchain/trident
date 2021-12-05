@@ -22,4 +22,6 @@ anchor-lang = "0.18.0"
 anyhow = { version = "1.0.45", features = ["std"], default-features = false }
 fehler = { version = "1.0.0", default-features = false }
 tokio = { version = "1.13.0", features = ["rt-multi-thread", "macros", "fs", "signal", "sync", "time", "io-util", "process"], default-features = false }
+futures = "0.3.18"
+serial_test = "0.5.1"
 trdelnik = { path = "../../../../crates/trdelnik" }
