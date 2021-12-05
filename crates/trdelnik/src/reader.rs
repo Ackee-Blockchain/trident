@@ -29,7 +29,7 @@ pub struct Reader {
 impl Reader {
     pub fn new() -> Self {
         Self {
-            root: "./".into()
+            root: "../../".into()
         }
     }
 

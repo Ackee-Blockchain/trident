@@ -3,11 +3,9 @@ use fehler::throws;
 use trdelnik::*;
 use turnstile::State;
 
-static ROOT: &str = "../../";
-
 #[throws]
 async fn before() -> LocalnetHandle {
-    let commander = Commander::with_root(ROOT);
+    let commander = Commander::new();
     commander.build_programs().await?;
     let localnet_handle = commander.start_localnet().await?;
     init_client().await?;
@@ -25,11 +23,8 @@ async fn test_turnstile() {
     let localnet_handle = before().await?;
 
     let mut turnstile = Turnstile {
-        locked: true,
-        reader: Reader::with_root(ROOT),
+        locked: get_state_client().await?.locked
     };
-    turnstile.locked = turnstile.get_state_client().await?.locked;
-    
     println!("coin");
     turnstile.coin().await?;
     println!("push_unlocked");
@@ -55,23 +50,22 @@ async fn test_turnstile() {
 // }
 
 
-
+#[derive(Default)]
 struct Turnstile {
     locked: bool,
-    reader: Reader,
 }
 
 impl Turnstile {
     #[throws]
     async fn coin(&mut self) {
         // inserting a coin is just calling coin
-        self.coin_client().await?;
+        coin_client().await?;
 
         // update
         self.locked = false;
 
         // get current state
-        let locked_after = self.get_state_client().await?.locked;
+        let locked_after = get_state_client().await?.locked;
 
         // ensure that coin insert unlocks turnstile
         assert!(!locked_after);
@@ -80,13 +74,13 @@ impl Turnstile {
     #[throws]
     async fn push_locked(&mut self) {
         // get before state
-        let locked_before = self.get_state_client().await?.locked;
+        let locked_before = get_state_client().await?.locked;
 
         // pushing is just calling push
-        self.push_client().await?;
+        push_client().await?;
 
         // get current state
-        let state = self.get_state_client().await?;
+        let state = get_state_client().await?;
         let (locked_after, res) = (state.locked, state.res);
 
         // update
@@ -99,13 +93,13 @@ impl Turnstile {
     #[throws]
     async fn push_unlocked(&mut self) {
         // get before state
-        let locked_before = self.get_state_client().await?.locked;
+        let locked_before = get_state_client().await?.locked;
 
         // pushing is just calling push
-        self.push_client().await?;
+        push_client().await?;
 
         // get current state
-        let state = self.get_state_client().await?;
+        let state = get_state_client().await?;
         let (locked_after, res) = (state.locked, state.res);
 
         // update
@@ -114,47 +108,11 @@ impl Turnstile {
         // ensure that coin insert unlocks turnstile
         assert!(res && locked_after && !locked_before);
     }
-
-    #[throws]
-    async fn get_state_client(&self) -> State {
-        let reader = &self.reader;
-        let account_pubkey = reader.pubkey("state").await?;
-        let client = Client::new(reader.keypair("id").await?);
-        client.account_data(account_pubkey).await?
-    }
-
-    #[throws]
-    async fn coin_client(&self) {
-        let reader = &self.reader;
-        let payer = reader.keypair("id").await?;
-        Client::new(payer).send_instruction(
-            reader.pubkey("program").await?,
-            turnstile::instruction::Coin,
-            turnstile::accounts::UpdateState { 
-                state: reader.pubkey("state").await?
-            },
-            None,
-        ).await?;
-    }
-
-    #[throws]
-    async fn push_client(&self) {
-        let reader = &self.reader;
-        let payer = reader.keypair("id").await?;
-        Client::new(payer).send_instruction(
-            reader.pubkey("program").await?,
-            turnstile::instruction::Push,
-            turnstile::accounts::UpdateState { 
-                state: reader.pubkey("state").await?
-            },
-            None,
-        ).await?;
-    }
 }
 
 #[throws]
 async fn init_client() {
-    let reader = Reader::with_root(ROOT);
+    let reader = Reader::new();
 
     let payer = reader.keypair("id").await?;
     let payer_pubkey = payer.pubkey();
@@ -185,5 +143,41 @@ async fn init_client() {
     ).await?;
 
     println!("Initialized");
+}
+
+#[throws]
+async fn get_state_client() -> State {
+    let reader = Reader::new();
+    let account_pubkey = reader.pubkey("state").await?;
+    let client = Client::new(reader.keypair("id").await?);
+    client.account_data(account_pubkey).await?
+}
+
+#[throws]
+async fn coin_client() {
+    let reader = Reader::new();
+    let payer = reader.keypair("id").await?;
+    Client::new(payer).send_instruction(
+        reader.pubkey("program").await?,
+        turnstile::instruction::Coin,
+        turnstile::accounts::UpdateState { 
+            state: reader.pubkey("state").await?
+        },
+        None,
+    ).await?;
+}
+
+#[throws]
+async fn push_client() {
+    let reader = Reader::new();
+    let payer = reader.keypair("id").await?;
+    Client::new(payer).send_instruction(
+        reader.pubkey("program").await?,
+        turnstile::instruction::Push,
+        turnstile::accounts::UpdateState { 
+            state: reader.pubkey("state").await?
+        },
+        None,
+    ).await?;
 }
 

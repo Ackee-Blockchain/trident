@@ -31,6 +31,7 @@ impl LocalnetHandle {
             Err(Error::LocalnetIsStillRunning)?
         }
         fs::remove_dir_all("test-ledger").await?;
+        println!("localnet stopped and its ledger deleted");
     }
 }
 
@@ -41,7 +42,7 @@ pub struct Commander {
 impl Commander {
     pub fn new() -> Self {
         Self {
-            root: "./".into()
+            root: "../../".into()
         }
     }
 
@@ -75,6 +76,7 @@ impl Commander {
         if !Client::new(Keypair::new()).is_localnet_running(true).await {
             Err(Error::LocalnetIsNotRunning)?
         }
+        println!("localnet started");
         LocalnetHandle {
             solana_test_validator_process: process,
         }
