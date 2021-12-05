@@ -43,6 +43,22 @@ impl Client {
         self.anchor_client.program(program_id)
     }
 
+    pub async fn is_localnet_running(&self, retry: bool) -> bool {
+        let dummy_pubkey = Pubkey::new_from_array([0; 32]);
+        let rpc_client = self.anchor_client.program(dummy_pubkey).rpc();
+        task::spawn_blocking(move || {
+            for _ in 0..(if retry { 10 } else { 1 }) {
+                if rpc_client.get_health().is_ok() {
+                    return true;
+                }
+                if retry {
+                    sleep(Duration::from_millis(500));
+                }
+            }
+            false
+        }).await.expect("is_localnet_running task failed")
+    }
+
     #[throws]
     pub async fn account_data<T>(&self, account: Pubkey) -> T
         where T: AccountDeserialize + Send + 'static
