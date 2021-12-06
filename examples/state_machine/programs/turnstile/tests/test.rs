@@ -1,84 +1,19 @@
-use anyhow::Error;
-use fehler::throws;
 use trdelnik::*;
 use turnstile::State;
-use futures::FutureExt;
-use std::panic::AssertUnwindSafe;
-use serial_test::serial;
+use fehler::throws;
 
-#[throws]
-async fn before() -> LocalnetHandle {
-    println!("_____________________");
-    println!("____ BEFORE TEST ____");
-    let commander = Commander::new();
-    commander.build_programs().await?;
-    commander.start_localnet().await?
-}
-
-#[throws]
-async fn after(localnet_handle: LocalnetHandle) {
-    println!("____ AFTER TEST ____");
-    localnet_handle.stop().await?;
-    println!("_____________________");
-}
-
-#[throws]
-#[tokio::test(flavor = "multi_thread")]
-#[serial]
+#[trdelnik_test]
 async fn test_turnstile() {
-    println!("---- test 1 start ----");
-    let localnet_handle = before().await?;
-    let test = async {
-
-
-        init_client().await?;
-        let mut turnstile = Turnstile {
-            locked: get_state_client().await?.locked
-        };
-        println!("coin");
-        turnstile.coin().await?;
-        println!("push_unlocked");
-        turnstile.push_unlocked().await?;
-        println!("push_locked");
-        turnstile.push_locked().await?;
-
-
-        Ok::<(), Error>(())
+    init_client().await?;
+    let mut turnstile = Turnstile {
+        locked: get_state_client().await?.locked
     };
-    println!("____ TEST ____");
-    let result = AssertUnwindSafe(test).catch_unwind().await;
-    after(localnet_handle).await?;
-    assert!(result.is_ok());
-}
-
-// @TODO remove the test
-#[throws]
-#[tokio::test(flavor = "multi_thread")]
-#[serial]
-async fn test_turnstile_2() {
-    println!("---- test 1 start ----");
-    let localnet_handle = before().await?;
-    let test = async {
-
-        
-        init_client().await?;
-        let mut turnstile = Turnstile {
-            locked: get_state_client().await?.locked
-        };
-        println!("coin");
-        turnstile.coin().await?;
-        println!("push_unlocked");
-        turnstile.push_unlocked().await?;
-        println!("push_locked");
-        turnstile.push_locked().await?;
-
-
-        Ok::<(), Error>(())
-    };
-    println!("____ TEST ____");
-    let result = AssertUnwindSafe(test).catch_unwind().await;
-    after(localnet_handle).await?;
-    assert!(result.is_ok());
+    println!("coin");
+    turnstile.coin().await?;
+    println!("push_unlocked");
+    turnstile.push_unlocked().await?;
+    println!("push_locked");
+    turnstile.push_locked().await?;
 }
 
 #[derive(Default)]

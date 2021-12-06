@@ -6,6 +6,7 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+trdelnik_test = { path = "../trdelnik_test" }
 anchor-client = "0.18.2"
 tokio = { version = "1.13.0", features = ["rt-multi-thread", "macros", "fs", "signal", "sync", "time", "io-util", "process"], default-features = false }
 solana-sdk = "1.8.5"
@@ -14,3 +15,5 @@ futures = "0.3.18"
 fehler = { version = "1.0.0", default-features = false }
 thiserror = "1.0.30"
 ed25519-dalek = "1.0.1"
+serial_test = "0.5.1"
+anyhow = { version = "1.0.45", features = ["std"], default-features = false }
