@@ -18,7 +18,7 @@ pub enum Error {
     SerdeJsonError(#[from] serde_json::Error),
     #[error("pubkey parsing failed")]
     PubkeyError(#[from] ParsePubkeyError),
-    #[error("pubkey parsing failed")]
+    #[error("keypair parsing failed")]
     KeypairError(#[from] SignatureError),
 }
 

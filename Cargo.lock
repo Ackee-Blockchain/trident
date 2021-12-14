@@ -3611,6 +3611,15 @@ name = "trdelnik_cli"
 version = "0.1.0"
 
 [[package]]
+name = "trdelnik_program"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2 1.0.32",
+ "quote 1.0.10",
+ "syn 1.0.82",
+]
+
+[[package]]
 name = "trdelnik_test"
 version = "0.1.0"
 dependencies = [

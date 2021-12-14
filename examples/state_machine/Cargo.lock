@@ -3641,6 +3641,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "trdelnik_program"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2 1.0.32",
+ "quote 1.0.10",
+ "syn 1.0.81",
+]
+
+[[package]]
 name = "trdelnik_test"
 version = "0.1.0"
 dependencies = [
@@ -3682,6 +3691,7 @@ dependencies = [
  "anchor-lang",
  "fehler",
  "trdelnik",
+ "trdelnik_program",
 ]
 
 [[package]]
