@@ -2603,6 +2603,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "serial_test"
+version = "0.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e0bccbcf40c8938196944a3da0e133e031a33f4d6b72db3bda3cc556e361905d"
+dependencies = [
+ "lazy_static",
+ "parking_lot 0.11.2",
+ "serial_test_derive",
+]
+
+[[package]]
+name = "serial_test_derive"
+version = "0.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b2acd6defeddb41eb60bb468f8825d0cfd0c2a76bc03bfd235b6a1dc4f6a1ad5"
+dependencies = [
+ "proc-macro2 1.0.32",
+ "quote 1.0.10",
+ "syn 1.0.82",
+]
+
+[[package]]
 name = "sha-1"
 version = "0.8.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3568,20 +3590,42 @@ dependencies = [
 ]
 
 [[package]]
-name = "trdelnik_cli"
-version = "0.1.0"
-
-[[package]]
-name = "trdelnik_client"
+name = "trdelnik"
 version = "0.1.0"
 dependencies = [
  "anchor-client",
  "anyhow",
+ "ed25519-dalek",
  "fehler",
  "futures",
  "serde_json",
+ "serial_test",
  "solana-sdk",
+ "thiserror",
  "tokio",
+ "trdelnik_test",
+]
+
+[[package]]
+name = "trdelnik_cli"
+version = "0.1.0"
+
+[[package]]
+name = "trdelnik_program"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2 1.0.32",
+ "quote 1.0.10",
+ "syn 1.0.82",
+]
+
+[[package]]
+name = "trdelnik_test"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2 1.0.32",
+ "quote 1.0.10",
+ "syn 1.0.82",
 ]
 
 [[package]]
