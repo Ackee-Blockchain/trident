@@ -110,7 +110,7 @@ checksum = "f514a6502a0ad56f321df492f1c699ee8ad3912c6354acd087f3d28431a0fac4"
 dependencies = [
  "anchor-syn",
  "anyhow",
- "heck",
+ "heck 0.3.3",
  "proc-macro2 1.0.32",
  "quote 1.0.10",
  "syn 1.0.81",
@@ -200,7 +200,7 @@ checksum = "77faec86e3bf8e15568d026bd586e381910610544aa0b2642b942b37698029e5"
 dependencies = [
  "anyhow",
  "bs58 0.3.1",
- "heck",
+ "heck 0.3.3",
  "proc-macro2 1.0.32",
  "proc-macro2-diagnostics",
  "quote 1.0.10",
@@ -1335,6 +1335,12 @@ checksum = "6d621efb26863f0e9924c6ac577e8275e5e6b77455db64ffa6c65c904e9e132c"
 dependencies = [
  "unicode-segmentation",
 ]
+
+[[package]]
+name = "heck"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2540771e65fc8cb83cd6e8a237f70c319bd5c29f78ed1084ba5d50eeac86f7f9"
 
 [[package]]
 name = "hermit-abi"
@@ -3352,7 +3358,7 @@ version = "0.4.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "dcb5ae327f9cc13b68763b5749770cb9e048a99bd9dfdfa58d0cf05d5f64afe0"
 dependencies = [
- "heck",
+ "heck 0.3.3",
  "proc-macro-error",
  "proc-macro2 1.0.32",
  "quote 1.0.10",
@@ -3641,9 +3647,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "trdelnik_program"
+name = "trdelnik_macros"
 version = "0.1.0"
 dependencies = [
+ "heck 0.4.0",
  "proc-macro2 1.0.32",
  "quote 1.0.10",
  "syn 1.0.81",
@@ -3691,7 +3698,7 @@ dependencies = [
  "anchor-lang",
  "fehler",
  "trdelnik",
- "trdelnik_program",
+ "trdelnik_macros",
 ]
 
 [[package]]

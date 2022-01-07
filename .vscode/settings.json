@@ -13,5 +13,5 @@
     "rust-analyzer.procMacro.enable": true,
     "rust-analyzer.cargo.allFeatures": true,
     "rust-analyzer.completion.autoimport.enable": false,
-    "rust-analyzer.updates.channel": "nightly"
+    // "rust-analyzer.updates.channel": "nightly"
 }
