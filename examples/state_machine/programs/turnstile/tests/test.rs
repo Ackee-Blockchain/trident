@@ -84,7 +84,6 @@ async fn init_client() {
     let payer_pubkey = payer.pubkey();
 
     let program_keypair = reader.keypair("program").await?;
-    let program_pubkey = program_keypair.pubkey();
     let program_data = reader.program_data("turnstile").await?;
 
     let client = Client::new(payer);
@@ -97,16 +96,31 @@ async fn init_client() {
 
     println!("INIT STATE");
     let state = reader.keypair("state").await?;
-    client.send_instruction(
-        program_pubkey,
-        turnstile::instruction::Initialize,
-        turnstile::accounts::Initialize { 
+    let ix = turnstile::ix_with_accounts::Initialize {
+        instruction: turnstile::instruction::Initialize,
+        accounts: turnstile::accounts::Initialize { 
             state: state.pubkey(),
             user: payer_pubkey,
             system_program: System::id()
-        },
+        }
+    };
+    client.send_instruction(
+        turnstile::id(),
+        ix.instruction,
+        ix.accounts,
         Some(state),
     ).await?;
+
+    // @TODO refactor into this code:
+    // Client::new(payer).send_fat_instruction(turnstile::fat_instruction::Initialize::with_signers(
+    //     turnstile::instruction::Initialize,
+    //     turnstile::accounts::Initialize { 
+    //         state: state.pubkey(),
+    //         user: payer_pubkey,
+    //         system_program: System::id()
+    //     },
+    //     Some(state),
+    // )).await?;
 
     println!("Initialized");
 }
@@ -123,27 +137,53 @@ async fn get_state_client() -> State {
 async fn coin_client() {
     let reader = Reader::new();
     let payer = reader.keypair("id").await?;
-    Client::new(payer).send_instruction(
-        reader.pubkey("program").await?,
-        turnstile::instruction::Coin,
-        turnstile::accounts::UpdateState { 
+
+    let ix = turnstile::ix_with_accounts::Coin {
+        instruction: turnstile::instruction::Coin,
+        accounts: turnstile::accounts::UpdateState { 
             state: reader.pubkey("state").await?
-        },
+        }
+    };
+    Client::new(payer).send_instruction(
+        turnstile::id(),
+        ix.instruction,
+        ix.accounts,
         None,
     ).await?;
+
+    // @TODO refactor into this code:
+    // Client::new(payer).send_fat_instruction(turnstile::fat_instruction::Coin::new(
+    //     turnstile::instruction::Coin,
+    //     turnstile::accounts::UpdateState { 
+    //         state: reader.pubkey("state").await?
+    //     }
+    // )).await?;
 }
 
 #[throws]
 async fn push_client() {
     let reader = Reader::new();
     let payer = reader.keypair("id").await?;
-    Client::new(payer).send_instruction(
-        reader.pubkey("program").await?,
-        turnstile::instruction::Push,
-        turnstile::accounts::UpdateState { 
+
+    let ix = turnstile::ix_with_accounts::Push {
+        instruction: turnstile::instruction::Push,
+        accounts: turnstile::accounts::UpdateState { 
             state: reader.pubkey("state").await?
-        },
+        }
+    };
+    Client::new(payer).send_instruction(
+        turnstile::id(),
+        ix.instruction,
+        ix.accounts,
         None,
     ).await?;
+
+    // @TODO refactor into this code:
+    // Client::new(payer).send_fat_instruction(turnstile::fat_instruction::Push::new(
+    //     turnstile::instruction::Push,
+    //     turnstile::accounts::UpdateState { 
+    //         state: reader.pubkey("state").await?
+    //     }
+    // )).await?;
 }
 

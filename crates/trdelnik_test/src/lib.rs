@@ -35,7 +35,6 @@ use syn::{ItemFn, spanned::Spanned,};
 //     assert!(result.is_ok());
 //     Ok(())
 // }
-
 #[proc_macro_attribute]
 pub fn trdelnik_test(_: TokenStream, input: TokenStream) -> TokenStream {
     let input_fn: ItemFn = syn::parse(input)
