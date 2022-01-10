@@ -7,6 +7,7 @@ pub use anchor_client::{
     }, 
 };
 pub use trdelnik_test::trdelnik_test;
+pub use trdelnik_program::FatInstruction;
 pub use anyhow::{self, Error};
 pub use serial_test;
 pub use tokio;

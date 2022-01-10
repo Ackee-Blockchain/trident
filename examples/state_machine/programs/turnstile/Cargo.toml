@@ -17,7 +17,7 @@ default = []
 
 [dependencies]
 anchor-lang = "0.18.0"
-trdelnik_macros = { path = "../../../../crates/trdelnik_macros" }
+trdelnik_program = { path = "../../../../crates/trdelnik_program" }
 
 [dev-dependencies]
 fehler = "1.0.0"
