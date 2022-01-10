@@ -2,7 +2,7 @@ use anchor_client::{
     anchor_lang::{ToAccountMetas, InstructionData, AccountDeserialize, System, Id},
     Client as AnchorClient, 
     Cluster,
-    solana_client::client_error::ClientErrorKind,
+    solana_client::{client_error::ClientErrorKind, rpc_config::RpcTransactionConfig},
     ClientError as Error,
     Program,
     solana_sdk::{
@@ -15,6 +15,7 @@ use anchor_client::{
         signature::Signature,
     }
 };
+use solana_transaction_status::{UiTransactionEncoding, EncodedConfirmedTransaction};
 use tokio::task;
 use std::{time::Duration, thread::sleep};
 use futures::future::try_join_all;
@@ -95,6 +96,37 @@ impl Client {
     }
 
     #[throws]
+    pub async fn send_instruction_with_transaction_cb(
+        &self, 
+        program: Pubkey,
+        instruction: impl InstructionData + Send + 'static,
+        accounts: impl ToAccountMetas + Send + 'static,
+        signers: impl IntoIterator<Item = Keypair> + Send + 'static,
+        transaction_cb: impl FnOnce(EncodedConfirmedTransaction),
+    ) -> Signature {
+        let signature = self.send_instruction(
+            program,
+            instruction,
+            accounts,
+            signers,
+        ).await?;
+
+        let rpc_client = self.anchor_client.program(System::id()).rpc();
+        let transaction = task::spawn_blocking(move || {
+            rpc_client.get_transaction_with_config(
+                &signature, 
+                RpcTransactionConfig {
+                    encoding: Some(UiTransactionEncoding::JsonParsed),
+                    commitment: Some(CommitmentConfig::confirmed()),
+                }
+            )
+        }).await.expect("get transaction task failed")?;
+        transaction_cb(transaction);
+
+        signature
+    }
+
+    #[throws]
     pub async fn send_fat_instruction<IX: FatInstruction>(
         &self, 
         instruction: IX,
@@ -111,6 +143,18 @@ impl Client {
         let program = IX::program();
         let (instruction, accounts) = instruction.into_instruction_and_accounts();
         self.send_instruction(program, instruction, accounts, signers).await?
+    }
+
+    #[throws]
+    pub async fn send_fat_instruction_with_signers_and_transaction_cb<IX: FatInstruction>(
+        &self, 
+        instruction: IX,
+        signers: impl IntoIterator<Item = Keypair> + Send + 'static,
+        transaction_cb: impl FnOnce(EncodedConfirmedTransaction),
+    ) -> Signature {
+        let program = IX::program();
+        let (instruction, accounts) = instruction.into_instruction_and_accounts();
+        self.send_instruction_with_transaction_cb(program, instruction, accounts, signers, transaction_cb).await?
     }
 
     #[throws]
