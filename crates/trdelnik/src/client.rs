@@ -19,6 +19,7 @@ use tokio::task;
 use std::{time::Duration, thread::sleep};
 use futures::future::try_join_all;
 use fehler::throws;
+use trdelnik_program::FatInstruction;
 
 pub struct Client {
     anchor_client: AnchorClient
@@ -94,6 +95,25 @@ impl Client {
     }
 
     #[throws]
+    pub async fn send_fat_instruction<IX: FatInstruction>(
+        &self, 
+        instruction: IX,
+    ) -> Signature {
+        self.send_fat_instruction_with_signers(instruction, None).await?
+    }
+
+    #[throws]
+    pub async fn send_fat_instruction_with_signers<IX: FatInstruction>(
+        &self, 
+        instruction: IX,
+        signers: impl IntoIterator<Item = Keypair> + Send + 'static,
+    ) -> Signature {
+        let program = IX::program();
+        let (instruction, accounts) = instruction.into_instruction_and_accounts();
+        self.send_instruction(program, instruction, accounts, signers).await?
+    }
+
+    #[throws]
     pub async fn airdrop(&self, address: Pubkey, lamports: u64) {
         let rpc_client = self.anchor_client.program(System::id()).rpc();
         task::spawn_blocking(move || -> Result<(), Error> {
@@ -117,6 +137,8 @@ impl Client {
 
     #[throws]
     pub async fn deploy(&self, program_keypair: Keypair, program_data: Vec<u8>) {
+        const PROGRAM_DATA_CHUNK_SIZE: usize = 900;
+
         let program_pubkey = program_keypair.pubkey();
         let system_program = self.anchor_client.program(System::id());
 
@@ -150,27 +172,23 @@ impl Client {
         }
 
         println!("write program data");
-        
-        // @TODO calculate max chunk data?
-        // https://github.com/solana-labs/solana/blob/3c7cb2522c23ace076af88dc1433516364fba16d/cli/src/program.rs#L1786
-        // https://github.com/neodyme-labs/solana-poc-framework/blob/5ad2f995ea9d45bc7c6f2ea0f37ef5eb8c2dd77f/src/lib.rs#L270
+
         let mut offset = 0usize;
         let mut futures = Vec::new();
-        for chunk in program_data.chunks(900) { // @TODO optimize?
+        for chunk in program_data.chunks(PROGRAM_DATA_CHUNK_SIZE) {
             let program_keypair = Keypair::from_bytes(&program_keypair.to_bytes()).unwrap();
-            // println!("writing program bytes {} to {}", offset, offset + chunk.len());
             let loader_write_ix = loader_instruction::write(
                 &program_pubkey, 
                 &bpf_loader::id(),
                 offset as u32,
-                chunk.to_vec(), // @TODO optimize?
+                chunk.to_vec(),
             );
             let system_program = self.anchor_client.program(System::id());
             futures.push(async {
                 task::spawn_blocking(move || {
                     system_program
                         .request()
-                        .instruction(loader_write_ix)
+                        .instruction(loader_write_ix) 
                         .signer(&program_keypair)
                         .send()
                 }).await.expect("write program data task failed")

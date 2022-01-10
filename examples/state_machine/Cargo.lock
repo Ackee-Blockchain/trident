@@ -3643,11 +3643,20 @@ dependencies = [
  "solana-sdk",
  "thiserror",
  "tokio",
+ "trdelnik_program",
  "trdelnik_test",
 ]
 
 [[package]]
-name = "trdelnik_macros"
+name = "trdelnik_program"
+version = "0.1.0"
+dependencies = [
+ "anchor-lang",
+ "trdelnik_program_macros",
+]
+
+[[package]]
+name = "trdelnik_program_macros"
 version = "0.1.0"
 dependencies = [
  "heck 0.4.0",
@@ -3698,7 +3707,7 @@ dependencies = [
  "anchor-lang",
  "fehler",
  "trdelnik",
- "trdelnik_macros",
+ "trdelnik_program",
 ]
 
 [[package]]

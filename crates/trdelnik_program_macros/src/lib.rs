@@ -37,14 +37,43 @@ use heck::ToUpperCamelCase;
 //     }
 // }
 //
-// pub mod ix_with_accounts {
+// pub mod fat_instruction {
 //     pub struct Initialize {
-//         pub instruction: super::instruction::Initialize, 
-//         pub accounts: super::accounts::Initialize,
+//         instruction: super::instruction::Initialize, 
+//         accounts: super::accounts::Initialize,
 //     }
+//     impl trdelnik_program::FatInstruction for Initialize {
+//         type INSTRUCTION = super::instruction::Initialize;
+//         type ACCOUNTS = super::accounts::Initialize;
+//
+//         fn new(instruction: Self::INSTRUCTION, accounts: Self::ACCOUNTS) -> Self {
+//             Self { instruction, accounts }
+//         }
+//         fn program() -> anchor_lang::solana_program::pubkey::Pubkey {
+//             super::ID
+//         } 
+//         fn into_instruction_and_accounts(self) -> (Self::INSTRUCTION, Self::ACCOUNTS) {
+//             (self.instruction, self.accounts)
+//         }
+//     }
+//
 //     pub struct Coin {
-//         pub instruction: super::instruction::Coin,
-//         pub accounts: super::accounts::UpdateState,
+//         instruction: super::instruction::Coin, 
+//         accounts: super::accounts::UpdateState,
+//     }
+//     impl trdelnik_program::FatInstruction for Coin {
+//         type INSTRUCTION = super::instruction::Coin;
+//         type ACCOUNTS = super::accounts::UpdateState;
+//
+//         fn new(instruction: Self::INSTRUCTION, accounts: Self::ACCOUNTS) -> Self {
+//             Self { instruction, accounts }
+//         }
+//         fn program() -> anchor_lang::solana_program::pubkey::Pubkey {
+//             super::ID
+//         } 
+//         fn into_instruction_and_accounts(self) -> (Self::INSTRUCTION, Self::ACCOUNTS) {
+//             (self.instruction, self.accounts)
+//         }
 //     }
 // }
 #[proc_macro_attribute]
@@ -95,8 +124,22 @@ pub fn program(
         let instruction_name = Ident::new(&item_fn.sig.ident.to_string().to_upper_camel_case(), Span::call_site());
         let instruction_struct = quote!(
             pub struct #instruction_name {
-                pub instruction: super::instruction::#instruction_name,
-                pub accounts: super::accounts::#accounts_name,
+                instruction: super::instruction::#instruction_name, 
+                accounts: super::accounts::#accounts_name,
+            }
+            impl trdelnik_program::FatInstruction for #instruction_name {
+                type INSTRUCTION = super::instruction::#instruction_name;
+                type ACCOUNTS = super::accounts::#accounts_name;
+
+                fn new(instruction: Self::INSTRUCTION, accounts: Self::ACCOUNTS) -> Self {
+                    Self { instruction, accounts }
+                }
+                fn program() -> anchor_lang::solana_program::pubkey::Pubkey {
+                    super::ID
+                } 
+                fn into_instruction_and_accounts(self) -> (Self::INSTRUCTION, Self::ACCOUNTS) {
+                    (self.instruction, self.accounts)
+                }
             }
         );
         Some(instruction_struct)
@@ -105,7 +148,7 @@ pub fn program(
     let item_mod_span = item_mod.span();
     quote_spanned!(item_mod_span=>
         #item_mod
-        pub mod ix_with_accounts {
+        pub mod fat_instruction {
             #(#instruction_structs)*
         }
     )
