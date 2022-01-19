@@ -5,7 +5,7 @@ use anchor_lang::{
 
 declare_id!("FZ2Q3Bpdg3mgoSjRi8xsPgycgVDgFNGQ77SErk8mCaki");
 
-#[trdelnik_program::program]
+// #[trdelnik_program::program]
 #[program]
 pub mod turnstile {
     use super::*;

@@ -15,6 +15,8 @@ impl Tester {
         println!("____ BEFORE TEST ____");
         let commander = Commander::new();
         commander.build_programs().await?;
+        commander.generate_idls().await?;
+        panic!("idls generated, ending, @TODO remove me");
         commander.start_localnet().await?
     }
 

@@ -1,21 +1,27 @@
 use fehler::throws;
 use thiserror::Error;
 use tokio::{process::{Command, Child}};
-use std::{borrow::Cow, io};
+use std::{borrow::Cow, io, string::FromUtf8Error};
 use solana_sdk::signer::keypair::Keypair;
 use tokio::fs;
+use cargo_metadata::MetadataCommand;
+use futures::future::try_join_all;
 use crate::Client;
 
 #[derive(Error, Debug)]
 pub enum Error {
     #[error("{0:?}")]
     IoError(#[from] io::Error),
+    #[error("{0:?}")]
+    Utf8Error(#[from] FromUtf8Error),
     #[error("localnet is not running")]
     LocalnetIsNotRunning,
     #[error("localnet is still running")]
     LocalnetIsStillRunning,
     #[error("build programs failed")]
     BuildProgramsFailed,
+    #[error("read program code failed: '{0}'")]
+    ReadProgramCodeFailed(String),
 }
 
 pub struct LocalnetHandle {
@@ -66,6 +72,50 @@ impl Commander {
     }
 
     #[throws]
+    pub async fn generate_idls(&self) {
+        let cargo_toml_data = MetadataCommand::new()
+            .no_deps()
+            .exec()
+            .unwrap();
+
+        let program_names = cargo_toml_data
+            .packages
+            .into_iter()
+            .filter_map(|package| {
+                match package.manifest_path.iter().nth_back(2) {
+                    Some("programs") => Some(package.name),
+                    _ => None,
+                }
+            });
+
+        let name_code_pairs = program_names.map(|name| async move {
+            let output = Command::new("cargo")
+                .arg("+nightly")
+                .arg("rustc")
+                .args(&["--package", &name])
+                .arg("--profile=check")
+                .arg("--")
+                .arg("-Zunpretty=expanded")
+                .output()
+                .await?;
+            if output.status.success() {
+                let code = String::from_utf8(output.stdout)?;
+                Ok((name, code))
+            } else {
+                let error_text = String::from_utf8(output.stderr)?;
+                Err(Error::ReadProgramCodeFailed(error_text))
+            }
+        });
+        let name_code_pairs = try_join_all(name_code_pairs).await?;
+
+        for (name, code) in name_code_pairs {
+            println!("{name}");
+            println!("------");
+            println!("{:#?}", code_to_idl(&code).await);
+        }
+    }
+
+    #[throws]
     pub async fn start_localnet(&self) -> LocalnetHandle {
         let process = Command::new("solana-test-validator")
             .arg("-C")
@@ -81,4 +131,9 @@ impl Commander {
             solana_test_validator_process: process,
         }
     }
+}
+
+#[throws]
+async fn code_to_idl(code: &str) -> String {
+    "I'm idl".to_owned()
 }
