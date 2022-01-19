@@ -96,18 +96,18 @@ async fn init_client() {
 
     println!("INIT STATE");
     let state = reader.keypair("state").await?;
-    client.send_fat_instruction_with_signers_and_transaction_cb(
-        turnstile::fat_instruction::Initialize::new(
-            turnstile::instruction::Initialize,
-            turnstile::accounts::Initialize { 
-                state: state.pubkey(),
-                user: payer_pubkey,
-                system_program: System::id()
-            },
-        ), 
-        Some(state),
-        |tx| println!("Init transaction: {:?}", tx),
-    ).await?;
+    // client.send_fat_instruction_with_signers_and_transaction_cb(
+    //     turnstile::fat_instruction::Initialize::new(
+    //         turnstile::instruction::Initialize,
+    //         turnstile::accounts::Initialize { 
+    //             state: state.pubkey(),
+    //             user: payer_pubkey,
+    //             system_program: System::id()
+    //         },
+    //     ), 
+    //     Some(state),
+    //     |tx| println!("Init transaction: {:?}", tx),
+    // ).await?;
 
     println!("Initialized");
 }
@@ -125,16 +125,16 @@ async fn coin_client() {
     let reader = Reader::new();
     let payer = reader.keypair("id").await?;
 
-    Client::new(payer).send_fat_instruction_with_signers_and_transaction_cb(
-        turnstile::fat_instruction::Coin::new(
-            turnstile::instruction::Coin,
-            turnstile::accounts::UpdateState { 
-                state: reader.pubkey("state").await?
-            }
-        ),
-        None,
-        |tx| println!("Coin transaction slot: {}", tx.slot),
-    ).await?
+    // Client::new(payer).send_fat_instruction_with_signers_and_transaction_cb(
+    //     turnstile::fat_instruction::Coin::new(
+    //         turnstile::instruction::Coin,
+    //         turnstile::accounts::UpdateState { 
+    //             state: reader.pubkey("state").await?
+    //         }
+    //     ),
+    //     None,
+    //     |tx| println!("Coin transaction slot: {}", tx.slot),
+    // ).await?
 }
 
 #[throws]
@@ -142,11 +142,11 @@ async fn push_client() {
     let reader = Reader::new();
     let payer = reader.keypair("id").await?;
 
-    Client::new(payer).send_fat_instruction(turnstile::fat_instruction::Push::new(
-        turnstile::instruction::Push,
-        turnstile::accounts::UpdateState { 
-            state: reader.pubkey("state").await?
-        }
-    )).await?
+    // Client::new(payer).send_fat_instruction(turnstile::fat_instruction::Push::new(
+    //     turnstile::instruction::Push,
+    //     turnstile::accounts::UpdateState { 
+    //         state: reader.pubkey("state").await?
+    //     }
+    // )).await?
 }
 
