@@ -20,3 +20,6 @@ ed25519-dalek = "1.0.1"
 serial_test = "0.5.1"
 anyhow = { version = "1.0.45", features = ["std"], default-features = false }
 cargo_metadata = "0.14.1"
+syn = "1.0.85"
+quote = "1.0.14"
+heck = { version = "0.4.0", default-features = false }
