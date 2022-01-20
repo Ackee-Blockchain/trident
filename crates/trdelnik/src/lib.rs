@@ -25,3 +25,5 @@ pub use commander::{Commander, LocalnetHandle};
 
 mod tester;
 pub use tester::Tester;
+
+mod idl;
