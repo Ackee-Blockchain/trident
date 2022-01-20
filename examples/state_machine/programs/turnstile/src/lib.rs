@@ -17,7 +17,7 @@ pub mod turnstile {
         Ok(())
     }
     
-    pub fn coin(ctx: Context<UpdateState>) -> ProgramResult {
+    pub fn coin(ctx: Context<UpdateState>, dummy_arg: String) -> ProgramResult {
         let state = &mut ctx.accounts.state;
         state.locked = false;
         Ok(())
