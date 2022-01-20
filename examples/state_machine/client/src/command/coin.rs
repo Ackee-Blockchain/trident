@@ -8,7 +8,7 @@ pub async fn coin() {
     let payer = reader.keypair("id").await?;
     Client::new(payer).send_instruction(
         reader.pubkey("program").await?,
-        turnstile::instruction::Coin,
+        turnstile::instruction::Coin { dummy_arg: "something".to_owned() },
         turnstile::accounts::UpdateState { 
             state: reader.pubkey("state").await?
         },

@@ -139,92 +139,6 @@ impl Commander {
     }
 }
 
-
-// pub static ID: anchor_lang::solana_program::pubkey::Pubkey =
-//     anchor_lang::solana_program::pubkey::Pubkey::new_from_array([216u8, 55u8,
-//                                                                  200u8, 93u8,
-//                                                                  189u8, 81u8,
-//                                                                  94u8, 109u8,
-//                                                                  14u8, 249u8,
-//                                                                  244u8, 106u8,
-//                                                                  68u8, 214u8,
-//                                                                  222u8, 190u8,
-//                                                                  9u8, 25u8,
-//                                                                  199u8, 75u8,
-//                                                                  79u8, 230u8,
-//                                                                  94u8, 137u8,
-//                                                                  51u8, 187u8,
-//                                                                  193u8, 48u8,
-//                                                                  87u8, 222u8,
-//                                                                  175u8,
-//                                                                  163u8]);
-// // **
-// mod __private {
-//     pub mod __global {
-//         use super::*;
-//         #[inline(never)]
-//         pub fn initialize(program_id: &Pubkey, accounts: &[AccountInfo],
-//                           ix_data: &[u8]) -> ProgramResult {
-//             let ix =
-//                 instruction::Initialize::deserialize(&mut &ix_data[..]).map_err(|_|
-//                                                                                     anchor_lang::__private::ErrorCode::InstructionDidNotDeserialize)?;
-//             let instruction::Initialize = ix;
-//             let mut remaining_accounts: &[AccountInfo] = accounts;
-//             let mut accounts =
-//                 Initialize::try_accounts(program_id, &mut remaining_accounts,
-//                                          ix_data)?;
-//             turnstile::initialize(Context::new(program_id, &mut accounts,
-//                                                remaining_accounts))?;
-//             accounts.exit(program_id)
-//         }
-//         #[inline(never)]
-//         pub fn coin(program_id: &Pubkey, accounts: &[AccountInfo],
-//                     ix_data: &[u8]) -> ProgramResult {
-//             let ix =
-//                 instruction::Coin::deserialize(&mut &ix_data[..]).map_err(|_|
-//                                                                               anchor_lang::__private::ErrorCode::InstructionDidNotDeserialize)?;
-//             let instruction::Coin = ix;
-//             let mut remaining_accounts: &[AccountInfo] = accounts;
-//             let mut accounts =
-//                 UpdateState::try_accounts(program_id, &mut remaining_accounts,
-//                                           ix_data)?;
-//             turnstile::coin(Context::new(program_id, &mut accounts,
-//                                          remaining_accounts))?;
-//             accounts.exit(program_id)
-//         }
-// // **
-// pub mod instruction {
-//     use super::*;
-//     pub mod state {
-//         use super::*;
-//     }
-// // **
-//     pub struct Initialize;
-// // **
-//     pub struct Coin;
-// // **
-// pub mod accounts {
-//     pub use crate::__client_accounts_update_state::*;
-//     pub use crate::__client_accounts_initialize::*;
-// }
-// // **
-// pub(crate) mod __client_accounts_initialize {
-//     use super::*;
-//     use anchor_lang::prelude::borsh;
-//     pub struct Initialize {
-//         pub state: anchor_lang::solana_program::pubkey::Pubkey,
-//         pub user: anchor_lang::solana_program::pubkey::Pubkey,
-//         pub system_program: anchor_lang::solana_program::pubkey::Pubkey,
-//     }
-// // **
-// pub(crate) mod __client_accounts_update_state {
-//     use super::*;
-//     use anchor_lang::prelude::borsh;
-//     pub struct UpdateState {
-//         pub state: anchor_lang::solana_program::pubkey::Pubkey,
-//     }
-// // **
-
 #[derive(Debug)]
 struct Idl {
     programs: Vec<IdlProgram>
@@ -255,12 +169,32 @@ struct IdlAccountGroup {
     accounts: Vec<(String, String)>
 }
 
-// #[throws]
-// async fn parse_to_idl_program(name: String, code: &str) -> Idl {
 async fn parse_to_idl_program(name: String, code: &str) -> Result<IdlProgram, Error> {
     let mut root_items = syn::parse_file(&code)?.items.into_iter();
 
     // ------ get program id ------
+
+    // input example:
+    // ```
+    // pub static ID: anchor_lang::solana_program::pubkey::Pubkey =
+    //     anchor_lang::solana_program::pubkey::Pubkey::new_from_array([216u8, 55u8,
+    //                                                                  200u8, 93u8,
+    //                                                                  189u8, 81u8,
+    //                                                                  94u8, 109u8,
+    //                                                                  14u8, 249u8,
+    //                                                                  244u8, 106u8,
+    //                                                                  68u8, 214u8,
+    //                                                                  222u8, 190u8,
+    //                                                                  9u8, 25u8,
+    //                                                                  199u8, 75u8,
+    //                                                                  79u8, 230u8,
+    //                                                                  94u8, 137u8,
+    //                                                                  51u8, 187u8,
+    //                                                                  193u8, 48u8,
+    //                                                                  87u8, 222u8,
+    //                                                                  175u8,
+    //                                                                  163u8]);
+    // ```
 
     let program_id_bytes = root_items.find_map(|item| {
         let item_static = match item {
@@ -279,6 +213,28 @@ async fn parse_to_idl_program(name: String, code: &str) -> Result<IdlProgram, Er
     }).ok_or_else(|| Error::MissingOrInvalidProgramItems("static ID"))?;
 
     // ------ get instruction_item_fns ------
+
+    // input example:
+    // ```
+    // mod __private {
+    //     pub mod __global {
+    //         use super::*;
+    //         #[inline(never)]
+    //         pub fn initialize(program_id: &Pubkey, accounts: &[AccountInfo],
+    //                           ix_data: &[u8]) -> ProgramResult {
+    //             let ix =
+    //                 instruction::Initialize::deserialize(&mut &ix_data[..]).map_err(|_|
+    //                                                                                     anchor_lang::__private::ErrorCode::InstructionDidNotDeserialize)?;
+    //             let instruction::Initialize = ix;
+    //             let mut remaining_accounts: &[AccountInfo] = accounts;
+    //             let mut accounts =
+    //                 Initialize::try_accounts(program_id, &mut remaining_accounts,
+    //                                          ix_data)?;
+    //             turnstile::initialize(Context::new(program_id, &mut accounts,
+    //                                                remaining_accounts))?;
+    //             accounts.exit(program_id)
+    //         }
+    // ```
 
     let instruction_item_fns = root_items.find_map(|item| {
         let item_mod_private = match item {
@@ -304,6 +260,24 @@ async fn parse_to_idl_program(name: String, code: &str) -> Result<IdlProgram, Er
     }).ok_or_else(|| Error::MissingOrInvalidProgramItems("_private + __global modules"))?;
 
     // ------ get instruction + account group names ------
+
+    // input example:
+    // ```
+    //         pub fn initialize(program_id: &Pubkey, accounts: &[AccountInfo],
+    //                           ix_data: &[u8]) -> ProgramResult {
+    //             let ix =
+    //                 instruction::Initialize::deserialize(&mut &ix_data[..]).map_err(|_|
+    //                                                                                     anchor_lang::__private::ErrorCode::InstructionDidNotDeserialize)?;
+    //             let instruction::Initialize = ix;
+    //             let mut remaining_accounts: &[AccountInfo] = accounts;
+    //             let mut accounts =
+    //                 Initialize::try_accounts(program_id, &mut remaining_accounts,
+    //                                          ix_data)?;
+    //             turnstile::initialize(Context::new(program_id, &mut accounts,
+    //                                                remaining_accounts))?;
+    //             accounts.exit(program_id)
+    //         }
+    // ```
 
     let mut instruction_account_pairs = Vec::new();
     instruction_item_fns.into_iter().map(|item_fn| {
@@ -358,6 +332,53 @@ async fn parse_to_idl_program(name: String, code: &str) -> Result<IdlProgram, Er
     })?;
 
     // ------ get instruction parameters ------
+
+    // input example:
+    // ```
+    // pub mod instruction {
+    //     use super::*;
+    //     pub mod state {
+    //         use super::*;
+    //     }
+    // // **
+    //     pub struct Initialize;
+    // // **
+    //     pub struct Coin {
+    //         pub dummy_arg: String,   
+    //     }
+    // ```
+
+    let mut instruction_mod_items = root_items.find_map(|item| {
+        match item {
+            syn::Item::Mod(item_mod) if item_mod.ident == "instruction" => {
+                Some(item_mod.content?.1.into_iter())
+            }
+            _ => None,
+        }
+    }).ok_or_else(|| Error::MissingOrInvalidProgramItems("instruction mod"))?;
+
+    for (idl_instruction, _) in &mut instruction_account_pairs {
+        let instruction_struct_name = &idl_instruction.name.upper_camel_case;
+
+        let instruction_item_struct_fields = instruction_mod_items.find_map(|item| {
+            let instruction_item_struct = match item {
+                syn::Item::Struct(item_struct) if item_struct.ident == instruction_struct_name => item_struct,
+                _ => None?,
+            };
+            let fields = match instruction_item_struct.fields {
+                syn::Fields::Named(fields_named) => fields_named.named,
+                syn::Fields::Unit => syn::punctuated::Punctuated::new(),
+                syn::Fields::Unnamed(_) => None?, 
+            };
+            Some(fields.into_iter())
+        }).ok_or_else(|| Error::MissingOrInvalidProgramItems("instruction struct"))?;
+
+        idl_instruction.parameters = instruction_item_struct_fields.map(|field| {
+            let parameter_name = field.ident.unwrap().to_string();
+            let parameter_id_type = field.ty.into_token_stream().to_string();
+            (parameter_name, parameter_id_type)
+        }).collect();
+    }
 
     // ------ get accounts ------
 
