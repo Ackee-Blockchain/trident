@@ -1,5 +1,5 @@
 use thiserror::Error;
-use quote::{quote, ToTokens};
+use quote::ToTokens;
 use heck::{ToUpperCamelCase, ToSnakeCase};
 use std::collections::BTreeMap;
 

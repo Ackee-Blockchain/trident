@@ -1,0 +1,152 @@
+use quote::{format_ident, ToTokens};
+use syn::{parse_quote, parse_str};
+use crate::idl::Idl;
+
+// example:
+// ```
+// // DO NOT EDIT - automatically generated file
+// pub mod turnstile_instruction {
+//     use trdelnik::*;
+//     pub static PROGRAM_ID: Pubkey = Pubkey::new_from_array([
+//         216u8, 55u8, 200u8, 93u8, 189u8, 81u8, 94u8, 109u8, 14u8, 249u8, 244u8, 106u8, 68u8, 214u8,
+//         222u8, 190u8, 9u8, 25u8, 199u8, 75u8, 79u8, 230u8, 94u8, 137u8, 51u8, 187u8, 193u8, 48u8,
+//         87u8, 222u8, 175u8, 163u8,
+//     ]);
+//     pub async fn initialize(
+//         client: &Client,
+//         a_state: anchor_lang::solana_program::pubkey::Pubkey,
+//         a_user: anchor_lang::solana_program::pubkey::Pubkey,
+//         a_system_program: anchor_lang::solana_program::pubkey::Pubkey,
+//         signers: impl IntoIterator<Item = Keypair> + Send + 'static,
+//     ) -> Result<Signature, ClientError> {
+//         Ok(client
+//             .send_instruction(
+//                 PROGRAM_ID,
+//                 turnstile::instruction::Initialize {},
+//                 turnstile::accounts::Initialize {
+//                     state: a_state,
+//                     user: a_user,
+//                     system_program: a_system_program,
+//                 },
+//                 signers,
+//             )
+//             .await?)
+//     }
+//     pub async fn coin(
+//         client: &Client,
+//         i_dummy_arg: String,
+//         a_state: anchor_lang::solana_program::pubkey::Pubkey,
+//         signers: impl IntoIterator<Item = Keypair> + Send + 'static,
+//     ) -> Result<Signature, ClientError> {
+//         Ok(client
+//             .send_instruction(
+//                 PROGRAM_ID,
+//                 turnstile::instruction::Coin {
+//                     dummy_arg: i_dummy_arg,
+//                 },
+//                 turnstile::accounts::UpdateState { state: a_state },
+//                 signers,
+//             )
+//             .await?)
+//     }
+//     pub async fn push(
+//         client: &Client,
+//         a_state: anchor_lang::solana_program::pubkey::Pubkey,
+//         signers: impl IntoIterator<Item = Keypair> + Send + 'static,
+//     ) -> Result<Signature, ClientError> {
+//         Ok(client
+//             .send_instruction(
+//                 PROGRAM_ID,
+//                 turnstile::instruction::Push {},
+//                 turnstile::accounts::UpdateState { state: a_state },
+//                 signers,
+//             )
+//             .await?)
+//     }
+// }
+// ```
+
+pub fn generate_source_code(idl: Idl) -> String {
+    let mut output = "// DO NOT EDIT - automatically generated file\n".to_owned();
+    let code = idl.programs.into_iter().map(|idl_program| {
+        let instruction_module_name = format_ident!("{}_instruction", idl_program.name.snake_case);
+        let module_name: syn::Ident = parse_str(&idl_program.name.snake_case).unwrap();
+        let pubkey_bytes: syn::ExprArray = parse_str(&idl_program.id).unwrap(); 
+        
+        let instructions = idl_program.instruction_account_pairs
+            .into_iter()
+            .map(|(idl_instruction, idl_account_group)| {
+                let instruction_fn_name: syn::Ident = parse_str(&idl_instruction.name.snake_case).unwrap();
+                let instruction_struct_name: syn::Ident = parse_str(&idl_instruction.name.upper_camel_case).unwrap();
+                let account_struct_name: syn::Ident = parse_str(&idl_account_group.name.upper_camel_case).unwrap();
+
+                let parameters = idl_instruction.parameters
+                    .iter()
+                    .map(|(name, ty)| {
+                        let name = format_ident!("i_{name}");
+                        let ty: syn::Type = parse_str(ty).unwrap();
+                        let parameter: syn::FnArg = parse_quote!(#name: #ty);
+                        parameter
+                    });
+
+                let accounts = idl_account_group.accounts
+                    .iter()
+                    .map(|(name, ty)| {
+                        let name = format_ident!("a_{name}");
+                        let ty: syn::Type = parse_str(ty).unwrap();
+                        let account: syn::FnArg = parse_quote!(#name: #ty);
+                        account
+                    });
+
+                let field_parameters = idl_instruction.parameters
+                    .iter()
+                    .map(|(name, _)| {
+                        let name: syn::Ident = parse_str(name).unwrap();
+                        let value = format_ident!("i_{name}");
+                        let parameter: syn::FieldValue = parse_quote!(#name: #value);
+                        parameter
+                    });
+
+                let field_accounts = idl_account_group.accounts
+                    .iter()
+                    .map(|(name, _)| {
+                        let name: syn::Ident = parse_str(name).unwrap();
+                        let value = format_ident!("a_{name}");
+                        let account: syn::FieldValue = parse_quote!(#name: #value);
+                        account
+                    });
+
+                let instruction: syn::ItemFn = parse_quote! {
+                    pub async fn #instruction_fn_name(
+                        client: &Client,
+                        #(#parameters,)*
+                        #(#accounts,)*
+                        signers: impl IntoIterator<Item = Keypair> + Send + 'static,
+                    ) -> Result<Signature, ClientError> {
+                        Ok(client.send_instruction(
+                            PROGRAM_ID,
+                            #module_name::instruction::#instruction_struct_name { 
+                                #(#field_parameters,)*
+                            },
+                            #module_name::accounts::#account_struct_name { 
+                                #(#field_accounts,)*
+                            },
+                            signers,
+                        ).await?)
+                    }
+                };
+                instruction
+            });
+
+        let program_module: syn::ItemMod = parse_quote! {
+            pub mod #instruction_module_name {
+                use trdelnik::*;
+                pub static PROGRAM_ID: Pubkey = Pubkey::new_from_array(#pubkey_bytes);
+                #(#instructions)*
+            }
+        };
+        program_module.into_token_stream().to_string()
+    }).collect::<String>();
+    output.push_str(&code);
+    output
+}

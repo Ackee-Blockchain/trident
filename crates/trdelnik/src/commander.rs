@@ -1,12 +1,11 @@
 use fehler::throws;
 use thiserror::Error;
-use tokio::{process::{Command, Child}};
-use std::{borrow::Cow, io, string::FromUtf8Error};
+use tokio::{process::{Command, Child}, io::AsyncWriteExt, fs};
+use std::{borrow::Cow, io, string::FromUtf8Error, process::Stdio, path::Path};
 use solana_sdk::signer::keypair::Keypair;
-use tokio::fs;
 use cargo_metadata::MetadataCommand;
 use futures::future::try_join_all;
-use crate::{idl::{self, Idl}, Client};
+use crate::{idl::{self, Idl}, Client, program_client_generator};
 
 #[derive(Error, Debug)]
 pub enum Error {
@@ -78,7 +77,7 @@ impl Commander {
     }
 
     #[throws]
-    pub async fn generate_idls(&self) {
+    pub async fn generate_program_client_lib_rs(&self) {
         let cargo_toml_data = MetadataCommand::new()
             .no_deps()
             .exec()
@@ -98,7 +97,7 @@ impl Commander {
             let output = Command::new("cargo")
                 .arg("+nightly")
                 .arg("rustc")
-                .args(&["--package", &name])
+                .args(["--package", &name])
                 .arg("--profile=check")
                 .arg("--")
                 .arg("-Zunpretty=expanded")
@@ -115,7 +114,22 @@ impl Commander {
         let idl = Idl {
             programs: try_join_all(idl_programs).await?
         };
-        println!("{idl:#?}");
+        let program_client = program_client_generator::generate_source_code(idl);
+
+        let mut rustfmt = Command::new("rustfmt")
+            .args(["--edition", "2018"])
+            .kill_on_drop(true)
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .spawn()?;
+        if let Some(stdio) = &mut rustfmt.stdin {
+            stdio.write_all(program_client.as_bytes()).await?;
+        }
+        let output = rustfmt.wait_with_output().await?;
+        let program_client = String::from_utf8(output.stdout)?;
+
+        let rust_file_path = Path::new(self.root.as_ref()).join("program_client/src/lib.rs"); 
+        fs::write(rust_file_path, &program_client).await?;
     }
 
     #[throws]
