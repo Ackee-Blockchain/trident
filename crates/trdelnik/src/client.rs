@@ -21,20 +21,27 @@ use std::{time::Duration, thread::sleep};
 use futures::future::try_join_all;
 use fehler::throws;
 use trdelnik_program::FatInstruction;
+use crate::TempClone;
 
 pub struct Client {
-    anchor_client: AnchorClient
+    payer: Keypair,
+    anchor_client: AnchorClient,
 }
 
 impl Client {
     pub fn new(payer: Keypair) -> Self {
         Self {
+            payer: payer.clone(),
             anchor_client: AnchorClient::new_with_options(
                 Cluster::Localnet,
                 payer,
                 CommitmentConfig::confirmed(),
             )
         }
+    }
+
+    pub fn payer(&self) -> &Keypair {
+        &self.payer
     }
 
     pub fn anchor_client(&self) -> &AnchorClient {
@@ -228,7 +235,7 @@ impl Client {
                 chunk.to_vec(),
             );
             let system_program = self.anchor_client.program(System::id());
-            futures.push(async {
+            futures.push(async move {
                 task::spawn_blocking(move || {
                     system_program
                         .request()
@@ -254,5 +261,7 @@ impl Client {
                 .signer(&program_keypair)
                 .send()
         }).await.expect("finalize program account task failed")?;
+
+        println!("program deployed");
     }
 }

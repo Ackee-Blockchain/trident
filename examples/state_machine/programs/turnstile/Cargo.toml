@@ -16,7 +16,7 @@ cpi = ["no-entrypoint"]
 default = []
 
 [dependencies]
-anchor-lang = "0.18.0"
+anchor-lang = "0.18.2"
 trdelnik_program = { path = "../../../../crates/trdelnik_program" }
 
 [dev-dependencies]

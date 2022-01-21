@@ -1,6 +1,7 @@
 use trdelnik::*;
 use fehler::throws;
 use program_client::turnstile_instruction;
+use std::mem;
 
 #[trdelnik_test]
 async fn test_turnstile() {
@@ -39,16 +40,19 @@ impl Turnstile {
     #[throws]
     async fn initialize(&mut self) {
         println!("AIRDROP");
-        self.client.airdrop(self.client.payer_pubkey(), 5_000_000_000).await?;
+        self.client.airdrop(self.client.payer().pubkey(), 5_000_000_000).await?;
 
         println!("DEPLOY");
-        self.client.deploy(self.program.clone(), self.program_data).await?;
+        self.client.deploy(
+            self.program.clone(), 
+            mem::take(&mut self.program_data)
+        ).await?;
 
         println!("INIT STATE");
         turnstile_instruction::initialize(
             &self.client, 
             self.state.pubkey(), 
-            self.client.payer_pubkey(), 
+            self.client.payer().pubkey(), 
             System::id(), 
             Some(self.state.clone()),
         ).await?;
