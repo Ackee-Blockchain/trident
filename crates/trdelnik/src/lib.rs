@@ -1,7 +1,8 @@
 pub use anchor_client::{
     self,
-    anchor_lang::{System, Id},
+    anchor_lang::{self, System, Id},
     solana_sdk::{
+        self,
         signer::{Signer, keypair::Keypair},
         pubkey::Pubkey,
         signature::Signature,
@@ -32,3 +33,4 @@ mod temp_clone;
 pub use temp_clone::TempClone;
 
 mod idl;
+mod program_client_generator;

@@ -15,8 +15,11 @@ impl Tester {
         println!("____ BEFORE TEST ____");
         let commander = Commander::new();
         commander.build_programs().await?;
-        // commander.generate_idls().await?;
-        // panic!("idls generated, ending, @TODO remove me");
+        // @TODO: the `generate_program_client_lib_rs` method has to be run through
+        // Trdelnik CLI (as a part of `trdelnik test`?) to generate the `lib.rs`
+        // code before compiler tries to compile tests.
+        // Note: It can't be run in `build.rs` otherwise it causes cargo deadlocks.
+        commander.generate_program_client_lib_rs().await?;
         commander.start_localnet().await?
     }
 
