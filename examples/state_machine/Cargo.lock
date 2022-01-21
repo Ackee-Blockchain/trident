@@ -3718,6 +3718,7 @@ version = "0.1.0"
 dependencies = [
  "anchor-lang",
  "fehler",
+ "program_client",
  "trdelnik",
  "trdelnik_program",
 ]

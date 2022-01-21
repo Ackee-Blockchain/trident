@@ -22,3 +22,4 @@ trdelnik_program = { path = "../../../../crates/trdelnik_program" }
 [dev-dependencies]
 fehler = "1.0.0"
 trdelnik = { path = "../../../../crates/trdelnik" }
+program_client = { path = "../../program_client" }
