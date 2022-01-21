@@ -4,7 +4,9 @@ pub use anchor_client::{
     solana_sdk::{
         signer::{Signer, keypair::Keypair},
         pubkey::Pubkey,
+        signature::Signature,
     }, 
+    ClientError,
 };
 pub use trdelnik_test::trdelnik_test;
 pub use trdelnik_program::FatInstruction;
