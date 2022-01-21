@@ -1,5 +1,5 @@
 [workspace]
 members = [
     "programs/*",
-    "client",
+    "program_client",
 ]

@@ -1,0 +1,10 @@
+[package]
+name = "program_client"
+version = "0.1.0"
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+turnstile = { path = "../programs/turnstile", features = ["no-entrypoint"] }
+trdelnik = { path = "../../../crates/trdelnik" }
