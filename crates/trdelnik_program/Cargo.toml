@@ -7,4 +7,4 @@ edition = "2018"
 
 [dependencies]
 trdelnik_program_macros = { path = "../trdelnik_program_macros" }
-anchor-lang = "0.18.0"
+anchor-lang = "0.18.2"

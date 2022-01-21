@@ -64,6 +64,10 @@ impl Commander {
     pub async fn build_programs(&self) {
         let success = Command::new("cargo")
             .arg("build-bpf")
+            .arg("--")
+            // prevent prevent dependency loop:
+            // program tests -> program_client -> program
+            .args(["-Z", "avoid-dev-deps"])
             .spawn()?
             .wait()
             .await?

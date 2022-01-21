@@ -5,7 +5,6 @@ use anchor_lang::{
 
 declare_id!("FZ2Q3Bpdg3mgoSjRi8xsPgycgVDgFNGQ77SErk8mCaki");
 
-// #[trdelnik_program::program]
 #[program]
 pub mod turnstile {
     use super::*;
@@ -17,6 +16,7 @@ pub mod turnstile {
         Ok(())
     }
     
+    #[allow(unused_variables)]
     pub fn coin(ctx: Context<UpdateState>, dummy_arg: String) -> ProgramResult {
         let state = &mut ctx.accounts.state;
         state.locked = false;

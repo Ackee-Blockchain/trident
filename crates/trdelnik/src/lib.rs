@@ -28,4 +28,7 @@ pub use commander::{Commander, LocalnetHandle};
 mod tester;
 pub use tester::Tester;
 
+mod temp_clone;
+pub use temp_clone::TempClone;
+
 mod idl;
