@@ -1,11 +1,12 @@
 pub use anchor_client::{
     self,
-    anchor_lang::{self, System, Id},
+    anchor_lang::{self, System, Id, InstructionData, ToAccountMetas},
     solana_sdk::{
         self,
         signer::{Signer, keypair::Keypair},
         pubkey::Pubkey,
         signature::Signature,
+        instruction::Instruction,
     }, 
     ClientError,
 };
@@ -19,6 +20,7 @@ pub use futures::{self, FutureExt};
 
 mod client;
 pub use client::Client;
+pub use client::PrintableTransaction;
 
 mod reader;
 pub use reader::Reader;

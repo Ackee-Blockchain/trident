@@ -13,9 +13,12 @@ use anchor_client::{
         signer::{Signer, keypair::Keypair},
         pubkey::Pubkey,
         signature::Signature,
+        instruction::Instruction,
+        transaction::Transaction,
     }
 };
 use solana_transaction_status::{UiTransactionEncoding, EncodedConfirmedTransaction};
+use solana_cli_output::display::println_transaction;
 use tokio::task;
 use std::{time::Duration, thread::sleep};
 use futures::future::try_join_all;
@@ -131,6 +134,40 @@ impl Client {
         transaction_cb(transaction);
 
         signature
+    }
+
+    #[throws]
+    pub async fn send_transaction(
+        &self,
+        instructions: &[Instruction],
+        signers: impl IntoIterator<Item = &Keypair> + Send,
+    ) -> EncodedConfirmedTransaction {
+        let rpc_client = self.anchor_client.program(System::id()).rpc();
+        let mut signers = signers.into_iter().collect::<Vec<_>>();
+        signers.push(self.payer());
+        
+        let tx =
+            &Transaction::new_signed_with_payer(
+                instructions,
+                Some(&self.payer.pubkey()),
+                &signers,
+                rpc_client.get_recent_blockhash()
+                    .expect("Error while getting recent blockhash")
+                    .0,
+            );
+        // @TODO make this call async with task::spawn_blocking
+        let signature = rpc_client.send_and_confirm_transaction(tx)?;
+        let transaction = task::spawn_blocking(move || {
+            rpc_client.get_transaction_with_config(
+                &signature,
+                RpcTransactionConfig {
+                    encoding: Some(UiTransactionEncoding::Binary),
+                    commitment: Some(CommitmentConfig::confirmed()),
+                }
+            )
+        }).await.expect("get transaction task failed")?;
+        
+        transaction
     }
 
     #[throws]
@@ -263,5 +300,24 @@ impl Client {
         }).await.expect("finalize program account task failed")?;
 
         println!("program deployed");
+    }
+}
+
+/// Utility trait for printing transaction results.
+pub trait PrintableTransaction {
+    /// Pretty print the transaction results, tagged with the given name for distinguishability.
+    fn print_named(&self, name: &str);
+
+    /// Pretty print the transaction results.
+    fn print(&self) {
+        self.print_named("");
+    }
+}
+
+impl PrintableTransaction for EncodedConfirmedTransaction {
+    fn print_named(&self, name: &str) {
+        let tx = self.transaction.transaction.decode().unwrap();
+        println!("EXECUTE {} (slot {})", name, self.slot);
+        println_transaction(&tx, &self.transaction.meta, "  ", None, None);
     }
 }
