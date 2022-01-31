@@ -1,5 +1,8 @@
 use anchor_client::{
-    anchor_lang::{ToAccountMetas, InstructionData, AccountDeserialize, System, Id},
+    anchor_lang::{
+        solana_program::program_pack::Pack,
+        ToAccountMetas, InstructionData, AccountDeserialize, System, Id
+    },
     Client as AnchorClient, 
     Cluster,
     solana_client::{client_error::ClientErrorKind, rpc_config::RpcTransactionConfig},
@@ -12,14 +15,19 @@ use anchor_client::{
         system_instruction,
         signer::{Signer, keypair::Keypair},
         pubkey::Pubkey,
-        signature::Signature,
+        instruction::Instruction,
+        transaction::Transaction,
+        account::Account,
     }
 };
 use solana_transaction_status::{UiTransactionEncoding, EncodedConfirmedTransaction};
+use solana_cli_output::display::println_transaction;
 use tokio::task;
 use std::{time::Duration, thread::sleep};
 use futures::future::try_join_all;
 use fehler::throws;
+use spl_token;
+use spl_associated_token_account::get_associated_token_address;
 use crate::TempClone;
 
 pub struct Client {
@@ -80,15 +88,24 @@ impl Client {
     }
 
     #[throws]
+    pub async fn get_account(&self, account: Pubkey) -> Option<Account> {
+        let rpc_client = self.anchor_client.program(System::id()).rpc();
+        rpc_client
+            .get_account_with_commitment(&account, rpc_client.commitment())
+            .unwrap()
+            .value
+    }
+
+    #[throws]
     pub async fn send_instruction(
         &self, 
         program: Pubkey,
         instruction: impl InstructionData + Send + 'static,
         accounts: impl ToAccountMetas + Send + 'static,
         signers: impl IntoIterator<Item = Keypair> + Send + 'static,
-    ) -> Signature {
+    ) -> EncodedConfirmedTransaction {
         let program = self.program(program);
-        task::spawn_blocking(move || {
+        let signature = task::spawn_blocking(move || {
             let mut request = program
                 .request()
                 .args(instruction)
@@ -98,38 +115,52 @@ impl Client {
                 request = request.signer(signer);
             }
             request.send()
-        }).await.expect("send instruction task failed")?
-    }
-
-    #[throws]
-    pub async fn send_instruction_with_transaction_cb(
-        &self, 
-        program: Pubkey,
-        instruction: impl InstructionData + Send + 'static,
-        accounts: impl ToAccountMetas + Send + 'static,
-        signers: impl IntoIterator<Item = Keypair> + Send + 'static,
-        transaction_cb: impl FnOnce(EncodedConfirmedTransaction),
-    ) -> Signature {
-        let signature = self.send_instruction(
-            program,
-            instruction,
-            accounts,
-            signers,
-        ).await?;
+        }).await.expect("send instruction task failed")?;
 
         let rpc_client = self.anchor_client.program(System::id()).rpc();
-        let transaction = task::spawn_blocking(move || {
+        task::spawn_blocking(move || {
             rpc_client.get_transaction_with_config(
                 &signature, 
                 RpcTransactionConfig {
-                    encoding: Some(UiTransactionEncoding::JsonParsed),
+                    encoding: Some(UiTransactionEncoding::Binary),
+                    commitment: Some(CommitmentConfig::confirmed()),
+                }
+            )
+        }).await.expect("get transaction task failed")?
+    }
+
+    #[throws]
+    pub async fn send_transaction(
+        &self,
+        instructions: &[Instruction],
+        signers: impl IntoIterator<Item = &Keypair> + Send,
+    ) -> EncodedConfirmedTransaction {
+        let rpc_client = self.anchor_client.program(System::id()).rpc();
+        let mut signers = signers.into_iter().collect::<Vec<_>>();
+        signers.push(self.payer());
+        
+        let tx =
+            &Transaction::new_signed_with_payer(
+                instructions,
+                Some(&self.payer.pubkey()),
+                &signers,
+                rpc_client.get_recent_blockhash()
+                    .expect("Error while getting recent blockhash")
+                    .0,
+            );
+        // @TODO make this call async with task::spawn_blocking
+        let signature = rpc_client.send_and_confirm_transaction(tx)?;
+        let transaction = task::spawn_blocking(move || {
+            rpc_client.get_transaction_with_config(
+                &signature,
+                RpcTransactionConfig {
+                    encoding: Some(UiTransactionEncoding::Binary),
                     commitment: Some(CommitmentConfig::confirmed()),
                 }
             )
         }).await.expect("get transaction task failed")?;
-        transaction_cb(transaction);
-
-        signature
+        
+        transaction
     }
 
     #[throws]
@@ -231,5 +262,208 @@ impl Client {
         }).await.expect("finalize program account task failed")?;
 
         println!("program deployed");
+    }
+
+    #[throws]
+    pub async fn create_account(
+        &self, 
+        keypair: &Keypair, 
+        lamports: u64, 
+        space: u64, 
+        owner: &Pubkey
+    ) -> EncodedConfirmedTransaction {
+        self.send_transaction(
+            &[system_instruction::create_account(
+                &self.payer().pubkey(), 
+                &keypair.pubkey(), 
+                lamports, 
+                space, 
+                owner)
+            ],
+            [keypair]
+        ).await?
+    }
+
+    #[throws]
+    pub async fn create_account_rent_exempt(
+        &mut self, 
+        keypair: &Keypair, 
+        space: u64, 
+        owner: &Pubkey
+    ) -> EncodedConfirmedTransaction { 
+        let rpc_client = self.anchor_client.program(System::id()).rpc();
+        self.send_transaction(
+            &[system_instruction::create_account(
+                &self.payer().pubkey(), 
+                &keypair.pubkey(), 
+                rpc_client.get_minimum_balance_for_rent_exemption(space as usize)?,
+                space, 
+                owner)
+            ],
+            [keypair]
+        ).await?
+    }
+
+    /// Executes a transaction constructing a token mint.
+    #[throws]
+    pub async fn create_token_mint(
+        &self,
+        mint: &Keypair,
+        authority: Pubkey,
+        freeze_authority: Option<Pubkey>,
+        decimals: u8,
+    ) -> EncodedConfirmedTransaction {
+        let rpc_client = self.anchor_client.program(System::id()).rpc();
+        self.send_transaction(
+            &[
+                system_instruction::create_account(
+                    &self.payer().pubkey(),
+                    &mint.pubkey(),
+                    rpc_client.get_minimum_balance_for_rent_exemption(spl_token::state::Mint::LEN)?,
+                    spl_token::state::Mint::LEN as u64,
+                    &spl_token::ID
+                ),
+                spl_token::instruction::initialize_mint(
+                    &spl_token::ID, 
+                    &mint.pubkey(), 
+                    &authority, 
+                    freeze_authority.as_ref(), 
+                    decimals
+                )
+                .unwrap()
+            ],
+            [mint]
+        ).await?
+    }
+
+    /// Executes a transaction that mints tokens from a mint to an account belonging to that mint.
+    #[throws]
+    pub async fn mint_tokens(
+        &self,
+        mint: Pubkey,
+        authority: &Keypair,
+        account: Pubkey,
+        amount: u64,
+    ) -> EncodedConfirmedTransaction {
+        self.send_transaction(
+            &[
+                spl_token::instruction::mint_to(
+                    &spl_token::ID,
+                    &mint,
+                    &account,
+                    &authority.pubkey(),
+                    &[], 
+                    amount,
+                )
+                .unwrap()
+            ], 
+            [authority]
+        ).await?
+    }
+
+    /// Executes a transaction constructing a token account of the specified mint. The account needs to be empty and belong to system for this to work.
+    /// Prefer to use [create_associated_token_account] if you don't need the provided account to contain the token account.
+    #[throws]
+    pub async fn create_token_account(
+        &self,
+        account: &Keypair,
+        mint: &Pubkey,
+        owner: &Pubkey,
+    ) -> EncodedConfirmedTransaction {
+        let rpc_client = self.anchor_client.program(System::id()).rpc();
+        self.send_transaction(
+            &[
+                system_instruction::create_account(
+                    &self.payer().pubkey(), 
+                    &account.pubkey(),
+                    rpc_client.get_minimum_balance_for_rent_exemption(spl_token::state::Account::LEN)?,
+                    spl_token::state::Account::LEN as u64,
+                    &spl_token::ID,
+                ),
+                spl_token::instruction::initialize_account(
+                    &spl_token::ID,
+                    &account.pubkey(),
+                    mint,
+                    owner,
+                )
+                .unwrap(),
+            ],
+            [account]
+        ).await?
+    }
+
+    /// Executes a transaction constructing the associated token account of the specified mint belonging to the owner. This will fail if the account already exists.
+    #[throws]
+    pub async fn create_associated_token_account(
+        &self,
+        owner: &Keypair, 
+        mint: Pubkey,
+    ) -> Pubkey {
+        self.send_transaction(
+            &[
+                spl_associated_token_account::create_associated_token_account(
+                    &self.payer().pubkey(),
+                    &owner.pubkey(),
+                    &mint,
+                ),
+            ],
+            &[],
+        ).await?;
+        get_associated_token_address(&owner.pubkey(), &mint)
+    }
+
+    /// Executes a transaction creating and filling the given account with the given data.
+    /// The account is required to be empty and will be owned by bpf_loader afterwards.
+    #[throws]
+    pub async fn create_account_with_data(&self, account: &Keypair, data: Vec<u8>) {
+        const DATA_CHUNK_SIZE: usize = 900;
+        
+        let rpc_client = self.anchor_client.program(System::id()).rpc();
+        self.send_transaction(
+            &[
+                system_instruction::create_account(
+                    &self.payer().pubkey(), 
+                    &account.pubkey(),
+                    rpc_client.get_minimum_balance_for_rent_exemption(data.len())?,
+                    data.len() as u64,
+                    &bpf_loader::id(),
+                )
+            ],
+            [account]
+        ).await?;
+
+        let mut offset = 0usize;
+        for chunk in data.chunks(DATA_CHUNK_SIZE) {
+            println!("writing bytes {} to {}", offset, offset + chunk.len());
+            self.send_transaction(
+                &[loader_instruction::write(
+                    &account.pubkey(),
+                    &bpf_loader::id(),
+                    offset as u32,
+                    chunk.to_vec(),
+                )],
+                [account],
+            ).await?;
+            offset += chunk.len();
+        }
+    }
+}
+
+/// Utility trait for printing transaction results.
+pub trait PrintableTransaction {
+    /// Pretty print the transaction results, tagged with the given name for distinguishability.
+    fn print_named(&self, name: &str);
+
+    /// Pretty print the transaction results.
+    fn print(&self) {
+        self.print_named("");
+    }
+}
+
+impl PrintableTransaction for EncodedConfirmedTransaction {
+    fn print_named(&self, name: &str) {
+        let tx = self.transaction.transaction.decode().unwrap();
+        println!("EXECUTE {} (slot {})", name, self.slot);
+        println_transaction(&tx, &self.transaction.meta, "  ", None, None);
     }
 }
