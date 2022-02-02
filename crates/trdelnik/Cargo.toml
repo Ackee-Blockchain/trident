@@ -7,7 +7,6 @@ edition = "2018"
 
 [dependencies]
 trdelnik_test = { path = "../trdelnik_test" }
-trdelnik_program = { path = "../trdelnik_program" }
 solana-transaction-status = "=1.8.12"
 anchor-client = "0.18.2"
 tokio = { version = "1.13.0", features = ["rt-multi-thread", "macros", "fs", "signal", "sync", "time", "io-util", "process"], default-features = false }

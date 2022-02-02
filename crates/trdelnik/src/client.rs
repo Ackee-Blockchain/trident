@@ -20,7 +20,6 @@ use tokio::task;
 use std::{time::Duration, thread::sleep};
 use futures::future::try_join_all;
 use fehler::throws;
-use trdelnik_program::FatInstruction;
 use crate::TempClone;
 
 pub struct Client {
@@ -131,37 +130,6 @@ impl Client {
         transaction_cb(transaction);
 
         signature
-    }
-
-    #[throws]
-    pub async fn send_fat_instruction<IX: FatInstruction>(
-        &self, 
-        instruction: IX,
-    ) -> Signature {
-        self.send_fat_instruction_with_signers(instruction, None).await?
-    }
-
-    #[throws]
-    pub async fn send_fat_instruction_with_signers<IX: FatInstruction>(
-        &self, 
-        instruction: IX,
-        signers: impl IntoIterator<Item = Keypair> + Send + 'static,
-    ) -> Signature {
-        let program = IX::program();
-        let (instruction, accounts) = instruction.into_instruction_and_accounts();
-        self.send_instruction(program, instruction, accounts, signers).await?
-    }
-
-    #[throws]
-    pub async fn send_fat_instruction_with_signers_and_transaction_cb<IX: FatInstruction>(
-        &self, 
-        instruction: IX,
-        signers: impl IntoIterator<Item = Keypair> + Send + 'static,
-        transaction_cb: impl FnOnce(EncodedConfirmedTransaction),
-    ) -> Signature {
-        let program = IX::program();
-        let (instruction, accounts) = instruction.into_instruction_and_accounts();
-        self.send_instruction_with_transaction_cb(program, instruction, accounts, signers, transaction_cb).await?
     }
 
     #[throws]
