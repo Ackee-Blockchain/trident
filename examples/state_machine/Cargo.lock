@@ -3702,26 +3702,7 @@ dependencies = [
  "syn 1.0.85",
  "thiserror",
  "tokio",
- "trdelnik_program",
  "trdelnik_test",
-]
-
-[[package]]
-name = "trdelnik_program"
-version = "0.1.0"
-dependencies = [
- "anchor-lang",
- "trdelnik_program_macros",
-]
-
-[[package]]
-name = "trdelnik_program_macros"
-version = "0.1.0"
-dependencies = [
- "heck 0.4.0",
- "proc-macro2 1.0.36",
- "quote 1.0.14",
- "syn 1.0.85",
 ]
 
 [[package]]
@@ -3768,7 +3749,6 @@ dependencies = [
  "fehler",
  "program_client",
  "trdelnik",
- "trdelnik_program",
 ]
 
 [[package]]

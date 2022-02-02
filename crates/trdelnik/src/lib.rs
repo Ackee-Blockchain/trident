@@ -10,7 +10,6 @@ pub use anchor_client::{
     ClientError,
 };
 pub use trdelnik_test::trdelnik_test;
-pub use trdelnik_program::FatInstruction;
 pub use solana_transaction_status::EncodedConfirmedTransaction;
 pub use anyhow::{self, Error};
 pub use serial_test;
