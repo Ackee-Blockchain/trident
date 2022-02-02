@@ -19,6 +19,8 @@ pub enum Error {
     LocalnetIsStillRunning,
     #[error("build programs failed")]
     BuildProgramsFailed,
+    #[error("testing failed")]
+    TestingFailed,
     #[error("read program code failed: '{0}'")]
     ReadProgramCodeFailed(String),
     #[error("{0:?}")]
@@ -73,6 +75,21 @@ impl Commander {
             .success();
         if !success {
             Err(Error::BuildProgramsFailed)?;
+        }
+    }
+
+    #[throws]
+    pub async fn run_tests(&self) {
+        let success = Command::new("cargo")
+            .arg("test")
+            .arg("--")
+            .arg("--nocapture")
+            .spawn()?
+            .wait()
+            .await?
+            .success();
+        if !success {
+            Err(Error::TestingFailed)?;
         }
     }
 
