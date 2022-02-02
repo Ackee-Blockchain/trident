@@ -3,7 +3,7 @@ use fehler::throws;
 use program_client::turnstile_instruction;
 use std::mem;
 
-#[trdelnik_test]
+#[trdelnik_test(root = "../../")]
 async fn test_turnstile() {
     let reader = Reader::new();
     let mut turnstile = Turnstile {
