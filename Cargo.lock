@@ -3677,6 +3677,8 @@ dependencies = [
  "solana-cli-output",
  "solana-sdk",
  "solana-transaction-status",
+ "spl-associated-token-account",
+ "spl-token",
  "syn 1.0.85",
  "thiserror",
  "tokio",
