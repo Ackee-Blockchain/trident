@@ -15,7 +15,6 @@ use anchor_client::{
         system_instruction,
         signer::{Signer, keypair::Keypair},
         pubkey::Pubkey,
-        signature::Signature,
         instruction::Instruction,
         transaction::Transaction,
         account::Account,
@@ -104,9 +103,9 @@ impl Client {
         instruction: impl InstructionData + Send + 'static,
         accounts: impl ToAccountMetas + Send + 'static,
         signers: impl IntoIterator<Item = Keypair> + Send + 'static,
-    ) -> Signature {
+    ) -> EncodedConfirmedTransaction {
         let program = self.program(program);
-        task::spawn_blocking(move || {
+        let signature = task::spawn_blocking(move || {
             let mut request = program
                 .request()
                 .args(instruction)
@@ -116,38 +115,18 @@ impl Client {
                 request = request.signer(signer);
             }
             request.send()
-        }).await.expect("send instruction task failed")?
-    }
-
-    #[throws]
-    pub async fn send_instruction_with_transaction_cb(
-        &self, 
-        program: Pubkey,
-        instruction: impl InstructionData + Send + 'static,
-        accounts: impl ToAccountMetas + Send + 'static,
-        signers: impl IntoIterator<Item = Keypair> + Send + 'static,
-        transaction_cb: impl FnOnce(EncodedConfirmedTransaction),
-    ) -> Signature {
-        let signature = self.send_instruction(
-            program,
-            instruction,
-            accounts,
-            signers,
-        ).await?;
+        }).await.expect("send instruction task failed")?;
 
         let rpc_client = self.anchor_client.program(System::id()).rpc();
-        let transaction = task::spawn_blocking(move || {
+        task::spawn_blocking(move || {
             rpc_client.get_transaction_with_config(
                 &signature, 
                 RpcTransactionConfig {
-                    encoding: Some(UiTransactionEncoding::JsonParsed),
+                    encoding: Some(UiTransactionEncoding::Binary),
                     commitment: Some(CommitmentConfig::confirmed()),
                 }
             )
-        }).await.expect("get transaction task failed")?;
-        transaction_cb(transaction);
-
-        signature
+        }).await.expect("get transaction task failed")?
     }
 
     #[throws]
