@@ -1,6 +1,6 @@
-use thiserror::Error;
+use heck::{ToSnakeCase, ToUpperCamelCase};
 use quote::ToTokens;
-use heck::{ToUpperCamelCase, ToSnakeCase};
+use thiserror::Error;
 
 // Idl example:
 // ```
@@ -105,7 +105,7 @@ pub enum Error {
 
 #[derive(Debug)]
 pub struct Idl {
-    pub programs: Vec<IdlProgram>
+    pub programs: Vec<IdlProgram>,
 }
 
 #[derive(Debug)]
@@ -118,19 +118,19 @@ pub struct IdlName {
 pub struct IdlProgram {
     pub name: IdlName,
     pub id: String,
-    pub instruction_account_pairs: Vec<(IdlInstruction, IdlAccountGroup)>
+    pub instruction_account_pairs: Vec<(IdlInstruction, IdlAccountGroup)>,
 }
 
 #[derive(Debug)]
 pub struct IdlInstruction {
     pub name: IdlName,
-    pub parameters: Vec<(String, String)>
+    pub parameters: Vec<(String, String)>,
 }
 
 #[derive(Debug)]
 pub struct IdlAccountGroup {
     pub name: IdlName,
-    pub accounts: Vec<(String, String)>
+    pub accounts: Vec<(String, String)>,
 }
 
 pub async fn parse_to_idl_program(name: String, code: &str) -> Result<IdlProgram, Error> {
@@ -146,30 +146,24 @@ pub async fn parse_to_idl_program(name: String, code: &str) -> Result<IdlProgram
             syn::Item::Static(item_static) if item_static.ident == "ID" => {
                 static_program_id = Some(item_static);
             }
-            syn::Item::Mod(item_mod) => {
-                match item_mod.ident.to_string().as_str() {
-                    "__private" => mod_private = Some(item_mod),
-                    "instruction" => mod_instruction = Some(item_mod),
-                    name if name.starts_with(ACCOUNT_MOD_PREFIX) => {
-                        account_mods.push(item_mod);
-                    },
-                    _ => (),
+            syn::Item::Mod(item_mod) => match item_mod.ident.to_string().as_str() {
+                "__private" => mod_private = Some(item_mod),
+                "instruction" => mod_instruction = Some(item_mod),
+                name if name.starts_with(ACCOUNT_MOD_PREFIX) => {
+                    account_mods.push(item_mod);
                 }
+                _ => (),
             },
             _ => (),
         }
     }
 
-    let static_program_id = static_program_id.ok_or_else(|| {
-        Error::MissingOrInvalidProgramItems("missing static ID")
-    })?;
-    let mod_private = mod_private.ok_or_else(|| {
-        Error::MissingOrInvalidProgramItems("missing mod private")
-    })?;
-    let mod_instruction = mod_instruction.ok_or_else(|| {
-        Error::MissingOrInvalidProgramItems("missing mod instruction")
-    })?;
-
+    let static_program_id = static_program_id
+        .ok_or_else(|| Error::MissingOrInvalidProgramItems("missing static ID"))?;
+    let mod_private =
+        mod_private.ok_or_else(|| Error::MissingOrInvalidProgramItems("missing mod private"))?;
+    let mod_instruction = mod_instruction
+        .ok_or_else(|| Error::MissingOrInvalidProgramItems("missing mod instruction"))?;
 
     // ------ get program id ------
 
@@ -198,11 +192,15 @@ pub async fn parse_to_idl_program(name: String, code: &str) -> Result<IdlProgram
     let program_id_bytes = {
         let new_pubkey_call = match *static_program_id.expr {
             syn::Expr::Call(new_pubkey_call) => new_pubkey_call,
-            _ => Err(Error::MissingOrInvalidProgramItems("static ID: new pubkey call not found"))?,
+            _ => Err(Error::MissingOrInvalidProgramItems(
+                "static ID: new pubkey call not found",
+            ))?,
         };
         match new_pubkey_call.args.into_iter().next() {
             Some(syn::Expr::Array(pubkey_bytes)) => pubkey_bytes,
-            _ => Err(Error::MissingOrInvalidProgramItems("static ID: pubkey bytes not found"))?,
+            _ => Err(Error::MissingOrInvalidProgramItems(
+                "static ID: pubkey bytes not found",
+            ))?,
         }
     };
 
@@ -231,19 +229,26 @@ pub async fn parse_to_idl_program(name: String, code: &str) -> Result<IdlProgram
     // ```
 
     let instruction_item_fns = {
-        let items = mod_private.content.map(|(_, items)| items).unwrap_or_default();
-        let item_mod_global = items.into_iter().find_map(|item| {
-            match item {
+        let items = mod_private
+            .content
+            .map(|(_, items)| items)
+            .unwrap_or_default();
+        let item_mod_global = items
+            .into_iter()
+            .find_map(|item| match item {
                 syn::Item::Mod(item_mod) if item_mod.ident == "__global" => Some(item_mod),
                 _ => None?,
-            }
-        }).ok_or_else(|| Error::MissingOrInvalidProgramItems("mod private: mod global not found"))?;
-        let items = item_mod_global.content.map(|(_, items)| items).unwrap_or_default();
-        items.into_iter().filter_map(|item| {
-            match item {
-                syn::Item::Fn(item_fn) => Some(item_fn),
-                _ => None,
-            }
+            })
+            .ok_or_else(|| {
+                Error::MissingOrInvalidProgramItems("mod private: mod global not found")
+            })?;
+        let items = item_mod_global
+            .content
+            .map(|(_, items)| items)
+            .unwrap_or_default();
+        items.into_iter().filter_map(|item| match item {
+            syn::Item::Fn(item_fn) => Some(item_fn),
+            _ => None,
         })
     };
 
@@ -268,12 +273,14 @@ pub async fn parse_to_idl_program(name: String, code: &str) -> Result<IdlProgram
     // ```
 
     let mut instruction_account_pairs = Vec::new();
-    instruction_item_fns.into_iter().map(|item_fn| {
-        // stmt example: `let mut accounts = UpdateState::try_accounts(program_id, &mut remaining_accounts, ix_data)?;`
-        let account_group_name = item_fn.block.stmts.into_iter().find_map(|stmt| {
+    instruction_item_fns
+        .into_iter()
+        .map(|item_fn| {
+            // stmt example: `let mut accounts = UpdateState::try_accounts(program_id, &mut remaining_accounts, ix_data)?;`
+            let account_group_name = item_fn.block.stmts.into_iter().find_map(|stmt| {
             let local = if let syn::Stmt::Local(local) = stmt {
                 local
-            } else { 
+            } else {
                 None?
             };
             if !matches!(&local.pat, syn::Pat::Ident(pat_ident) if pat_ident.ident == "accounts") {
@@ -294,30 +301,33 @@ pub async fn parse_to_idl_program(name: String, code: &str) -> Result<IdlProgram
             };
             Some(account_group_name.to_string())
         })?;
-        
-        let instruction_name = item_fn.sig.ident.to_string();
-        let idl_instruction = IdlInstruction {
-            name: IdlName {
-                upper_camel_case: instruction_name.to_upper_camel_case(),
-                snake_case: instruction_name,
-            },
-            parameters: Vec::new(),
-        };
-        let idl_account = IdlAccountGroup {
-            name: IdlName {
-                snake_case: account_group_name.to_snake_case(),
-                upper_camel_case: account_group_name,
-            },
-            accounts: Vec::new(),
-        };
-        Some((idl_instruction, idl_account))
-    }).try_for_each(|pair| {
-        if let Some(pair) = pair {
-            Ok(instruction_account_pairs.push(pair))
-        } else {
-            Err(Error::MissingOrInvalidProgramItems("statement with `accounts` not found"))
-        }
-    })?;
+
+            let instruction_name = item_fn.sig.ident.to_string();
+            let idl_instruction = IdlInstruction {
+                name: IdlName {
+                    upper_camel_case: instruction_name.to_upper_camel_case(),
+                    snake_case: instruction_name,
+                },
+                parameters: Vec::new(),
+            };
+            let idl_account = IdlAccountGroup {
+                name: IdlName {
+                    snake_case: account_group_name.to_snake_case(),
+                    upper_camel_case: account_group_name,
+                },
+                accounts: Vec::new(),
+            };
+            Some((idl_instruction, idl_account))
+        })
+        .try_for_each(|pair| {
+            if let Some(pair) = pair {
+                Ok(instruction_account_pairs.push(pair))
+            } else {
+                Err(Error::MissingOrInvalidProgramItems(
+                    "statement with `accounts` not found",
+                ))
+            }
+        })?;
 
     // ------ get instruction parameters ------
 
@@ -332,7 +342,7 @@ pub async fn parse_to_idl_program(name: String, code: &str) -> Result<IdlProgram
     //     pub struct Initialize;
     // // **
     //     pub struct Coin {
-    //         pub dummy_arg: String,   
+    //         pub dummy_arg: String,
     //     }
     // ```
 
@@ -345,24 +355,32 @@ pub async fn parse_to_idl_program(name: String, code: &str) -> Result<IdlProgram
     for (idl_instruction, _) in &mut instruction_account_pairs {
         let instruction_struct_name = &idl_instruction.name.upper_camel_case;
 
-        let instruction_item_struct_fields = instruction_mod_items.find_map(|item| {
-            let instruction_item_struct = match item {
-                syn::Item::Struct(item_struct) if item_struct.ident == instruction_struct_name => item_struct,
-                _ => None?,
-            };
-            let fields = match instruction_item_struct.fields {
-                syn::Fields::Named(fields_named) => fields_named.named,
-                syn::Fields::Unit => syn::punctuated::Punctuated::new(),
-                syn::Fields::Unnamed(_) => None?, 
-            };
-            Some(fields.into_iter())
-        }).ok_or_else(|| Error::MissingOrInvalidProgramItems("instruction struct"))?;
+        let instruction_item_struct_fields = instruction_mod_items
+            .find_map(|item| {
+                let instruction_item_struct = match item {
+                    syn::Item::Struct(item_struct)
+                        if item_struct.ident == instruction_struct_name =>
+                    {
+                        item_struct
+                    }
+                    _ => None?,
+                };
+                let fields = match instruction_item_struct.fields {
+                    syn::Fields::Named(fields_named) => fields_named.named,
+                    syn::Fields::Unit => syn::punctuated::Punctuated::new(),
+                    syn::Fields::Unnamed(_) => None?,
+                };
+                Some(fields.into_iter())
+            })
+            .ok_or_else(|| Error::MissingOrInvalidProgramItems("instruction struct"))?;
 
-        idl_instruction.parameters = instruction_item_struct_fields.map(|field| {
-            let parameter_name = field.ident.unwrap().to_string();
-            let parameter_id_type = field.ty.into_token_stream().to_string();
-            (parameter_name, parameter_id_type)
-        }).collect();
+        idl_instruction.parameters = instruction_item_struct_fields
+            .map(|field| {
+                let parameter_name = field.ident.unwrap().to_string();
+                let parameter_id_type = field.ty.into_token_stream().to_string();
+                (parameter_name, parameter_id_type)
+            })
+            .collect();
     }
 
     // ------ get accounts ------
@@ -387,29 +405,35 @@ pub async fn parse_to_idl_program(name: String, code: &str) -> Result<IdlProgram
             .unwrap()
             .to_upper_camel_case();
 
-        let account_item_struct = account_mod_item.content
+        let account_item_struct = account_mod_item
+            .content
             .ok_or_else(|| Error::MissingOrInvalidProgramItems("account mod: empty content"))?
             .1
             .into_iter()
-            .find_map(|item| {
-                match item {
-                    syn::Item::Struct(item_struct) if item_struct.ident == account_struct_name => Some(item_struct),
-                    _ => None?,
+            .find_map(|item| match item {
+                syn::Item::Struct(item_struct) if item_struct.ident == account_struct_name => {
+                    Some(item_struct)
                 }
-            }
-        ).ok_or_else(|| Error::MissingOrInvalidProgramItems("account mod: struct not found"))?;
-        
+                _ => None?,
+            })
+            .ok_or_else(|| Error::MissingOrInvalidProgramItems("account mod: struct not found"))?;
+
         let account_item_struct_fields = match account_item_struct.fields {
             syn::Fields::Named(fields_named) => fields_named.named,
             syn::Fields::Unit => syn::punctuated::Punctuated::new(),
-            syn::Fields::Unnamed(_) => Err(Error::MissingOrInvalidProgramItems("account struct: unnamed fields not allowed"))?, 
+            syn::Fields::Unnamed(_) => Err(Error::MissingOrInvalidProgramItems(
+                "account struct: unnamed fields not allowed",
+            ))?,
         };
 
-        let accounts = account_item_struct_fields.into_iter().map(|field| {
-            let account_name = field.ident.unwrap().to_string();
-            let account_id_type = field.ty.into_token_stream().to_string();
-            (account_name, account_id_type)
-        }).collect::<Vec<_>>();
+        let accounts = account_item_struct_fields
+            .into_iter()
+            .map(|field| {
+                let account_name = field.ident.unwrap().to_string();
+                let account_id_type = field.ty.into_token_stream().to_string();
+                (account_name, account_id_type)
+            })
+            .collect::<Vec<_>>();
 
         for (_, idl_account_group) in &mut instruction_account_pairs {
             if idl_account_group.name.upper_camel_case == account_struct_name {
@@ -420,12 +444,12 @@ pub async fn parse_to_idl_program(name: String, code: &str) -> Result<IdlProgram
 
     // ------ // ------
 
-    Ok(IdlProgram { 
+    Ok(IdlProgram {
         name: IdlName {
             upper_camel_case: name.to_upper_camel_case(),
             snake_case: name,
         },
         id: program_id_bytes.into_token_stream().to_string(),
-        instruction_account_pairs, 
+        instruction_account_pairs,
     })
 }

@@ -10,4 +10,3 @@ pub async fn test(root: String) {
     commander.run_tests().await?;
     println!("Trdelnik CLI: Test command finished");
 }
-
