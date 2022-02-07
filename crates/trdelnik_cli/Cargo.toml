@@ -3,6 +3,9 @@ name = "trdelnik_cli"
 version = "0.1.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
+clap = { version = "3.0.14", features = ["derive"] }
+tokio = { version = "1.6.1", features = ["rt-multi-thread", "macros", "fs", "signal", "sync", "time", "io-util", "process"], default-features = false }
+anyhow = { version = "1.0.40", features = ["std"], default-features = false }
+fehler = { version = "1.0.0", default-features = false }
+trdelnik = { path = "../trdelnik" }

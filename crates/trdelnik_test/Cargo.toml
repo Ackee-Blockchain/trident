@@ -10,3 +10,4 @@ proc-macro = true
 syn = { version = "1.0", default-features = false }
 quote = { version = "1.0", default-features = false }
 proc-macro2 = { version = "1.0", default-features = false }
+darling = "0.13.1"

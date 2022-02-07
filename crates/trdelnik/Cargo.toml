@@ -7,7 +7,6 @@ edition = "2018"
 
 [dependencies]
 trdelnik_test = { path = "../trdelnik_test" }
-trdelnik_program = { path = "../trdelnik_program" }
 solana-transaction-status = "=1.8.12"
 anchor-client = "0.18.2"
 spl-token = "3.2.0"

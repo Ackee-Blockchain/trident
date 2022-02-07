@@ -1,25 +1,30 @@
 use fehler::throws;
 use crate::{Commander, LocalnetHandle, commander::Error};
+use std::{borrow::Cow, mem};
 
 #[derive(Default)]
-pub struct Tester;
+pub struct Tester {
+    root: Cow<'static, str>,
+}
 
 impl Tester {
     pub fn new() -> Self {
-        Self::default()
+        Self {
+            root: "../../".into()
+        }
+    }
+
+    pub fn with_root(root: impl Into<Cow<'static, str>>) -> Self {
+        Self {
+            root: root.into()
+        }
     }
 
     #[throws]
-    pub async fn before(&self) -> LocalnetHandle {
+    pub async fn before(&mut self) -> LocalnetHandle {
         println!("_____________________");
         println!("____ BEFORE TEST ____");
-        let commander = Commander::new();
-        commander.build_programs().await?;
-        // @TODO: the `generate_program_client_lib_rs` method has to be run through
-        // Trdelnik CLI (as a part of `trdelnik test`?) to generate the `lib.rs`
-        // code before compiler tries to compile tests.
-        // Note: It can't be run in `build.rs` otherwise it causes cargo deadlocks.
-        commander.generate_program_client_lib_rs().await?;
+        let commander = Commander::with_root(mem::take(&mut self.root));
         commander.start_localnet().await?
     }
 
