@@ -89,10 +89,13 @@ impl Client {
     #[throws]
     pub async fn get_account(&self, account: Pubkey) -> Option<Account> {
         let rpc_client = self.anchor_client.program(System::id()).rpc();
-        rpc_client
+        task::spawn_blocking(move || rpc_client
             .get_account_with_commitment(&account, rpc_client.commitment())
-            .unwrap()
+            .expect("get_account task failed")
             .value
+        )
+        .await
+        .expect("get_account task failed")
     }
 
     #[throws]
