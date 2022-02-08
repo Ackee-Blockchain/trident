@@ -1,5 +1,5 @@
+use crate::{commander::Error, Commander, LocalnetHandle};
 use fehler::throws;
-use crate::{Commander, LocalnetHandle, commander::Error};
 use std::{borrow::Cow, mem};
 
 #[derive(Default)]
@@ -10,14 +10,12 @@ pub struct Tester {
 impl Tester {
     pub fn new() -> Self {
         Self {
-            root: "../../".into()
+            root: "../../".into(),
         }
     }
 
     pub fn with_root(root: impl Into<Cow<'static, str>>) -> Self {
-        Self {
-            root: root.into()
-        }
+        Self { root: root.into() }
     }
 
     #[throws]

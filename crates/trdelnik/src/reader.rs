@@ -1,14 +1,12 @@
-use anchor_client::{
-    solana_sdk::{
-        signer::keypair::Keypair,
-        pubkey::{ParsePubkeyError, Pubkey},
-    }
+use anchor_client::solana_sdk::{
+    pubkey::{ParsePubkeyError, Pubkey},
+    signer::keypair::Keypair,
 };
-use tokio::fs;
-use std::{io, str::FromStr, borrow::Cow};
-use fehler::throws;
-use thiserror::Error;
 use ed25519_dalek::SignatureError;
+use fehler::throws;
+use std::{borrow::Cow, io, str::FromStr};
+use thiserror::Error;
+use tokio::fs;
 
 #[derive(Error, Debug)]
 pub enum Error {
@@ -23,20 +21,18 @@ pub enum Error {
 }
 
 pub struct Reader {
-    root: Cow<'static, str>
+    root: Cow<'static, str>,
 }
 
 impl Reader {
     pub fn new() -> Self {
         Self {
-            root: "../../".into()
+            root: "../../".into(),
         }
     }
 
     pub fn with_root(root: impl Into<Cow<'static, str>>) -> Self {
-        Self {
-            root: root.into()
-        }
+        Self { root: root.into() }
     }
 
     #[throws]
