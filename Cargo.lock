@@ -2898,7 +2898,7 @@ dependencies = [
  "Inflector",
  "base64 0.13.0",
  "chrono",
- "clap",
+ "clap 2.34.0",
  "console 0.14.1",
  "humantime",
  "indicatif",

@@ -1,8 +1,6 @@
-
-  
 use anyhow::Error;
-use fehler::throws;
 use clap::Parser;
+use fehler::throws;
 
 mod command;
 
@@ -10,11 +8,11 @@ mod command;
 #[derive(Parser, Debug)]
 enum Args {
     /// Run program tests
-    Test { 
+    Test {
         /// Anchor project root
         #[clap(short, long, default_value = "./")]
-        root: String 
-    }
+        root: String,
+    },
 }
 
 #[throws]

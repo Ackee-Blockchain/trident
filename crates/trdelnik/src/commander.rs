@@ -1,11 +1,18 @@
-use fehler::throws;
-use thiserror::Error;
-use tokio::{process::{Command, Child}, io::AsyncWriteExt, fs};
-use std::{borrow::Cow, io, string::FromUtf8Error, process::Stdio, path::Path};
-use solana_sdk::signer::keypair::Keypair;
+use crate::{
+    idl::{self, Idl},
+    program_client_generator, Client,
+};
 use cargo_metadata::MetadataCommand;
+use fehler::throws;
 use futures::future::try_join_all;
-use crate::{idl::{self, Idl}, Client, program_client_generator};
+use solana_sdk::signer::keypair::Keypair;
+use std::{borrow::Cow, io, path::Path, process::Stdio, string::FromUtf8Error};
+use thiserror::Error;
+use tokio::{
+    fs,
+    io::AsyncWriteExt,
+    process::{Child, Command},
+};
 
 #[derive(Error, Debug)]
 pub enum Error {
@@ -45,20 +52,18 @@ impl LocalnetHandle {
 }
 
 pub struct Commander {
-    root: Cow<'static, str>
+    root: Cow<'static, str>,
 }
 
 impl Commander {
     pub fn new() -> Self {
         Self {
-            root: "../../".into()
+            root: "../../".into(),
         }
     }
 
     pub fn with_root(root: impl Into<Cow<'static, str>>) -> Self {
-        Self {
-            root: root.into()
-        }
+        Self { root: root.into() }
     }
 
     #[throws]
@@ -95,15 +100,10 @@ impl Commander {
 
     #[throws]
     pub async fn generate_program_client_lib_rs(&self) {
-        let cargo_toml_data = MetadataCommand::new()
-            .no_deps()
-            .exec()
-            .unwrap();
+        let cargo_toml_data = MetadataCommand::new().no_deps().exec().unwrap();
 
-        let program_names = cargo_toml_data
-            .packages
-            .into_iter()
-            .filter_map(|package| {
+        let program_names =
+            cargo_toml_data.packages.into_iter().filter_map(|package| {
                 match package.manifest_path.iter().nth_back(2) {
                     Some("programs") => Some(package.name),
                     _ => None,
@@ -129,7 +129,7 @@ impl Commander {
             }
         });
         let idl = Idl {
-            programs: try_join_all(idl_programs).await?
+            programs: try_join_all(idl_programs).await?,
         };
         let program_client = program_client_generator::generate_source_code(idl);
 
@@ -145,7 +145,7 @@ impl Commander {
         let output = rustfmt.wait_with_output().await?;
         let program_client = String::from_utf8(output.stdout)?;
 
-        let rust_file_path = Path::new(self.root.as_ref()).join("program_client/src/lib.rs"); 
+        let rust_file_path = Path::new(self.root.as_ref()).join("program_client/src/lib.rs");
         fs::write(rust_file_path, &program_client).await?;
     }
 
