@@ -1,7 +1,7 @@
-use trdelnik::*;
 use fehler::throws;
 use program_client::turnstile_instruction;
 use std::mem;
+use trdelnik::*;
 
 #[trdelnik_test]
 async fn test_turnstile() {
@@ -40,22 +40,24 @@ impl Turnstile {
     #[throws]
     async fn initialize(&mut self) {
         println!("AIRDROP");
-        self.client.airdrop(self.client.payer().pubkey(), 5_000_000_000).await?;
+        self.client
+            .airdrop(self.client.payer().pubkey(), 5_000_000_000)
+            .await?;
 
         println!("DEPLOY");
-        self.client.deploy(
-            self.program.clone(), 
-            mem::take(&mut self.program_data)
-        ).await?;
+        self.client
+            .deploy(self.program.clone(), mem::take(&mut self.program_data))
+            .await?;
 
         println!("INIT STATE");
         turnstile_instruction::initialize(
-            &self.client, 
-            self.state.pubkey(), 
-            self.client.payer().pubkey(), 
-            System::id(), 
+            &self.client,
+            self.state.pubkey(),
+            self.client.payer().pubkey(),
+            System::id(),
             Some(self.state.clone()),
-        ).await?;
+        )
+        .await?;
 
         self.locked = self.get_state().await?.locked;
     }
@@ -64,11 +66,12 @@ impl Turnstile {
     async fn coin(&mut self) {
         // inserting a coin is just calling coin
         turnstile_instruction::coin(
-            &self.client, 
-            "something".to_owned(), 
-            self.state.pubkey(), 
+            &self.client,
+            "something".to_owned(),
+            self.state.pubkey(),
             None,
-        ).await?;
+        )
+        .await?;
 
         // update
         self.locked = false;
@@ -86,11 +89,7 @@ impl Turnstile {
         let locked_before = self.get_state().await?.locked;
 
         // pushing is just calling push
-        turnstile_instruction::push(
-            &self.client, 
-            self.state.pubkey(), 
-            None
-        ).await?;
+        turnstile_instruction::push(&self.client, self.state.pubkey(), None).await?;
 
         // get current state
         let state = self.get_state().await?;
@@ -109,11 +108,7 @@ impl Turnstile {
         let locked_before = self.get_state().await?.locked;
 
         // pushing is just calling push
-        turnstile_instruction::push(
-            &self.client, 
-            self.state.pubkey(), 
-            None
-        ).await?;
+        turnstile_instruction::push(&self.client, self.state.pubkey(), None).await?;
 
         // get current state
         let state = self.get_state().await?;
