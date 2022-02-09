@@ -2,17 +2,19 @@ use crate::{
     idl::{self, Idl},
     program_client_generator, Client,
 };
-use cargo_metadata::MetadataCommand;
+use cargo_metadata::{MetadataCommand, Package};
 use fehler::throws;
 use futures::future::try_join_all;
 use solana_sdk::signer::keypair::Keypair;
-use std::{borrow::Cow, io, path::Path, process::Stdio, string::FromUtf8Error};
+use std::{borrow::Cow, io, path::Path, process::Stdio, string::FromUtf8Error, iter};
 use thiserror::Error;
 use tokio::{
     fs,
     io::AsyncWriteExt,
     process::{Child, Command},
 };
+
+pub static PROGRAM_CLIENT_DIRECTORY: &str = "program_client";
 
 #[derive(Error, Debug)]
 pub enum Error {
@@ -32,6 +34,10 @@ pub enum Error {
     ReadProgramCodeFailed(String),
     #[error("{0:?}")]
     IdlError(#[from] idl::Error),
+    #[error("{0:?}")]
+    TomlDeserializeError(#[from] toml::de::Error),
+    #[error("parsing Cargo.toml dependencies failed")]
+    ParsingCargoTomlDependenciesFailed,
 }
 
 pub struct LocalnetHandle {
@@ -99,18 +105,96 @@ impl Commander {
     }
 
     #[throws]
+    pub async fn create_program_client_crate(&self) {
+        let crate_path = Path::new(self.root.as_ref()).join(PROGRAM_CLIENT_DIRECTORY);
+        if fs::metadata(&crate_path).await.is_ok() {
+            return;
+        }
+
+        // @TODO Would it be better to:
+        // zip the template folder -> embed the archive to the binary -> unzip to a given location?
+
+        fs::create_dir(&crate_path).await?;
+
+        let cargo_toml_content = include_str!("program_client_template/Cargo.toml");
+        fs::write(crate_path.join("Cargo.toml"), &cargo_toml_content).await?;
+
+        let src_path = crate_path.join("src");
+        fs::create_dir(&src_path).await?;
+
+        let lib_rs_content = include_str!("program_client_template/src/lib.rs");
+        fs::write(src_path.join("lib.rs"), &lib_rs_content).await?;
+        
+        println!("program_client crate created")
+    }
+
+    pub fn program_packages(&self) -> impl Iterator<Item = Package> {
+        let cargo_toml_data = MetadataCommand::new()
+            .no_deps()
+            .exec()
+            .expect("Cargo.toml reading failed");
+
+        cargo_toml_data.packages.into_iter().filter_map(|package| {
+            // @TODO less error-prone test if the package is a _program_?
+            match package.manifest_path.iter().nth_back(2) {
+                Some("programs") => Some(package),
+                _ => None,
+            }
+        })
+    }
+
+    #[throws]
+    pub async fn generate_program_client_deps(&self) {
+        let trdelnik_dep = r#"trdelnik = { path = "../../../crates/trdelnik" }"#.parse().unwrap();
+        // @TODO replace the line above with the specific version or commit hash
+        // when Trdelnik is released or when its repo is published.
+        // Or use both variants - path for Trdelnik repo/dev and version/commit for users.
+        // Some related snippets:
+        //
+        // println!("Trdelnik Version: {}", std::env!("VERGEN_BUILD_SEMVER"));
+        // println!("Trdelnik Commit: {}", std::env!("VERGEN_GIT_SHA"));
+        // https://docs.rs/vergen/latest/vergen/#environment-variables
+        //
+        // `trdelnik = "0.1.0"`
+        // `trdelnik = { git = "https://github.com/Ackee-Blockchain/trdelnik.git", rev = "cf867aea87e67d7be029982baa39767f426e404d" }`
+
+        let absolute_root = fs::canonicalize(self.root.as_ref()).await?;
+
+        let program_deps = self.program_packages().map(|package| {
+            let name = package.name;
+            let path = package
+                .manifest_path
+                .parent()
+                .unwrap()
+                .strip_prefix(&absolute_root)
+                .unwrap();
+            format!(r#"{name} = {{ path = "../{path}", features = ["no-entrypoint"] }}"#).parse().unwrap()
+        });
+        
+        let cargo_toml_path = Path::new(self.root.as_ref())
+            .join(PROGRAM_CLIENT_DIRECTORY)
+            .join("Cargo.toml");
+        
+        let mut cargo_toml_content: toml::Value = fs::read_to_string(&cargo_toml_path).await?.parse()?;
+
+        let cargo_toml_deps = cargo_toml_content
+            .get_mut("dependencies")
+            .and_then(toml::Value::as_table_mut)
+            .ok_or_else(|| Error::ParsingCargoTomlDependenciesFailed)?;
+
+        for dep in iter::once(trdelnik_dep).chain(program_deps) {
+            if let toml::Value::Table(table) = dep {
+                let (name, value) = table.into_iter().next().unwrap();
+                cargo_toml_deps.entry(name).or_insert(value);
+            }
+        }
+        fs::write(cargo_toml_path, cargo_toml_content.to_string()).await?;
+    }
+
+    #[throws]
     pub async fn generate_program_client_lib_rs(&self) {
-        let cargo_toml_data = MetadataCommand::new().no_deps().exec().unwrap();
-
-        let program_names =
-            cargo_toml_data.packages.into_iter().filter_map(|package| {
-                match package.manifest_path.iter().nth_back(2) {
-                    Some("programs") => Some(package.name),
-                    _ => None,
-                }
-            });
-
-        let idl_programs = program_names.map(|name| async move {
+        let idl_programs = self.program_packages().map(|package| async move {
+            let name = package.name;
             let output = Command::new("cargo")
                 .arg("+nightly")
                 .arg("rustc")
@@ -145,7 +229,9 @@ impl Commander {
         let output = rustfmt.wait_with_output().await?;
         let program_client = String::from_utf8(output.stdout)?;
 
-        let rust_file_path = Path::new(self.root.as_ref()).join("program_client/src/lib.rs");
+        let rust_file_path = Path::new(self.root.as_ref())
+            .join(PROGRAM_CLIENT_DIRECTORY)
+            .join("src/lib.rs");
         fs::write(rust_file_path, &program_client).await?;
     }
 
