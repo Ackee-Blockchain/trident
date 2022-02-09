@@ -1,7 +1,4 @@
-use anchor_lang::{
-    prelude::*,
-    solana_program::system_program,
-};
+use anchor_lang::{prelude::*, solana_program::system_program};
 
 declare_id!("FZ2Q3Bpdg3mgoSjRi8xsPgycgVDgFNGQ77SErk8mCaki");
 
@@ -15,7 +12,7 @@ pub mod turnstile {
         state.res = false;
         Ok(())
     }
-    
+
     #[allow(unused_variables)]
     pub fn coin(ctx: Context<UpdateState>, dummy_arg: String) -> ProgramResult {
         let state = &mut ctx.accounts.state;
@@ -38,8 +35,8 @@ pub mod turnstile {
 #[derive(Accounts)]
 pub struct Initialize<'info> {
     #[account(
-        init, 
-        payer = user, 
+        init,
+        payer = user,
         space = 8 + 2
     )]
     pub state: Account<'info, State>,

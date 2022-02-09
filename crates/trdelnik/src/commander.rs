@@ -6,7 +6,7 @@ use cargo_metadata::{MetadataCommand, Package};
 use fehler::throws;
 use futures::future::try_join_all;
 use solana_sdk::signer::keypair::Keypair;
-use std::{borrow::Cow, io, path::Path, process::Stdio, string::FromUtf8Error, iter};
+use std::{borrow::Cow, io, iter, path::Path, process::Stdio, string::FromUtf8Error};
 use thiserror::Error;
 use tokio::{
     fs,
@@ -124,7 +124,7 @@ impl Commander {
 
         let lib_rs_content = include_str!("program_client_template/src/lib.rs");
         fs::write(src_path.join("lib.rs"), &lib_rs_content).await?;
-        
+
         println!("program_client crate created")
     }
 
@@ -145,7 +145,9 @@ impl Commander {
 
     #[throws]
     pub async fn generate_program_client_deps(&self) {
-        let trdelnik_dep = r#"trdelnik = { path = "../../../crates/trdelnik" }"#.parse().unwrap();
+        let trdelnik_dep = r#"trdelnik = { path = "../../../crates/trdelnik" }"#
+            .parse()
+            .unwrap();
         // @TODO replace the line above with the specific version or commit hash
         // when Trdelnik is released or when its repo is published.
         // Or use both variants - path for Trdelnik repo/dev and version/commit for users.
@@ -168,14 +170,17 @@ impl Commander {
                 .unwrap()
                 .strip_prefix(&absolute_root)
                 .unwrap();
-            format!(r#"{name} = {{ path = "../{path}", features = ["no-entrypoint"] }}"#).parse().unwrap()
+            format!(r#"{name} = {{ path = "../{path}", features = ["no-entrypoint"] }}"#)
+                .parse()
+                .unwrap()
         });
-        
+
         let cargo_toml_path = Path::new(self.root.as_ref())
             .join(PROGRAM_CLIENT_DIRECTORY)
             .join("Cargo.toml");
-        
-        let mut cargo_toml_content: toml::Value = fs::read_to_string(&cargo_toml_path).await?.parse()?;
+
+        let mut cargo_toml_content: toml::Value =
+            fs::read_to_string(&cargo_toml_path).await?.parse()?;
 
         let cargo_toml_deps = cargo_toml_content
             .get_mut("dependencies")
@@ -188,6 +193,9 @@ impl Commander {
                 cargo_toml_deps.entry(name).or_insert(value);
             }
         }
+
+        // @TODO remove renamed or deleted programs from deps?
+
         fs::write(cargo_toml_path, cargo_toml_content.to_string()).await?;
     }
 
