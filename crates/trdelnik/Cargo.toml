@@ -3,7 +3,9 @@ name = "trdelnik"
 version = "0.1.0"
 edition = "2018"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[build-dependencies]
+vergen = { version = "6", features = ["build", "git"], default-features = false }
+anyhow = { version = "1.0.45", features = ["std"], default-features = false }
 
 [dependencies]
 trdelnik_test = { path = "../trdelnik_test" }
@@ -26,3 +28,4 @@ cargo_metadata = "0.14.1"
 syn = "1.0.85"
 quote = "1.0.14"
 heck = { version = "0.4.0", default-features = false }
+toml = { version = "0.5.8", features = ["preserve_order"] }
