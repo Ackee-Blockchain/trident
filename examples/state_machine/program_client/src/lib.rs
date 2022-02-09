@@ -26,6 +26,22 @@ pub mod turnstile_instruction {
             )
             .await?)
     }
+    pub fn initialize_ix(
+        a_state: anchor_lang::solana_program::pubkey::Pubkey,
+        a_user: anchor_lang::solana_program::pubkey::Pubkey,
+        a_system_program: anchor_lang::solana_program::pubkey::Pubkey,
+    ) -> Instruction {
+        Instruction {
+            program_id: PROGRAM_ID,
+            data: turnstile::instruction::Initialize {}.data(),
+            accounts: turnstile::accounts::Initialize {
+                state: a_state,
+                user: a_user,
+                system_program: a_system_program,
+            }
+            .to_account_metas(None),
+        }
+    }
     pub async fn coin(
         client: &Client,
         i_dummy_arg: String,
@@ -43,6 +59,19 @@ pub mod turnstile_instruction {
             )
             .await?)
     }
+    pub fn coin_ix(
+        i_dummy_arg: String,
+        a_state: anchor_lang::solana_program::pubkey::Pubkey,
+    ) -> Instruction {
+        Instruction {
+            program_id: PROGRAM_ID,
+            data: turnstile::instruction::Coin {
+                dummy_arg: i_dummy_arg,
+            }
+            .data(),
+            accounts: turnstile::accounts::UpdateState { state: a_state }.to_account_metas(None),
+        }
+    }
     pub async fn push(
         client: &Client,
         a_state: anchor_lang::solana_program::pubkey::Pubkey,
@@ -56,5 +85,12 @@ pub mod turnstile_instruction {
                 signers,
             )
             .await?)
+    }
+    pub fn push_ix(a_state: anchor_lang::solana_program::pubkey::Pubkey) -> Instruction {
+        Instruction {
+            program_id: PROGRAM_ID,
+            data: turnstile::instruction::Push {}.data(),
+            accounts: turnstile::accounts::UpdateState { state: a_state }.to_account_metas(None),
+        }
     }
 }
