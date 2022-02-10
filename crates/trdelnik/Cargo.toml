@@ -7,6 +7,9 @@ edition = "2018"
 vergen = { version = "6", features = ["build", "git"], default-features = false }
 anyhow = { version = "1.0.45", features = ["std"], default-features = false }
 
+[dev-dependencies]
+pretty_assertions = "1.1.0"
+
 [dependencies]
 trdelnik_test = { path = "../trdelnik_test" }
 solana-transaction-status = "=1.8.12"

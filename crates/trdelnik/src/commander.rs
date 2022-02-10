@@ -253,7 +253,17 @@ impl Commander {
             programs: try_join_all(idl_programs).await?,
         };
         let program_client = program_client_generator::generate_source_code(idl);
+        let program_client = Self::format_program_code(&program_client).await?;
 
+        let rust_file_path = Path::new(self.root.as_ref())
+            .join(PROGRAM_CLIENT_DIRECTORY)
+            .join("src/lib.rs");
+        fs::write(rust_file_path, &program_client).await?;
+    }
+
+    /// Formats program code.
+    #[throws]
+    pub async fn format_program_code(code: &str) -> String {
         let mut rustfmt = Command::new("rustfmt")
             .args(["--edition", "2018"])
             .kill_on_drop(true)
@@ -261,15 +271,10 @@ impl Commander {
             .stdout(Stdio::piped())
             .spawn()?;
         if let Some(stdio) = &mut rustfmt.stdin {
-            stdio.write_all(program_client.as_bytes()).await?;
+            stdio.write_all(code.as_bytes()).await?;
         }
         let output = rustfmt.wait_with_output().await?;
-        let program_client = String::from_utf8(output.stdout)?;
-
-        let rust_file_path = Path::new(self.root.as_ref())
-            .join(PROGRAM_CLIENT_DIRECTORY)
-            .join("src/lib.rs");
-        fs::write(rust_file_path, &program_client).await?;
+        String::from_utf8(output.stdout)?
     }
 
     /// Starts the localnet (Solana validator).

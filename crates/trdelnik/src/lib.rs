@@ -38,8 +38,8 @@ pub use tester::Tester;
 mod temp_clone;
 pub use temp_clone::TempClone;
 
-mod idl;
-mod program_client_generator;
-
 mod keys;
 pub use keys::*;
+
+pub mod idl;
+pub mod program_client_generator;
