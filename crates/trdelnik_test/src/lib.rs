@@ -44,6 +44,32 @@ struct MacroArgs {
     root: Option<String>,
 }
 
+/// The macro starts the Solana validator (localnet), runs your program test and then shuts down the validator.
+/// - The test implicitly returns [anyhow::Result<()>](https://docs.rs/anyhow/latest/anyhow/type.Result.html).
+/// - All tests are run sequentially - each test uses a new/reset validator. (See [serial_test::serial](https://docs.rs/serial_test/latest/serial_test/attr.serial.html)) 
+/// - Async support is provided by Tokio: [tokio::test(flavor = "multi_thread")](https://docs.rs/tokio/latest/tokio/attr.test.html).
+/// - The macro accepts one optional argument `root` with the default value `"../../"`.
+///      - Example: `#[trdelnik_test(root = "../../")]`
+/// 
+/// # Example 
+/// 
+/// ```rust,no_run
+/// // tests/test.rs
+/// use trdelnik::*;
+///
+/// #[trdelnik_test]
+/// async fn test_turnstile() {
+///     let reader = Reader::new();
+///     let mut turnstile = Turnstile {
+///         client: Client::new(reader.keypair("id").await?),
+///         state: reader.keypair("state").await?,
+///         program: reader.keypair("program").await?,
+///         program_data: reader.program_data("turnstile").await?,
+///         locked: bool::default(),
+///     };
+///     turnstile.initialize().await?;
+/// }
+/// ```
 #[proc_macro_attribute]
 pub fn trdelnik_test(args: TokenStream, input: TokenStream) -> TokenStream {
     let attr_args = parse_macro_input!(args as AttributeArgs);
