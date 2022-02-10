@@ -1,3 +1,8 @@
+//! Trdelnik is a suite of tools and libraries for testing, auditing and developing
+//! [Solana](https://solana.com/) / [Anchor](https://book.anchor-lang.com/chapter_1/what_is_anchor.html) programs (smart contracts).
+//!
+//! Trdelnik could be useful for writing Rust dApps, too.
+
 pub use anchor_client::{
     self,
     anchor_lang::{self, Id, InstructionData, System, ToAccountMetas},

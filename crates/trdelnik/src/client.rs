@@ -27,12 +27,17 @@ use spl_token;
 use std::{thread::sleep, time::Duration};
 use tokio::task;
 
+// @TODO: Make compatible with the latest Anchor deps.
+// https://github.com/project-serum/anchor/pull/1307#issuecomment-1022592683
+
+/// `Client` allows you to send typed RPC requests to a Solana cluster.
 pub struct Client {
     payer: Keypair,
     anchor_client: AnchorClient,
 }
 
 impl Client {
+    /// Creates a new `Client` instance.
     pub fn new(payer: Keypair) -> Self {
         Self {
             payer: payer.clone(),
@@ -44,18 +49,25 @@ impl Client {
         }
     }
 
+    /// Gets client's payer.
     pub fn payer(&self) -> &Keypair {
         &self.payer
     }
 
+    /// Gets the internal Anchor client to call Anchor client's methods directly.
     pub fn anchor_client(&self) -> &AnchorClient {
         &self.anchor_client
     }
 
+    /// Creates [Program] instance to communicate with the selected program.
     pub fn program(&self, program_id: Pubkey) -> Program {
         self.anchor_client.program(program_id)
     }
 
+    /// Finds out if the Solana localnet is running.
+    ///
+    /// Set `retry` to `true` when you want to wait until the localnet is running
+    /// or until 10 retries with 500ms delays are performed.
     pub async fn is_localnet_running(&self, retry: bool) -> bool {
         let dummy_pubkey = Pubkey::new_from_array([0; 32]);
         let rpc_client = self.anchor_client.program(dummy_pubkey).rpc();
@@ -74,6 +86,14 @@ impl Client {
         .expect("is_localnet_running task failed")
     }
 
+    /// Gets deserialized data from the chosen account.
+    ///
+    /// # Errors
+    ///
+    /// It fails when:
+    /// - the account does not exist.
+    /// - the Solana cluster is not running.
+    /// - deserialization failed.
     #[throws]
     pub async fn account_data<T>(&self, account: Pubkey) -> T
     where
@@ -86,19 +106,50 @@ impl Client {
             .expect("account_data task failed")?
     }
 
+    /// Returns all information associated with the account of the provided [Pubkey].
+    ///
+    /// # Errors
+    ///
+    /// It fails when the Solana cluster is not running.
     #[throws]
     pub async fn get_account(&self, account: Pubkey) -> Option<Account> {
         let rpc_client = self.anchor_client.program(System::id()).rpc();
         task::spawn_blocking(move || {
-            rpc_client
-                .get_account_with_commitment(&account, rpc_client.commitment())
-                .expect("get_account task failed")
-                .value
+            rpc_client.get_account_with_commitment(&account, rpc_client.commitment())
         })
         .await
-        .expect("get_account task failed")
+        .expect("get_account task failed")?
+        .value
     }
 
+    /// Sends the Anchor instruction with associated accounts and signers.
+    ///
+    /// # Example
+    ///
+    /// ```rust,ignore
+    /// use trdelnik::*;
+    ///
+    /// pub async fn initialize(
+    ///     client: &Client,
+    ///     state: Pubkey,
+    ///     user: Pubkey,
+    ///     system_program: Pubkey,
+    ///     signers: impl IntoIterator<Item = Keypair> + Send + 'static,
+    /// ) -> Result<EncodedConfirmedTransaction, ClientError> {
+    ///     Ok(client
+    ///         .send_instruction(
+    ///             PROGRAM_ID,
+    ///             turnstile::instruction::Initialize {},
+    ///             turnstile::accounts::Initialize {
+    ///                 state: a_state,
+    ///                 user: a_user,
+    ///                 system_program: a_system_program,
+    ///             },
+    ///             signers,
+    ///         )
+    ///         .await?)
+    /// }
+    /// ```
     #[throws]
     pub async fn send_instruction(
         &self,
@@ -133,6 +184,32 @@ impl Client {
         .expect("get transaction task failed")?
     }
 
+    /// Sends the transaction with associated instructions and signers.
+    ///
+    /// # Example
+    ///
+    /// ```rust,ignore
+    /// #[throws]
+    /// pub async fn create_account(
+    ///     &self,
+    ///     keypair: &Keypair,
+    ///     lamports: u64,
+    ///     space: u64,
+    ///     owner: &Pubkey,
+    /// ) -> EncodedConfirmedTransaction {
+    ///     self.send_transaction(
+    ///         &[system_instruction::create_account(
+    ///             &self.payer().pubkey(),
+    ///             &keypair.pubkey(),
+    ///             lamports,
+    ///             space,
+    ///             owner,
+    ///         )],
+    ///         [keypair],
+    ///     )
+    ///     .await?
+    /// }
+    /// ```
     #[throws]
     pub async fn send_transaction(
         &self,
@@ -169,6 +246,7 @@ impl Client {
         transaction
     }
 
+    /// Airdrops lamports to the chosen account.
     #[throws]
     pub async fn airdrop(&self, address: Pubkey, lamports: u64) {
         let rpc_client = self.anchor_client.program(System::id()).rpc();
@@ -197,6 +275,7 @@ impl Client {
         .expect("airdrop task failed")?
     }
 
+    /// Deploys the program.
     #[throws]
     pub async fn deploy(&self, program_keypair: Keypair, program_data: Vec<u8>) {
         const PROGRAM_DATA_CHUNK_SIZE: usize = 900;
@@ -281,6 +360,7 @@ impl Client {
         println!("program deployed");
     }
 
+    /// Creates accounts.
     #[throws]
     pub async fn create_account(
         &self,
@@ -302,6 +382,7 @@ impl Client {
         .await?
     }
 
+    /// Creates rent exempt account.
     #[throws]
     pub async fn create_account_rent_exempt(
         &mut self,
