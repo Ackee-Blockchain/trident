@@ -1,100 +1,102 @@
-///! The `idl` module contains structs and functions for Anchor program code parsing.
+//! The `idl` module contains structs and functions for Anchor program code parsing.
+//!
+//! [Idl] example:
+//!
+//! ```rust,ignore
+//! Idl {
+//!     programs: [
+//!         IdlProgram {
+//!             name: IdlName {
+//!                 snake_case: "turnstile",
+//!                 upper_camel_case: "Turnstile",
+//!             },
+//!             id: "[216u8 , 55u8 , 200u8 , 93u8 , 189u8 , 81u8 , 94u8 , 109u8 , 14u8 , 249u8 , 244u8 , 106u8 , 68u8 , 214u8 , 222u8 , 190u8 , 9u8 , 25u8 , 199u8 , 75u8 , 79u8 , 230u8 , 94u8 , 137u8 , 51u8 , 187u8 , 193u8 , 48u8 , 87u8 , 222u8 , 175u8 , 163u8]",
+//!             instruction_account_pairs: [
+//!                 (
+//!                     IdlInstruction {
+//!                         name: IdlName {
+//!                             snake_case: "initialize",
+//!                             upper_camel_case: "Initialize",
+//!                         },
+//!                         parameters: [],
+//!                     },
+//!                     IdlAccountGroup {
+//!                         name: IdlName {
+//!                             snake_case: "initialize",
+//!                             upper_camel_case: "Initialize",
+//!                         },
+//!                         accounts: [
+//!                             (
+//!                                 "state",
+//!                                 "anchor_lang :: solana_program :: pubkey :: Pubkey",
+//!                             ),
+//!                             (
+//!                                 "user",
+//!                                 "anchor_lang :: solana_program :: pubkey :: Pubkey",
+//!                             ),
+//!                             (
+//!                                 "system_program",
+//!                                 "anchor_lang :: solana_program :: pubkey :: Pubkey",
+//!                             ),
+//!                         ],
+//!                     },
+//!                 ),
+//!                 (
+//!                     IdlInstruction {
+//!                         name: IdlName {
+//!                             snake_case: "coin",
+//!                             upper_camel_case: "Coin",
+//!                         },
+//!                         parameters: [
+//!                             (
+//!                                 "dummy_arg",
+//!                                 "String",
+//!                             ),
+//!                         ],
+//!                     },
+//!                     IdlAccountGroup {
+//!                         name: IdlName {
+//!                             snake_case: "update_state",
+//!                             upper_camel_case: "UpdateState",
+//!                         },
+//!                         accounts: [
+//!                             (
+//!                                 "state",
+//!                                 "anchor_lang :: solana_program :: pubkey :: Pubkey",
+//!                             ),
+//!                         ],
+//!                     },
+//!                 ),
+//!                 (
+//!                     IdlInstruction {
+//!                         name: IdlName {
+//!                             snake_case: "push",
+//!                             upper_camel_case: "Push",
+//!                         },
+//!                         parameters: [],
+//!                     },
+//!                     IdlAccountGroup {
+//!                         name: IdlName {
+//!                             snake_case: "update_state",
+//!                             upper_camel_case: "UpdateState",
+//!                         },
+//!                         accounts: [
+//!                             (
+//!                                 "state",
+//!                                 "anchor_lang :: solana_program :: pubkey :: Pubkey",
+//!                             ),
+//!                         ],
+//!                     },
+//!                 ),
+//!             ],
+//!         },
+//!     ],
+//! }
+//! ```
+
 use heck::{ToSnakeCase, ToUpperCamelCase};
 use quote::ToTokens;
 use thiserror::Error;
-
-// Idl example:
-// ```
-// Idl {
-//     programs: [
-//         IdlProgram {
-//             name: IdlName {
-//                 snake_case: "turnstile",
-//                 upper_camel_case: "Turnstile",
-//             },
-//             id: "[216u8 , 55u8 , 200u8 , 93u8 , 189u8 , 81u8 , 94u8 , 109u8 , 14u8 , 249u8 , 244u8 , 106u8 , 68u8 , 214u8 , 222u8 , 190u8 , 9u8 , 25u8 , 199u8 , 75u8 , 79u8 , 230u8 , 94u8 , 137u8 , 51u8 , 187u8 , 193u8 , 48u8 , 87u8 , 222u8 , 175u8 , 163u8]",
-//             instruction_account_pairs: [
-//                 (
-//                     IdlInstruction {
-//                         name: IdlName {
-//                             snake_case: "initialize",
-//                             upper_camel_case: "Initialize",
-//                         },
-//                         parameters: [],
-//                     },
-//                     IdlAccountGroup {
-//                         name: IdlName {
-//                             snake_case: "initialize",
-//                             upper_camel_case: "Initialize",
-//                         },
-//                         accounts: [
-//                             (
-//                                 "state",
-//                                 "anchor_lang :: solana_program :: pubkey :: Pubkey",
-//                             ),
-//                             (
-//                                 "user",
-//                                 "anchor_lang :: solana_program :: pubkey :: Pubkey",
-//                             ),
-//                             (
-//                                 "system_program",
-//                                 "anchor_lang :: solana_program :: pubkey :: Pubkey",
-//                             ),
-//                         ],
-//                     },
-//                 ),
-//                 (
-//                     IdlInstruction {
-//                         name: IdlName {
-//                             snake_case: "coin",
-//                             upper_camel_case: "Coin",
-//                         },
-//                         parameters: [
-//                             (
-//                                 "dummy_arg",
-//                                 "String",
-//                             ),
-//                         ],
-//                     },
-//                     IdlAccountGroup {
-//                         name: IdlName {
-//                             snake_case: "update_state",
-//                             upper_camel_case: "UpdateState",
-//                         },
-//                         accounts: [
-//                             (
-//                                 "state",
-//                                 "anchor_lang :: solana_program :: pubkey :: Pubkey",
-//                             ),
-//                         ],
-//                     },
-//                 ),
-//                 (
-//                     IdlInstruction {
-//                         name: IdlName {
-//                             snake_case: "push",
-//                             upper_camel_case: "Push",
-//                         },
-//                         parameters: [],
-//                     },
-//                     IdlAccountGroup {
-//                         name: IdlName {
-//                             snake_case: "update_state",
-//                             upper_camel_case: "UpdateState",
-//                         },
-//                         accounts: [
-//                             (
-//                                 "state",
-//                                 "anchor_lang :: solana_program :: pubkey :: Pubkey",
-//                             ),
-//                         ],
-//                     },
-//                 ),
-//             ],
-//         },
-//     ],
-// }
-// ```
 
 #[derive(Error, Debug)]
 pub enum Error {
