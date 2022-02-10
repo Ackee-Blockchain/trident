@@ -40,13 +40,23 @@ pub enum Error {
     ParsingCargoTomlDependenciesFailed,
 }
 
+/// Localnet (the validator process) handle.
 pub struct LocalnetHandle {
     solana_test_validator_process: Child,
 }
 
 impl LocalnetHandle {
-    #[throws]
+    /// Stops the localnet.
+    ///
     /// _Note_: Manual kill: `kill -9 $(lsof -t -i:8899)`
+    ///
+    /// # Errors
+    ///
+    /// It fails when:
+    /// - killing the process failed.
+    /// - process is still running after the kill command has been performed.
+    /// - cannot remove localnet data (the `test-ledger` directory).
+    #[throws]
     pub async fn stop(mut self) {
         self.solana_test_validator_process.kill().await?;
         if Client::new(Keypair::new()).is_localnet_running(false).await {
@@ -57,21 +67,26 @@ impl LocalnetHandle {
     }
 }
 
+/// `Commander` allows you to start localnet, build programs,
+/// run tests and do other useful operations.
 pub struct Commander {
     root: Cow<'static, str>,
 }
 
 impl Commander {
+    /// Creates a new `Commander` instance with the default root `"../../"`.
     pub fn new() -> Self {
         Self {
             root: "../../".into(),
         }
     }
 
+    /// Creates a new `Commander` instance with the provided `root`.
     pub fn with_root(root: impl Into<Cow<'static, str>>) -> Self {
         Self { root: root.into() }
     }
 
+    /// Builds programs (smart contracts).
     #[throws]
     pub async fn build_programs(&self) {
         let success = Command::new("cargo")
@@ -89,6 +104,10 @@ impl Commander {
         }
     }
 
+    /// Runs standard Rust tests.
+    ///
+    /// _Note_: The [--nocapture](https://doc.rust-lang.org/cargo/commands/cargo-test.html#display-options) argument is used
+    /// to allow you read `println` outputs in your terminal window.
     #[throws]
     pub async fn run_tests(&self) {
         let success = Command::new("cargo")
@@ -104,6 +123,9 @@ impl Commander {
         }
     }
 
+    /// Creates the `program_client` crate.
+    ///
+    /// It's used internally by the [`#[trdelnik_test]`](trdelnik_test::trdelnik_test) macro.
     #[throws]
     pub async fn create_program_client_crate(&self) {
         let crate_path = Path::new(self.root.as_ref()).join(PROGRAM_CLIENT_DIRECTORY);
@@ -128,6 +150,7 @@ impl Commander {
         println!("program_client crate created")
     }
 
+    /// Returns an [Iterator] of program [Package]s read from `Cargo.toml` files.
     pub fn program_packages(&self) -> impl Iterator<Item = Package> {
         let cargo_toml_data = MetadataCommand::new()
             .no_deps()
@@ -143,6 +166,9 @@ impl Commander {
         })
     }
 
+    /// Updates the `program_client` dependencies.
+    ///
+    /// It's used internally by the [`#[trdelnik_test]`](trdelnik_test::trdelnik_test) macro.
     #[throws]
     pub async fn generate_program_client_deps(&self) {
         let trdelnik_dep = r#"trdelnik = { path = "../../../crates/trdelnik" }"#
@@ -199,6 +225,9 @@ impl Commander {
         fs::write(cargo_toml_path, cargo_toml_content.to_string()).await?;
     }
 
+    /// Updates the `program_client` `lib.rs`.
+    ///
+    /// It's used internally by the [`#[trdelnik_test]`](trdelnik_test::trdelnik_test) macro.
     #[throws]
     pub async fn generate_program_client_lib_rs(&self) {
         let idl_programs = self.program_packages().map(|package| async move {
@@ -243,6 +272,7 @@ impl Commander {
         fs::write(rust_file_path, &program_client).await?;
     }
 
+    /// Starts the localnet (Solana validator).
     #[throws]
     pub async fn start_localnet(&self) -> LocalnetHandle {
         let process = Command::new("solana-test-validator")

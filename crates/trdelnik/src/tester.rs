@@ -2,6 +2,9 @@ use crate::{commander::Error, Commander, LocalnetHandle};
 use fehler::throws;
 use std::{borrow::Cow, mem};
 
+/// `Tester` is used primarily by [`#[trdelnik_test]`](trdelnik_test::trdelnik_test) macro.
+///
+/// There should be no need to use `Tester` directly.
 #[derive(Default)]
 pub struct Tester {
     root: Cow<'static, str>,

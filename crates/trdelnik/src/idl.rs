@@ -1,3 +1,4 @@
+///! The `idl` module contains structs and functions for Anchor program code parsing.
 use heck::{ToSnakeCase, ToUpperCamelCase};
 use quote::ToTokens;
 use thiserror::Error;

@@ -2,6 +2,7 @@ use anyhow::Result;
 use vergen::{vergen, Config};
 
 fn main() -> Result<()> {
-    // Generate the default 'cargo:' instruction output
+    // `vergen` creates env variables with info about
+    // the current commit hash or the crate version.
     vergen(Config::default())
 }

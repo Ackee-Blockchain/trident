@@ -66,6 +66,7 @@ use syn::{parse_quote, parse_str};
 // }
 // ```
 
+/// Generates `program_client`'s `lib.rs` from [Idl] created from Anchor programs.
 pub fn generate_source_code(idl: Idl) -> String {
     let mut output = "// DO NOT EDIT - automatically generated file\n".to_owned();
     let code = idl
