@@ -940,6 +940,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "diff"
+version = "0.1.12"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0e25ea47919b1560c4e3b7fe0aaab9becf5b84a10325ddf7db0f0ba5e1026499"
+
+[[package]]
 name = "digest"
 version = "0.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1865,6 +1871,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "51b9bbe6c47d51fc3e1a9b945965946b4c44142ab8792c50835a980d362c2710"
 dependencies = [
  "cfg-if 1.0.0",
+]
+
+[[package]]
+name = "macrotest"
+version = "1.0.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a2cb3d2a66da81f6c300d4fd5370aeea9beb3ab5b5256ef22e62c0aa524cb31b"
+dependencies = [
+ "diff",
+ "glob",
+ "rand 0.7.3",
+ "serde",
+ "serde_json",
+ "toml",
 ]
 
 [[package]]
@@ -3865,6 +3885,7 @@ name = "trdelnik_test"
 version = "0.1.0"
 dependencies = [
  "darling",
+ "macrotest",
  "proc-macro2 1.0.36",
  "quote 1.0.14",
  "syn 1.0.85",
