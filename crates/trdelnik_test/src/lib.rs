@@ -1,42 +1,11 @@
+//! The `trdelnik_test` crate helps you to write Rust tests for your _programs_ with Trdelnik.
+//! See the macro [trdelnik_test] for more info.
+//!
+//! _Dev Note_: You need `cargo expand` and nightly Rust to run tests. See [macrotest docs](https://docs.rs/macrotest/latest/macrotest/#workflow).
+
 use darling::FromMeta;
 use proc_macro::TokenStream;
 use syn::{parse_macro_input, spanned::Spanned, AttributeArgs, ItemFn};
-
-// #[trdelnik_test(root = "../../")]
-// async fn test_turnstile() {
-//     init_client().await?;
-//     let mut turnstile = Turnstile {
-//         locked: get_state_client().await?.locked
-//     };
-//     turnstile.coin().await?;
-//     turnstile.push_unlocked().await?;
-//     turnstile.push_locked().await?;
-// }
-//
-// to
-//
-// #[trdelnik::tokio::test(flavor = "multi_thread")]
-// #[trdelnik::serial_test::serial]
-// async fn test_turnstile() -> trdelnik::anyhow::Result<()> {
-//     let mut tester = trdelnik::Tester::with_root(#root);
-//     let localnet_handle = tester.before().await?;
-//     let test = async {
-//         init_client().await?;
-//         let mut turnstile = Turnstile {
-//             locked: get_state_client().await?.locked
-//         };
-//         turnstile.coin().await?;
-//         turnstile.push_unlocked().await?;
-//         turnstile.push_locked().await?;
-//         Ok::<(), trdelnik::anyhow::Error>(())
-//     };
-//     println!("____ TEST ____");
-//     let result = std::panic::AssertUnwindSafe(test).catch_unwind().await;
-//     tester.after(localnet_handle).await?;
-//     assert!(result.is_ok());
-//     result.unwrap()?;
-//     Ok(())
-// }
 
 #[derive(Debug, FromMeta)]
 struct MacroArgs {
@@ -46,14 +15,15 @@ struct MacroArgs {
 
 /// The macro starts the Solana validator (localnet), runs your program test and then shuts down the validator.
 /// - The test implicitly returns [anyhow::Result<()>](https://docs.rs/anyhow/latest/anyhow/type.Result.html).
-/// - All tests are run sequentially - each test uses a new/reset validator. (See [serial_test::serial](https://docs.rs/serial_test/latest/serial_test/attr.serial.html)) 
+/// - All tests are run sequentially - each test uses a new/reset validator. (See [serial_test::serial](https://docs.rs/serial_test/latest/serial_test/attr.serial.html))
 /// - Async support is provided by Tokio: [tokio::test(flavor = "multi_thread")](https://docs.rs/tokio/latest/tokio/attr.test.html).
 /// - The macro accepts one optional argument `root` with the default value `"../../"`.
 ///      - Example: `#[trdelnik_test(root = "../../")]`
-/// 
-/// # Example 
-/// 
-/// ```rust,no_run
+/// - You can see the macro expanded in the crate's tests.
+///
+/// # Example
+///
+/// ```rust,ignore
 /// // tests/test.rs
 /// use trdelnik::*;
 ///
