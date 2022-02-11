@@ -18,8 +18,11 @@ use anchor_client::{
     },
     Client as AnchorClient, ClientError as Error, Cluster, Program,
 };
+use bincode;
+use borsh::BorshDeserialize;
 use fehler::throws;
 use futures::future::try_join_all;
+use serde::de::DeserializeOwned;
 use solana_cli_output::display::println_transaction;
 use solana_transaction_status::{EncodedConfirmedTransaction, UiTransactionEncoding};
 use spl_associated_token_account::get_associated_token_address;
@@ -86,7 +89,7 @@ impl Client {
         .expect("is_localnet_running task failed")
     }
 
-    /// Gets deserialized data from the chosen account.
+    /// Gets deserialized data from the chosen account serialized with Anchor
     ///
     /// # Errors
     ///
@@ -104,6 +107,50 @@ impl Client {
         task::spawn_blocking(move || program.account::<T>(account))
             .await
             .expect("account_data task failed")?
+    }
+
+    /// Gets deserialized data from the chosen account serialized with Bincode
+    ///
+    /// # Errors
+    ///
+    /// It fails when:
+    /// - the account does not exist.
+    /// - the Solana cluster is not running.
+    /// - deserialization failed.
+    #[throws]
+    pub async fn account_data_bincode<T>(&self, account: Pubkey) -> T
+    where
+        T: DeserializeOwned + Send + 'static,
+    {
+        let account = self
+            .get_account(account)
+            .await?
+            .ok_or_else(|| Error::AccountNotFound)?;
+
+        bincode::deserialize(&account.data)
+            .map_err(|_| Error::LogParseError("Bincode deserialization failed".to_string()))?
+    }
+
+    /// Gets deserialized data from the chosen account serialized with Borsh
+    ///
+    /// # Errors
+    ///
+    /// It fails when:
+    /// - the account does not exist.
+    /// - the Solana cluster is not running.
+    /// - deserialization failed.
+    #[throws]
+    pub async fn account_data_borsh<T>(&self, account: Pubkey) -> T
+    where
+        T: BorshDeserialize + Send + 'static,
+    {
+        let account = self
+            .get_account(account)
+            .await?
+            .ok_or_else(|| Error::AccountNotFound)?;
+
+        T::try_from_slice(&account.data)
+            .map_err(|_| Error::LogParseError("Bincode deserialization failed".to_string()))?
     }
 
     /// Returns all information associated with the account of the provided [Pubkey].
