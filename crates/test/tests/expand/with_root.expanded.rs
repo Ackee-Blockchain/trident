@@ -1,7 +1,7 @@
-#[trdelnik::tokio::test(flavor = "multi_thread")]
-#[trdelnik::serial_test::serial]
-async fn test_with_defined_root() -> trdelnik::anyhow::Result<()> {
-    let mut tester = trdelnik::Tester::with_root("i_am_root");
+#[trdelnik_client::tokio::test(flavor = "multi_thread")]
+#[trdelnik_client::serial_test::serial]
+async fn test_with_defined_root() -> trdelnik_client::anyhow::Result<()> {
+    let mut tester = trdelnik_client::Tester::with_root("i_am_root");
     let localnet_handle = tester.before().await?;
     let test = async {
         {
@@ -9,7 +9,7 @@ async fn test_with_defined_root() -> trdelnik::anyhow::Result<()> {
                 ::std::io::_print(::core::fmt::Arguments::new_v1(&["Hello!\n"], &[]));
             };
         }
-        Ok::<(), trdelnik::anyhow::Error>(())
+        Ok::<(), trdelnik_client::anyhow::Error>(())
     };
     {
         ::std::io::_print(::core::fmt::Arguments::new_v1(&["____ TEST ____\n"], &[]));

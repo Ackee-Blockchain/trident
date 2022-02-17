@@ -4,7 +4,7 @@ use syn::{parse_quote, parse_str};
 
 /// Generates `program_client`'s `lib.rs` from [Idl] created from Anchor programs.
 ///
-/// _Note_: See the crate's tests for output example.  
+/// _Note_: See the crate's tests for output example.
 pub fn generate_source_code(idl: Idl) -> String {
     let mut output = "// DO NOT EDIT - automatically generated file\n".to_owned();
     let code = idl
@@ -121,7 +121,7 @@ pub fn generate_source_code(idl: Idl) -> String {
 
             let program_module: syn::ItemMod = parse_quote! {
                 pub mod #instruction_module_name {
-                    use trdelnik::*;
+                    use trdelnik_client::*;
                     pub static PROGRAM_ID: Pubkey = Pubkey::new_from_array(#pubkey_bytes);
                     #(#instructions)*
                 }

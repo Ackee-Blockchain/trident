@@ -2298,7 +2298,7 @@ dependencies = [
 name = "program_client"
 version = "0.1.0"
 dependencies = [
- "trdelnik",
+ "trdelnik-client",
  "turnstile",
 ]
 
@@ -3778,7 +3778,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "trdelnik"
+name = "trdelnik-client"
 version = "0.1.0"
 dependencies = [
  "anchor-client",
@@ -3804,12 +3804,12 @@ dependencies = [
  "thiserror",
  "tokio",
  "toml",
- "trdelnik_test",
+ "trdelnik-test",
  "vergen",
 ]
 
 [[package]]
-name = "trdelnik_test"
+name = "trdelnik-test"
 version = "0.1.0"
 dependencies = [
  "darling",
@@ -3851,7 +3851,7 @@ dependencies = [
  "anchor-lang",
  "fehler",
  "program_client",
- "trdelnik",
+ "trdelnik-client",
 ]
 
 [[package]]

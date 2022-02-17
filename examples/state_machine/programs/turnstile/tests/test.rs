@@ -1,7 +1,7 @@
 use fehler::throws;
 use program_client::turnstile_instruction;
 use std::mem;
-use trdelnik::*;
+use trdelnik_client::*;
 
 #[trdelnik_test]
 async fn test_turnstile() {

@@ -186,7 +186,7 @@ impl Commander {
     /// It's used internally by the [`#[trdelnik_test]`](trdelnik_test::trdelnik_test) macro.
     #[throws]
     pub async fn generate_program_client_deps(&self) {
-        let trdelnik_dep = r#"trdelnik = { path = "../../../crates/trdelnik" }"#
+        let trdelnik_dep = r#"trdelnik_client = { path = "../../../crates/client" }"#
             .parse()
             .unwrap();
         // @TODO replace the line above with the specific version or commit hash
