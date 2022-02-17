@@ -3,10 +3,6 @@ name = "trdelnik_cli"
 version = "0.1.0"
 edition = "2021"
 
-[[bin]]
-name = "trdelnik"
-path = "src/main.rs"
-
 [dependencies]
 clap = { version = "3.1.0", features = ["derive"] }
 tokio = { version = "1.17.0", features = ["rt-multi-thread", "macros", "fs", "signal", "sync", "time", "io-util", "process"], default-features = false }
