@@ -20,5 +20,5 @@ anchor-lang = "0.18.2"
 
 [dev-dependencies]
 fehler = "1.0.0"
-trdelnik = { path = "../../../../crates/trdelnik" }
+trdelnik-client = { path = "../../../../crates/client" }
 program_client = { path = "../../program_client" }

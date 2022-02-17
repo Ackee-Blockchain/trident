@@ -174,7 +174,7 @@ impl Client {
     /// # Example
     ///
     /// ```rust,ignore
-    /// use trdelnik::*;
+    /// use trdelnik_client::*;
     ///
     /// pub async fn initialize(
     ///     client: &Client,

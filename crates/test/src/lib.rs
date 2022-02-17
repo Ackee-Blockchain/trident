@@ -25,7 +25,7 @@ struct MacroArgs {
 ///
 /// ```rust,ignore
 /// // tests/test.rs
-/// use trdelnik::*;
+/// use trdelnik_client::*;
 ///
 /// #[trdelnik_test]
 /// async fn test_turnstile() {
@@ -59,14 +59,14 @@ pub fn trdelnik_test(args: TokenStream, input: TokenStream) -> TokenStream {
     let input_fn_name = input_fn.sig.ident;
 
     quote::quote_spanned!(input_fn_span=>
-        #[trdelnik::tokio::test(flavor = "multi_thread")]
-        #[trdelnik::serial_test::serial]
-        async fn #input_fn_name() -> trdelnik::anyhow::Result<()> {
-            let mut tester = trdelnik::Tester::with_root(#root);
+        #[trdelnik_client::tokio::test(flavor = "multi_thread")]
+        #[trdelnik_client::serial_test::serial]
+        async fn #input_fn_name() -> trdelnik_client::anyhow::Result<()> {
+            let mut tester = trdelnik_client::Tester::with_root(#root);
             let localnet_handle = tester.before().await?;
             let test = async {
                 #input_fn_body
-                Ok::<(), trdelnik::anyhow::Error>(())
+                Ok::<(), trdelnik_client::anyhow::Error>(())
             };
             println!("____ TEST ____");
             let result = std::panic::AssertUnwindSafe(test).catch_unwind().await;

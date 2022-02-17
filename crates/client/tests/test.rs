@@ -15,14 +15,14 @@ pub async fn generate_program_client() {
     let expected_client_code = include_str!("test_data/expected_client_code.rs");
 
     let program_idl =
-        trdelnik::idl::parse_to_idl_program("turnstile".to_owned(), expanded_anchor_program)
+        trdelnik_client::idl::parse_to_idl_program("turnstile".to_owned(), expanded_anchor_program)
             .await?;
-    let idl = trdelnik::idl::Idl {
+    let idl = trdelnik_client::idl::Idl {
         programs: vec![program_idl],
     };
 
-    let client_code = trdelnik::program_client_generator::generate_source_code(idl);
-    let client_code = trdelnik::Commander::format_program_code(&client_code).await?;
+    let client_code = trdelnik_client::program_client_generator::generate_source_code(idl);
+    let client_code = trdelnik_client::Commander::format_program_code(&client_code).await?;
 
     assert_str_eq!(client_code, expected_client_code);
 }

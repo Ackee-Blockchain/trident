@@ -1,6 +1,6 @@
 use anyhow::Error;
 use fehler::throws;
-use trdelnik::*;
+use trdelnik_client::*;
 
 #[throws]
 pub async fn test(root: String) {
