@@ -4,14 +4,9 @@ use fehler::throws;
 
 mod command;
 
-mod config;
-use crate::config::ConfigOverride;
-
 #[derive(Parser)]
 #[clap(version, propagate_version = true)]
 pub struct Cli {
-    #[clap(flatten)]
-    pub cfg_override: ConfigOverride,
     #[clap(subcommand)]
     command: Command,
 }
@@ -24,6 +19,8 @@ enum Command {
         #[clap(short, long, default_value = "./")]
         root: String,
     },
+    /// Run local test validator
+    Localnet,
 }
 
 #[throws]
@@ -32,5 +29,6 @@ pub async fn start() {
 
     match cli.command {
         Command::Test { root } => command::test(root).await?,
+        Command::Localnet => command::localnet().await?,
     }
 }
