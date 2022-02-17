@@ -3,7 +3,7 @@ use crate::{
     program_client_generator, Client,
 };
 use cargo_metadata::{MetadataCommand, Package};
-use fehler::throws;
+use fehler::{throw, throws};
 use futures::future::try_join_all;
 use solana_sdk::signer::keypair::Keypair;
 use std::{borrow::Cow, io, iter, path::Path, process::Stdio, string::FromUtf8Error};
@@ -55,15 +55,30 @@ impl LocalnetHandle {
     /// It fails when:
     /// - killing the process failed.
     /// - process is still running after the kill command has been performed.
-    /// - cannot remove localnet data (the `test-ledger` directory).
     #[throws]
     pub async fn stop(mut self) {
         self.solana_test_validator_process.kill().await?;
         if Client::new(Keypair::new()).is_localnet_running(false).await {
-            Err(Error::LocalnetIsStillRunning)?
+            throw!(Error::LocalnetIsStillRunning);
         }
+        println!("localnet stopped");
+    }
+
+    /// Stops the localnet and removes the ledger.
+    ///
+    /// _Note_: Manual kill: `kill -9 $(lsof -t -i:8899)`
+    ///
+    /// # Errors
+    ///
+    /// It fails when:
+    /// - killing the process failed.
+    /// - process is still running after the kill command has been performed.
+    /// - cannot remove localnet data (the `test-ledger` directory).
+    #[throws]
+    pub async fn stop_and_remove_ledger(self) {
+        self.stop().await?;
         fs::remove_dir_all("test-ledger").await?;
-        println!("localnet stopped and its ledger deleted");
+        println!("ledger removed");
     }
 }
 

@@ -32,7 +32,7 @@ impl Tester {
     #[throws]
     pub async fn after(&self, localnet_handle: LocalnetHandle) {
         println!("____ AFTER TEST ____");
-        localnet_handle.stop().await?;
+        localnet_handle.stop_and_remove_ledger().await?;
         println!("_____________________");
     }
 }

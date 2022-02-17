@@ -1,10 +1,12 @@
 {
     "rust-analyzer.linkedProjects": [
-        // rust-analyzer ignores `main.rs` when `linkedProjects` are set
-        "crates/trdelnik_cli/Cargo.toml",
-        // examples are ignored because they have own workspaces
+        // examples in its own workspace are ignored by autodiscovery
         "examples/state_machine/program_client/Cargo.toml",
         "examples/state_machine/Cargo.toml",
+        // when this setting is used, autodiscovery is disabled
+        "crates/trdelnik_cli/Cargo.toml",
+        "crates/trdelnik/Cargo.toml",
+        "crates/trdelnik_test/Cargo.toml",
     ],
     "rust-analyzer.diagnostics.disabled": [
         "missing-unsafe",
