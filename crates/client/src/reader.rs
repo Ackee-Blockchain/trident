@@ -11,13 +11,13 @@ use tokio::fs;
 #[derive(Error, Debug)]
 pub enum Error {
     #[error("cannot read the file")]
-    IoError(#[from] io::Error),
+    Io(#[from] io::Error),
     #[error("deserialization failed")]
-    SerdeJsonError(#[from] serde_json::Error),
+    SerdeJson(#[from] serde_json::Error),
     #[error("pubkey parsing failed")]
-    PubkeyError(#[from] ParsePubkeyError),
+    Pubkey(#[from] ParsePubkeyError),
     #[error("keypair parsing failed")]
-    KeypairError(#[from] SignatureError),
+    Keypair(#[from] SignatureError),
 }
 
 /// `Reader` allows you to read [Pubkey], [Keypair] and other entities from files.
@@ -74,5 +74,12 @@ impl Reader {
     #[throws]
     pub async fn program_data(&self, name: &str) -> Vec<u8> {
         fs::read(format!("{}target/deploy/{}.so", self.root, name)).await?
+    }
+}
+
+impl Default for Reader {
+    /// Creates a new `Reader` instance with the default root `"../../"`.
+    fn default() -> Self {
+        Self::new()
     }
 }

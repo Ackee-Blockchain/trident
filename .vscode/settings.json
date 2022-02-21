@@ -12,6 +12,9 @@
         "missing-unsafe",
         "add-reference-here",
     ],
+    "rust-analyzer.cargo.unsetTest": [
+        "ed25519-dalek"
+    ],
     "rust-analyzer.procMacro.enable": true,
     "rust-analyzer.cargo.allFeatures": true,
     "rust-analyzer.completion.autoimport.enable": false,
