@@ -19,9 +19,9 @@ pub static PROGRAM_CLIENT_DIRECTORY: &str = "program_client";
 #[derive(Error, Debug)]
 pub enum Error {
     #[error("{0:?}")]
-    IoError(#[from] io::Error),
+    Io(#[from] io::Error),
     #[error("{0:?}")]
-    Utf8Error(#[from] FromUtf8Error),
+    Utf8(#[from] FromUtf8Error),
     #[error("localnet is not running")]
     LocalnetIsNotRunning,
     #[error("localnet is still running")]
@@ -33,9 +33,9 @@ pub enum Error {
     #[error("read program code failed: '{0}'")]
     ReadProgramCodeFailed(String),
     #[error("{0:?}")]
-    IdlError(#[from] idl::Error),
+    Idl(#[from] idl::Error),
     #[error("{0:?}")]
-    TomlDeserializeError(#[from] toml::de::Error),
+    TomlDeserialize(#[from] toml::de::Error),
     #[error("parsing Cargo.toml dependencies failed")]
     ParsingCargoTomlDependenciesFailed,
 }
@@ -115,7 +115,7 @@ impl Commander {
             .await?
             .success();
         if !success {
-            Err(Error::BuildProgramsFailed)?;
+            throw!(Error::BuildProgramsFailed);
         }
     }
 
@@ -134,7 +134,7 @@ impl Commander {
             .await?
             .success();
         if !success {
-            Err(Error::TestingFailed)?;
+            throw!(Error::TestingFailed);
         }
     }
 
@@ -172,12 +172,12 @@ impl Commander {
             .exec()
             .expect("Cargo.toml reading failed");
 
-        cargo_toml_data.packages.into_iter().filter_map(|package| {
+        cargo_toml_data.packages.into_iter().filter(|package| {
             // @TODO less error-prone test if the package is a _program_?
-            match package.manifest_path.iter().nth_back(2) {
-                Some("programs") => Some(package),
-                _ => None,
+            if let Some("programs") = package.manifest_path.iter().nth_back(2) {
+                return true;
             }
+            false
         })
     }
 
@@ -226,7 +226,7 @@ impl Commander {
         let cargo_toml_deps = cargo_toml_content
             .get_mut("dependencies")
             .and_then(toml::Value::as_table_mut)
-            .ok_or_else(|| Error::ParsingCargoTomlDependenciesFailed)?;
+            .ok_or(Error::ParsingCargoTomlDependenciesFailed)?;
 
         for dep in iter::once(trdelnik_dep).chain(program_deps) {
             if let toml::Value::Table(table) = dep {
@@ -302,11 +302,18 @@ impl Commander {
             .arg("-q")
             .spawn()?;
         if !Client::new(Keypair::new()).is_localnet_running(true).await {
-            Err(Error::LocalnetIsNotRunning)?
+            throw!(Error::LocalnetIsNotRunning);
         }
         println!("localnet started");
         LocalnetHandle {
             solana_test_validator_process: process,
         }
+    }
+}
+
+impl Default for Commander {
+    /// Creates a new `Commander` instance with the default root `"../../"`.
+    fn default() -> Self {
+        Self::new()
     }
 }

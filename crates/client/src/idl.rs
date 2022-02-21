@@ -144,7 +144,7 @@ pub async fn parse_to_idl_program(name: String, code: &str) -> Result<IdlProgram
     let mut mod_instruction = None::<syn::ItemMod>;
     let mut account_mods = Vec::<syn::ItemMod>::new();
 
-    for item in syn::parse_file(&code)?.items.into_iter() {
+    for item in syn::parse_file(code)?.items.into_iter() {
         match item {
             syn::Item::Static(item_static) if item_static.ident == "ID" => {
                 static_program_id = Some(item_static);
@@ -161,12 +161,13 @@ pub async fn parse_to_idl_program(name: String, code: &str) -> Result<IdlProgram
         }
     }
 
-    let static_program_id = static_program_id
-        .ok_or_else(|| Error::MissingOrInvalidProgramItems("missing static ID"))?;
+    let static_program_id =
+        static_program_id.ok_or(Error::MissingOrInvalidProgramItems("missing static ID"))?;
     let mod_private =
-        mod_private.ok_or_else(|| Error::MissingOrInvalidProgramItems("missing mod private"))?;
-    let mod_instruction = mod_instruction
-        .ok_or_else(|| Error::MissingOrInvalidProgramItems("missing mod instruction"))?;
+        mod_private.ok_or(Error::MissingOrInvalidProgramItems("missing mod private"))?;
+    let mod_instruction = mod_instruction.ok_or(Error::MissingOrInvalidProgramItems(
+        "missing mod instruction",
+    ))?;
 
     // ------ get program id ------
 
@@ -195,15 +196,19 @@ pub async fn parse_to_idl_program(name: String, code: &str) -> Result<IdlProgram
     let program_id_bytes = {
         let new_pubkey_call = match *static_program_id.expr {
             syn::Expr::Call(new_pubkey_call) => new_pubkey_call,
-            _ => Err(Error::MissingOrInvalidProgramItems(
-                "static ID: new pubkey call not found",
-            ))?,
+            _ => {
+                return Err(Error::MissingOrInvalidProgramItems(
+                    "static ID: new pubkey call not found",
+                ))
+            }
         };
         match new_pubkey_call.args.into_iter().next() {
             Some(syn::Expr::Array(pubkey_bytes)) => pubkey_bytes,
-            _ => Err(Error::MissingOrInvalidProgramItems(
-                "static ID: pubkey bytes not found",
-            ))?,
+            _ => {
+                return Err(Error::MissingOrInvalidProgramItems(
+                    "static ID: pubkey bytes not found",
+                ))
+            }
         }
     };
 
@@ -242,9 +247,9 @@ pub async fn parse_to_idl_program(name: String, code: &str) -> Result<IdlProgram
                 syn::Item::Mod(item_mod) if item_mod.ident == "__global" => Some(item_mod),
                 _ => None?,
             })
-            .ok_or_else(|| {
-                Error::MissingOrInvalidProgramItems("mod private: mod global not found")
-            })?;
+            .ok_or(Error::MissingOrInvalidProgramItems(
+                "mod private: mod global not found",
+            ))?;
         let items = item_mod_global
             .content
             .map(|(_, items)| items)
@@ -324,7 +329,8 @@ pub async fn parse_to_idl_program(name: String, code: &str) -> Result<IdlProgram
         })
         .try_for_each(|pair| {
             if let Some(pair) = pair {
-                Ok(instruction_account_pairs.push(pair))
+                instruction_account_pairs.push(pair);
+                Ok(())
             } else {
                 Err(Error::MissingOrInvalidProgramItems(
                     "statement with `accounts` not found",
@@ -351,7 +357,9 @@ pub async fn parse_to_idl_program(name: String, code: &str) -> Result<IdlProgram
 
     let mut instruction_mod_items = mod_instruction
         .content
-        .ok_or_else(|| Error::MissingOrInvalidProgramItems("instruction mod: empty content"))?
+        .ok_or(Error::MissingOrInvalidProgramItems(
+            "instruction mod: empty content",
+        ))?
         .1
         .into_iter();
 
@@ -375,7 +383,7 @@ pub async fn parse_to_idl_program(name: String, code: &str) -> Result<IdlProgram
                 };
                 Some(fields.into_iter())
             })
-            .ok_or_else(|| Error::MissingOrInvalidProgramItems("instruction struct"))?;
+            .ok_or(Error::MissingOrInvalidProgramItems("instruction struct"))?;
 
         idl_instruction.parameters = instruction_item_struct_fields
             .map(|field| {
@@ -410,7 +418,7 @@ pub async fn parse_to_idl_program(name: String, code: &str) -> Result<IdlProgram
 
         let account_item_struct = account_mod_item
             .content
-            .ok_or_else(|| Error::MissingOrInvalidProgramItems("account mod: empty content"))?
+            .ok_or(Error::MissingOrInvalidProgramItems("account mod: empty content"))?
             .1
             .into_iter()
             .find_map(|item| match item {
@@ -419,14 +427,14 @@ pub async fn parse_to_idl_program(name: String, code: &str) -> Result<IdlProgram
                 }
                 _ => None?,
             })
-            .ok_or_else(|| Error::MissingOrInvalidProgramItems("account mod: struct not found"))?;
+            .ok_or(Error::MissingOrInvalidProgramItems("account mod: struct not found"))?;
 
         let account_item_struct_fields = match account_item_struct.fields {
             syn::Fields::Named(fields_named) => fields_named.named,
             syn::Fields::Unit => syn::punctuated::Punctuated::new(),
-            syn::Fields::Unnamed(_) => Err(Error::MissingOrInvalidProgramItems(
+            syn::Fields::Unnamed(_) => return Err(Error::MissingOrInvalidProgramItems(
                 "account struct: unnamed fields not allowed",
-            ))?,
+            )),
         };
 
         let accounts = account_item_struct_fields

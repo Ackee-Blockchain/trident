@@ -18,15 +18,14 @@ use anchor_client::{
     },
     Client as AnchorClient, ClientError as Error, Cluster, Program,
 };
-use bincode;
+
 use borsh::BorshDeserialize;
-use fehler::throws;
+use fehler::{throw, throws};
 use futures::future::try_join_all;
 use serde::de::DeserializeOwned;
 use solana_cli_output::display::println_transaction;
 use solana_transaction_status::{EncodedConfirmedTransaction, UiTransactionEncoding};
 use spl_associated_token_account::get_associated_token_address;
-use spl_token;
 use std::{thread::sleep, time::Duration};
 use tokio::task;
 
@@ -125,7 +124,7 @@ impl Client {
         let account = self
             .get_account(account)
             .await?
-            .ok_or_else(|| Error::AccountNotFound)?;
+            .ok_or(Error::AccountNotFound)?;
 
         bincode::deserialize(&account.data)
             .map_err(|_| Error::LogParseError("Bincode deserialization failed".to_string()))?
@@ -147,7 +146,7 @@ impl Client {
         let account = self
             .get_account(account)
             .await?
-            .ok_or_else(|| Error::AccountNotFound)?;
+            .ok_or(Error::AccountNotFound)?;
 
         T::try_from_slice(&account.data)
             .map_err(|_| Error::LogParseError("Bincode deserialization failed".to_string()))?
@@ -306,17 +305,17 @@ impl Client {
                         return Ok(());
                     }
                     Some(Err(transaction_error)) => {
-                        Err(Error::SolanaClientError(transaction_error.into()))?
+                        throw!(Error::SolanaClientError(transaction_error.into()));
                     }
                     None => sleep(Duration::from_millis(500)),
                 }
             }
-            Err(Error::SolanaClientError(
+            throw!(Error::SolanaClientError(
                 ClientErrorKind::Custom(
                     "Airdrop transaction has not been processed yet".to_owned(),
                 )
                 .into(),
-            ))?
+            ));
         })
         .await
         .expect("airdrop task failed")?
