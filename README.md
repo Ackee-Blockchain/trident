@@ -2,7 +2,7 @@
  
    
  
-   <img height="400x" width="400" src="Badge Trdelnik 2.png" />
+   <img height="400x" width="400" src="Badge_trdelnik.png" />
 
 
   <h1> <strong>Trdelnik</strong> </h1>
