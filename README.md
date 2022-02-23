@@ -1,70 +1,75 @@
 <div align="center">
+   <img height="400x" width="400" src="Badge_trdelnik.png"/>
  
-   
+
+# Trdelnik 
+**created by [Ackee Blockchain](https://ackeeblockchain.com)**
  
-   <img height="400x" width="400" src="Badge_trdelnik.png" />
-
-
-  <h1> <strong>Trdelnik</strong> </h1>
-
-<p>
-</a>
-    
-
-
-  <p>
-    <a href="https://ackeeblockchain.com"><img alt="Tutorials" src="https://img.shields.io/badge/docs-tutorials-blueviolet" /></a>
-    <a href="https://discord.com/channels/867746290678104064">  <img alt="Discord" src="https://img.shields.io/discord/867746290678104064?color=blueviolet">
-  </a>
-
-  </p>
+  <p align="center">
+   <a href="https://discord.gg/eGduTxK2Es">
+    <img src="https://discordapp.com/api/guilds/867746290678104064/widget.png?style=banner2" title="AckeeBlockchain/Trdelnik discord">
+   </a>
+    </p>
+                                                                                          
 </div>
-
-
+ 
 <div align="center">
+ 
+# **Trdelnik** is a Rust based testing framework for Solana programs written in [Anchor](https://project-serum.github.io/anchor/getting-started/introduction.html) 
+ 
+ </div>
+ 
+- [📌Core Features](#-core-features)
 
-# <strong> Trdelnik </strong> is a Rust based testing framework for Solana programs written in [Anchor](https://project-serum.github.io/anchor/getting-started/introduction.html) 
-</div>
+- [💾How to Install](#how-to-install)
+
+- [📆Roadmap](#-roadmap)
+
+- [🚀Contribution](#-contribution)
+
+- [🍼Getting Help](#getting-help)
 
 # 📌 Core Features
 
-
-- ### <strong>Trdelnik console </strong>
+- ### Trdelnik console
 
 Trdelnik console will compile and deploy an Anchor program, launch a local cluster 
 and give developers a command prompt to interact with the program.
 
-- ### <strong>Trdelnik client</strong>
+- ### Trdelnik client
 
 Trdelnik client wraps Anchor client so there is no need to write code in Javascript.
 Developers can build and deploy an Anchor program to a local cluster and run a test suite against it in one Trdelnik command.
 
-- ### <strong>Trdelnik fuzz</strong>
+- ### Trdelnik fuzz
     
 Trdelnik fuzz is a tool for automating the testing process. It generates automatically random data as inputs, so developers don't have to write them themselves.
 
-- ### <strong>Trdelnik explorer</strong>
+- ### Trdelnik explorer
 
 Trdelnik explorer allows developers to simulate Solana transactions against a
 local cluster and examine changes of a local ledger.
 
+# 💾 How to Install
 
+Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Cras elementum. Nullam sapien sem, ornare ac, nonummy non, lobortis a enim. Fusce dui leo, imperdiet in, aliquam sit amet, feugiat eu, orci. Sed convallis magna eu sem. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem. Quisque porta. Curabitur sagittis hendrerit ante. Ut tempus purus at lorem. Etiam neque. Pellentesque ipsum. Donec quis nibh at felis congue commodo. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Curabitur ligula sapien, pulvinar a vestibulum quis, facilisis vel sapien. Aliquam in lorem sit amet leo accumsan lacinia. Integer pellentesque quam vel velit. Maecenas aliquet accumsan leo.
 
 # 📆 Roadmap  
 
-- Feb/22
+✅ - Feb/22
 Trdelnik announcement at Prague Hacker House
 Trdelnik client available for testing
 
-- Q2/22
+- [ ]  Q2/22
 Trdelnik console and explorer available
 
-- Q3/22
+- [ ]  Q3/22
 Trdelnik fuzz available
 
 
+# 🍼 Getting Help 
 
-
+Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Cras elementum. Nullam sapien sem, ornare ac, nonummy non, lobortis a enim. Fusce dui leo, imperdiet in, aliquam sit amet, feugiat eu, orci. Sed convallis magna eu sem. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem. Quisque porta. Curabitur sagittis hendrerit ante. Ut tempus purus at lorem. Etiam neque. Pellentesque ipsum. Donec quis nibh at felis congue commodo. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Curabitur ligula sapien, pulvinar a vestibulum quis, facilisis vel sapien. Aliquam in lorem sit amet leo accumsan lacinia. Integer pellentesque quam vel velit. Maecenas aliquet accumsan leo.
 
 
 
