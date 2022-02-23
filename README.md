@@ -82,4 +82,4 @@ If you're considering larger changes or self motivated features, please file an 
 and engage with the maintainers in [Discord](https://discord.gg/CDTTFXCf).
 
 # License
-??
+This project is licensed under the [MIT license](https://github.com/Ackee-Blockchain/trdelnik/blob/master/LICENSE).
