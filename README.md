@@ -6,7 +6,7 @@
  
  #
   <p align="center">
-   <a href="https://discord.gg/eGduTxK2Es">
+   <a href="https://discord.com/invite/h3zeeCbHYT">
     <img src="https://discordapp.com/api/guilds/867746290678104064/widget.png?style=banner2" title="AckeeBlockchain/Trdelnik discord">
    </a>
     </p>
@@ -82,7 +82,7 @@ opening a pull request, even if empty. This allows the maintainers to track who
 is working on what issue as to not overlap work. 
 
 If you're considering larger changes or self motivated features, please file an issue
-and engage with the maintainers in [Discord](https://discord.gg/CDTTFXCf).
+and engage with the maintainers in [Discord](https://discord.com/invite/h3zeeCbHYT).
 
 # License
 This project is licensed under the [MIT license](https://github.com/Ackee-Blockchain/trdelnik/blob/master/LICENSE).
