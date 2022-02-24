@@ -1,7 +1,7 @@
 [package]
 name = "trdelnik-client"
 version = "0.1.0"
-edition = "2021"
+edition = "2018"
 
 [build-dependencies]
 vergen = { version = "6", features = ["build", "git"], default-features = false }
@@ -13,7 +13,7 @@ pretty_assertions = "1.1.0"
 [dependencies]
 trdelnik-test = { path = "../test" }
 solana-transaction-status = "=1.8.12"
-anchor-client = "0.18.2"
+anchor-client = "0.22.0"
 spl-token = "3.2.0"
 spl-associated-token-account = "1.0.3"
 tokio = { version = "1.13.0", features = ["rt-multi-thread", "macros", "fs", "signal", "sync", "time", "io-util", "process"], default-features = false }

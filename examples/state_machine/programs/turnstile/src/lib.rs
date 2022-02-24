@@ -1,4 +1,4 @@
-use anchor_lang::{prelude::*, solana_program::system_program};
+use anchor_lang::prelude::*;
 
 declare_id!("FZ2Q3Bpdg3mgoSjRi8xsPgycgVDgFNGQ77SErk8mCaki");
 
@@ -6,7 +6,7 @@ declare_id!("FZ2Q3Bpdg3mgoSjRi8xsPgycgVDgFNGQ77SErk8mCaki");
 pub mod turnstile {
     use super::*;
 
-    pub fn initialize(ctx: Context<Initialize>) -> ProgramResult {
+    pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
         let state = &mut ctx.accounts.state;
         state.locked = true;
         state.res = false;
@@ -14,13 +14,13 @@ pub mod turnstile {
     }
 
     #[allow(unused_variables)]
-    pub fn coin(ctx: Context<UpdateState>, dummy_arg: String) -> ProgramResult {
+    pub fn coin(ctx: Context<UpdateState>, dummy_arg: String) -> Result<()> {
         let state = &mut ctx.accounts.state;
         state.locked = false;
         Ok(())
     }
 
-    pub fn push(ctx: Context<UpdateState>) -> ProgramResult {
+    pub fn push(ctx: Context<UpdateState>) -> Result<()> {
         let state = &mut ctx.accounts.state;
         if state.locked {
             state.res = false;
@@ -40,10 +40,9 @@ pub struct Initialize<'info> {
         space = 8 + 2
     )]
     pub state: Account<'info, State>,
-    #[account(signer)]
-    pub user: AccountInfo<'info>,
-    #[account(address = system_program::ID)]
-    pub system_program: AccountInfo<'info>,
+    #[account(mut)]
+    pub user: Signer<'info>,
+    pub system_program: Program<'info, System>,
 }
 
 #[derive(Accounts)]
