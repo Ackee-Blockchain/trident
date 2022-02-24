@@ -1,33 +1,31 @@
 <div align="center">
-   <img height="400x" width="400" src="Badge_trdelnik.png"/>
  
-
-# Trdelnik 
-**created by [Ackee Blockchain](https://ackeeblockchain.com)**
+## **Trdelnik** is a Rust based testing framework for Solana programs written in [Anchor](https://project-serum.github.io/anchor/getting-started/introduction.html) 
  
+  <img height="250" width="250" src="Badge_trdelnik.png"/>
+ 
+ #
   <p align="center">
    <a href="https://discord.gg/eGduTxK2Es">
     <img src="https://discordapp.com/api/guilds/867746290678104064/widget.png?style=banner2" title="AckeeBlockchain/Trdelnik discord">
    </a>
     </p>
-                                                                                          
+ 
+**developed by [Ackee Blockchain](https://ackeeblockchain.com)**
+
+ #
+ 
 </div>
- 
-<div align="center">
- 
-# **Trdelnik** is a Rust based testing framework for Solana programs written in [Anchor](https://project-serum.github.io/anchor/getting-started/introduction.html) 
- 
- </div>
- 
-- [📌Core Features](#-core-features)
 
-- [💾How to Install](#how-to-install)
+- [📌 Core Features](#-core-features)
 
-- [📆Roadmap](#-roadmap)
+- [💾 How to Install](#-how-to-install)
 
-- [🚀Contribution](#-contribution)
+- [📆 Roadmap](#-roadmap)
 
-- [🍼Getting Help](#getting-help)
+- [🚀 Contribution](#-contribution)
+
+- [🍼 Getting Help](#-getting-help)
 
 # 📌 Core Features
 
