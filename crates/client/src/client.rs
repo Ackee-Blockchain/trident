@@ -21,11 +21,12 @@ use anchor_client::{
 
 use borsh::BorshDeserialize;
 use fehler::{throw, throws};
-use futures::future::try_join_all;
+use futures::stream::{self, StreamExt};
 use serde::de::DeserializeOwned;
 use solana_cli_output::display::println_transaction;
 use solana_transaction_status::{EncodedConfirmedTransaction, UiTransactionEncoding};
 use spl_associated_token_account::get_associated_token_address;
+use std::rc::Rc;
 use std::{thread::sleep, time::Duration};
 use tokio::task;
 
@@ -45,7 +46,7 @@ impl Client {
             payer: payer.clone(),
             anchor_client: AnchorClient::new_with_options(
                 Cluster::Localnet,
-                payer,
+                Rc::new(payer),
                 CommitmentConfig::confirmed(),
             ),
         }
@@ -101,11 +102,14 @@ impl Client {
     where
         T: AccountDeserialize + Send + 'static,
     {
-        let dummy_pubkey = Pubkey::new_from_array([0; 32]);
-        let program = self.program(dummy_pubkey);
-        task::spawn_blocking(move || program.account::<T>(account))
-            .await
-            .expect("account_data task failed")?
+        task::spawn_blocking(move || {
+            let dummy_keypair = Keypair::new();
+            let dummy_program_id = Pubkey::new_from_array([0; 32]);
+            let program = Client::new(dummy_keypair).program(dummy_program_id);
+            program.account::<T>(account)
+        })
+        .await
+        .expect("account_data task failed")?
     }
 
     /// Gets deserialized data from the chosen account serialized with Bincode
@@ -204,8 +208,9 @@ impl Client {
         accounts: impl ToAccountMetas + Send + 'static,
         signers: impl IntoIterator<Item = Keypair> + Send + 'static,
     ) -> EncodedConfirmedTransaction {
-        let program = self.program(program);
+        let payer = self.payer().clone();
         let signature = task::spawn_blocking(move || {
+            let program = Client::new(payer).program(program);
             let mut request = program.request().args(instruction).accounts(accounts);
             let signers = signers.into_iter().collect::<Vec<_>>();
             for signer in &signers {
@@ -349,9 +354,10 @@ impl Client {
             &bpf_loader::id(),
         );
         {
-            let system_program = self.anchor_client.program(System::id());
             let program_keypair = Keypair::from_bytes(&program_keypair.to_bytes()).unwrap();
+            let payer = self.payer().clone();
             task::spawn_blocking(move || {
+                let system_program = Client::new(payer).program(System::id());
                 system_program
                     .request()
                     .instruction(create_account_ix)
@@ -374,9 +380,11 @@ impl Client {
                 offset as u32,
                 chunk.to_vec(),
             );
-            let system_program = self.anchor_client.program(System::id());
+            let payer = self.payer().clone();
+
             futures.push(async move {
                 task::spawn_blocking(move || {
+                    let system_program = Client::new(payer).program(System::id());
                     system_program
                         .request()
                         .instruction(loader_write_ix)
@@ -388,12 +396,17 @@ impl Client {
             });
             offset += chunk.len();
         }
-        try_join_all(futures).await?;
+        stream::iter(futures)
+            .buffer_unordered(100)
+            .collect::<Vec<_>>()
+            .await;
 
         println!("finalize program");
 
         let loader_finalize_ix = loader_instruction::finalize(&program_pubkey, &bpf_loader::id());
+        let payer = self.payer().clone();
         task::spawn_blocking(move || {
+            let system_program = Client::new(payer).program(System::id());
             system_program
                 .request()
                 .instruction(loader_finalize_ix)
