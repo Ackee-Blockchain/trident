@@ -6,7 +6,7 @@ use pretty_assertions::assert_str_eq;
 #[tokio::test]
 pub async fn generate_program_client() {
     // Generate with this command:
-    // `trdelnik/examples/state_machine/programs/turnstile$ cargo expand > turnstile_expanded.rs`
+    // `trdelnik/examples/turnstile/programs/turnstile$ cargo expand > turnstile_expanded.rs`
     // and the content copy to `test_data/expanded_anchor_program.rs`
     let expanded_anchor_program = include_str!("test_data/expanded_anchor_program.rs");
 

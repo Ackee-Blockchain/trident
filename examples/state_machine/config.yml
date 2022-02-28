@@ -1,7 +1,0 @@
----
-json_rpc_url: "http://localhost:8899"
-websocket_url: ""
-keypair_path: "./keys/system_program.json"
-address_labels:
-  "11111111111111111111111111111111": System Program
-commitment: confirmed
