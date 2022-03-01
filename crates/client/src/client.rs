@@ -29,6 +29,7 @@ use spl_associated_token_account::get_associated_token_address;
 use std::rc::Rc;
 use std::{thread::sleep, time::Duration};
 use tokio::task;
+use log::debug;
 
 // @TODO: Make compatible with the latest Anchor deps.
 // https://github.com/project-serum/anchor/pull/1307#issuecomment-1022592683
@@ -306,7 +307,7 @@ impl Client {
             for _ in 0..5 {
                 match rpc_client.get_signature_status(&signature)? {
                     Some(Ok(_)) => {
-                        println!("{} lamports airdropped", lamports);
+                        debug!("{} lamports airdropped", lamports);
                         return Ok(());
                     }
                     Some(Err(transaction_error)) => {
@@ -335,9 +336,9 @@ impl Client {
         let system_program = self.anchor_client.program(System::id());
 
         let program_data_len = program_data.len();
-        println!("program_data_len: {}", program_data_len);
+        debug!("program_data_len: {}", program_data_len);
 
-        println!("create program account");
+        debug!("create program account");
 
         let rpc_client = system_program.rpc();
         let min_balance_for_rent_exemption = task::spawn_blocking(move || {
@@ -368,7 +369,7 @@ impl Client {
             .expect("create program account task failed")?;
         }
 
-        println!("write program data");
+        debug!("write program data");
 
         let mut offset = 0usize;
         let mut futures = Vec::new();
@@ -401,7 +402,7 @@ impl Client {
             .collect::<Vec<_>>()
             .await;
 
-        println!("finalize program");
+        debug!("finalize program");
 
         let loader_finalize_ix = loader_instruction::finalize(&program_pubkey, &bpf_loader::id());
         let payer = self.payer().clone();
@@ -416,7 +417,7 @@ impl Client {
         .await
         .expect("finalize program account task failed")?;
 
-        println!("program deployed");
+        debug!("program deployed");
     }
 
     /// Creates accounts.
@@ -592,7 +593,7 @@ impl Client {
 
         let mut offset = 0usize;
         for chunk in data.chunks(DATA_CHUNK_SIZE) {
-            println!("writing bytes {} to {}", offset, offset + chunk.len());
+            debug!("writing bytes {} to {}", offset, offset + chunk.len());
             self.send_transaction(
                 &[loader_instruction::write(
                     &account.pubkey(),
@@ -622,7 +623,7 @@ pub trait PrintableTransaction {
 impl PrintableTransaction for EncodedConfirmedTransaction {
     fn print_named(&self, name: &str) {
         let tx = self.transaction.transaction.decode().unwrap();
-        println!("EXECUTE {} (slot {})", name, self.slot);
+        debug!("EXECUTE {} (slot {})", name, self.slot);
         println_transaction(&tx, &self.transaction.meta, "  ", None, None);
     }
 }

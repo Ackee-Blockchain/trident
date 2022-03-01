@@ -13,6 +13,7 @@ use tokio::{
     io::AsyncWriteExt,
     process::{Child, Command},
 };
+use log::debug;
 
 pub static PROGRAM_CLIENT_DIRECTORY: &str = "program_client";
 
@@ -61,7 +62,7 @@ impl LocalnetHandle {
         if Client::new(Keypair::new()).is_localnet_running(false).await {
             throw!(Error::LocalnetIsStillRunning);
         }
-        println!("localnet stopped");
+        debug!("localnet stopped");
     }
 
     /// Stops the localnet and removes the ledger.
@@ -78,7 +79,7 @@ impl LocalnetHandle {
     pub async fn stop_and_remove_ledger(self) {
         self.stop().await?;
         fs::remove_dir_all("test-ledger").await?;
-        println!("ledger removed");
+        debug!("ledger removed");
     }
 }
 
@@ -162,7 +163,7 @@ impl Commander {
         let lib_rs_content = include_str!("program_client_template/src/lib.rs");
         fs::write(src_path.join("lib.rs"), &lib_rs_content).await?;
 
-        println!("program_client crate created")
+        debug!("program_client crate created")
     }
 
     /// Returns an [Iterator] of program [Package]s read from `Cargo.toml` files.
@@ -304,7 +305,7 @@ impl Commander {
         if !Client::new(Keypair::new()).is_localnet_running(true).await {
             throw!(Error::LocalnetIsNotRunning);
         }
-        println!("localnet started");
+        debug!("localnet started");
         LocalnetHandle {
             solana_test_validator_process: process,
         }

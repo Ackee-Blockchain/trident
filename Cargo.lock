@@ -3891,6 +3891,7 @@ dependencies = [
  "fehler",
  "futures",
  "heck 0.4.0",
+ "log",
  "pretty_assertions",
  "quote 1.0.15",
  "rand",
