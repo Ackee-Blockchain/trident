@@ -13,5 +13,4 @@ pub async fn localnet() {
     signal::ctrl_c().await.expect("failed to listen for event");
 
     validator_handle.stop_and_remove_ledger().await?;
-    println!("Trdelnik CLI: Localnet command finished");
 }

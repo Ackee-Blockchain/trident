@@ -1,6 +1,7 @@
 use crate::{commander::Error, Commander, LocalnetHandle};
 use fehler::throws;
 use std::{borrow::Cow, mem};
+use log::debug;
 
 /// `Tester` is used primarily by [`#[trdelnik_test]`](trdelnik_test::trdelnik_test) macro.
 ///
@@ -23,16 +24,16 @@ impl Tester {
 
     #[throws]
     pub async fn before(&mut self) -> LocalnetHandle {
-        println!("_____________________");
-        println!("____ BEFORE TEST ____");
+        debug!("_____________________");
+        debug!("____ BEFORE TEST ____");
         let commander = Commander::with_root(mem::take(&mut self.root));
         commander.start_localnet().await?
     }
 
     #[throws]
     pub async fn after(&self, localnet_handle: LocalnetHandle) {
-        println!("____ AFTER TEST ____");
+        debug!("____ AFTER TEST ____");
         localnet_handle.stop_and_remove_ledger().await?;
-        println!("_____________________");
+        debug!("_____________________");
     }
 }
