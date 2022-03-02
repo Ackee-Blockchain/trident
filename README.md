@@ -113,8 +113,6 @@ For more details, see the [complete test](examples/turnstile/programs/tests/) im
 - [ ] Q3/22 Trdelnik fuzz available
 - [ ] Q3/22 Trdelnik console available
 
-See the [open issues](https://github.com/othneildrew/Best-README-Template/issues) for a full list of proposed features (and known issues).
-
 <!-- Contribution -->
 
 ## **Contribution**
