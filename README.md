@@ -7,7 +7,7 @@
 # Trdelník
 
   <p align="center">
-   <a href="https://discord.com/invite/h3zeeCbHYT">
+   <a href="https://discord.gg/x7qXXnGCsa">
     <img src="https://discordapp.com/api/guilds/867746290678104064/widget.png?style=banner2" width="250" title="AckeeBlockchain/Trdelnik discord">
    </a>
     </p>
