@@ -9,3 +9,4 @@ tokio = { version = "1.17.0", features = ["rt-multi-thread", "macros", "fs", "si
 anyhow = { version = "1.0.53", features = ["std"], default-features = false }
 fehler = { version = "1.0.0", default-features = false }
 trdelnik-client = { path = "../client" }
+solana-sdk = "1.8.12"

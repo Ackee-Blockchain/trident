@@ -38,9 +38,9 @@ async fn test_happy_path() {
     let state = fixture.get_state().await?;
 
     // after pushing the turnstile should be locked
-    assert_eq!(state.locked, true);
+    assert!(state.locked);
     // the last push was successfull
-    assert_eq!(state.res, true);
+    assert!(state.res);
 }
 
 struct Fixture {
