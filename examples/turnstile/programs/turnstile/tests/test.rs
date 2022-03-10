@@ -1,11 +1,12 @@
 use fehler::throws;
 use program_client::turnstile_instruction;
 use std::mem;
-use trdelnik_client::*;
+use trdelnik_client::{*, anyhow::Result};
+use rstest::*;
 
-#[trdelnik_test]
-async fn test_happy_path() {
-    // create a test fixture
+#[throws]
+#[fixture]
+async fn fixture() -> Fixture {
     let mut fixture = Fixture {
         client: Client::new(system_keypair(0)),
         program: program_keypair(1),
@@ -13,6 +14,13 @@ async fn test_happy_path() {
     };
     // deploy a tested program
     fixture.deploy().await?;
+    fixture
+}
+
+#[trdelnik_test]
+#[rstest]
+async fn test_happy_path(#[future] fixture: Result<Fixture>) {
+    let fixture = fixture.await?;
 
     // init instruction call
     turnstile_instruction::initialize(
@@ -23,7 +31,7 @@ async fn test_happy_path() {
         Some(fixture.state.clone()),
     )
     .await?;
-    // coint instruction call
+    // coin instruction call
     turnstile_instruction::coin(
         &fixture.client,
         "dummy_string".to_owned(),

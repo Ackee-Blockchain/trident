@@ -53,7 +53,7 @@ Here's a test of [turnstile program](examples/turnstile/programs/turnstile/src/l
 - Create an empty test and annotate it with the `trdelnik_test` macro (as shown bellow).
 - Run `makers trdelnik test` in order to generate a `program_client` crate (containing an auto generated code for easy invocation of instructions of your program)
 - Add `program_client` crate into your `Cargo.toml` and import it to the test (as shown bellow).
-- Now you can easilly invoke instructions of your program and do whatever you want in your test.
+- Now you can easily invoke instructions of your program and do whatever you want in your test.
 - After you are finished with your tests run `makers trdelnik test` and check the results.
 ```rust
 // ...
