@@ -2,11 +2,11 @@ use fehler::throws;
 use program_client::turnstile_instruction;
 use std::mem;
 use trdelnik_client::{*, anyhow::Result};
-use rstest::*;
 
 #[throws]
 #[fixture]
-async fn fixture() -> Fixture {
+async fn init_fixture() -> Fixture {
+    // create a test fixture
     let mut fixture = Fixture {
         client: Client::new(system_keypair(0)),
         program: program_keypair(1),
@@ -14,13 +14,6 @@ async fn fixture() -> Fixture {
     };
     // deploy a tested program
     fixture.deploy().await?;
-    fixture
-}
-
-#[trdelnik_test]
-#[rstest]
-async fn test_happy_path(#[future] fixture: Result<Fixture>) {
-    let fixture = fixture.await?;
 
     // init instruction call
     turnstile_instruction::initialize(
@@ -31,6 +24,14 @@ async fn test_happy_path(#[future] fixture: Result<Fixture>) {
         Some(fixture.state.clone()),
     )
     .await?;
+
+    fixture
+}
+
+#[trdelnik_test]
+async fn test_happy_path(#[future] init_fixture: Result<Fixture>) {
+    let fixture = init_fixture.await?;
+
     // coin instruction call
     turnstile_instruction::coin(
         &fixture.client,
@@ -46,9 +47,26 @@ async fn test_happy_path(#[future] fixture: Result<Fixture>) {
     let state = fixture.get_state().await?;
 
     // after pushing the turnstile should be locked
-    assert!(state.locked);
+    assert_eq!(state.locked, true);
     // the last push was successfull
-    assert!(state.res);
+    assert_eq!(state.res, true);
+    
+}
+
+#[trdelnik_test]
+async fn test_unhappy_path(#[future] init_fixture: Result<Fixture>) {
+    let fixture = init_fixture.await?;
+
+    // pushing without prior coin insertion
+    turnstile_instruction::push(&fixture.client, fixture.state.pubkey(), None).await?;
+
+    // check the test result
+    let state = fixture.get_state().await?;
+
+    // after pushing the turnstile should be locked
+    assert_eq!(state.locked, true);
+    // the last push was successfull
+    assert_eq!(state.res, false);
 }
 
 struct Fixture {
