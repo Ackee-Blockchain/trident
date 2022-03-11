@@ -4,9 +4,9 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-clap = { version = "3.1.0", features = ["derive"] }
+clap = { version = "3.1.6", features = ["derive"] }
 tokio = { version = "1.17.0", features = ["rt-multi-thread", "macros", "fs", "signal", "sync", "time", "io-util", "process"], default-features = false }
-anyhow = { version = "1.0.53", features = ["std"], default-features = false }
+anyhow = { version = "1.0.56", features = ["std"], default-features = false }
 fehler = { version = "1.0.0", default-features = false }
-trdelnik-client = { path = "../client" }
-solana-sdk = "1.8.12"
+# trdelnik-client = { path = "../client" }
+solana-sdk = "1.10.0"
