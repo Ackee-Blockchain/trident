@@ -18,6 +18,7 @@ pub use anchor_client::{
 pub use anyhow::{self, Error};
 pub use futures::{self, FutureExt};
 pub use serial_test;
+pub use rstest::*;
 pub use solana_transaction_status::EncodedConfirmedTransaction;
 pub use tokio;
 pub use trdelnik_test::trdelnik_test;
