@@ -2,7 +2,7 @@
 
 members = [
     "crates/cli",
-    "crates/client",
+    # "crates/client",
     "crates/explorer",
-    "crates/test",
+    # "crates/test",
 ]

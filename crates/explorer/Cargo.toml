@@ -4,4 +4,5 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-solana-client = "1.8.12"
+solana-cli-config = "1.10.0"
+solana-client = "1.10.0"

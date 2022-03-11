@@ -24,7 +24,7 @@ enum Command {
     },
     /// Run local test validator
     Localnet,
-    /// Use trdelnik explorer
+    /// The Hacker's Explorer
     Explorer {
         #[clap(subcommand)]
         subcmd: ExplorerCommand,
