@@ -3237,6 +3237,8 @@ version = "0.1.0"
 dependencies = [
  "solana-cli-config",
  "solana-client",
+ "solana-logger",
+ "solana-sdk",
 ]
 
 [[package]]
