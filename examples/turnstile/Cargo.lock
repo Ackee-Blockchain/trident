@@ -3830,6 +3830,7 @@ dependencies = [
  "log",
  "quote 1.0.14",
  "rand 0.7.3",
+ "rstest",
  "serde",
  "serde_json",
  "serial_test",

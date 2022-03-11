@@ -36,3 +36,4 @@ quote = "1.0.14"
 heck = { version = "0.4.0", default-features = false }
 toml = { version = "0.5.8", features = ["preserve_order"] }
 log = "0.4"
+rstest = "0.12.0"
