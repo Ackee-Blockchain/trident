@@ -3229,6 +3229,7 @@ dependencies = [
  "fehler",
  "solana-sdk",
  "tokio",
+ "trdelnik-explorer",
 ]
 
 [[package]]
@@ -3239,6 +3240,7 @@ dependencies = [
  "solana-client",
  "solana-logger",
  "solana-sdk",
+ "thiserror",
 ]
 
 [[package]]
