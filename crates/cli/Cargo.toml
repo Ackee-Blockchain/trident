@@ -10,3 +10,4 @@ anyhow = { version = "1.0.56", features = ["std"], default-features = false }
 fehler = { version = "1.0.0", default-features = false }
 # trdelnik-client = { path = "../client" }
 solana-sdk = "1.10.0"
+trdelnik-explorer = { path = "../explorer" }

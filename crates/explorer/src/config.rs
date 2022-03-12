@@ -5,13 +5,11 @@ use solana_sdk::commitment_config::CommitmentConfig;
 pub struct ExplorerConfig {
     json_rpc_url: String,
     rpc_client: RpcClient,
-    verbose: bool,
-    colored: bool,
 }
 
 impl ExplorerConfig {
     pub fn new() -> Self {
-        let json_rpc_url = if let Some(config_file) = &*CONFIG_FILE {
+        let json_rpc_url = if let Some(ref config_file) = *CONFIG_FILE {
             Config::load(config_file).unwrap_or_default().json_rpc_url
         } else {
             Config::default().json_rpc_url
@@ -20,13 +18,11 @@ impl ExplorerConfig {
         let rpc_client =
             RpcClient::new_with_commitment(json_rpc_url.clone(), CommitmentConfig::confirmed());
 
-        solana_logger::setup_with("solana=debug");
+        setup_logging(LogLevel::DEBUG);
 
         ExplorerConfig {
             json_rpc_url,
             rpc_client,
-            verbose: true,
-            colored: true,
         }
     }
 
@@ -34,32 +30,8 @@ impl ExplorerConfig {
         &self.json_rpc_url
     }
 
-    pub fn set_json_rpc_url(&mut self, new_json_rpc_url: String) {
-        self.json_rpc_url = new_json_rpc_url;
-        self.rpc_client = RpcClient::new_with_commitment(
-            self.json_rpc_url.clone(),
-            CommitmentConfig::confirmed(),
-        );
-    }
-
     pub fn rpc_client(&self) -> &RpcClient {
         &self.rpc_client
-    }
-
-    pub fn verbose(&self) -> bool {
-        self.verbose
-    }
-
-    pub fn set_verbose(&mut self, new_verbose: bool) {
-        self.verbose = new_verbose;
-    }
-
-    pub fn colored(&self) -> bool {
-        self.colored
-    }
-
-    pub fn set_colored(&mut self, new_colored: bool) {
-        self.colored = new_colored;
     }
 }
 
@@ -67,4 +39,26 @@ impl Default for ExplorerConfig {
     fn default() -> Self {
         Self::new()
     }
+}
+
+pub enum LogLevel {
+    ERROR,
+    WARN,
+    INFO,
+    DEBUG,
+    TRACE,
+}
+
+pub fn setup_logging(level: LogLevel) {
+    match level {
+        LogLevel::ERROR => solana_logger::setup_with_default("error"),
+        LogLevel::WARN => solana_logger::setup_with_default("warn"),
+        LogLevel::INFO => solana_logger::setup_with_default("info"),
+        LogLevel::DEBUG => solana_logger::setup_with_default("debug"),
+        LogLevel::TRACE => solana_logger::setup_with_default("trace"),
+    }
+}
+
+pub fn reset_logging() {
+    setup_logging(LogLevel::ERROR);
 }
