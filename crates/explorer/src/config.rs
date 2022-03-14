@@ -18,7 +18,7 @@ impl ExplorerConfig {
         let rpc_client =
             RpcClient::new_with_commitment(json_rpc_url.clone(), CommitmentConfig::confirmed());
 
-        setup_logging(LogLevel::DEBUG);
+        // setup_logging(LogLevel::DEBUG);
 
         ExplorerConfig {
             json_rpc_url,
