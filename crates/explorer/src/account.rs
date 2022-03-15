@@ -1,5 +1,4 @@
 use crate::{config::ExplorerConfig, error::Result};
-use serde::Serialize;
 use solana_sdk::{account::Account, pubkey::Pubkey};
 
 pub struct KeyedAccount {
