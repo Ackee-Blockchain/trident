@@ -16,7 +16,8 @@ cpi = ["no-entrypoint"]
 default = []
 
 [dependencies]
-anchor-lang = "0.22.0"
+anchor-lang = "0.22.1"
+anchor-spl = "0.22.1"
 
 [dev-dependencies]
 fehler = "1.0.0"
