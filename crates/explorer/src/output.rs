@@ -1,7 +1,7 @@
 use crate::{
     account::{AccountFieldVisibility, AccountQueryBuilder, KeyedAccount},
     display::{
-        DisplayAccountFormat, DisplayKeyedAccount, DisplayProgramFormat, DisplayUpgradeableProgram,
+        DisplayFormat, DisplayKeyedAccount, DisplayProgramFormat, DisplayUpgradeableProgram,
     },
     error::{ExplorerError, Result},
     program::ProgramFieldVisibility,
@@ -17,24 +17,28 @@ use std::fmt::Write;
 pub fn get_account_string(
     account: &KeyedAccount,
     visibility: &AccountFieldVisibility,
-    format: DisplayAccountFormat,
+    format: DisplayFormat,
 ) -> Result<String> {
     let data = account.account.data.clone();
     let account = DisplayKeyedAccount::from_keyed_account(account);
 
-    let account_string = match format {
-        DisplayAccountFormat::Trdelnik => {
-            let mut account_string = format!("{}", account);
-            if !data.is_empty() {
-                writeln!(&mut account_string)?;
-                writeln!(&mut account_string, "{}:", style("Data Dump:").bold())?;
-                writeln!(&mut account_string, "{:?}", data.hex_dump())?;
-            }
-            account_string
+    let mut account_string = format.formatted_account_string(&account)?;
+
+    if let DisplayFormat::Trdelnik = format {
+        if !data.is_empty() {
+            writeln!(&mut account_string)?;
+            writeln!(&mut account_string)?;
+            write!(&mut account_string, "{} ", style("Hexdump:").bold())?;
+            let cfg = HexConfig {
+                width: 16,
+                group: 0,
+                chunk: 2,
+                ..HexConfig::default()
+            };
+            write!(&mut account_string, "{:?}", data.hex_conf(cfg))?;
         }
-        DisplayAccountFormat::JSONPretty => serde_json::to_string_pretty(&account)?,
-        DisplayAccountFormat::JSON => serde_json::to_string(&account)?,
     };
+
     Ok(account_string)
 }
 
@@ -49,7 +53,7 @@ pub async fn get_program_string(
         Ok(get_account_string(
             program_id,
             &AccountFieldVisibility::new_all_enabled(),
-            DisplayAccountFormat::Trdelnik,
+            DisplayFormat::Trdelnik,
         )?)
     } else if program_id.account.owner == bpf_loader_upgradeable::id() {
         if let Ok(UpgradeableLoaderState::Program {
