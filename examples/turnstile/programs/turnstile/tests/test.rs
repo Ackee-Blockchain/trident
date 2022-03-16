@@ -47,6 +47,11 @@ struct Fixture {
     client: Client,
     program: Keypair,
     state: Keypair,
+    mint: Keypair,
+    treasury: Keypair,
+    user: Keypair,
+    token_program: Pubkey,
+    system_program: Pubkey,
 }
 
 impl Fixture {

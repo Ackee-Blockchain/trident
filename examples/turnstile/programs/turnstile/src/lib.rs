@@ -1,14 +1,9 @@
 use anchor_lang::{
     prelude::*,
-    solana_program::{
-        native_token::sol_to_lamports,
-        program::{invoke, invoke_signed},
-        system_instruction,
-    },
+    solana_program::{native_token::sol_to_lamports, program::invoke, system_instruction},
 };
 use anchor_spl::token::{
-    burn, initialize_mint, mint_to, Burn, InitializeAccount, InitializeMint, Mint, MintTo, Token,
-    TokenAccount,
+    burn, initialize_mint, mint_to, Burn, InitializeMint, Mint, MintTo, Token, TokenAccount,
 };
 
 declare_id!("Po1RaS8BEDbNcn5oXsFryAeQ6Wn8fvmE111DJaKCgPC");
@@ -92,7 +87,7 @@ pub struct Initialize<'info> {
     #[account(
         init,
         payer = user,
-        space = 8 + 1 + 32 + 32
+        space = 8 + 1 + 1 + 32 + 32
     )]
     pub state: Account<'info, State>,
     #[account(mut)]
