@@ -13,5 +13,5 @@ pub async fn view(pubkey: Pubkey) {
     let account = query.fetch_one().await?;
     let visibility = AccountFieldVisibility::new_all_enabled();
     let result = get_account_string(&account, &visibility, DisplayFormat::Trdelnik)?;
-    println!("{}", result);
+    print!("{}", result);
 }
