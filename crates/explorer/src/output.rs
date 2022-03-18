@@ -1,6 +1,9 @@
 use crate::{
     account::{AccountFieldVisibility, AccountQueryBuilder, KeyedAccount},
-    display::{writeln_styled, DisplayFormat, DisplayKeyedAccount, DisplayUpgradeableProgram},
+    display::{
+        writeln_styled, AccountDisplayFormat, DisplayKeyedAccount, DisplayUpgradeableProgram,
+        ProgramDisplayFormat,
+    },
     error::{ExplorerError, Result},
     program::ProgramFieldVisibility,
 };
@@ -13,23 +16,24 @@ use std::fmt::Write;
 
 pub fn get_account_string(
     account: &KeyedAccount,
-    visibility: &AccountFieldVisibility,
-    format: DisplayFormat,
+    _visibility: &AccountFieldVisibility,
+    format: AccountDisplayFormat,
 ) -> Result<String> {
     let data = account.account.data.clone();
     let account = DisplayKeyedAccount::from_keyed_account(account);
 
     let mut account_string = format.formatted_account_string(&account)?;
 
-    if let DisplayFormat::Trdelnik = format {
+    if let AccountDisplayFormat::Trdelnik = format {
         if !data.is_empty() {
-            writeln!(&mut account_string)?;
+            writeln!(&mut account_string)?; // newline
+            writeln!(&mut account_string)?; // newline
+
             writeln_styled(
                 &mut account_string,
                 "Raw Account Data:",
                 &format!("{} bytes", data.len()),
             )?;
-
             // Show hexdump of not more than MAX_BYTES_SHOWN bytes
             const MAX_BYTES_SHOWN: usize = 64;
             let len = data.len();
@@ -48,7 +52,7 @@ pub fn get_account_string(
             };
             writeln!(&mut account_string, "{:?}", raw_account_data.hex_conf(cfg))?;
             if !finished {
-                writeln!(&mut account_string, "... (skipped)")?;
+                write!(&mut account_string, "... (skipped)")?;
             }
         }
     };
@@ -58,16 +62,23 @@ pub fn get_account_string(
 
 pub async fn get_program_string(
     program: &KeyedAccount,
-    visibility: &ProgramFieldVisibility,
-    format: DisplayFormat,
+    _visibility: &ProgramFieldVisibility,
+    format: ProgramDisplayFormat,
 ) -> Result<String> {
     if program.account.owner == bpf_loader::id()
         || program.account.owner == bpf_loader_deprecated::id()
     {
+        let mapped_format = match format {
+            ProgramDisplayFormat::Trdelnik => AccountDisplayFormat::Trdelnik,
+            ProgramDisplayFormat::JSONPretty => AccountDisplayFormat::JSONPretty,
+            ProgramDisplayFormat::JSON => AccountDisplayFormat::JSON,
+        };
+
+        // nothing interesting, we can return the account string
         Ok(get_account_string(
             program,
             &AccountFieldVisibility::new_all_enabled(),
-            format,
+            mapped_format,
         )?)
     } else if program.account.owner == bpf_loader_upgradeable::id() {
         if let Ok(UpgradeableLoaderState::Program {
@@ -91,6 +102,7 @@ pub async fn get_program_string(
                         &upgrade_authority_address,
                     );
                     let mut program_string = format.formatted_program_string(&program)?;
+                    writeln!(&mut program_string)?;
                     writeln!(&mut program_string)?;
                     writeln_styled(
                         &mut program_string,
@@ -121,9 +133,10 @@ pub async fn get_program_string(
                         chunk: 2,
                         ..HexConfig::default()
                     };
-                    writeln!(&mut program_string, "{:?}", raw_program_data.hex_conf(cfg))?;
+                    write!(&mut program_string, "{:?}", raw_program_data.hex_conf(cfg))?;
                     if !finished {
-                        writeln!(&mut program_string, "... (skipped)")?;
+                        writeln!(&mut program_string)?;
+                        write!(&mut program_string, "... (skipped)")?;
                     }
 
                     Ok(program_string)

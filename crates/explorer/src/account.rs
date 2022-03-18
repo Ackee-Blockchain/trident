@@ -1,6 +1,8 @@
 use crate::{config::ExplorerConfig, error::Result};
+use serde::Serialize;
 use solana_sdk::{account::Account, pubkey::Pubkey};
 
+#[derive(Serialize)]
 pub struct KeyedAccount {
     pub pubkey: Pubkey,
     pub account: Account,
