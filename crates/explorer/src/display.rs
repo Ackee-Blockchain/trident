@@ -1,46 +1,72 @@
-use crate::{
-    account::KeyedAccount,
-    error::{ExplorerError, Result},
-};
+use crate::{account::KeyedAccount, error::Result};
 use console::style;
-use serde::{Serialize, Serializer};
+use serde::Serialize;
 use solana_sdk::{bpf_loader_upgradeable::UpgradeableLoaderState, native_token, pubkey::Pubkey};
 use std::fmt;
 
-pub enum DisplayFormat {
-    // Trdelnik-interpreted
-    Trdelnik,
-    TrdelnikJSON,
-    TrdelnikJSONPretty,
-    // Raw, same as it sits on-chain
-    Raw,
-    RawJSON,
-    RawJSONPretty,
+// Utility functions follow
+
+pub fn pretty_lamports_to_sol(lamports: u64) -> String {
+    let sol_str = format!("{:.9}", native_token::lamports_to_sol(lamports));
+    sol_str
+        .trim_end_matches('0')
+        .trim_end_matches('.')
+        .to_string()
 }
 
-impl DisplayFormat {
+pub fn write_styled(f: &mut dyn fmt::Write, name: &str, value: &str) -> fmt::Result {
+    let styled_value = if value.is_empty() {
+        style("(not set)").italic()
+    } else {
+        style(value)
+    };
+    write!(f, "{} {}", style(name).bold(), styled_value)
+}
+
+pub fn writeln_styled(f: &mut dyn fmt::Write, name: &str, value: &str) -> fmt::Result {
+    let styled_value = if value.is_empty() {
+        style("(not set)").italic()
+    } else {
+        style(value)
+    };
+    writeln!(f, "{} {}", style(name).bold(), styled_value)
+}
+
+// Display formats follow
+
+pub enum AccountDisplayFormat {
+    Trdelnik,
+    JSONPretty,
+    JSON,
+}
+
+impl AccountDisplayFormat {
     pub fn formatted_account_string(&self, item: &DisplayKeyedAccount) -> Result<String> {
         match self {
-            DisplayFormat::Trdelnik => Ok(format!("{}", item)),
-            DisplayFormat::RawJSON => Ok(serde_json::to_string(&item)?),
-            DisplayFormat::RawJSONPretty => Ok(serde_json::to_string_pretty(&item)?),
-            _ => Err(ExplorerError::Custom(
-                "unsupported display format for this item type".to_string(),
-            )),
-        }
-    }
-
-    pub fn formatted_program_string(&self, item: &DisplayUpgradeableProgram) -> Result<String> {
-        match self {
-            DisplayFormat::Trdelnik => Ok(format!("{}", item)),
-            DisplayFormat::RawJSON => Ok(serde_json::to_string(&item)?),
-            DisplayFormat::RawJSONPretty => Ok(serde_json::to_string_pretty(&item)?),
-            _ => Err(ExplorerError::Custom(
-                "unsupported display format for this item type".to_string(),
-            )),
+            AccountDisplayFormat::Trdelnik => Ok(format!("{}", item)),
+            AccountDisplayFormat::JSONPretty => Ok(serde_json::to_string_pretty(&item)?),
+            AccountDisplayFormat::JSON => Ok(serde_json::to_string(&item)?),
         }
     }
 }
+
+pub enum ProgramDisplayFormat {
+    Trdelnik,
+    JSONPretty,
+    JSON,
+}
+
+impl ProgramDisplayFormat {
+    pub fn formatted_program_string(&self, item: &DisplayUpgradeableProgram) -> Result<String> {
+        match self {
+            ProgramDisplayFormat::Trdelnik => Ok(format!("{}", item)),
+            ProgramDisplayFormat::JSONPretty => Ok(serde_json::to_string_pretty(&item)?),
+            ProgramDisplayFormat::JSON => Ok(serde_json::to_string(&item)?),
+        }
+    }
+}
+
+// Structs needed for output, their constructors and fmt::Display trait implementations (always in this order)
 
 #[derive(Serialize)]
 pub struct DisplayAccount {
@@ -72,32 +98,6 @@ impl DisplayKeyedAccount {
     }
 }
 
-pub fn pretty_lamports_to_sol(lamports: u64) -> String {
-    let sol_str = format!("{:.9}", native_token::lamports_to_sol(lamports));
-    sol_str
-        .trim_end_matches('0')
-        .trim_end_matches('.')
-        .to_string()
-}
-
-pub fn write_styled(f: &mut dyn fmt::Write, name: &str, value: &str) -> fmt::Result {
-    let styled_value = if value.is_empty() {
-        style("(not set)").italic()
-    } else {
-        style(value)
-    };
-    write!(f, "{} {}", style(name).bold(), styled_value)
-}
-
-pub fn writeln_styled(f: &mut dyn fmt::Write, name: &str, value: &str) -> fmt::Result {
-    let styled_value = if value.is_empty() {
-        style("(not set)").italic()
-    } else {
-        style(value)
-    };
-    writeln!(f, "{} {}", style(name).bold(), styled_value)
-}
-
 impl fmt::Display for DisplayKeyedAccount {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         writeln_styled(f, "Public Key:", &self.pubkey)?;
@@ -105,7 +105,9 @@ impl fmt::Display for DisplayKeyedAccount {
             f,
             "----------------------------------------------------------"
         )?;
+
         writeln!(f)?;
+
         writeln_styled(
             f,
             "Lamports:",
@@ -130,7 +132,7 @@ impl fmt::Display for DisplayKeyedAccount {
         } else {
             writeln_styled(f, "Executable:", &self.account.executable.to_string())?;
         }
-        writeln_styled(
+        write_styled(
             f,
             "Rent Epoch:",
             &format!(
@@ -140,13 +142,6 @@ impl fmt::Display for DisplayKeyedAccount {
         )?;
         Ok(())
     }
-}
-
-fn as_base64<S>(data: &[u8], serializer: S) -> std::result::Result<S::Ok, S::Error>
-where
-    S: Serializer,
-{
-    serializer.serialize_str(&base64::encode(data))
 }
 
 #[derive(Serialize)]
@@ -231,11 +226,11 @@ impl fmt::Display for DisplayUpgradeableProgram {
             "----------------------------------------------------------"
         )?;
 
-        writeln!(f)?; // newline
+        writeln!(f)?;
 
         writeln!(f, "{}", style("--> Program Account").bold())?;
 
-        writeln!(f)?; // newline
+        writeln!(f)?;
 
         writeln_styled(
             f,
@@ -273,7 +268,7 @@ impl fmt::Display for DisplayUpgradeableProgram {
             ),
         )?;
 
-        writeln!(f)?; // newline
+        writeln!(f)?;
 
         writeln!(f, "{}", style("Deserialized:").bold())?;
         write!(f, "  - ")?;
@@ -283,11 +278,11 @@ impl fmt::Display for DisplayUpgradeableProgram {
             &self.program_account.data.programdata_address,
         )?;
 
-        writeln!(f)?; // newline
+        writeln!(f)?;
 
         writeln!(f, "{}", style("--> ProgramData Account").bold())?;
 
-        writeln!(f)?; // newline
+        writeln!(f)?;
 
         writeln_styled(
             f,
@@ -325,7 +320,7 @@ impl fmt::Display for DisplayUpgradeableProgram {
             ),
         )?;
 
-        writeln!(f)?; // newline
+        writeln!(f)?;
 
         writeln!(f, "{}", style("Deserialized:").bold())?;
         write!(f, "  - ")?;
@@ -335,7 +330,7 @@ impl fmt::Display for DisplayUpgradeableProgram {
             &self.programdata_account.data.slot.to_string(),
         )?;
         write!(f, "  - ")?;
-        writeln_styled(
+        write_styled(
             f,
             "Upgrade Authority:",
             &self.programdata_account.data.upgrade_authority_address,
