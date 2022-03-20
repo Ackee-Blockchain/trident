@@ -1,17 +1,23 @@
 use crate::{
     account::{AccountFieldVisibility, AccountQueryBuilder, KeyedAccount},
+    config::ExplorerConfig,
     display::{
-        writeln_styled, AccountDisplayFormat, DisplayKeyedAccount, DisplayUpgradeableProgram,
-        ProgramDisplayFormat,
+        writeln_styled, AccountDisplayFormat, DisplayKeyedAccount, DisplayRawTransaction,
+        DisplayTransaction, DisplayUpgradeableProgram, ProgramDisplayFormat,
+        RawTransactionDisplayFormat, TransactionDisplayFormat,
     },
     error::{ExplorerError, Result},
     program::ProgramFieldVisibility,
+    transaction::{RawTransactionFieldVisibility, TransactionFieldVisibility},
 };
 use pretty_hex::*;
+use solana_client::rpc_config::RpcTransactionConfig;
 use solana_sdk::{
     account_utils::StateMut, bpf_loader, bpf_loader_deprecated, bpf_loader_upgradeable,
-    bpf_loader_upgradeable::UpgradeableLoaderState,
+    bpf_loader_upgradeable::UpgradeableLoaderState, commitment_config::CommitmentConfig,
+    signature::Signature,
 };
+use solana_transaction_status::UiTransactionEncoding;
 use std::fmt::Write;
 
 pub fn get_account_string(
@@ -164,4 +170,52 @@ pub async fn get_program_string(
             program.pubkey
         )))
     }
+}
+
+pub async fn get_transaction_string(
+    signature: &Signature,
+    _visibility: &RawTransactionFieldVisibility,
+    format: RawTransactionDisplayFormat,
+) -> Result<String> {
+    let explorer_config = ExplorerConfig::default();
+    let rpc_client = explorer_config.rpc_client();
+    let config = RpcTransactionConfig {
+        encoding: Some(UiTransactionEncoding::Json),
+        commitment: Some(CommitmentConfig::confirmed()),
+        max_supported_transaction_version: Some(0),
+    };
+
+    let confirmed_transaction = rpc_client
+        .get_transaction_with_config(signature, config)
+        .await?;
+
+    let display_transaction = DisplayRawTransaction::from(signature, &confirmed_transaction)?;
+
+    let transaction_string = format.formatted_transaction_string(&display_transaction)?;
+
+    Ok(transaction_string)
+}
+
+pub async fn get_transaction_string2(
+    signature: &Signature,
+    _visibility: &TransactionFieldVisibility,
+    format: TransactionDisplayFormat,
+) -> Result<String> {
+    let explorer_config = ExplorerConfig::default();
+    let rpc_client = explorer_config.rpc_client();
+    let config = RpcTransactionConfig {
+        encoding: Some(UiTransactionEncoding::Binary),
+        commitment: Some(CommitmentConfig::confirmed()),
+        max_supported_transaction_version: Some(0),
+    };
+
+    let confirmed_transaction = rpc_client
+        .get_transaction_with_config(signature, config)
+        .await?;
+
+    let display_transaction = DisplayTransaction::from(signature, &confirmed_transaction)?;
+
+    let transaction_string = format.formatted_transaction_string(&display_transaction)?;
+
+    Ok(transaction_string)
 }
