@@ -2,6 +2,7 @@ use crate::error::Result;
 use serde::Serialize;
 use std::fmt;
 
+#[derive(Clone, Copy)]
 pub enum DisplayFormat {
     Cli,
     JSONPretty,
