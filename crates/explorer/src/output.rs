@@ -102,8 +102,9 @@ pub async fn print_raw_transaction(
     signature: &Signature,
     visibility: &RawTransactionFieldVisibility,
     format: DisplayFormat,
+    config: &ExplorerConfig,
 ) -> Result<()> {
-    let result = get_raw_transaction_string(signature, visibility, format).await?;
+    let result = get_raw_transaction_string(signature, visibility, format, config).await?;
     println!("{}", result);
     Ok(())
 }
@@ -112,8 +113,9 @@ pub async fn print_transaction(
     signature: &Signature,
     visibility: &TransactionFieldVisibility,
     format: DisplayFormat,
+    config: &ExplorerConfig,
 ) -> Result<()> {
-    let result = get_transaction_string(signature, visibility, format).await?;
+    let result = get_transaction_string(signature, visibility, format, config).await?;
     println!("{}", result);
     Ok(())
 }
@@ -197,9 +199,12 @@ pub async fn get_program_string(
         )
         .await?;
 
-        program_string.push_str(
-            "\n\nNote: the program is loaded either by the deprecated BPFLoader or BPFLoader2,\nit is an executable account with program.so in its data, hence this output.",
-        );
+        if let DisplayFormat::Cli = format {
+            program_string.push_str(
+                "\n\nNote: the program is loaded either by the deprecated BPFLoader or BPFLoader2,
+it is an executable account with program.so in its data, hence this output.",
+            );
+        }
 
         Ok(program_string)
     } else if program_keyed_account.account.owner == bpf_loader_upgradeable::id() {
@@ -292,9 +297,9 @@ pub async fn get_raw_transaction_string(
     signature: &Signature,
     _visibility: &RawTransactionFieldVisibility,
     format: DisplayFormat,
+    config: &ExplorerConfig,
 ) -> Result<String> {
-    let explorer_config = ExplorerConfig::default();
-    let rpc_client = explorer_config.rpc_client();
+    let rpc_client = config.rpc_client();
     let config = RpcTransactionConfig {
         encoding: Some(UiTransactionEncoding::Json),
         commitment: Some(CommitmentConfig::confirmed()),
@@ -316,9 +321,9 @@ pub async fn get_transaction_string(
     signature: &Signature,
     _visibility: &TransactionFieldVisibility,
     format: DisplayFormat,
+    config: &ExplorerConfig,
 ) -> Result<String> {
-    let explorer_config = ExplorerConfig::default();
-    let rpc_client = explorer_config.rpc_client();
+    let rpc_client = config.rpc_client();
     let config = RpcTransactionConfig {
         encoding: Some(UiTransactionEncoding::Binary),
         commitment: Some(CommitmentConfig::confirmed()),
