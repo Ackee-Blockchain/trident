@@ -2,10 +2,7 @@ use anyhow::Error;
 use clap::Subcommand;
 use fehler::throws;
 use solana_sdk::{pubkey::Pubkey, signature::Signature};
-use trdelnik_explorer::display::{
-    AccountDisplayFormat, ProgramDisplayFormat, RawTransactionDisplayFormat,
-    TransactionDisplayFormat,
-};
+use trdelnik_explorer::display::DisplayFormat;
 
 mod account;
 mod program;
@@ -39,7 +36,7 @@ pub enum ExplorerCommand {
     Transaction {
         /// Signature of a transaction
         signature: Signature,
-        /// Raw data without interpretation
+        /// Raw transaction without interpretation
         #[clap(short, long)]
         raw: bool,
         /// Pretty-printed JSON output
@@ -60,11 +57,11 @@ pub async fn explorer(subcmd: ExplorerCommand) {
             json,
         } => {
             if jsonpretty {
-                account::view(pubkey, AccountDisplayFormat::JSONPretty).await?
+                account::view(pubkey, DisplayFormat::JSONPretty).await?
             } else if json {
-                account::view(pubkey, AccountDisplayFormat::JSON).await?
+                account::view(pubkey, DisplayFormat::JSON).await?
             } else {
-                account::view(pubkey, AccountDisplayFormat::Trdelnik).await?
+                account::view(pubkey, DisplayFormat::Cli).await?
             }
         }
         ExplorerCommand::Program {
@@ -73,25 +70,11 @@ pub async fn explorer(subcmd: ExplorerCommand) {
             json,
         } => {
             if jsonpretty {
-                program::view(pubkey, ProgramDisplayFormat::JSONPretty).await?
+                program::view(pubkey, DisplayFormat::JSONPretty).await?
             } else if json {
-                program::view(pubkey, ProgramDisplayFormat::JSON).await?
+                program::view(pubkey, DisplayFormat::JSON).await?
             } else {
-                program::view(pubkey, ProgramDisplayFormat::Trdelnik).await?
-            }
-        }
-        ExplorerCommand::Transaction {
-            signature,
-            raw,
-            jsonpretty,
-            json,
-        } if raw => {
-            if jsonpretty {
-                transaction::view(signature, RawTransactionDisplayFormat::JSONPretty).await?
-            } else if json {
-                transaction::view(signature, RawTransactionDisplayFormat::JSON).await?
-            } else {
-                transaction::view(signature, RawTransactionDisplayFormat::Trdelnik).await?
+                program::view(pubkey, DisplayFormat::Cli).await?
             }
         }
         ExplorerCommand::Transaction {
@@ -101,11 +84,11 @@ pub async fn explorer(subcmd: ExplorerCommand) {
             json,
         } => {
             if jsonpretty {
-                transaction::view2(signature, TransactionDisplayFormat::JSONPretty).await?
+                transaction::view(signature, raw, DisplayFormat::JSONPretty).await?
             } else if json {
-                transaction::view2(signature, TransactionDisplayFormat::JSON).await?
+                transaction::view(signature, raw, DisplayFormat::JSON).await?
             } else {
-                transaction::view2(signature, TransactionDisplayFormat::Trdelnik).await?
+                transaction::view(signature, raw, DisplayFormat::Cli).await?
             }
         }
     }
