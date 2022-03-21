@@ -1,7 +1,7 @@
 use serde_json::error::Error as SerdeError;
 use solana_client::client_error::ClientError;
-use std::fmt::Error as FmtError;
 use solana_sdk::instruction::InstructionError;
+use std::fmt::Error as FmtError;
 use thiserror::Error;
 
 pub type Result<T> = std::result::Result<T, ExplorerError>;

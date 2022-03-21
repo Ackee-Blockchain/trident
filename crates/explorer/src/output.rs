@@ -1,36 +1,135 @@
 use crate::{
-    account::{AccountFieldVisibility, AccountQueryBuilder, KeyedAccount},
+    account::{AccountFieldVisibility, AccountQueryBuilder, DisplayKeyedAccount, KeyedAccount},
     config::ExplorerConfig,
-    display::{
-        writeln_styled, AccountDisplayFormat, DisplayKeyedAccount, DisplayRawTransaction,
-        DisplayTransaction, DisplayUpgradeableProgram, ProgramDisplayFormat,
-        RawTransactionDisplayFormat, TransactionDisplayFormat,
-    },
+    display::DisplayFormat,
     error::{ExplorerError, Result},
-    program::ProgramFieldVisibility,
-    transaction::{RawTransactionFieldVisibility, TransactionFieldVisibility},
+    program::{DisplayUpgradeableProgram, ProgramFieldVisibility},
+    transaction::{
+        DisplayRawTransaction, RawTransactionFieldVisibility, TransactionFieldVisibility, DisplayTransaction,
+    },
 };
+use console::style;
 use pretty_hex::*;
 use solana_client::rpc_config::RpcTransactionConfig;
 use solana_sdk::{
     account_utils::StateMut, bpf_loader, bpf_loader_deprecated, bpf_loader_upgradeable,
     bpf_loader_upgradeable::UpgradeableLoaderState, commitment_config::CommitmentConfig,
-    signature::Signature,
+    message::Message, native_token, pubkey::Pubkey, signature::Signature,
 };
 use solana_transaction_status::UiTransactionEncoding;
-use std::fmt::Write;
+use std::fmt::{self, Write};
+
+pub fn pretty_lamports_to_sol(lamports: u64) -> String {
+    let sol_str = format!("{:.9}", native_token::lamports_to_sol(lamports));
+    sol_str
+        .trim_end_matches('0')
+        .trim_end_matches('.')
+        .to_string()
+}
+
+pub fn classify_account(message: &Message, index: usize) -> String {
+    let mut account_type = String::new();
+    let mut started = false;
+    if index == 0 {
+        account_type.push_str("[Fee Payer]");
+        started = true;
+    }
+    if message.is_writable(index) {
+        if started {
+            account_type.push(' ');
+        }
+        account_type.push_str("[Writable]");
+        started = true;
+    }
+    if message.is_signer(index) {
+        if started {
+            account_type.push(' ');
+        }
+        account_type.push_str("[Signer]");
+        started = true;
+    }
+    if message.maybe_executable(index) {
+        if started {
+            account_type.push(' ');
+        }
+        account_type.push_str("[Program]");
+    }
+    account_type
+}
+
+pub fn write_styled(f: &mut dyn fmt::Write, name: &str, value: &str) -> fmt::Result {
+    let styled_value = if value.is_empty() {
+        style("(not set)").italic()
+    } else {
+        style(value)
+    };
+    write!(f, "{} {}", style(name).bold(), styled_value)
+}
+
+pub fn writeln_styled(f: &mut dyn fmt::Write, name: &str, value: &str) -> fmt::Result {
+    let styled_value = if value.is_empty() {
+        style("(not set)").italic()
+    } else {
+        style(value)
+    };
+    writeln!(f, "{} {}", style(name).bold(), styled_value)
+}
+
+pub async fn print_account(
+    pubkey: &Pubkey,
+    visibility: &AccountFieldVisibility,
+    format: DisplayFormat,
+) -> Result<()> {
+    let query = AccountQueryBuilder::with_pubkey(pubkey).build();
+    let account = query.fetch_one().await?;
+    let result = get_account_string(&account, visibility, format)?;
+    println!("{}", result);
+    Ok(())
+}
+
+pub async fn print_program(
+    program_id: &Pubkey,
+    visibility: &ProgramFieldVisibility,
+    format: DisplayFormat,
+) -> Result<()> {
+    let query = AccountQueryBuilder::with_pubkey(program_id).build();
+    let account = query.fetch_one().await?;
+    let result = get_program_string(&account, visibility, format).await?;
+    println!("{}", result);
+    Ok(())
+}
+
+pub async fn print_raw_transaction(
+    signature: &Signature,
+    visibility: &RawTransactionFieldVisibility,
+    format: DisplayFormat,
+) -> Result<()> {
+    let result = get_raw_transaction_string(signature, visibility, format).await?;
+    println!("{}", result);
+    Ok(())
+}
+
+pub async fn print_transaction(
+    signature: &Signature,
+    visibility: &TransactionFieldVisibility,
+    format: DisplayFormat,
+) -> Result<()> {
+    let result = get_transaction_string(signature, visibility, format).await?;
+    println!("{}", result);
+    Ok(())
+}
 
 pub fn get_account_string(
     account: &KeyedAccount,
     _visibility: &AccountFieldVisibility,
-    format: AccountDisplayFormat,
+    format: DisplayFormat,
 ) -> Result<String> {
     let data = account.account.data.clone();
     let account = DisplayKeyedAccount::from_keyed_account(account);
 
-    let mut account_string = format.formatted_account_string(&account)?;
+    let mut account_string = format.formatted_string(&account)?;
 
-    if let AccountDisplayFormat::Trdelnik = format {
+    if let DisplayFormat::Cli = format {
         if !data.is_empty() {
             writeln!(&mut account_string)?; // newline
             writeln!(&mut account_string)?; // newline
@@ -69,29 +168,23 @@ pub fn get_account_string(
 pub async fn get_program_string(
     program: &KeyedAccount,
     _visibility: &ProgramFieldVisibility,
-    format: ProgramDisplayFormat,
+    format: DisplayFormat,
 ) -> Result<String> {
     if program.account.owner == bpf_loader::id()
         || program.account.owner == bpf_loader_deprecated::id()
     {
-        let mapped_format = match format {
-            ProgramDisplayFormat::Trdelnik => AccountDisplayFormat::Trdelnik,
-            ProgramDisplayFormat::JSONPretty => AccountDisplayFormat::JSONPretty,
-            ProgramDisplayFormat::JSON => AccountDisplayFormat::JSON,
-        };
-
         // nothing interesting, we can return the account string
         Ok(get_account_string(
             program,
             &AccountFieldVisibility::new_all_enabled(),
-            mapped_format,
+            format,
         )?)
     } else if program.account.owner == bpf_loader_upgradeable::id() {
         if let Ok(UpgradeableLoaderState::Program {
             programdata_address,
         }) = program.account.state()
         {
-            if let Ok(programdata_account) = AccountQueryBuilder::with_pubkey(programdata_address)
+            if let Ok(programdata_account) = AccountQueryBuilder::with_pubkey(&programdata_address)
                 .build()
                 .fetch_one()
                 .await
@@ -107,7 +200,7 @@ pub async fn get_program_string(
                         slot,
                         &upgrade_authority_address,
                     );
-                    let mut program_string = format.formatted_program_string(&program)?;
+                    let mut program_string = format.formatted_string(&program)?;
                     writeln!(&mut program_string)?;
                     writeln!(&mut program_string)?;
                     writeln_styled(
@@ -172,10 +265,10 @@ pub async fn get_program_string(
     }
 }
 
-pub async fn get_transaction_string(
+pub async fn get_raw_transaction_string(
     signature: &Signature,
     _visibility: &RawTransactionFieldVisibility,
-    format: RawTransactionDisplayFormat,
+    format: DisplayFormat,
 ) -> Result<String> {
     let explorer_config = ExplorerConfig::default();
     let rpc_client = explorer_config.rpc_client();
@@ -191,15 +284,15 @@ pub async fn get_transaction_string(
 
     let display_transaction = DisplayRawTransaction::from(signature, &confirmed_transaction)?;
 
-    let transaction_string = format.formatted_transaction_string(&display_transaction)?;
+    let transaction_string = format.formatted_string(&display_transaction)?;
 
     Ok(transaction_string)
 }
 
-pub async fn get_transaction_string2(
+pub async fn get_transaction_string(
     signature: &Signature,
     _visibility: &TransactionFieldVisibility,
-    format: TransactionDisplayFormat,
+    format: DisplayFormat,
 ) -> Result<String> {
     let explorer_config = ExplorerConfig::default();
     let rpc_client = explorer_config.rpc_client();
@@ -215,7 +308,7 @@ pub async fn get_transaction_string2(
 
     let display_transaction = DisplayTransaction::from(signature, &confirmed_transaction)?;
 
-    let transaction_string = format.formatted_transaction_string(&display_transaction)?;
+    let transaction_string = format.formatted_string(&display_transaction)?;
 
     Ok(transaction_string)
 }
