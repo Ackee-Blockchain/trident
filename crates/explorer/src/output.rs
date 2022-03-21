@@ -1,11 +1,12 @@
 use crate::{
-    account::{AccountFieldVisibility, AccountQueryBuilder, DisplayKeyedAccount, KeyedAccount},
+    account::{AccountFieldVisibility, DisplayKeyedAccount, KeyedAccount},
     config::ExplorerConfig,
     display::DisplayFormat,
     error::{ExplorerError, Result},
     program::{DisplayUpgradeableProgram, ProgramFieldVisibility},
     transaction::{
-        DisplayRawTransaction, RawTransactionFieldVisibility, TransactionFieldVisibility, DisplayTransaction,
+        DisplayRawTransaction, DisplayTransaction, RawTransactionFieldVisibility,
+        TransactionFieldVisibility,
     },
 };
 use console::style;
@@ -79,10 +80,9 @@ pub async fn print_account(
     pubkey: &Pubkey,
     visibility: &AccountFieldVisibility,
     format: DisplayFormat,
+    config: &ExplorerConfig,
 ) -> Result<()> {
-    let query = AccountQueryBuilder::with_pubkey(pubkey).build();
-    let account = query.fetch_one().await?;
-    let result = get_account_string(&account, visibility, format)?;
+    let result = get_account_string(pubkey, visibility, format, config).await?;
     println!("{}", result);
     Ok(())
 }
@@ -91,10 +91,9 @@ pub async fn print_program(
     program_id: &Pubkey,
     visibility: &ProgramFieldVisibility,
     format: DisplayFormat,
+    config: &ExplorerConfig,
 ) -> Result<()> {
-    let query = AccountQueryBuilder::with_pubkey(program_id).build();
-    let account = query.fetch_one().await?;
-    let result = get_program_string(&account, visibility, format).await?;
+    let result = get_program_string(program_id, visibility, format, config).await?;
     println!("{}", result);
     Ok(())
 }
@@ -119,25 +118,32 @@ pub async fn print_transaction(
     Ok(())
 }
 
-pub fn get_account_string(
-    account: &KeyedAccount,
+pub async fn get_account_string(
+    pubkey: &Pubkey,
     _visibility: &AccountFieldVisibility,
     format: DisplayFormat,
+    config: &ExplorerConfig,
 ) -> Result<String> {
-    let data = account.account.data.clone();
-    let account = DisplayKeyedAccount::from_keyed_account(account);
+    let rpc_client = config.rpc_client();
+    let account = rpc_client.get_account(pubkey).await?;
+    let keyed_account = KeyedAccount {
+        pubkey: *pubkey,
+        account,
+    };
+    let display_keyed_account = DisplayKeyedAccount::from_keyed_account(&keyed_account);
+    let mut account_string = format.formatted_string(&display_keyed_account)?;
 
-    let mut account_string = format.formatted_string(&account)?;
-
+    let data = &keyed_account.account.data;
     if let DisplayFormat::Cli = format {
         if !data.is_empty() {
-            writeln!(&mut account_string)?; // newline
-            writeln!(&mut account_string)?; // newline
+            writeln!(&mut account_string)?;
+            writeln!(&mut account_string)?;
 
-            writeln_styled(
+            writeln!(
                 &mut account_string,
-                "Raw Account Data:",
-                &format!("{} bytes", data.len()),
+                "{} {} bytes",
+                style("Hexdump:").bold(),
+                data.len()
             )?;
             // Show hexdump of not more than MAX_BYTES_SHOWN bytes
             const MAX_BYTES_SHOWN: usize = 64;
@@ -155,8 +161,9 @@ pub fn get_account_string(
                 chunk: 2,
                 ..HexConfig::default()
             };
-            writeln!(&mut account_string, "{:?}", raw_account_data.hex_conf(cfg))?;
+            write!(&mut account_string, "{:?}", raw_account_data.hex_conf(cfg))?;
             if !finished {
+                writeln!(&mut account_string)?;
                 write!(&mut account_string, "... (skipped)")?;
             }
         }
@@ -166,101 +173,117 @@ pub fn get_account_string(
 }
 
 pub async fn get_program_string(
-    program: &KeyedAccount,
+    program_id: &Pubkey,
     _visibility: &ProgramFieldVisibility,
     format: DisplayFormat,
+    config: &ExplorerConfig,
 ) -> Result<String> {
-    if program.account.owner == bpf_loader::id()
-        || program.account.owner == bpf_loader_deprecated::id()
+    let rpc_client = config.rpc_client();
+    let program_account = rpc_client.get_account(program_id).await?;
+    let program_keyed_account = KeyedAccount {
+        pubkey: *program_id,
+        account: program_account,
+    };
+
+    if program_keyed_account.account.owner == bpf_loader::id()
+        || program_keyed_account.account.owner == bpf_loader_deprecated::id()
     {
-        // nothing interesting, we can return the account string
-        Ok(get_account_string(
-            program,
+        // these loaders are not interesting, just accounts with the program.so in data
+        let mut program_string = get_account_string(
+            program_id,
             &AccountFieldVisibility::new_all_enabled(),
             format,
-        )?)
-    } else if program.account.owner == bpf_loader_upgradeable::id() {
+            config,
+        )
+        .await?;
+
+        program_string.push_str(
+            "\n\nNote: the program is loaded either by the deprecated BPFLoader or BPFLoader2,\nit is an executable account with program.so in its data, hence this output.",
+        );
+
+        Ok(program_string)
+    } else if program_keyed_account.account.owner == bpf_loader_upgradeable::id() {
+        // this is the only interesting loader which uses redirection to programdata account
         if let Ok(UpgradeableLoaderState::Program {
             programdata_address,
-        }) = program.account.state()
+        }) = program_keyed_account.account.state()
         {
-            if let Ok(programdata_account) = AccountQueryBuilder::with_pubkey(&programdata_address)
-                .build()
-                .fetch_one()
-                .await
-            {
+            if let Ok(programdata_account) = rpc_client.get_account(&programdata_address).await {
+                let programdata_keyed_account = KeyedAccount {
+                    pubkey: programdata_address,
+                    account: programdata_account,
+                };
                 if let Ok(UpgradeableLoaderState::ProgramData {
                     upgrade_authority_address,
                     slot,
-                }) = programdata_account.account.state()
+                }) = programdata_keyed_account.account.state()
                 {
                     let program = DisplayUpgradeableProgram::from(
-                        program,
-                        &programdata_account,
+                        &program_keyed_account,
+                        &programdata_keyed_account,
                         slot,
                         &upgrade_authority_address,
                     );
                     let mut program_string = format.formatted_string(&program)?;
-                    writeln!(&mut program_string)?;
-                    writeln!(&mut program_string)?;
-                    writeln_styled(
-                        &mut program_string,
-                        "Followed by Raw Program Data (program.so):",
-                        &format!(
-                            "{} bytes",
-                            program
-                                .programdata_account
-                                .data
-                                .raw_program_data_following_in_bytes
-                        ),
-                    )?;
 
-                    // Show hexdump of not more than MAX_BYTES_SHOWN bytes
-                    const MAX_BYTES_SHOWN: usize = 64;
-                    let len = programdata_account.account.data.len();
-                    let offset = UpgradeableLoaderState::programdata_data_offset().unwrap();
-                    let (end, finished) = if offset + MAX_BYTES_SHOWN > len {
-                        (len, true)
-                    } else {
-                        (offset + MAX_BYTES_SHOWN, false)
-                    };
-                    let raw_program_data = &programdata_account.account.data[offset..end];
-                    let cfg = HexConfig {
-                        title: false,
-                        width: 16,
-                        group: 0,
-                        chunk: 2,
-                        ..HexConfig::default()
-                    };
-                    write!(&mut program_string, "{:?}", raw_program_data.hex_conf(cfg))?;
-                    if !finished {
+                    if let DisplayFormat::Cli = format {
                         writeln!(&mut program_string)?;
-                        write!(&mut program_string, "... (skipped)")?;
+                        writeln!(&mut program_string)?;
+                        writeln!(
+                            &mut program_string,
+                            "{} {} bytes",
+                            style("Followed by Raw Program Data (program.so):").bold(),
+                            programdata_keyed_account.account.data.len()
+                                - UpgradeableLoaderState::programdata_data_offset().unwrap()
+                        )?;
+
+                        // Show hexdump of not more than MAX_BYTES_SHOWN bytes
+                        const MAX_BYTES_SHOWN: usize = 64;
+                        let len = programdata_keyed_account.account.data.len();
+                        let offset = UpgradeableLoaderState::programdata_data_offset().unwrap();
+                        let (end, finished) = if offset + MAX_BYTES_SHOWN > len {
+                            (len, true)
+                        } else {
+                            (offset + MAX_BYTES_SHOWN, false)
+                        };
+                        let raw_program_data = &programdata_keyed_account.account.data[offset..end];
+                        let cfg = HexConfig {
+                            title: false,
+                            width: 16,
+                            group: 0,
+                            chunk: 2,
+                            ..HexConfig::default()
+                        };
+                        write!(&mut program_string, "{:?}", raw_program_data.hex_conf(cfg))?;
+                        if !finished {
+                            writeln!(&mut program_string)?;
+                            write!(&mut program_string, "... (skipped)")?;
+                        }
                     }
 
                     Ok(program_string)
                 } else {
                     Err(ExplorerError::Custom(format!(
                         "Program {} has been closed",
-                        program.pubkey
+                        program_id
                     )))
                 }
             } else {
                 Err(ExplorerError::Custom(format!(
                     "Program {} has been closed",
-                    program.pubkey
+                    program_id
                 )))
             }
         } else {
             Err(ExplorerError::Custom(format!(
                 "{} is not a Program account",
-                program.pubkey
+                program_id
             )))
         }
     } else {
         Err(ExplorerError::Custom(format!(
             "{} is not a pubkey of an on-chain BPF program.",
-            program.pubkey
+            program_id
         )))
     }
 }

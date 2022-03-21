@@ -1,12 +1,8 @@
-use std::fmt;
-
-use crate::{
-    config::ExplorerConfig,
-    error::Result,
-    output::{pretty_lamports_to_sol, write_styled, writeln_styled},
-};
+use crate::{config::ExplorerConfig, error::Result, output::pretty_lamports_to_sol};
+use console::style;
 use serde::Serialize;
 use solana_sdk::{account::Account, pubkey::Pubkey};
+use std::fmt;
 
 #[derive(Serialize)]
 pub struct KeyedAccount {
@@ -183,7 +179,7 @@ impl DisplayKeyedAccount {
             pubkey: keyed_account.pubkey.to_string(),
             account: DisplayAccount {
                 lamports: keyed_account.account.lamports,
-                data: base64::encode(keyed_account.account.data.clone()),
+                data: base64::encode(&keyed_account.account.data),
                 owner: keyed_account.account.owner.to_string(),
                 executable: keyed_account.account.executable,
                 rent_epoch: keyed_account.account.rent_epoch,
@@ -194,46 +190,44 @@ impl DisplayKeyedAccount {
 
 impl fmt::Display for DisplayKeyedAccount {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        writeln_styled(f, "Public Key:", &self.pubkey)?;
         writeln!(
             f,
-            "----------------------------------------------------------"
+            "========================================================"
+        )?;
+        writeln!(f, "{} {}", style("Public Key:").bold(), self.pubkey)?;
+        writeln!(
+            f,
+            "========================================================"
         )?;
 
         writeln!(f)?;
 
-        writeln_styled(
+        writeln!(
             f,
-            "Lamports:",
-            &format!(
-                "{} (◎ {})",
-                self.account.lamports,
-                pretty_lamports_to_sol(self.account.lamports)
-            ),
+            "{} {} (◎ {})",
+            style("Lamports:").bold(),
+            self.account.lamports,
+            pretty_lamports_to_sol(self.account.lamports)
         )?;
         if self.account.data.is_empty() {
-            writeln_styled(f, "Data:", "[Empty]")?;
+            writeln!(f, "{} [Empty]", style("Data:").bold())?;
         } else {
-            writeln_styled(f, "Data:", "[Hexdump below]")?;
+            writeln!(f, "{} [Hexdump below]", style("Data:").bold())?;
         }
-        writeln_styled(f, "Owner:", &self.account.owner)?;
-        if self.account.executable {
-            writeln_styled(
-                f,
-                "Executable:",
-                &format!("{} (implies account immutability)", self.account.executable),
-            )?;
-        } else {
-            writeln_styled(f, "Executable:", &self.account.executable.to_string())?;
-        }
-        write_styled(
+        writeln!(f, "{} {}", style("Owner").bold(), &self.account.owner)?;
+        writeln!(
             f,
-            "Rent Epoch:",
-            &format!(
-                "{} (irrelevant due to rent-exemption)",
-                self.account.rent_epoch
-            ),
+            "{} {}",
+            style("Executable:").bold(),
+            self.account.executable
         )?;
+        write!(
+            f,
+            "{} {}",
+            style("Rent Epoch:").bold(),
+            self.account.rent_epoch
+        )?;
+
         Ok(())
     }
 }

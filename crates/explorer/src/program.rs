@@ -1,10 +1,8 @@
-use std::fmt;
-
+use crate::{account::KeyedAccount, output::pretty_lamports_to_sol};
 use console::style;
 use serde::Serialize;
-use solana_sdk::{pubkey::Pubkey, bpf_loader_upgradeable::UpgradeableLoaderState};
-
-use crate::{output::{write_styled, writeln_styled, pretty_lamports_to_sol}, account::KeyedAccount};
+use solana_sdk::{bpf_loader_upgradeable::UpgradeableLoaderState, pubkey::Pubkey};
+use std::fmt;
 
 pub struct ProgramFieldVisibility {
     program_account: bool,
@@ -59,7 +57,7 @@ impl ProgramFieldVisibility {
 pub struct ProgramDataDeserialized {
     pub slot: u64,
     pub upgrade_authority_address: String,
-    pub raw_program_data_following_in_bytes: usize,
+    pub raw_program_data: String,
 }
 
 #[derive(Serialize)]
@@ -117,8 +115,10 @@ impl DisplayUpgradeableProgram {
                     upgrade_authority_address: upgrade_authority_address
                         .map(|pubkey| pubkey.to_string())
                         .unwrap_or_else(|| "none".to_string()),
-                    raw_program_data_following_in_bytes: programdata_account.account.data.len()
-                        - UpgradeableLoaderState::programdata_data_offset().unwrap(),
+                    raw_program_data: base64::encode(
+                        &programdata_account.account.data
+                            [UpgradeableLoaderState::programdata_data_offset().unwrap()..],
+                    ),
                 },
 
                 owner: programdata_account.account.owner.to_string(),
@@ -131,62 +131,62 @@ impl DisplayUpgradeableProgram {
 
 impl fmt::Display for DisplayUpgradeableProgram {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        writeln_styled(f, "Program Id:", &self.program_id)?;
         writeln!(
             f,
-            "----------------------------------------------------------"
+            "========================================================"
+        )?;
+        writeln!(f, "{} {}", style("Program Id:").bold(), self.program_id)?;
+        writeln!(
+            f,
+            "========================================================"
         )?;
 
         writeln!(f)?;
 
-        writeln!(f, "{}", style("--> Program Account").bold())?;
+        writeln!(f, "{}", style("--> Program Account").bold(),)?;
 
         writeln!(f)?;
 
-        writeln_styled(
+        writeln!(
             f,
-            "Lamports:",
-            &format!(
-                "{} (◎ {})",
-                self.program_account.lamports,
-                pretty_lamports_to_sol(self.program_account.lamports)
-            ),
+            "{} {} (◎ {})",
+            style("Lamports:").bold(),
+            self.program_account.lamports,
+            pretty_lamports_to_sol(self.program_account.lamports)
         )?;
-        writeln_styled(f, "Data:", "[Deserialized and interpreted below]")?;
-        writeln_styled(f, "Owner:", &self.program_account.owner)?;
-        if self.program_account.executable {
-            writeln_styled(
-                f,
-                "Executable:",
-                &format!(
-                    "{} (implies account immutability)",
-                    self.program_account.executable
-                ),
-            )?;
-        } else {
-            writeln_styled(
-                f,
-                "Executable:",
-                &self.program_account.executable.to_string(),
-            )?;
-        }
-        writeln_styled(
+        writeln!(
             f,
-            "Rent Epoch:",
-            &format!(
-                "{} (irrelevant due to rent-exemption)",
-                self.program_account.rent_epoch
-            ),
+            "{} [Deserialized and interpreted below]",
+            style("Data:").bold()
+        )?;
+        writeln!(
+            f,
+            "{} {}",
+            style("Owner").bold(),
+            &self.program_account.owner
+        )?;
+        writeln!(
+            f,
+            "{} {}",
+            style("Executable:").bold(),
+            self.program_account.executable
+        )?;
+        writeln!(
+            f,
+            "{} {}",
+            style("Rent Epoch:").bold(),
+            self.program_account.rent_epoch
         )?;
 
         writeln!(f)?;
 
         writeln!(f, "{}", style("Deserialized:").bold())?;
         write!(f, "  - ")?;
-        writeln_styled(
+        writeln!(
             f,
-            "ProgramData Address:",
-            &self.program_account.data.programdata_address,
+            "{} {}",
+            style("ProgramData Address:").bold(),
+            self.program_account.data.programdata_address
         )?;
 
         writeln!(f)?;
@@ -195,56 +195,53 @@ impl fmt::Display for DisplayUpgradeableProgram {
 
         writeln!(f)?;
 
-        writeln_styled(
+        writeln!(
             f,
-            "Lamports:",
-            &format!(
-                "{} (◎ {})",
-                self.programdata_account.lamports,
-                pretty_lamports_to_sol(self.programdata_account.lamports)
-            ),
+            "{} {} (◎ {})",
+            style("Lamports:").bold(),
+            self.programdata_account.lamports,
+            pretty_lamports_to_sol(self.programdata_account.lamports)
         )?;
-        writeln_styled(f, "Data:", "[Deserialized and interpreted below]")?;
-        writeln_styled(f, "Owner:", &self.programdata_account.owner)?;
-        if self.programdata_account.executable {
-            writeln_styled(
-                f,
-                "Executable:",
-                &format!(
-                    "{} (implies account immutability)",
-                    self.programdata_account.executable
-                ),
-            )?;
-        } else {
-            writeln_styled(
-                f,
-                "Executable:",
-                &self.programdata_account.executable.to_string(),
-            )?;
-        }
-        writeln_styled(
+        writeln!(
             f,
-            "Rent Epoch:",
-            &format!(
-                "{} (irrelevant due to rent-exemption)",
-                self.programdata_account.rent_epoch
-            ),
+            "{} [Deserialized and interpreted below]",
+            style("Data:").bold()
+        )?;
+        writeln!(
+            f,
+            "{} {}",
+            style("Owner").bold(),
+            &self.programdata_account.owner
+        )?;
+        writeln!(
+            f,
+            "{} {}",
+            style("Executable:").bold(),
+            self.programdata_account.executable
+        )?;
+        writeln!(
+            f,
+            "{} {}",
+            style("Rent Epoch:").bold(),
+            self.programdata_account.rent_epoch
         )?;
 
         writeln!(f)?;
 
         writeln!(f, "{}", style("Deserialized:").bold())?;
         write!(f, "  - ")?;
-        writeln_styled(
+        writeln!(
             f,
-            "Last Deployed Slot:",
-            &self.programdata_account.data.slot.to_string(),
+            "{} {}",
+            style("Last Deployed Slot:").bold(),
+            self.programdata_account.data.slot
         )?;
         write!(f, "  - ")?;
-        write_styled(
+        write!(
             f,
-            "Upgrade Authority:",
-            &self.programdata_account.data.upgrade_authority_address,
+            "{} {}",
+            style("Upgrade Authority:").bold(),
+            self.programdata_account.data.upgrade_authority_address
         )?;
 
         Ok(())
