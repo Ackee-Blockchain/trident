@@ -8,7 +8,8 @@ use console::style;
 use serde::Serialize;
 use solana_sdk::{
     clock::Slot, message::VersionedMessage, program_utils::limited_deserialize,
-    signature::Signature, stake, system_program, transaction::VersionedTransaction, system_instruction,
+    signature::Signature, stake, system_instruction, system_program,
+    transaction::VersionedTransaction,
 };
 use solana_transaction_status::{
     Encodable, EncodedConfirmedTransactionWithStatusMeta, EncodedTransaction,
