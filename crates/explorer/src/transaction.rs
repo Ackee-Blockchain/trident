@@ -1,7 +1,7 @@
 use crate::{
     error::ExplorerError,
     error::Result,
-    output::{classify_account, write_styled, writeln_styled},
+    output::{calculate_change, classify_account},
 };
 use chrono::{TimeZone, Utc};
 use console::style;
@@ -242,10 +242,15 @@ impl fmt::Display for DisplayRawTransaction {
 
         writeln!(f)?;
 
-        writeln_styled(f, "Transaction Id:", &self.transaction_id)?;
-        writeln_styled(f, "Slot:", &self.slot.to_string())?;
-        writeln_styled(f, "Timestamp:", &self.block_time)?;
-        writeln_styled(f, "Status:", &self.status)?;
+        writeln!(
+            f,
+            "{} {}",
+            style("Transaction Id:").bold(),
+            self.transaction_id
+        )?;
+        writeln!(f, "{} {}", style("Slot:").bold(), self.slot)?;
+        writeln!(f, "{} {}", style("Timestamp:").bold(), self.block_time)?;
+        writeln!(f, "{} {}", style("Status:").bold(), self.status)?;
 
         writeln!(f)?;
 
@@ -272,7 +277,7 @@ impl fmt::Display for DisplayRawTransaction {
         )?;
 
         for (index, signature) in self.raw_content.signatures.iter().enumerate() {
-            writeln_styled(f, &format!("  {:>2}", index), signature)?;
+            writeln!(f, "  {:>2} {}", style(index).bold(), signature)?;
         }
 
         writeln!(f)?;
@@ -282,26 +287,25 @@ impl fmt::Display for DisplayRawTransaction {
 
             writeln!(f, "  {}", style("Header:").bold())?;
 
-            writeln_styled(
+            writeln!(
                 f,
-                "    # of required signatures:",
-                &ui_raw_message.header.num_required_signatures.to_string(),
+                "    {} {}",
+                style("# of required signatures:").bold(),
+                ui_raw_message.header.num_required_signatures
             )?;
-            writeln_styled(
+
+            writeln!(
                 f,
-                "    # of read-only signed accounts:",
-                &ui_raw_message
-                    .header
-                    .num_readonly_signed_accounts
-                    .to_string(),
+                "    {} {}",
+                style("# of read-only signed accounts:").bold(),
+                ui_raw_message.header.num_readonly_signed_accounts
             )?;
-            writeln_styled(
+
+            writeln!(
                 f,
-                "    # of read-only unsigned accounts:",
-                &ui_raw_message
-                    .header
-                    .num_readonly_unsigned_accounts
-                    .to_string(),
+                "    {} {}",
+                style("# of read-only unsigned accounts:").bold(),
+                ui_raw_message.header.num_readonly_unsigned_accounts
             )?;
 
             writeln!(
@@ -315,7 +319,7 @@ impl fmt::Display for DisplayRawTransaction {
             )?;
 
             for (index, account_key) in ui_raw_message.account_keys.iter().enumerate() {
-                writeln_styled(f, &format!("   {:>2}", index), account_key)?;
+                writeln!(f, "   {:>2} {}", style(index).bold(), account_key)?;
             }
 
             writeln!(f, "  {}", style("Recent Blockhash:").bold())?;
@@ -342,13 +346,20 @@ impl fmt::Display for DisplayRawTransaction {
             ) in ui_raw_message.instructions.iter().enumerate()
             {
                 writeln!(f)?;
-                writeln_styled(
+                writeln!(
                     f,
-                    &format!("    {:>2} Program Id Index:", index),
-                    &program_id_index.to_string(),
+                    "   {:>2} {} {}",
+                    style(index).bold(),
+                    style("Program Id Index:").bold(),
+                    program_id_index
                 )?;
-                writeln_styled(f, "      Account Indices:", &format!("{:?}", accounts))?;
-                write_styled(f, "      Data:", data)?;
+                writeln!(
+                    f,
+                    "      {} {:?}",
+                    style("Account Indices:").bold(),
+                    accounts
+                )?;
+                write!(f, "      {} {:?}", style("Data:").bold(), data)?;
             }
         }
 
@@ -422,18 +433,23 @@ impl fmt::Display for DisplayTransaction {
 
         writeln!(f)?;
 
-        writeln_styled(f, "Transaction Id:", &self.transaction_id)?;
-        writeln_styled(f, "Slot:", &self.slot.to_string())?;
-        writeln_styled(f, "Timestamp:", &self.block_time)?;
-        writeln_styled(
+        writeln!(
             f,
-            "Status:",
-            &self
-                .meta
+            "{} {}",
+            style("Transaction Id:").bold(),
+            self.transaction_id
+        )?;
+        writeln!(f, "{} {}", style("Slot:").bold(), self.slot)?;
+        writeln!(f, "{} {}", style("Timestamp:").bold(), self.block_time)?;
+        writeln!(
+            f,
+            "{} {}",
+            style("Status:").bold(),
+            self.meta
                 .clone()
                 .err
                 .map(|err| format!("{}", err))
-                .unwrap_or_else(|| "SUCCESS".to_string()),
+                .unwrap_or_else(|| "SUCCESS".to_string())
         )?;
 
         writeln!(f)?;
@@ -457,7 +473,7 @@ impl fmt::Display for DisplayTransaction {
         )?;
 
         for (index, signature) in self.decoded.signatures.iter().enumerate() {
-            writeln_styled(f, &format!("{:>3}", index), &signature.to_string())?;
+            writeln!(f, " {:>2} {}", style(index).bold(), signature)?;
         }
 
         writeln!(f)?;
@@ -471,38 +487,54 @@ impl fmt::Display for DisplayTransaction {
 
             for (index, account_key) in message.account_keys.iter().enumerate() {
                 let account_type = classify_account(message, index);
-                writeln_styled(
+                let balance_change = calculate_change(
+                    self.meta.post_balances[index],
+                    self.meta.pre_balances[index],
+                );
+                writeln!(
                     f,
-                    &format!("{:>3}", index),
-                    &format!("{:<44}  {}", account_key.to_string(), account_type),
+                    " {:>2} {:<44} {:31} {}",
+                    style(index).bold(),
+                    account_key.to_string(),
+                    account_type,
+                    balance_change
                 )?;
             }
 
             writeln!(f)?;
 
-            writeln!(
+            writeln!(f, "{}", style("Recent Blockhash:").bold())?;
+            writeln!(f, "  {}", message.recent_blockhash)?;
+
+            writeln!(f)?;
+
+            write!(
                 f,
                 "{}",
                 style(format!("Instructions ({}):", message.instructions.len())).bold()
             )?;
 
             for (index, instruction) in message.instructions.iter().enumerate() {
+                writeln!(f)?;
                 let program_id = message.account_keys[instruction.program_id_index as usize];
-                writeln_styled(
+                writeln!(
                     f,
-                    &format!("{:>3} Program Id:", index),
-                    &format!(
-                        "{:<44} ({})",
-                        program_id.to_string(),
-                        instruction.program_id_index
-                    ),
+                    " {:>2} {} {:<44} ({})",
+                    style(index).bold(),
+                    style("Program Id:").bold(),
+                    program_id.to_string(),
+                    instruction.program_id_index
                 )?;
                 for (account_index, account) in instruction.accounts.iter().enumerate() {
-                    let account_id = message.account_keys[*account as usize];
-                    writeln_styled(
+                    let account_key = message.account_keys[*account as usize];
+                    writeln!(
                         f,
-                        &format!("    Account {:>2}:", account_index),
-                        &format!("{:<44} ({})", account_id.to_string(), account),
+                        "    {} {:>2}{} {:<44} ({})",
+                        style("Account").bold(),
+                        style(account_index).bold(),
+                        style(":").bold(),
+                        account_key.to_string(),
+                        account
                     )?;
                 }
 
@@ -512,7 +544,7 @@ impl fmt::Display for DisplayTransaction {
                         solana_vote_program::vote_instruction::VoteInstruction,
                     >(&instruction.data)
                     {
-                        writeln_styled(f, "    Data:", &format!("{:?}", vote_instruction))?;
+                        write!(f, "    {} {:?}", style("Data:").bold(), vote_instruction)?;
                         raw = false;
                     }
                 } else if program_id == stake::program::id() {
@@ -520,7 +552,7 @@ impl fmt::Display for DisplayTransaction {
                         stake::instruction::StakeInstruction,
                     >(&instruction.data)
                     {
-                        writeln_styled(f, "    Data:", &format!("{:?}", stake_instruction))?;
+                        write!(f, "    {} {:?}", style("Data:").bold(), stake_instruction)?;
                         raw = false;
                     }
                 } else if program_id == system_program::id() {
@@ -528,18 +560,39 @@ impl fmt::Display for DisplayTransaction {
                         system_instruction::SystemInstruction,
                     >(&instruction.data)
                     {
-                        writeln_styled(f, "    Data:", &format!("{:?}", system_instruction))?;
+                        write!(f, "    {} {:?}", style("Data:").bold(), system_instruction)?;
                         raw = false;
                     }
                 } else if program_id == spl_memo_v1_id() || program_id == spl_memo_id() {
                     if let Ok(s) = std::str::from_utf8(&instruction.data) {
-                        writeln_styled(f, "    Data:", &format!("\"{}\"", s))?;
+                        write!(f, "    {} \"{}\"", style("Data:").bold(), s)?;
                         raw = false;
                     }
                 }
 
                 if raw {
-                    writeln_styled(f, "    Data:", &format!("{:?}", instruction.data))?;
+                    write!(
+                        f,
+                        "    {} {:?}",
+                        style("Data:").bold(),
+                        bs58::encode(instruction.data.clone()).into_string()
+                    )?;
+                }
+            }
+
+            if let Some(log_messages) = &self.meta.log_messages {
+                writeln!(f)?;
+                writeln!(f)?;
+
+                write!(
+                    f,
+                    "{}",
+                    style(format!("Log Messages({}):", log_messages.len())).bold()
+                )?;
+
+                for (log_message_index, log_message) in log_messages.iter().enumerate() {
+                    writeln!(f)?;
+                    write!(f, " {:>2} {}", style(log_message_index).bold(), log_message)?;
                 }
             }
         }

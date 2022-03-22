@@ -18,7 +18,7 @@ use solana_sdk::{
     message::Message, native_token, pubkey::Pubkey, signature::Signature,
 };
 use solana_transaction_status::UiTransactionEncoding;
-use std::fmt::{self, Write};
+use std::{cmp::Ordering, fmt::Write};
 
 pub fn pretty_lamports_to_sol(lamports: u64) -> String {
     let sol_str = format!("{:.9}", native_token::lamports_to_sol(lamports));
@@ -58,22 +58,20 @@ pub fn classify_account(message: &Message, index: usize) -> String {
     account_type
 }
 
-pub fn write_styled(f: &mut dyn fmt::Write, name: &str, value: &str) -> fmt::Result {
-    let styled_value = if value.is_empty() {
-        style("(not set)").italic()
-    } else {
-        style(value)
-    };
-    write!(f, "{} {}", style(name).bold(), styled_value)
-}
-
-pub fn writeln_styled(f: &mut dyn fmt::Write, name: &str, value: &str) -> fmt::Result {
-    let styled_value = if value.is_empty() {
-        style("(not set)").italic()
-    } else {
-        style(value)
-    };
-    writeln!(f, "{} {}", style(name).bold(), styled_value)
+pub fn calculate_change(post: u64, pre: u64) -> String {
+    match post.cmp(&pre) {
+        Ordering::Greater => format!(
+            "◎ {} (+{})",
+            pretty_lamports_to_sol(post),
+            pretty_lamports_to_sol(post - pre)
+        ),
+        Ordering::Less => format!(
+            "◎ {} (-{})",
+            pretty_lamports_to_sol(post),
+            pretty_lamports_to_sol(pre - post)
+        ),
+        Ordering::Equal => format!("◎ {}", pretty_lamports_to_sol(post)),
+    }
 }
 
 pub async fn print_account(
@@ -82,8 +80,8 @@ pub async fn print_account(
     format: DisplayFormat,
     config: &ExplorerConfig,
 ) -> Result<()> {
-    let result = get_account_string(pubkey, visibility, format, config).await?;
-    println!("{}", result);
+    let account_string = get_account_string(pubkey, visibility, format, config).await?;
+    println!("{}", account_string);
     Ok(())
 }
 
@@ -93,8 +91,8 @@ pub async fn print_program(
     format: DisplayFormat,
     config: &ExplorerConfig,
 ) -> Result<()> {
-    let result = get_program_string(program_id, visibility, format, config).await?;
-    println!("{}", result);
+    let program_string = get_program_string(program_id, visibility, format, config).await?;
+    println!("{}", program_string);
     Ok(())
 }
 
@@ -104,8 +102,9 @@ pub async fn print_raw_transaction(
     format: DisplayFormat,
     config: &ExplorerConfig,
 ) -> Result<()> {
-    let result = get_raw_transaction_string(signature, visibility, format, config).await?;
-    println!("{}", result);
+    let raw_transaction_string =
+        get_raw_transaction_string(signature, visibility, format, config).await?;
+    println!("{}", raw_transaction_string);
     Ok(())
 }
 
@@ -115,8 +114,8 @@ pub async fn print_transaction(
     format: DisplayFormat,
     config: &ExplorerConfig,
 ) -> Result<()> {
-    let result = get_transaction_string(signature, visibility, format, config).await?;
-    println!("{}", result);
+    let transaction_string = get_transaction_string(signature, visibility, format, config).await?;
+    println!("{}", transaction_string);
     Ok(())
 }
 
