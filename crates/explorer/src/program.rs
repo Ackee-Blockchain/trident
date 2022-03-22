@@ -115,11 +115,10 @@ impl DisplayUpgradeableProgram {
                     upgrade_authority_address: upgrade_authority_address
                         .map(|pubkey| pubkey.to_string())
                         .unwrap_or_else(|| "none".to_string()),
-                    raw_program_data: bs58::encode(
+                    raw_program_data: base64::encode(
                         &programdata_account.account.data
                             [UpgradeableLoaderState::programdata_data_offset().unwrap()..],
-                    )
-                    .into_string(),
+                    ),
                 },
 
                 owner: programdata_account.account.owner.to_string(),

@@ -3458,6 +3458,7 @@ dependencies = [
 name = "trdelnik-explorer"
 version = "0.1.0"
 dependencies = [
+ "base64 0.13.0",
  "bs58",
  "chrono",
  "console",
