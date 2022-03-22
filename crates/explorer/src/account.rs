@@ -179,7 +179,7 @@ impl DisplayKeyedAccount {
             pubkey: keyed_account.pubkey.to_string(),
             account: DisplayAccount {
                 lamports: keyed_account.account.lamports,
-                data: base64::encode(&keyed_account.account.data),
+                data: bs58::encode(&keyed_account.account.data).into_string(),
                 owner: keyed_account.account.owner.to_string(),
                 executable: keyed_account.account.executable,
                 rent_epoch: keyed_account.account.rent_epoch,
