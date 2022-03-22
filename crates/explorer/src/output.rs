@@ -17,7 +17,7 @@ use solana_sdk::{
     bpf_loader_upgradeable::UpgradeableLoaderState, commitment_config::CommitmentConfig,
     message::Message, native_token, pubkey::Pubkey, signature::Signature,
 };
-use solana_transaction_status::UiTransactionEncoding;
+use solana_transaction_status::{TransactionConfirmationStatus, UiTransactionEncoding};
 use std::{cmp::Ordering, fmt::Write};
 
 pub fn pretty_lamports_to_sol(lamports: u64) -> String {
@@ -71,6 +71,14 @@ pub fn calculate_change(post: u64, pre: u64) -> String {
             pretty_lamports_to_sol(pre - post)
         ),
         Ordering::Equal => format!("◎ {}", pretty_lamports_to_sol(post)),
+    }
+}
+
+pub fn status_to_string(status: &TransactionConfirmationStatus) -> String {
+    match status {
+        TransactionConfirmationStatus::Processed => "Processed".to_string(),
+        TransactionConfirmationStatus::Confirmed => "Confirmed".to_string(),
+        TransactionConfirmationStatus::Finalized => "Finalized".to_string(),
     }
 }
 
@@ -300,16 +308,22 @@ pub async fn get_raw_transaction_string(
 ) -> Result<String> {
     let rpc_client = config.rpc_client();
     let config = RpcTransactionConfig {
-        encoding: Some(UiTransactionEncoding::Json),
+        encoding: Some(UiTransactionEncoding::Binary),
         commitment: Some(CommitmentConfig::confirmed()),
         max_supported_transaction_version: Some(0),
     };
 
-    let confirmed_transaction = rpc_client
+    let transaction = rpc_client
         .get_transaction_with_config(signature, config)
         .await?;
 
-    let display_transaction = DisplayRawTransaction::from(signature, &confirmed_transaction)?;
+    let response = rpc_client
+        .get_signature_statuses_with_history(&[*signature])
+        .await?;
+
+    let transaction_status = response.value[0].as_ref().unwrap();
+
+    let display_transaction = DisplayRawTransaction::from(&transaction, transaction_status)?;
 
     let transaction_string = format.formatted_string(&display_transaction)?;
 
