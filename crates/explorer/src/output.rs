@@ -15,7 +15,7 @@ use solana_client::rpc_config::RpcTransactionConfig;
 use solana_sdk::{
     account_utils::StateMut, bpf_loader, bpf_loader_deprecated, bpf_loader_upgradeable,
     bpf_loader_upgradeable::UpgradeableLoaderState, commitment_config::CommitmentConfig,
-    message::Message, native_token, pubkey::Pubkey, signature::Signature,
+    native_token, pubkey::Pubkey, signature::Signature,
 };
 use solana_transaction_status::{TransactionConfirmationStatus, UiTransactionEncoding};
 use std::{cmp::Ordering, fmt::Write};
@@ -28,34 +28,34 @@ pub fn pretty_lamports_to_sol(lamports: u64) -> String {
         .to_string()
 }
 
-pub fn classify_account(message: &Message, index: usize) -> String {
-    let mut account_type = String::new();
+pub fn classify_account(fee_payer: bool, writable: bool, signer: bool, program: bool) -> String {
+    let mut account_type_string = String::new();
     let mut started = false;
-    if index == 0 {
-        account_type.push_str("[Fee Payer]");
+    if fee_payer {
+        account_type_string.push_str("[Fee Payer]");
         started = true;
     }
-    if message.is_writable(index) {
+    if writable {
         if started {
-            account_type.push(' ');
+            account_type_string.push(' ');
         }
-        account_type.push_str("[Writable]");
+        account_type_string.push_str("[Writable]");
         started = true;
     }
-    if message.is_signer(index) {
+    if signer {
         if started {
-            account_type.push(' ');
+            account_type_string.push(' ');
         }
-        account_type.push_str("[Signer]");
+        account_type_string.push_str("[Signer]");
         started = true;
     }
-    if message.maybe_executable(index) {
+    if program {
         if started {
-            account_type.push(' ');
+            account_type_string.push(' ');
         }
-        account_type.push_str("[Program]");
+        account_type_string.push_str("[Program]");
     }
-    account_type
+    account_type_string
 }
 
 pub fn calculate_change(post: u64, pre: u64) -> String {
@@ -71,6 +71,14 @@ pub fn calculate_change(post: u64, pre: u64) -> String {
             pretty_lamports_to_sol(pre - post)
         ),
         Ordering::Equal => format!("◎ {}", pretty_lamports_to_sol(post)),
+    }
+}
+
+pub fn change_in_sol(post: u64, pre: u64) -> String {
+    match post.cmp(&pre) {
+        Ordering::Greater => format!("+{}", pretty_lamports_to_sol(post - pre)),
+        Ordering::Less => format!("-{}", pretty_lamports_to_sol(pre - post)),
+        Ordering::Equal => "0".to_string(),
     }
 }
 
@@ -343,11 +351,17 @@ pub async fn get_transaction_string(
         max_supported_transaction_version: Some(0),
     };
 
-    let confirmed_transaction = rpc_client
+    let transaction = rpc_client
         .get_transaction_with_config(signature, config)
         .await?;
 
-    let display_transaction = DisplayTransaction::from(signature, &confirmed_transaction)?;
+    let response = rpc_client
+        .get_signature_statuses_with_history(&[*signature])
+        .await?;
+
+    let transaction_status = response.value[0].as_ref().unwrap();
+
+    let display_transaction = DisplayTransaction::from(&transaction, transaction_status)?;
 
     let transaction_string = format.formatted_string(&display_transaction)?;
 

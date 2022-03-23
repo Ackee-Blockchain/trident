@@ -1,22 +1,17 @@
 use crate::{
     error::ExplorerError,
     error::Result,
-    output::{calculate_change, classify_account, pretty_lamports_to_sol, status_to_string},
+    output::{change_in_sol, classify_account, pretty_lamports_to_sol, status_to_string},
 };
 use chrono::{TimeZone, Utc};
 use console::style;
 use serde::Serialize;
-use solana_sdk::{
-    clock::Slot, message::VersionedMessage, program_utils::limited_deserialize,
-    signature::Signature, stake, system_instruction, system_program,
-    transaction::VersionedTransaction,
-};
+
+use solana_sdk::message::VersionedMessage;
 use solana_transaction_status::{
-    Encodable, EncodedConfirmedTransactionWithStatusMeta, EncodedTransaction,
-    EncodedTransactionWithStatusMeta, TransactionStatus, UiTransaction, UiTransactionEncoding,
-    UiTransactionStatusMeta,
+    EncodedConfirmedTransactionWithStatusMeta, EncodedTransactionWithStatusMeta, TransactionStatus,
 };
-use spl_memo::{id as spl_memo_id, v1::id as spl_memo_v1_id};
+
 use std::fmt;
 
 pub struct RawTransactionFieldVisibility {
@@ -104,7 +99,7 @@ impl RawTransactionFieldVisibility {
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct DisplayMessageHeader {
+pub struct DisplayRawMessageHeader {
     pub num_required_signatures: u8,
     pub num_readonly_signed_accounts: u8,
     pub num_readonly_unsigned_accounts: u8,
@@ -112,7 +107,7 @@ pub struct DisplayMessageHeader {
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct DisplayInstruction {
+pub struct DisplayRawInstruction {
     pub program_id_index: u8,
     pub accounts: Vec<u8>,
     pub data: String,
@@ -121,10 +116,10 @@ pub struct DisplayInstruction {
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct DisplayRawMessage {
-    pub header: DisplayMessageHeader,
+    pub header: DisplayRawMessageHeader,
     pub account_keys: Vec<String>,
     pub recent_blockhash: String,
-    pub instructions: Vec<DisplayInstruction>,
+    pub instructions: Vec<DisplayRawInstruction>,
 }
 
 #[derive(Serialize)]
@@ -202,7 +197,7 @@ impl DisplayRawTransaction {
                     .map(|sig| sig.to_string())
                     .collect(),
                 message: DisplayRawMessage {
-                    header: DisplayMessageHeader {
+                    header: DisplayRawMessageHeader {
                         num_required_signatures: message.header.num_required_signatures,
                         num_readonly_signed_accounts: message.header.num_readonly_signed_accounts,
                         num_readonly_unsigned_accounts: message
@@ -218,7 +213,7 @@ impl DisplayRawTransaction {
                     instructions: message
                         .instructions
                         .into_iter()
-                        .map(|instruction| DisplayInstruction {
+                        .map(|instruction| DisplayRawInstruction {
                             program_id_index: instruction.program_id_index,
                             accounts: instruction.accounts,
                             data: bs58::encode(instruction.data).into_string(),
@@ -373,7 +368,7 @@ impl fmt::Display for DisplayRawTransaction {
 
         for (
             index,
-            DisplayInstruction {
+            DisplayRawInstruction {
                 program_id_index,
                 accounts,
                 data,
@@ -486,51 +481,144 @@ impl TransactionFieldVisibility {
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
+pub struct DisplayInstruction {
+    pub program: String,
+    pub program_id: String,
+    pub data: String,
+    pub inner_instructions: Option<Vec<DisplayInstruction>>,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DisplayInputAccount {
+    pub pubkey: String,
+    pub fee_payer: bool,
+    pub writable: bool,
+    pub signer: bool,
+    pub program: bool,
+    pub post_balance_in_sol: String,
+    pub balance_change_in_sol: String,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DisplayTransactionContent {
+    pub accounts: Vec<DisplayInputAccount>,
+    pub instructions: Vec<DisplayInstruction>,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DisplayTransactionOverview {
+    pub signature: String,
+    pub result: String,
+    pub timestamp: String,
+    pub confirmation_status: String,
+    pub confirmations: String,
+    pub slot: u64,
+    pub recent_blockhash: String,
+    pub fee: String,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct DisplayTransaction {
-    pub transaction_id: String,
-    pub slot: Slot,
-    pub block_time: String,
-    pub transaction: UiTransaction,
-    pub meta: UiTransactionStatusMeta,
-    #[serde(skip_serializing)]
-    pub decoded: VersionedTransaction,
+    pub overview: DisplayTransactionOverview,
+    pub transaction: DisplayTransactionContent,
+    pub log_messages: Option<Vec<String>>,
 }
 
 impl DisplayTransaction {
     pub fn from(
-        signature: &Signature,
-        confirmed_transaction: &EncodedConfirmedTransactionWithStatusMeta,
+        transaction: &EncodedConfirmedTransactionWithStatusMeta,
+        transaction_status: &TransactionStatus,
     ) -> Result<Self> {
         let EncodedConfirmedTransactionWithStatusMeta {
             slot,
-            transaction: transaction_with_status_meta,
+            transaction,
             block_time,
-        } = confirmed_transaction;
-        let decoded = transaction_with_status_meta.transaction.decode().unwrap();
-        let temp = decoded.clone();
-        let transaction = if let VersionedMessage::Legacy(message) = temp.message {
-            EncodedTransaction::Json(UiTransaction {
-                signatures: temp.signatures.iter().map(ToString::to_string).collect(),
-                message: message.encode(UiTransactionEncoding::JsonParsed),
-            })
-        } else {
-            return Err(ExplorerError::Custom(
-                "transaction back encode failed".to_string(),
-            ));
-        };
+        } = transaction;
 
-        if let EncodedTransaction::Json(ui_transaction) = &transaction {
-            Ok(Self {
-                transaction_id: signature.to_string(),
+        let EncodedTransactionWithStatusMeta {
+            transaction,
+            meta,
+            version: _version,
+        } = transaction;
+
+        let versioned_transaction = transaction.decode().unwrap();
+
+        if let VersionedMessage::Legacy(message) = versioned_transaction.message {
+            let overview = DisplayTransactionOverview {
+                signature: versioned_transaction.signatures[0].to_string(),
+                result: meta
+                    .as_ref()
+                    .unwrap()
+                    .err
+                    .as_ref()
+                    .map(|err| err.to_string())
+                    .unwrap_or_else(|| "Success".to_string()),
+                timestamp: Utc.timestamp(block_time.unwrap(), 0).to_string(),
+                confirmation_status: status_to_string(
+                    transaction_status.confirmation_status.as_ref().unwrap(),
+                ),
+                confirmations: transaction_status
+                    .confirmations
+                    .map_or_else(|| "MAX (32)".to_string(), |n| n.to_string()),
                 slot: *slot,
-                block_time: Utc.timestamp(block_time.unwrap(), 0).to_string(),
-                transaction: ui_transaction.clone(),
-                meta: transaction_with_status_meta.meta.clone().unwrap(),
-                decoded,
+                recent_blockhash: message.recent_blockhash.to_string(),
+                fee: format!("◎ {}", pretty_lamports_to_sol(meta.as_ref().unwrap().fee)),
+            };
+
+            let mut fee_payer_found = false; // always first account
+            let transaction = DisplayTransactionContent {
+                accounts: message
+                    .account_keys
+                    .iter()
+                    .enumerate()
+                    .map(|(index, account_key)| DisplayInputAccount {
+                        pubkey: account_key.to_string(),
+                        fee_payer: if !fee_payer_found {
+                            fee_payer_found = true;
+                            true
+                        } else {
+                            false
+                        },
+                        writable: message.is_writable(index),
+                        signer: message.is_signer(index),
+                        program: message.maybe_executable(index),
+                        post_balance_in_sol: pretty_lamports_to_sol(
+                            meta.as_ref().unwrap().post_balances[index],
+                        ),
+                        balance_change_in_sol: change_in_sol(
+                            meta.as_ref().unwrap().post_balances[index],
+                            meta.as_ref().unwrap().pre_balances[index],
+                        ),
+                    })
+                    .collect(),
+                instructions: message
+                    .instructions
+                    .iter()
+                    .enumerate()
+                    .map(|(index, instruction)| DisplayInstruction {
+                        program: "Unknown".to_string(),
+                        program_id: message.account_keys[instruction.program_id_index as usize]
+                            .to_string(),
+                        data: bs58::encode(instruction.data.clone()).into_string(),
+                        inner_instructions: None,
+                    })
+                    .collect(),
+            };
+
+            let log_messages = meta.as_ref().unwrap().log_messages.clone();
+
+            Ok(DisplayTransaction {
+                overview,
+                transaction,
+                log_messages,
             })
         } else {
             Err(ExplorerError::Custom(
-                "transaction decode failed".to_string(),
+                "message in a new unsupported format".to_string(),
             ))
         }
     }
@@ -542,7 +630,7 @@ impl fmt::Display for DisplayTransaction {
             f,
             "================================================================================"
         )?;
-        writeln!(f, "{:^80}", style("On-chain State").bold())?;
+        writeln!(f, "{:^80}", style("Overview").bold())?;
         writeln!(
             f,
             "================================================================================"
@@ -553,21 +641,36 @@ impl fmt::Display for DisplayTransaction {
         writeln!(
             f,
             "{} {}",
-            style("Transaction Id:").bold(),
-            self.transaction_id
+            style("Signature:").bold(),
+            self.overview.signature
         )?;
-        writeln!(f, "{} {}", style("Slot:").bold(), self.slot)?;
-        writeln!(f, "{} {}", style("Timestamp:").bold(), self.block_time)?;
+        writeln!(f, "{} {}", style("Result:").bold(), self.overview.result)?;
         writeln!(
             f,
             "{} {}",
-            style("Status:").bold(),
-            self.meta
-                .clone()
-                .err
-                .map(|err| format!("{}", err))
-                .unwrap_or_else(|| "SUCCESS".to_string())
+            style("Timestamp:").bold(),
+            self.overview.timestamp
         )?;
+        writeln!(
+            f,
+            "{} {}",
+            style("Confirmation Status:").bold(),
+            self.overview.confirmation_status
+        )?;
+        writeln!(
+            f,
+            "{} {}",
+            style("Confirmations:").bold(),
+            self.overview.confirmations
+        )?;
+        writeln!(f, "{} {}", style("Slot:").bold(), self.overview.slot)?;
+        writeln!(
+            f,
+            "{} {}",
+            style("Recent Blockhash:").bold(),
+            self.overview.recent_blockhash
+        )?;
+        writeln!(f, "{} {}", style("Fee:").bold(), self.overview.fee)?;
 
         writeln!(f)?;
 
@@ -586,131 +689,114 @@ impl fmt::Display for DisplayTransaction {
         writeln!(
             f,
             "{}",
-            style(format!("Signatures ({}):", self.decoded.signatures.len())).bold()
+            style(format!("Accounts ({}):", self.transaction.accounts.len())).bold()
         )?;
 
-        for (index, signature) in self.decoded.signatures.iter().enumerate() {
-            writeln!(f, " {:>2} {}", style(index).bold(), signature)?;
+        for (index, account) in self.transaction.accounts.iter().enumerate() {
+            let account_type_string = classify_account(
+                account.fee_payer,
+                account.writable,
+                account.signer,
+                account.program,
+            );
+
+            let balance_information_string = if account.balance_change_in_sol != "0" {
+                format!(
+                    "◎ {} (◎ {})",
+                    account.post_balance_in_sol, account.balance_change_in_sol
+                )
+            } else {
+                format!("◎ {}", account.post_balance_in_sol)
+            };
+
+            writeln!(
+                f,
+                " {:>2} {:<44} {:31} {}",
+                style(index).bold(),
+                account.pubkey,
+                account_type_string,
+                balance_information_string
+            )?;
         }
 
         writeln!(f)?;
 
-        if let VersionedMessage::Legacy(message) = &self.decoded.message {
+        write!(
+            f,
+            "{}",
+            style(format!(
+                "Instructions ({}):",
+                self.transaction.instructions.len()
+            ))
+            .bold()
+        )?;
+
+        for (index, instruction) in self.transaction.instructions.iter().enumerate() {
+            writeln!(f)?;
             writeln!(
                 f,
-                "{}",
-                style(format!("Accounts ({}):", message.account_keys.len())).bold()
+                " {:>2} {} {:<44}",
+                style(index).bold(),
+                style(&instruction.program).bold(),
+                instruction.program_id
             )?;
+        }
 
-            for (index, account_key) in message.account_keys.iter().enumerate() {
-                let account_type = classify_account(message, index);
-                let balance_change = calculate_change(
-                    self.meta.post_balances[index],
-                    self.meta.pre_balances[index],
-                );
-                writeln!(
-                    f,
-                    " {:>2} {:<44} {:31} {}",
-                    style(index).bold(),
-                    account_key.to_string(),
-                    account_type,
-                    balance_change
-                )?;
-            }
+        //                 let mut raw = true;
+        //                 if program_id == solana_vote_program::id() {
+        //                     if let Ok(vote_instruction) = limited_deserialize::<
+        //                         solana_vote_program::vote_instruction::VoteInstruction,
+        //                     >(&instruction.data)
+        //                     {
+        //                         write!(f, "    {} {:?}", style("Data:").bold(), vote_instruction)?;
+        //                         raw = false;
+        //                     }
+        //                 } else if program_id == stake::program::id() {
+        //                     if let Ok(stake_instruction) = limited_deserialize::<
+        //                         stake::instruction::StakeInstruction,
+        //                     >(&instruction.data)
+        //                     {
+        //                         write!(f, "    {} {:?}", style("Data:").bold(), stake_instruction)?;
+        //                         raw = false;
+        //                     }
+        //                 } else if program_id == system_program::id() {
+        //                     if let Ok(system_instruction) = limited_deserialize::<
+        //                         system_instruction::SystemInstruction,
+        //                     >(&instruction.data)
+        //                     {
+        //                         write!(f, "    {} {:?}", style("Data:").bold(), system_instruction)?;
+        //                         raw = false;
+        //                     }
+        //                 } else if program_id == spl_memo_v1_id() || program_id == spl_memo_id() {
+        //                     if let Ok(s) = std::str::from_utf8(&instruction.data) {
+        //                         write!(f, "    {} \"{}\"", style("Data:").bold(), s)?;
+        //                         raw = false;
+        //                     }
+        //                 }
 
+        //                 if raw {
+        //                     write!(
+        //                         f,
+        //                         "    {} {:?}",
+        //                         style("Data:").bold(),
+        //                         bs58::encode(instruction.data.clone()).into_string()
+        //                     )?;
+        //                 }
+        //             }
+
+        if let Some(log_messages) = &self.log_messages {
             writeln!(f)?;
-
-            writeln!(f, "{}", style("Recent Blockhash:").bold())?;
-            writeln!(f, "  {}", message.recent_blockhash)?;
-
             writeln!(f)?;
 
             write!(
                 f,
                 "{}",
-                style(format!("Instructions ({}):", message.instructions.len())).bold()
+                style(format!("Log Messages ({}):", log_messages.len())).bold()
             )?;
 
-            for (index, instruction) in message.instructions.iter().enumerate() {
+            for (log_message_index, log_message) in log_messages.iter().enumerate() {
                 writeln!(f)?;
-                let program_id = message.account_keys[instruction.program_id_index as usize];
-                writeln!(
-                    f,
-                    " {:>2} {} {:<44} ({})",
-                    style(index).bold(),
-                    style("Program Id:").bold(),
-                    program_id.to_string(),
-                    instruction.program_id_index
-                )?;
-                for (account_index, account) in instruction.accounts.iter().enumerate() {
-                    let account_key = message.account_keys[*account as usize];
-                    writeln!(
-                        f,
-                        "    {} {:>2}{} {:<44} ({})",
-                        style("Account").bold(),
-                        style(account_index).bold(),
-                        style(":").bold(),
-                        account_key.to_string(),
-                        account
-                    )?;
-                }
-
-                let mut raw = true;
-                if program_id == solana_vote_program::id() {
-                    if let Ok(vote_instruction) = limited_deserialize::<
-                        solana_vote_program::vote_instruction::VoteInstruction,
-                    >(&instruction.data)
-                    {
-                        write!(f, "    {} {:?}", style("Data:").bold(), vote_instruction)?;
-                        raw = false;
-                    }
-                } else if program_id == stake::program::id() {
-                    if let Ok(stake_instruction) = limited_deserialize::<
-                        stake::instruction::StakeInstruction,
-                    >(&instruction.data)
-                    {
-                        write!(f, "    {} {:?}", style("Data:").bold(), stake_instruction)?;
-                        raw = false;
-                    }
-                } else if program_id == system_program::id() {
-                    if let Ok(system_instruction) = limited_deserialize::<
-                        system_instruction::SystemInstruction,
-                    >(&instruction.data)
-                    {
-                        write!(f, "    {} {:?}", style("Data:").bold(), system_instruction)?;
-                        raw = false;
-                    }
-                } else if program_id == spl_memo_v1_id() || program_id == spl_memo_id() {
-                    if let Ok(s) = std::str::from_utf8(&instruction.data) {
-                        write!(f, "    {} \"{}\"", style("Data:").bold(), s)?;
-                        raw = false;
-                    }
-                }
-
-                if raw {
-                    write!(
-                        f,
-                        "    {} {:?}",
-                        style("Data:").bold(),
-                        bs58::encode(instruction.data.clone()).into_string()
-                    )?;
-                }
-            }
-
-            if let Some(log_messages) = &self.meta.log_messages {
-                writeln!(f)?;
-                writeln!(f)?;
-
-                write!(
-                    f,
-                    "{}",
-                    style(format!("Log Messages({}):", log_messages.len())).bold()
-                )?;
-
-                for (log_message_index, log_message) in log_messages.iter().enumerate() {
-                    writeln!(f)?;
-                    write!(f, " {:>2} {}", style(log_message_index).bold(), log_message)?;
-                }
+                write!(f, " {:>2} {}", style(log_message_index).bold(), log_message)?;
             }
         }
         Ok(())
