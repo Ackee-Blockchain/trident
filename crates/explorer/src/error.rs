@@ -10,12 +10,16 @@ pub type Result<T> = std::result::Result<T, ExplorerError>;
 pub enum ExplorerError {
     #[error("{0}")]
     SolanaClient(#[from] ClientError),
+
     #[error("{0}")]
     SerdeJson(#[from] SerdeError),
+
     #[error("{0}")]
     Fmt(#[from] FmtError),
+
     #[error("{0}")]
     Instruction(#[from] InstructionError),
+
     #[error("{0}")]
     Custom(String),
 }
