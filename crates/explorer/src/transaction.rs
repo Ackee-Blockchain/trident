@@ -2,12 +2,14 @@ use crate::{
     error::ExplorerError,
     error::Result,
     output::{change_in_sol, classify_account, pretty_lamports_to_sol, status_to_string},
+    parse::{parse, partially_parse},
 };
 use chrono::{TimeZone, Utc};
 use console::style;
 use serde::Serialize;
 
-use solana_sdk::message::VersionedMessage;
+use serde_json::Value;
+use solana_sdk::{instruction::CompiledInstruction, message::VersionedMessage, pubkey::Pubkey};
 use solana_transaction_status::{
     EncodedConfirmedTransactionWithStatusMeta, EncodedTransactionWithStatusMeta, TransactionStatus,
 };
@@ -481,11 +483,40 @@ impl TransactionFieldVisibility {
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct DisplayInstruction {
+pub struct DisplayPartiallyParsedInstruction {
+    pub program_id: String,
+    pub accounts: Vec<String>,
+    pub data: String,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DisplayParsedInstruction {
     pub program: String,
     pub program_id: String,
-    pub data: String,
-    pub inner_instructions: Option<Vec<DisplayInstruction>>,
+    pub parsed: Value,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub enum DisplayInstruction {
+    Parsed(DisplayParsedInstruction),
+    PartiallyParsed(DisplayPartiallyParsedInstruction),
+}
+
+impl DisplayInstruction {
+    fn parse(instruction: &CompiledInstruction, account_keys: &[Pubkey]) -> Self {
+        let program_id = &account_keys[instruction.program_id_index as usize];
+        if let Ok(parsed_instruction) = parse(program_id, instruction, account_keys) {
+            DisplayInstruction::Parsed(parsed_instruction)
+        } else {
+            DisplayInstruction::PartiallyParsed(partially_parse(
+                program_id,
+                instruction,
+                account_keys,
+            ))
+        }
+    }
 }
 
 #[derive(Serialize)]
@@ -599,12 +630,8 @@ impl DisplayTransaction {
                     .instructions
                     .iter()
                     .enumerate()
-                    .map(|(index, instruction)| DisplayInstruction {
-                        program: "Unknown".to_string(),
-                        program_id: message.account_keys[instruction.program_id_index as usize]
-                            .to_string(),
-                        data: bs58::encode(instruction.data.clone()).into_string(),
-                        inner_instructions: None,
+                    .map(|(index, instruction)| {
+                        DisplayInstruction::parse(instruction, &message.account_keys)
                     })
                     .collect(),
             };
@@ -721,7 +748,7 @@ impl fmt::Display for DisplayTransaction {
 
         writeln!(f)?;
 
-        write!(
+        writeln!(
             f,
             "{}",
             style(format!(
@@ -732,14 +759,51 @@ impl fmt::Display for DisplayTransaction {
         )?;
 
         for (index, instruction) in self.transaction.instructions.iter().enumerate() {
+            if let DisplayInstruction::Parsed(instruction) = instruction {
+                writeln!(
+                    f,
+                    " {:>2} {} {} {}",
+                    style(index).bold(),
+                    style(&instruction.program).bold(),
+                    style("Program:").bold(),
+                    instruction.parsed["type"].to_string().trim_matches('"')
+                )?;
+                writeln!(f, "    [{}]", instruction.program_id)?;
+                for (name, value) in instruction.parsed["info"].as_object().unwrap() {
+                    writeln!(
+                        f,
+                        "    {}{} {}",
+                        style(name).bold(),
+                        style(":").bold(),
+                        value
+                    )?;
+                }
+            } else if let DisplayInstruction::PartiallyParsed(instruction) = instruction {
+                writeln!(
+                    f,
+                    " {:>2} {} Unknown Instruction",
+                    style(index).bold(),
+                    style("Unknown Program:").bold(),
+                )?;
+                writeln!(f, "    [{}]", instruction.program_id)?;
+                for (index, account) in instruction.accounts.iter().enumerate() {
+                    writeln!(
+                        f,
+                        "    {} {}{} {:<44}",
+                        style("Account").bold(),
+                        style(index).bold(),
+                        style(":").bold(),
+                        account,
+                    )?;
+                }
+                writeln!(
+                    f,
+                    "    {} {:?}",
+                    style("Data:").bold(),
+                    bs58::encode(instruction.data.clone()).into_string()
+                )?;
+            }
             writeln!(f)?;
-            writeln!(
-                f,
-                " {:>2} {} {:<44}",
-                style(index).bold(),
-                style(&instruction.program).bold(),
-                instruction.program_id
-            )?;
         }
 
         //                 let mut raw = true;
