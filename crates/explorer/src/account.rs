@@ -1,4 +1,4 @@
-use crate::{config::ExplorerConfig, error::Result, output::pretty_lamports_to_sol};
+use crate::output::pretty_lamports_to_sol;
 use console::style;
 use serde::Serialize;
 use solana_sdk::{account::Account, pubkey::Pubkey};
@@ -8,54 +8,6 @@ use std::fmt;
 pub struct KeyedAccount {
     pub pubkey: Pubkey,
     pub account: Account,
-}
-
-pub struct AccountQuery {
-    pubkey: Pubkey,
-    config: ExplorerConfig,
-}
-
-impl AccountQuery {
-    pub async fn fetch_one(&self) -> Result<KeyedAccount> {
-        let rpc_client = self.config.rpc_client();
-        let account = rpc_client.get_account(&self.pubkey).await?;
-        let keyed_account = KeyedAccount {
-            pubkey: self.pubkey,
-            account,
-        };
-        Ok(keyed_account)
-    }
-}
-
-pub struct AccountQueryBuilder {
-    pubkey: Pubkey,
-    config: ExplorerConfig,
-}
-
-impl AccountQueryBuilder {
-    pub fn with_pubkey(pubkey: &Pubkey) -> AccountQueryBuilder {
-        AccountQueryBuilder {
-            pubkey: *pubkey,
-            config: ExplorerConfig::default(),
-        }
-    }
-
-    pub fn pubkey(&mut self, pubkey: Pubkey) -> &mut AccountQueryBuilder {
-        self.pubkey = pubkey;
-        self
-    }
-
-    pub fn config(&mut self, config: ExplorerConfig) -> &mut AccountQueryBuilder {
-        self.config = config;
-        self
-    }
-
-    pub fn build(self) -> AccountQuery {
-        AccountQuery {
-            pubkey: self.pubkey,
-            config: self.config,
-        }
-    }
 }
 
 pub struct AccountFieldVisibility {
@@ -160,11 +112,16 @@ impl AccountFieldVisibility {
 
 #[derive(Serialize)]
 pub struct DisplayAccount {
-    pub lamports: u64,
-    pub data: String,
-    pub owner: String,
-    pub executable: bool,
-    pub rent_epoch: u64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub lamports: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub data: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub owner: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub executable: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub rent_epoch: Option<u64>,
 }
 
 #[derive(Serialize)]
@@ -174,15 +131,38 @@ pub struct DisplayKeyedAccount {
 }
 
 impl DisplayKeyedAccount {
-    pub fn from_keyed_account(keyed_account: &KeyedAccount) -> Self {
+    pub fn from_keyed_account(
+        keyed_account: &KeyedAccount,
+        visibility: &AccountFieldVisibility,
+    ) -> Self {
         Self {
             pubkey: keyed_account.pubkey.to_string(),
             account: DisplayAccount {
-                lamports: keyed_account.account.lamports,
-                data: base64::encode(&keyed_account.account.data),
-                owner: keyed_account.account.owner.to_string(),
-                executable: keyed_account.account.executable,
-                rent_epoch: keyed_account.account.rent_epoch,
+                lamports: if visibility.lamports {
+                    Some(keyed_account.account.lamports)
+                } else {
+                    None
+                },
+                data: if visibility.data {
+                    Some(base64::encode(&keyed_account.account.data))
+                } else {
+                    None
+                },
+                owner: if visibility.owner {
+                    Some(keyed_account.account.owner.to_string())
+                } else {
+                    None
+                },
+                executable: if visibility.executable {
+                    Some(keyed_account.account.executable)
+                } else {
+                    None
+                },
+                rent_epoch: if visibility.rent_epoch {
+                    Some(keyed_account.account.rent_epoch)
+                } else {
+                    None
+                },
             },
         }
     }
@@ -200,33 +180,36 @@ impl fmt::Display for DisplayKeyedAccount {
             "========================================================"
         )?;
 
-        writeln!(f)?;
-
-        writeln!(
-            f,
-            "{} {} (◎ {})",
-            style("Lamports:").bold(),
-            self.account.lamports,
-            pretty_lamports_to_sol(self.account.lamports)
-        )?;
-        if self.account.data.is_empty() {
-            writeln!(f, "{} [Empty]", style("Data:").bold())?;
-        } else {
-            writeln!(f, "{} [Hexdump below]", style("Data:").bold())?;
+        if let Some(lamports) = self.account.lamports {
+            writeln!(f)?;
+            write!(
+                f,
+                "{} {} (◎ {})",
+                style("Lamports:").bold(),
+                lamports,
+                pretty_lamports_to_sol(lamports)
+            )?;
         }
-        writeln!(f, "{} {}", style("Owner").bold(), &self.account.owner)?;
-        writeln!(
-            f,
-            "{} {}",
-            style("Executable:").bold(),
-            self.account.executable
-        )?;
-        write!(
-            f,
-            "{} {}",
-            style("Rent Epoch:").bold(),
-            self.account.rent_epoch
-        )?;
+        if let Some(data) = &self.account.data {
+            writeln!(f)?;
+            if data.is_empty() {
+                write!(f, "{} [Empty]", style("Data:").bold())?;
+            } else {
+                write!(f, "{} [Hexdump below]", style("Data:").bold())?;
+            }
+        }
+        if let Some(owner) = &self.account.owner {
+            writeln!(f)?;
+            write!(f, "{} {}", style("Owner").bold(), owner)?;
+        }
+        if let Some(executable) = self.account.executable {
+            writeln!(f)?;
+            write!(f, "{} {}", style("Executable:").bold(), executable)?;
+        }
+        if let Some(rent_epoch) = self.account.rent_epoch {
+            writeln!(f)?;
+            write!(f, "{} {}", style("Rent Epoch:").bold(), rent_epoch)?;
+        }
 
         Ok(())
     }
