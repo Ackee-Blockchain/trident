@@ -12,7 +12,6 @@ pub fn parse_system(
 ) -> Result<ParsedInstructionEnum, ParseInstructionError> {
     let system_instruction: SystemInstruction = bincode::deserialize(&instruction.data)
         .map_err(|_| ParseInstructionError::InstructionNotParsable(ParsableProgram::System))?;
-
     match instruction.accounts.iter().max() {
         Some(index) if (*index as usize) < account_keys.len() => {}
         _ => {
@@ -22,7 +21,6 @@ pub fn parse_system(
             ));
         }
     }
-
     match system_instruction {
         SystemInstruction::CreateAccount {
             lamports,
@@ -33,11 +31,11 @@ pub fn parse_system(
             Ok(ParsedInstructionEnum {
                 instruction_type: "CreateAccount".to_string(),
                 info: json!({
-                    "source": account_keys[instruction.accounts[0] as usize].to_string(),
-                    "newAccount": account_keys[instruction.accounts[1] as usize].to_string(),
-                    "lamports": lamports,
-                    "space": space,
-                    "owner": owner.to_string(),
+                    "Source": account_keys[instruction.accounts[0] as usize].to_string(),
+                    "New Account": account_keys[instruction.accounts[1] as usize].to_string(),
+                    "Lamports": lamports,
+                    "Space": space,
+                    "Owner": owner.to_string(),
                 }),
             })
         }
@@ -46,8 +44,8 @@ pub fn parse_system(
             Ok(ParsedInstructionEnum {
                 instruction_type: "Assign".to_string(),
                 info: json!({
-                    "account": account_keys[instruction.accounts[0] as usize].to_string(),
-                    "owner": owner.to_string(),
+                    "Account": account_keys[instruction.accounts[0] as usize].to_string(),
+                    "Owner": owner.to_string(),
                 }),
             })
         }
@@ -56,9 +54,9 @@ pub fn parse_system(
             Ok(ParsedInstructionEnum {
                 instruction_type: "Transfer".to_string(),
                 info: json!({
-                    "source": account_keys[instruction.accounts[0] as usize].to_string(),
-                    "destination": account_keys[instruction.accounts[1] as usize].to_string(),
-                    "lamports": lamports,
+                    "Source": account_keys[instruction.accounts[0] as usize].to_string(),
+                    "Destination": account_keys[instruction.accounts[1] as usize].to_string(),
+                    "Lamports": lamports,
                 }),
             })
         }
@@ -73,13 +71,13 @@ pub fn parse_system(
             Ok(ParsedInstructionEnum {
                 instruction_type: "CreateAccountWithSeed".to_string(),
                 info: json!({
-                    "source": account_keys[instruction.accounts[0] as usize].to_string(),
-                    "newAccount": account_keys[instruction.accounts[1] as usize].to_string(),
-                    "base": base.to_string(),
-                    "seed": seed,
-                    "lamports": lamports,
-                    "space": space,
-                    "owner": owner.to_string(),
+                    "Source": account_keys[instruction.accounts[0] as usize].to_string(),
+                    "New Account": account_keys[instruction.accounts[1] as usize].to_string(),
+                    "Base": base.to_string(),
+                    "Seed": seed,
+                    "Lamports": lamports,
+                    "Space": space,
+                    "Owner": owner.to_string(),
                 }),
             })
         }
@@ -88,9 +86,9 @@ pub fn parse_system(
             Ok(ParsedInstructionEnum {
                 instruction_type: "AdvanceNonce".to_string(),
                 info: json!({
-                    "nonceAccount": account_keys[instruction.accounts[0] as usize].to_string(),
-                    "recentBlockhashesSysvar": account_keys[instruction.accounts[1] as usize].to_string(),
-                    "nonceAuthority": account_keys[instruction.accounts[2] as usize].to_string(),
+                    "Nonce Account": account_keys[instruction.accounts[0] as usize].to_string(),
+                    "Recent Blockhashes Sysvar": account_keys[instruction.accounts[1] as usize].to_string(),
+                    "Nonce Authority": account_keys[instruction.accounts[2] as usize].to_string(),
                 }),
             })
         }
@@ -99,12 +97,12 @@ pub fn parse_system(
             Ok(ParsedInstructionEnum {
                 instruction_type: "WithdrawFromNonce".to_string(),
                 info: json!({
-                    "nonceAccount": account_keys[instruction.accounts[0] as usize].to_string(),
-                    "destination": account_keys[instruction.accounts[1] as usize].to_string(),
-                    "recentBlockhashesSysvar": account_keys[instruction.accounts[2] as usize].to_string(),
-                    "rentSysvar": account_keys[instruction.accounts[3] as usize].to_string(),
-                    "nonceAuthority": account_keys[instruction.accounts[4] as usize].to_string(),
-                    "lamports": lamports,
+                    "Nonce Account": account_keys[instruction.accounts[0] as usize].to_string(),
+                    "Destination": account_keys[instruction.accounts[1] as usize].to_string(),
+                    "Recent Blockhashes Sysvar": account_keys[instruction.accounts[2] as usize].to_string(),
+                    "Rent Sysvar": account_keys[instruction.accounts[3] as usize].to_string(),
+                    "Nonce Authority": account_keys[instruction.accounts[4] as usize].to_string(),
+                    "Lamports": lamports,
                 }),
             })
         }
@@ -113,10 +111,10 @@ pub fn parse_system(
             Ok(ParsedInstructionEnum {
                 instruction_type: "InitializeNonce".to_string(),
                 info: json!({
-                    "nonceAccount": account_keys[instruction.accounts[0] as usize].to_string(),
-                    "recentBlockhashesSysvar": account_keys[instruction.accounts[1] as usize].to_string(),
-                    "rentSysvar": account_keys[instruction.accounts[2] as usize].to_string(),
-                    "nonceAuthority": authority.to_string(),
+                    "Nonce Account": account_keys[instruction.accounts[0] as usize].to_string(),
+                    "Recent Blockhashes Sysvar": account_keys[instruction.accounts[1] as usize].to_string(),
+                    "Rent Sysvar": account_keys[instruction.accounts[2] as usize].to_string(),
+                    "Nonce Authority": authority.to_string(),
                 }),
             })
         }
@@ -125,9 +123,9 @@ pub fn parse_system(
             Ok(ParsedInstructionEnum {
                 instruction_type: "AuthorizeNonce".to_string(),
                 info: json!({
-                    "nonceAccount": account_keys[instruction.accounts[0] as usize].to_string(),
-                    "nonceAuthority": account_keys[instruction.accounts[1] as usize].to_string(),
-                    "newAuthorized": authority.to_string(),
+                    "Nonce Account": account_keys[instruction.accounts[0] as usize].to_string(),
+                    "Nonce Authority": account_keys[instruction.accounts[1] as usize].to_string(),
+                    "New Authorized": authority.to_string(),
                 }),
             })
         }
@@ -136,8 +134,8 @@ pub fn parse_system(
             Ok(ParsedInstructionEnum {
                 instruction_type: "Allocate".to_string(),
                 info: json!({
-                    "account": account_keys[instruction.accounts[0] as usize].to_string(),
-                    "space": space,
+                    "Account": account_keys[instruction.accounts[0] as usize].to_string(),
+                    "Space": space,
                 }),
             })
         }
@@ -151,11 +149,11 @@ pub fn parse_system(
             Ok(ParsedInstructionEnum {
                 instruction_type: "AllocateWithSeed".to_string(),
                 info: json!({
-                    "account": account_keys[instruction.accounts[0] as usize].to_string(),
-                    "base": base.to_string(),
-                    "seed": seed,
-                    "space": space,
-                    "owner": owner.to_string(),
+                    "Account": account_keys[instruction.accounts[0] as usize].to_string(),
+                    "Base": base.to_string(),
+                    "Seed": seed,
+                    "Space": space,
+                    "Owner": owner.to_string(),
                 }),
             })
         }
@@ -164,10 +162,10 @@ pub fn parse_system(
             Ok(ParsedInstructionEnum {
                 instruction_type: "AssignWithSeed".to_string(),
                 info: json!({
-                    "account": account_keys[instruction.accounts[0] as usize].to_string(),
-                    "base": base.to_string(),
-                    "seed": seed,
-                    "owner": owner.to_string(),
+                    "Account": account_keys[instruction.accounts[0] as usize].to_string(),
+                    "Base": base.to_string(),
+                    "Seed": seed,
+                    "Owner": owner.to_string(),
                 }),
             })
         }
@@ -180,12 +178,12 @@ pub fn parse_system(
             Ok(ParsedInstructionEnum {
                 instruction_type: "TransferWithSeed".to_string(),
                 info: json!({
-                    "source": account_keys[instruction.accounts[0] as usize].to_string(),
-                    "sourceBase": account_keys[instruction.accounts[1] as usize].to_string(),
-                    "destination": account_keys[instruction.accounts[2] as usize].to_string(),
-                    "lamports": lamports,
-                    "sourceSeed": from_seed,
-                    "sourceOwner": from_owner.to_string(),
+                    "Source": account_keys[instruction.accounts[0] as usize].to_string(),
+                    "Source Base": account_keys[instruction.accounts[1] as usize].to_string(),
+                    "Destination": account_keys[instruction.accounts[2] as usize].to_string(),
+                    "Lamports": lamports,
+                    "Source Seed": from_seed,
+                    "Source Owner": from_owner.to_string(),
                 }),
             })
         }
