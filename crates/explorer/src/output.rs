@@ -193,7 +193,7 @@ pub async fn get_account_string(
 
 pub async fn get_program_string(
     program_id: &Pubkey,
-    _visibility: &ProgramFieldVisibility,
+    visibility: &ProgramFieldVisibility,
     format: DisplayFormat,
     config: &ExplorerConfig,
 ) -> Result<String> {
@@ -245,41 +245,45 @@ it is an executable account with program.so in its data, hence this output.",
                         &programdata_keyed_account,
                         slot,
                         &upgrade_authority_address,
+                        visibility,
                     );
                     let mut program_string = format.formatted_string(&program)?;
 
-                    if let DisplayFormat::Cli = format {
-                        writeln!(&mut program_string)?;
-                        writeln!(&mut program_string)?;
-                        writeln!(
-                            &mut program_string,
-                            "{} {} bytes",
-                            style("Followed by Raw Program Data (program.so):").bold(),
-                            programdata_keyed_account.account.data.len()
-                                - UpgradeableLoaderState::programdata_data_offset().unwrap()
-                        )?;
-
-                        // Show hexdump of not more than MAX_BYTES_SHOWN bytes
-                        const MAX_BYTES_SHOWN: usize = 64;
-                        let len = programdata_keyed_account.account.data.len();
-                        let offset = UpgradeableLoaderState::programdata_data_offset().unwrap();
-                        let (end, finished) = if offset + MAX_BYTES_SHOWN > len {
-                            (len, true)
-                        } else {
-                            (offset + MAX_BYTES_SHOWN, false)
-                        };
-                        let raw_program_data = &programdata_keyed_account.account.data[offset..end];
-                        let cfg = HexConfig {
-                            title: false,
-                            width: 16,
-                            group: 0,
-                            chunk: 2,
-                            ..HexConfig::default()
-                        };
-                        write!(&mut program_string, "{:?}", raw_program_data.hex_conf(cfg))?;
-                        if !finished {
+                    if program.programdata_account.is_some() {
+                        if let DisplayFormat::Cli = format {
                             writeln!(&mut program_string)?;
-                            write!(&mut program_string, "... (skipped)")?;
+                            writeln!(&mut program_string)?;
+                            writeln!(
+                                &mut program_string,
+                                "{} {} bytes",
+                                style("Followed by Raw Program Data (program.so):").bold(),
+                                programdata_keyed_account.account.data.len()
+                                    - UpgradeableLoaderState::programdata_data_offset().unwrap()
+                            )?;
+
+                            // Show hexdump of not more than MAX_BYTES_SHOWN bytes
+                            const MAX_BYTES_SHOWN: usize = 64;
+                            let len = programdata_keyed_account.account.data.len();
+                            let offset = UpgradeableLoaderState::programdata_data_offset().unwrap();
+                            let (end, finished) = if offset + MAX_BYTES_SHOWN > len {
+                                (len, true)
+                            } else {
+                                (offset + MAX_BYTES_SHOWN, false)
+                            };
+                            let raw_program_data =
+                                &programdata_keyed_account.account.data[offset..end];
+                            let cfg = HexConfig {
+                                title: false,
+                                width: 16,
+                                group: 0,
+                                chunk: 2,
+                                ..HexConfig::default()
+                            };
+                            write!(&mut program_string, "{:?}", raw_program_data.hex_conf(cfg))?;
+                            if !finished {
+                                writeln!(&mut program_string)?;
+                                write!(&mut program_string, "... (skipped)")?;
+                            }
                         }
                     }
 
