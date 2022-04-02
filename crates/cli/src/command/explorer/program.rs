@@ -7,8 +7,19 @@ use trdelnik_explorer::{
 };
 
 #[throws]
-pub async fn view(pubkey: Pubkey, format: DisplayFormat) {
-    let visibility = ProgramFieldVisibility::new_all_enabled();
+pub async fn view(
+    pubkey: Pubkey,
+    hideprogramaccount: bool,
+    hideprogramdataaccount: bool,
+    format: DisplayFormat,
+) {
+    let mut visibility = ProgramFieldVisibility::new_all_enabled();
+    if hideprogramaccount {
+        visibility.disable_program_account();
+    }
+    if hideprogramdataaccount {
+        visibility.disable_programdata_account();
+    }
     let config = ExplorerConfig::default();
     print_program(&pubkey, &visibility, format, &config).await?;
 }

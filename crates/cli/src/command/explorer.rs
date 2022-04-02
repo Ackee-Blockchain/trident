@@ -20,6 +20,21 @@ pub enum ExplorerCommand {
         /// JSON output
         #[clap(long, conflicts_with = "jsonpretty")]
         json: bool,
+        #[clap(long = "hide-lamports")]
+        /// Hide lamports in the output
+        hidelamports: bool,
+        /// Hide data in the output
+        #[clap(long = "hide-data")]
+        hidedata: bool,
+        #[clap(long = "hide-owner")]
+        /// Hide owner in the output
+        hideowner: bool,
+        #[clap(long = "hide-executable")]
+        /// Hide executable in the output
+        hideexecutable: bool,
+        /// Hide rent epoch in the output
+        #[clap(long = "hide-rent-epoch")]
+        hiderentepoch: bool,
     },
     /// Show the details of a program
     Program {
@@ -31,6 +46,12 @@ pub enum ExplorerCommand {
         /// JSON output
         #[clap(long, conflicts_with = "jsonpretty")]
         json: bool,
+        /// Hide program account in the output
+        #[clap(long = "hide-program-account")]
+        hideprogramaccount: bool,
+        /// Hide programdata account in the output
+        #[clap(long = "hide-programdata-account")]
+        hideprogramdataaccount: bool,
     },
     /// Show the contents of a transaction
     Transaction {
@@ -45,6 +66,15 @@ pub enum ExplorerCommand {
         /// JSON output
         #[clap(long, conflicts_with = "jsonpretty")]
         json: bool,
+        /// Hide overview in the output
+        #[clap(long = "hide-overview")]
+        hideoverview: bool,
+        /// Hide transaction content in the output
+        #[clap(long = "hide-transaction")]
+        hidetransaction: bool,
+        /// Hide log messages in the output
+        #[clap(long = "hide-log-messages", conflicts_with = "raw")]
+        hidelogmessages: bool,
     },
 }
 
@@ -55,26 +85,78 @@ pub async fn explorer(subcmd: ExplorerCommand) {
             pubkey,
             jsonpretty,
             json,
+            hidelamports,
+            hidedata,
+            hideowner,
+            hideexecutable,
+            hiderentepoch,
         } => {
             if jsonpretty {
-                account::view(pubkey, DisplayFormat::JSONPretty).await?
+                account::view(
+                    pubkey,
+                    hidelamports,
+                    hidedata,
+                    hideowner,
+                    hideexecutable,
+                    hiderentepoch,
+                    DisplayFormat::JSONPretty,
+                )
+                .await?
             } else if json {
-                account::view(pubkey, DisplayFormat::JSON).await?
+                account::view(
+                    pubkey,
+                    hidelamports,
+                    hidedata,
+                    hideowner,
+                    hideexecutable,
+                    hiderentepoch,
+                    DisplayFormat::JSON,
+                )
+                .await?
             } else {
-                account::view(pubkey, DisplayFormat::Cli).await?
+                account::view(
+                    pubkey,
+                    hidelamports,
+                    hidedata,
+                    hideowner,
+                    hideexecutable,
+                    hiderentepoch,
+                    DisplayFormat::Cli,
+                )
+                .await?
             }
         }
         ExplorerCommand::Program {
             pubkey,
             jsonpretty,
             json,
+            hideprogramaccount,
+            hideprogramdataaccount,
         } => {
             if jsonpretty {
-                program::view(pubkey, DisplayFormat::JSONPretty).await?
+                program::view(
+                    pubkey,
+                    hideprogramaccount,
+                    hideprogramdataaccount,
+                    DisplayFormat::JSONPretty,
+                )
+                .await?
             } else if json {
-                program::view(pubkey, DisplayFormat::JSON).await?
+                program::view(
+                    pubkey,
+                    hideprogramaccount,
+                    hideprogramdataaccount,
+                    DisplayFormat::JSON,
+                )
+                .await?
             } else {
-                program::view(pubkey, DisplayFormat::Cli).await?
+                program::view(
+                    pubkey,
+                    hideprogramaccount,
+                    hideprogramdataaccount,
+                    DisplayFormat::Cli,
+                )
+                .await?
             }
         }
         ExplorerCommand::Transaction {
@@ -82,13 +164,40 @@ pub async fn explorer(subcmd: ExplorerCommand) {
             raw,
             jsonpretty,
             json,
+            hideoverview,
+            hidetransaction,
+            hidelogmessages,
         } => {
             if jsonpretty {
-                transaction::view(signature, raw, DisplayFormat::JSONPretty).await?
+                transaction::view(
+                    signature,
+                    raw,
+                    hideoverview,
+                    hidetransaction,
+                    hidelogmessages,
+                    DisplayFormat::JSONPretty,
+                )
+                .await?
             } else if json {
-                transaction::view(signature, raw, DisplayFormat::JSON).await?
+                transaction::view(
+                    signature,
+                    raw,
+                    hideoverview,
+                    hidetransaction,
+                    hidelogmessages,
+                    DisplayFormat::JSON,
+                )
+                .await?
             } else {
-                transaction::view(signature, raw, DisplayFormat::Cli).await?
+                transaction::view(
+                    signature,
+                    raw,
+                    hideoverview,
+                    hidetransaction,
+                    hidelogmessages,
+                    DisplayFormat::Cli,
+                )
+                .await?
             }
         }
     }

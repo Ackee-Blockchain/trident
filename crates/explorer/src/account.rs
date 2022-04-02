@@ -43,12 +43,12 @@ impl AccountFieldVisibility {
         self.lamports
     }
 
-    pub fn enable_lamports(mut self) -> Self {
+    pub fn enable_lamports(&mut self) -> &mut Self {
         self.lamports = true;
         self
     }
 
-    pub fn disable_lamports(mut self) -> Self {
+    pub fn disable_lamports(&mut self) -> &mut Self {
         self.lamports = false;
         self
     }
@@ -57,12 +57,12 @@ impl AccountFieldVisibility {
         self.data
     }
 
-    pub fn enable_data(mut self) -> Self {
+    pub fn enable_data(&mut self) -> &mut Self {
         self.data = true;
         self
     }
 
-    pub fn disable_data(mut self) -> Self {
+    pub fn disable_data(&mut self) -> &mut Self {
         self.data = false;
         self
     }
@@ -71,12 +71,12 @@ impl AccountFieldVisibility {
         self.owner
     }
 
-    pub fn enable_owner(mut self) -> Self {
+    pub fn enable_owner(&mut self) -> &mut Self {
         self.owner = true;
         self
     }
 
-    pub fn disable_owner(mut self) -> Self {
+    pub fn disable_owner(&mut self) -> &mut Self {
         self.owner = false;
         self
     }
@@ -85,12 +85,12 @@ impl AccountFieldVisibility {
         self.executable
     }
 
-    pub fn enable_executable(mut self) -> Self {
+    pub fn enable_executable(&mut self) -> &mut Self {
         self.executable = true;
         self
     }
 
-    pub fn disable_executable(mut self) -> Self {
+    pub fn disable_executable(&mut self) -> &mut Self {
         self.executable = false;
         self
     }
@@ -99,12 +99,12 @@ impl AccountFieldVisibility {
         self.rent_epoch
     }
 
-    pub fn enable_rent_epoch(mut self) -> Self {
+    pub fn enable_rent_epoch(&mut self) -> &mut Self {
         self.rent_epoch = true;
         self
     }
 
-    pub fn disable_rent_epoch(mut self) -> Self {
+    pub fn disable_rent_epoch(&mut self) -> &mut Self {
         self.rent_epoch = false;
         self
     }
