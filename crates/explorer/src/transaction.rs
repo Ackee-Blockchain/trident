@@ -7,13 +7,11 @@ use crate::{
 use chrono::{TimeZone, Utc};
 use console::style;
 use serde::Serialize;
-
 use serde_json::Value;
 use solana_sdk::{instruction::CompiledInstruction, message::VersionedMessage, pubkey::Pubkey};
 use solana_transaction_status::{
     EncodedConfirmedTransactionWithStatusMeta, EncodedTransactionWithStatusMeta, TransactionStatus,
 };
-
 use std::fmt;
 
 pub struct RawTransactionFieldVisibility {
@@ -40,12 +38,12 @@ impl RawTransactionFieldVisibility {
         self.overview
     }
 
-    pub fn enable_overview(&mut self) -> &mut Self {
+    pub fn enable_overview(mut self) -> Self {
         self.overview = true;
         self
     }
 
-    pub fn disable_overview(&mut self) -> &mut Self {
+    pub fn disable_overview(mut self) -> Self {
         self.overview = false;
         self
     }
@@ -54,12 +52,12 @@ impl RawTransactionFieldVisibility {
         self.transaction
     }
 
-    pub fn enable_transaction(&mut self) -> &mut Self {
+    pub fn enable_transaction(mut self) -> Self {
         self.transaction = true;
         self
     }
 
-    pub fn disable_transaction(&mut self) -> &mut Self {
+    pub fn disable_transaction(mut self) -> Self {
         self.transaction = false;
         self
     }
@@ -113,7 +111,9 @@ pub struct DisplayRawTransactionOverview {
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct DisplayRawTransaction {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub overview: Option<DisplayRawTransactionOverview>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub transaction: Option<DisplayRawTransactionContent>,
 }
 
@@ -366,56 +366,39 @@ impl fmt::Display for DisplayRawTransaction {
 }
 
 pub struct TransactionFieldVisibility {
-    slot: bool,
-    block_time: bool,
+    overview: bool,
     transaction: bool,
-    meta: bool,
+    log_messages: bool,
 }
 
 impl TransactionFieldVisibility {
     pub fn new_all_enabled() -> Self {
         Self {
-            slot: true,
-            block_time: true,
+            overview: true,
             transaction: true,
-            meta: true,
+            log_messages: true,
         }
     }
 
     pub fn new_all_disabled() -> Self {
         Self {
-            slot: false,
-            block_time: false,
+            overview: false,
             transaction: false,
-            meta: false,
+            log_messages: false,
         }
     }
 
-    pub fn slot(&self) -> bool {
-        self.slot
+    pub fn overview(&self) -> bool {
+        self.overview
     }
 
-    pub fn enable_slot(&mut self) -> &mut Self {
-        self.slot = true;
+    pub fn enable_overview(mut self) -> Self {
+        self.overview = true;
         self
     }
 
-    pub fn disable_slot(&mut self) -> &mut Self {
-        self.slot = false;
-        self
-    }
-
-    pub fn block_time(&self) -> bool {
-        self.block_time
-    }
-
-    pub fn enable_block_time(&mut self) -> &mut Self {
-        self.block_time = true;
-        self
-    }
-
-    pub fn disable_block_time(&mut self) -> &mut Self {
-        self.block_time = false;
+    pub fn disable_overview(mut self) -> Self {
+        self.overview = false;
         self
     }
 
@@ -423,27 +406,27 @@ impl TransactionFieldVisibility {
         self.transaction
     }
 
-    pub fn enable_transaction(&mut self) -> &mut Self {
+    pub fn enable_transaction(mut self) -> Self {
         self.transaction = true;
         self
     }
 
-    pub fn disable_transaction(&mut self) -> &mut Self {
+    pub fn disable_transaction(mut self) -> Self {
         self.transaction = false;
         self
     }
 
-    pub fn meta(&self) -> bool {
-        self.meta
+    pub fn log_messages(&self) -> bool {
+        self.log_messages
     }
 
-    pub fn enable_meta(&mut self) -> &mut Self {
-        self.meta = true;
+    pub fn enable_log_messages(mut self) -> Self {
+        self.log_messages = true;
         self
     }
 
-    pub fn disable_meta(&mut self) -> &mut Self {
-        self.meta = false;
+    pub fn disable_log_messages(mut self) -> Self {
+        self.log_messages = false;
         self
     }
 }
@@ -521,15 +504,19 @@ pub struct DisplayTransactionOverview {
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct DisplayTransaction {
-    pub overview: DisplayTransactionOverview,
-    pub transaction: DisplayTransactionContent,
-    pub log_messages: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub overview: Option<DisplayTransactionOverview>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub transaction: Option<DisplayTransactionContent>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub log_messages: Option<Option<Vec<String>>>,
 }
 
 impl DisplayTransaction {
     pub fn from(
         transaction: &EncodedConfirmedTransactionWithStatusMeta,
         transaction_status: &TransactionStatus,
+        visibility: &TransactionFieldVisibility,
     ) -> Result<Self> {
         let EncodedConfirmedTransactionWithStatusMeta {
             slot,
@@ -546,63 +533,75 @@ impl DisplayTransaction {
         let versioned_transaction = transaction.decode().unwrap();
 
         if let VersionedMessage::Legacy(message) = versioned_transaction.message {
-            let overview = DisplayTransactionOverview {
-                signature: versioned_transaction.signatures[0].to_string(),
-                result: meta
-                    .as_ref()
-                    .unwrap()
-                    .err
-                    .as_ref()
-                    .map(|err| err.to_string())
-                    .unwrap_or_else(|| "Success".to_string()),
-                timestamp: Utc.timestamp(block_time.unwrap(), 0).to_string(),
-                confirmation_status: status_to_string(
-                    transaction_status.confirmation_status.as_ref().unwrap(),
-                ),
-                confirmations: transaction_status
-                    .confirmations
-                    .map_or_else(|| "MAX (32)".to_string(), |n| n.to_string()),
-                slot: *slot,
-                recent_blockhash: message.recent_blockhash.to_string(),
-                fee: format!("◎ {}", pretty_lamports_to_sol(meta.as_ref().unwrap().fee)),
+            let overview = if visibility.overview {
+                Some(DisplayTransactionOverview {
+                    signature: versioned_transaction.signatures[0].to_string(),
+                    result: meta
+                        .as_ref()
+                        .unwrap()
+                        .err
+                        .as_ref()
+                        .map(|err| err.to_string())
+                        .unwrap_or_else(|| "Success".to_string()),
+                    timestamp: Utc.timestamp(block_time.unwrap(), 0).to_string(),
+                    confirmation_status: status_to_string(
+                        transaction_status.confirmation_status.as_ref().unwrap(),
+                    ),
+                    confirmations: transaction_status
+                        .confirmations
+                        .map_or_else(|| "MAX (32)".to_string(), |n| n.to_string()),
+                    slot: *slot,
+                    recent_blockhash: message.recent_blockhash.to_string(),
+                    fee: format!("◎ {}", pretty_lamports_to_sol(meta.as_ref().unwrap().fee)),
+                })
+            } else {
+                None
             };
 
             let mut fee_payer_found = false; // always first account
-            let transaction = DisplayTransactionContent {
-                accounts: message
-                    .account_keys
-                    .iter()
-                    .enumerate()
-                    .map(|(index, account_key)| DisplayInputAccount {
-                        pubkey: account_key.to_string(),
-                        fee_payer: if !fee_payer_found {
-                            fee_payer_found = true;
-                            true
-                        } else {
-                            false
-                        },
-                        writable: message.is_writable(index),
-                        signer: message.is_signer(index),
-                        program: message.maybe_executable(index),
-                        post_balance_in_sol: pretty_lamports_to_sol(
-                            meta.as_ref().unwrap().post_balances[index],
-                        ),
-                        balance_change_in_sol: change_in_sol(
-                            meta.as_ref().unwrap().post_balances[index],
-                            meta.as_ref().unwrap().pre_balances[index],
-                        ),
-                    })
-                    .collect(),
-                instructions: message
-                    .instructions
-                    .iter()
-                    .map(|instruction| {
-                        DisplayInstruction::parse(instruction, &message.account_keys)
-                    })
-                    .collect(),
+            let transaction = if visibility.transaction {
+                Some(DisplayTransactionContent {
+                    accounts: message
+                        .account_keys
+                        .iter()
+                        .enumerate()
+                        .map(|(index, account_key)| DisplayInputAccount {
+                            pubkey: account_key.to_string(),
+                            fee_payer: if !fee_payer_found {
+                                fee_payer_found = true;
+                                true
+                            } else {
+                                false
+                            },
+                            writable: message.is_writable(index),
+                            signer: message.is_signer(index),
+                            program: message.maybe_executable(index),
+                            post_balance_in_sol: pretty_lamports_to_sol(
+                                meta.as_ref().unwrap().post_balances[index],
+                            ),
+                            balance_change_in_sol: change_in_sol(
+                                meta.as_ref().unwrap().post_balances[index],
+                                meta.as_ref().unwrap().pre_balances[index],
+                            ),
+                        })
+                        .collect(),
+                    instructions: message
+                        .instructions
+                        .iter()
+                        .map(|instruction| {
+                            DisplayInstruction::parse(instruction, &message.account_keys)
+                        })
+                        .collect(),
+                })
+            } else {
+                None
             };
 
-            let log_messages = meta.as_ref().unwrap().log_messages.clone();
+            let log_messages = if visibility.log_messages {
+                Some(meta.as_ref().unwrap().log_messages.clone())
+            } else {
+                None
+            };
 
             Ok(DisplayTransaction {
                 overview,
@@ -619,160 +618,162 @@ impl DisplayTransaction {
 
 impl fmt::Display for DisplayTransaction {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        writeln!(
-            f,
-            "================================================================================"
-        )?;
-        writeln!(f, "{:^80}", style("Overview").bold())?;
-        writeln!(
-            f,
-            "================================================================================"
-        )?;
-
-        writeln!(f)?;
-
-        writeln!(
-            f,
-            "{} {}",
-            style("Signature:").bold(),
-            self.overview.signature
-        )?;
-        writeln!(f, "{} {}", style("Result:").bold(), self.overview.result)?;
-        writeln!(
-            f,
-            "{} {}",
-            style("Timestamp:").bold(),
-            self.overview.timestamp
-        )?;
-        writeln!(
-            f,
-            "{} {}",
-            style("Confirmation Status:").bold(),
-            self.overview.confirmation_status
-        )?;
-        writeln!(
-            f,
-            "{} {}",
-            style("Confirmations:").bold(),
-            self.overview.confirmations
-        )?;
-        writeln!(f, "{} {}", style("Slot:").bold(), self.overview.slot)?;
-        writeln!(
-            f,
-            "{} {}",
-            style("Recent Blockhash:").bold(),
-            self.overview.recent_blockhash
-        )?;
-        writeln!(f, "{} {}", style("Fee:").bold(), self.overview.fee)?;
-
-        writeln!(f)?;
-
-        writeln!(
-            f,
-            "================================================================================"
-        )?;
-        writeln!(f, "{:^80}", style("Transaction").bold())?;
-        writeln!(
-            f,
-            "================================================================================"
-        )?;
-
-        writeln!(f)?;
-
-        writeln!(
-            f,
-            "{}",
-            style(format!("Accounts ({}):", self.transaction.accounts.len())).bold()
-        )?;
-
-        for (index, account) in self.transaction.accounts.iter().enumerate() {
-            let account_type_string = classify_account(
-                account.fee_payer,
-                account.writable,
-                account.signer,
-                account.program,
-            );
-
-            let balance_information_string = if account.balance_change_in_sol != "0" {
-                format!(
-                    "◎ {} (◎ {})",
-                    account.post_balance_in_sol, account.balance_change_in_sol
-                )
-            } else {
-                format!("◎ {}", account.post_balance_in_sol)
-            };
-
+        if let Some(overview) = &self.overview {
             writeln!(
                 f,
-                " {:>2} {:<44} {:31} {}",
-                style(index).bold(),
-                account.pubkey,
-                account_type_string,
-                balance_information_string
+                "================================================================================"
             )?;
+            writeln!(f, "{:^80}", style("Overview").bold())?;
+            writeln!(
+                f,
+                "================================================================================"
+            )?;
+
+            writeln!(f)?;
+
+            writeln!(f, "{} {}", style("Signature:").bold(), overview.signature)?;
+            writeln!(f, "{} {}", style("Result:").bold(), overview.result)?;
+            writeln!(f, "{} {}", style("Timestamp:").bold(), overview.timestamp)?;
+            writeln!(
+                f,
+                "{} {}",
+                style("Confirmation Status:").bold(),
+                overview.confirmation_status
+            )?;
+            writeln!(
+                f,
+                "{} {}",
+                style("Confirmations:").bold(),
+                overview.confirmations
+            )?;
+            writeln!(f, "{} {}", style("Slot:").bold(), overview.slot)?;
+            writeln!(
+                f,
+                "{} {}",
+                style("Recent Blockhash:").bold(),
+                overview.recent_blockhash
+            )?;
+            write!(f, "{} {}", style("Fee:").bold(), overview.fee)?;
         }
 
-        writeln!(f)?;
-
-        writeln!(
-            f,
-            "{}",
-            style(format!(
-                "Instructions ({}):",
-                self.transaction.instructions.len()
-            ))
-            .bold()
-        )?;
-
-        for (index, instruction) in self.transaction.instructions.iter().enumerate() {
-            if let DisplayInstruction::Parsed(instruction) = instruction {
-                writeln!(
-                    f,
-                    " {:>2} {} {} {}",
-                    style(index).bold(),
-                    style(&instruction.program).bold(),
-                    style("Program:").bold(),
-                    instruction.parsed["type"].to_string().trim_matches('"')
-                )?;
-                writeln!(f, "    [{}]", instruction.program_id)?;
-                for (name, value) in instruction.parsed["info"].as_object().unwrap() {
-                    writeln!(
-                        f,
-                        "    {}{} {}",
-                        style(name).bold(),
-                        style(":").bold(),
-                        value
-                    )?;
-                }
-            } else if let DisplayInstruction::PartiallyParsed(instruction) = instruction {
-                writeln!(
-                    f,
-                    " {:>2} {} Unknown Instruction",
-                    style(index).bold(),
-                    style("Unknown Program:").bold(),
-                )?;
-                writeln!(f, "    [{}]", instruction.program_id)?;
-                for (index, account) in instruction.accounts.iter().enumerate() {
-                    writeln!(
-                        f,
-                        "    {} {}{} {:<44}",
-                        style("Account").bold(),
-                        style(index).bold(),
-                        style(":").bold(),
-                        account,
-                    )?;
-                }
-                writeln!(
-                    f,
-                    "    {} {:?}",
-                    style("Data:").bold(),
-                    bs58::encode(instruction.data.clone()).into_string()
-                )?;
-            }
+        if self.overview.is_some() && self.transaction.is_some() {
+            writeln!(f)?;
             writeln!(f)?;
         }
 
-        if let Some(log_messages) = &self.log_messages {
+        if let Some(transaction) = &self.transaction {
+            writeln!(
+                f,
+                "================================================================================"
+            )?;
+            writeln!(f, "{:^80}", style("Transaction").bold())?;
+            writeln!(
+                f,
+                "================================================================================"
+            )?;
+
+            writeln!(f)?;
+
+            writeln!(
+                f,
+                "{}",
+                style(format!("Accounts ({}):", transaction.accounts.len())).bold()
+            )?;
+
+            for (index, account) in transaction.accounts.iter().enumerate() {
+                let account_type_string = classify_account(
+                    account.fee_payer,
+                    account.writable,
+                    account.signer,
+                    account.program,
+                );
+
+                let balance_information_string = if account.balance_change_in_sol != "0" {
+                    format!(
+                        "◎ {} (◎ {})",
+                        account.post_balance_in_sol, account.balance_change_in_sol
+                    )
+                } else {
+                    format!("◎ {}", account.post_balance_in_sol)
+                };
+
+                writeln!(
+                    f,
+                    " {:>2} {:<44} {:31} {}",
+                    style(index).bold(),
+                    account.pubkey,
+                    account_type_string,
+                    balance_information_string
+                )?;
+            }
+
+            writeln!(f)?;
+
+            writeln!(
+                f,
+                "{}",
+                style(format!(
+                    "Instructions ({}):",
+                    transaction.instructions.len()
+                ))
+                .bold()
+            )?;
+
+            for (index, instruction) in transaction.instructions.iter().enumerate() {
+                if let DisplayInstruction::Parsed(instruction) = instruction {
+                    writeln!(
+                        f,
+                        " {:>2} {} {} {}",
+                        style(index).bold(),
+                        style(&instruction.program).bold(),
+                        style("Program:").bold(),
+                        instruction.parsed["type"].to_string().trim_matches('"')
+                    )?;
+                    writeln!(f, "    [{}]", instruction.program_id)?;
+                    for (name, value) in instruction.parsed["info"].as_object().unwrap() {
+                        writeln!(
+                            f,
+                            "    {}{} {}",
+                            style(name).bold(),
+                            style(":").bold(),
+                            value
+                        )?;
+                    }
+                } else if let DisplayInstruction::PartiallyParsed(instruction) = instruction {
+                    writeln!(
+                        f,
+                        " {:>2} {} Unknown Instruction",
+                        style(index).bold(),
+                        style("Unknown Program:").bold(),
+                    )?;
+                    writeln!(f, "    [{}]", instruction.program_id)?;
+                    for (index, account) in instruction.accounts.iter().enumerate() {
+                        writeln!(
+                            f,
+                            "    {} {}{} {:<44}",
+                            style("Account").bold(),
+                            style(index).bold(),
+                            style(":").bold(),
+                            account,
+                        )?;
+                    }
+                    writeln!(
+                        f,
+                        "    {} {:?}",
+                        style("Data:").bold(),
+                        bs58::encode(instruction.data.clone()).into_string()
+                    )?;
+                }
+                writeln!(f)?;
+            }
+        }
+
+        if self.overview.is_some() && self.transaction.is_none() {
+            writeln!(f)?;
+            writeln!(f)?;
+        }
+
+        if let Some(Some(log_messages)) = &self.log_messages {
             write!(
                 f,
                 "{}",
@@ -784,6 +785,7 @@ impl fmt::Display for DisplayTransaction {
                 write!(f, " {:>2} {}", style(log_message_index).bold(), log_message)?;
             }
         }
+
         Ok(())
     }
 }

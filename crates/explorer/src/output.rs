@@ -347,7 +347,7 @@ pub async fn get_raw_transaction_string(
 
 pub async fn get_transaction_string(
     signature: &Signature,
-    _visibility: &TransactionFieldVisibility,
+    visibility: &TransactionFieldVisibility,
     format: DisplayFormat,
     config: &ExplorerConfig,
 ) -> Result<String> {
@@ -368,7 +368,8 @@ pub async fn get_transaction_string(
 
     let transaction_status = response.value[0].as_ref().unwrap();
 
-    let display_transaction = DisplayTransaction::from(&transaction, transaction_status)?;
+    let display_transaction =
+        DisplayTransaction::from(&transaction, transaction_status, visibility)?;
 
     let transaction_string = format.formatted_string(&display_transaction)?;
 
