@@ -137,7 +137,7 @@ pub async fn print_transaction(
 
 pub async fn get_account_string(
     pubkey: &Pubkey,
-    _visibility: &AccountFieldVisibility,
+    visibility: &AccountFieldVisibility,
     format: DisplayFormat,
     config: &ExplorerConfig,
 ) -> Result<String> {
@@ -147,44 +147,46 @@ pub async fn get_account_string(
         pubkey: *pubkey,
         account,
     };
-    let display_keyed_account = DisplayKeyedAccount::from_keyed_account(&keyed_account);
+    let display_keyed_account = DisplayKeyedAccount::from_keyed_account(&keyed_account, visibility);
     let mut account_string = format.formatted_string(&display_keyed_account)?;
 
-    let data = &keyed_account.account.data;
-    if let DisplayFormat::Cli = format {
-        if !data.is_empty() {
-            writeln!(&mut account_string)?;
-            writeln!(&mut account_string)?;
-
-            writeln!(
-                &mut account_string,
-                "{} {} bytes",
-                style("Hexdump:").bold(),
-                data.len()
-            )?;
-            // Show hexdump of not more than MAX_BYTES_SHOWN bytes
-            const MAX_BYTES_SHOWN: usize = 64;
-            let len = data.len();
-            let (end, finished) = if MAX_BYTES_SHOWN > len {
-                (len, true)
-            } else {
-                (MAX_BYTES_SHOWN, false)
-            };
-            let raw_account_data = &data[..end];
-            let cfg = HexConfig {
-                title: false,
-                width: 16,
-                group: 0,
-                chunk: 2,
-                ..HexConfig::default()
-            };
-            write!(&mut account_string, "{:?}", raw_account_data.hex_conf(cfg))?;
-            if !finished {
+    if display_keyed_account.account.data.is_some() {
+        let data = &keyed_account.account.data;
+        if let DisplayFormat::Cli = format {
+            if !data.is_empty() {
                 writeln!(&mut account_string)?;
-                write!(&mut account_string, "... (skipped)")?;
+                writeln!(&mut account_string)?;
+
+                writeln!(
+                    &mut account_string,
+                    "{} {} bytes",
+                    style("Hexdump:").bold(),
+                    data.len()
+                )?;
+                // Show hexdump of not more than MAX_BYTES_SHOWN bytes
+                const MAX_BYTES_SHOWN: usize = 64;
+                let len = data.len();
+                let (end, finished) = if MAX_BYTES_SHOWN > len {
+                    (len, true)
+                } else {
+                    (MAX_BYTES_SHOWN, false)
+                };
+                let raw_account_data = &data[..end];
+                let cfg = HexConfig {
+                    title: false,
+                    width: 16,
+                    group: 0,
+                    chunk: 2,
+                    ..HexConfig::default()
+                };
+                write!(&mut account_string, "{:?}", raw_account_data.hex_conf(cfg))?;
+                if !finished {
+                    writeln!(&mut account_string)?;
+                    write!(&mut account_string, "... (skipped)")?;
+                }
             }
-        }
-    };
+        };
+    }
 
     Ok(account_string)
 }
