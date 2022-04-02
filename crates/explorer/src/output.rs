@@ -316,7 +316,7 @@ it is an executable account with program.so in its data, hence this output.",
 
 pub async fn get_raw_transaction_string(
     signature: &Signature,
-    _visibility: &RawTransactionFieldVisibility,
+    visibility: &RawTransactionFieldVisibility,
     format: DisplayFormat,
     config: &ExplorerConfig,
 ) -> Result<String> {
@@ -337,7 +337,8 @@ pub async fn get_raw_transaction_string(
 
     let transaction_status = response.value[0].as_ref().unwrap();
 
-    let display_transaction = DisplayRawTransaction::from(&transaction, transaction_status)?;
+    let display_transaction =
+        DisplayRawTransaction::from(&transaction, transaction_status, visibility)?;
 
     let transaction_string = format.formatted_string(&display_transaction)?;
 
