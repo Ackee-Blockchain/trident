@@ -629,8 +629,7 @@ impl DisplayTransaction {
                 instructions: message
                     .instructions
                     .iter()
-                    .enumerate()
-                    .map(|(index, instruction)| {
+                    .map(|instruction| {
                         DisplayInstruction::parse(instruction, &message.account_keys)
                     })
                     .collect(),
@@ -806,52 +805,7 @@ impl fmt::Display for DisplayTransaction {
             writeln!(f)?;
         }
 
-        //                 let mut raw = true;
-        //                 if program_id == solana_vote_program::id() {
-        //                     if let Ok(vote_instruction) = limited_deserialize::<
-        //                         solana_vote_program::vote_instruction::VoteInstruction,
-        //                     >(&instruction.data)
-        //                     {
-        //                         write!(f, "    {} {:?}", style("Data:").bold(), vote_instruction)?;
-        //                         raw = false;
-        //                     }
-        //                 } else if program_id == stake::program::id() {
-        //                     if let Ok(stake_instruction) = limited_deserialize::<
-        //                         stake::instruction::StakeInstruction,
-        //                     >(&instruction.data)
-        //                     {
-        //                         write!(f, "    {} {:?}", style("Data:").bold(), stake_instruction)?;
-        //                         raw = false;
-        //                     }
-        //                 } else if program_id == system_program::id() {
-        //                     if let Ok(system_instruction) = limited_deserialize::<
-        //                         system_instruction::SystemInstruction,
-        //                     >(&instruction.data)
-        //                     {
-        //                         write!(f, "    {} {:?}", style("Data:").bold(), system_instruction)?;
-        //                         raw = false;
-        //                     }
-        //                 } else if program_id == spl_memo_v1_id() || program_id == spl_memo_id() {
-        //                     if let Ok(s) = std::str::from_utf8(&instruction.data) {
-        //                         write!(f, "    {} \"{}\"", style("Data:").bold(), s)?;
-        //                         raw = false;
-        //                     }
-        //                 }
-
-        //                 if raw {
-        //                     write!(
-        //                         f,
-        //                         "    {} {:?}",
-        //                         style("Data:").bold(),
-        //                         bs58::encode(instruction.data.clone()).into_string()
-        //                     )?;
-        //                 }
-        //             }
-
         if let Some(log_messages) = &self.log_messages {
-            writeln!(f)?;
-            writeln!(f)?;
-
             write!(
                 f,
                 "{}",
