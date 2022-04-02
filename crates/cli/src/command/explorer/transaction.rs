@@ -2,9 +2,10 @@ use anyhow::Error;
 use fehler::throws;
 use solana_sdk::signature::Signature;
 use trdelnik_explorer::{
+    config::ExplorerConfig,
     display::DisplayFormat,
     output::{print_raw_transaction, print_transaction},
-    transaction::{RawTransactionFieldVisibility, TransactionFieldVisibility}, config::ExplorerConfig,
+    transaction::{RawTransactionFieldVisibility, TransactionFieldVisibility},
 };
 
 #[throws]

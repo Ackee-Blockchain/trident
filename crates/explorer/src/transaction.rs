@@ -17,84 +17,50 @@ use solana_transaction_status::{
 use std::fmt;
 
 pub struct RawTransactionFieldVisibility {
-    slot: bool,
-    block_time: bool,
-    status: bool,
-    raw_content: bool,
+    overview: bool,
+    transaction: bool,
 }
 
 impl RawTransactionFieldVisibility {
     pub fn new_all_enabled() -> Self {
         Self {
-            slot: true,
-            block_time: true,
-            status: true,
-            raw_content: true,
+            overview: true,
+            transaction: true,
         }
     }
 
     pub fn new_all_disabled() -> Self {
         Self {
-            slot: false,
-            block_time: false,
-            status: false,
-            raw_content: false,
+            overview: false,
+            transaction: false,
         }
     }
 
-    pub fn slot(&self) -> bool {
-        self.slot
+    pub fn overview(&self) -> bool {
+        self.overview
     }
 
-    pub fn enable_slot(&mut self) -> &mut Self {
-        self.slot = true;
+    pub fn enable_overview(&mut self) -> &mut Self {
+        self.overview = true;
         self
     }
 
-    pub fn disable_slot(&mut self) -> &mut Self {
-        self.slot = false;
+    pub fn disable_overview(&mut self) -> &mut Self {
+        self.overview = false;
         self
     }
 
-    pub fn block_time(&self) -> bool {
-        self.block_time
+    pub fn transaction(&self) -> bool {
+        self.transaction
     }
 
-    pub fn enable_block_time(&mut self) -> &mut Self {
-        self.block_time = true;
+    pub fn enable_transaction(&mut self) -> &mut Self {
+        self.transaction = true;
         self
     }
 
-    pub fn disable_block_time(&mut self) -> &mut Self {
-        self.block_time = false;
-        self
-    }
-
-    pub fn status(&self) -> bool {
-        self.status
-    }
-
-    pub fn enable_status(&mut self) -> &mut Self {
-        self.status = true;
-        self
-    }
-
-    pub fn disable_status(&mut self) -> &mut Self {
-        self.status = false;
-        self
-    }
-
-    pub fn raw_content(&self) -> bool {
-        self.raw_content
-    }
-
-    pub fn enable_raw_content(&mut self) -> &mut Self {
-        self.raw_content = true;
-        self
-    }
-
-    pub fn disable_raw_content(&mut self) -> &mut Self {
-        self.raw_content = false;
+    pub fn disable_transaction(&mut self) -> &mut Self {
+        self.transaction = false;
         self
     }
 }
@@ -147,14 +113,15 @@ pub struct DisplayRawTransactionOverview {
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct DisplayRawTransaction {
-    pub overview: DisplayRawTransactionOverview,
-    pub transaction: DisplayRawTransactionContent,
+    pub overview: Option<DisplayRawTransactionOverview>,
+    pub transaction: Option<DisplayRawTransactionContent>,
 }
 
 impl DisplayRawTransaction {
     pub fn from(
         transaction: &EncodedConfirmedTransactionWithStatusMeta,
         transaction_status: &TransactionStatus,
+        visibility: &RawTransactionFieldVisibility,
     ) -> Result<Self> {
         let EncodedConfirmedTransactionWithStatusMeta {
             slot,
@@ -171,57 +138,67 @@ impl DisplayRawTransaction {
         let versioned_transaction = transaction.decode().unwrap();
 
         if let VersionedMessage::Legacy(message) = versioned_transaction.message {
-            let overview = DisplayRawTransactionOverview {
-                signature: versioned_transaction.signatures[0].to_string(),
-                result: meta
-                    .as_ref()
-                    .unwrap()
-                    .err
-                    .as_ref()
-                    .map(|err| err.to_string())
-                    .unwrap_or_else(|| "Success".to_string()),
-                timestamp: Utc.timestamp(block_time.unwrap(), 0).to_string(),
-                confirmation_status: status_to_string(
-                    transaction_status.confirmation_status.as_ref().unwrap(),
-                ),
-                confirmations: transaction_status
-                    .confirmations
-                    .map_or_else(|| "MAX (32)".to_string(), |n| n.to_string()),
-                slot: *slot,
-                recent_blockhash: message.recent_blockhash.to_string(),
-                fee: format!("◎ {}", pretty_lamports_to_sol(meta.as_ref().unwrap().fee)),
+            let overview = if visibility.overview {
+                Some(DisplayRawTransactionOverview {
+                    signature: versioned_transaction.signatures[0].to_string(),
+                    result: meta
+                        .as_ref()
+                        .unwrap()
+                        .err
+                        .as_ref()
+                        .map(|err| err.to_string())
+                        .unwrap_or_else(|| "Success".to_string()),
+                    timestamp: Utc.timestamp(block_time.unwrap(), 0).to_string(),
+                    confirmation_status: status_to_string(
+                        transaction_status.confirmation_status.as_ref().unwrap(),
+                    ),
+                    confirmations: transaction_status
+                        .confirmations
+                        .map_or_else(|| "MAX (32)".to_string(), |n| n.to_string()),
+                    slot: *slot,
+                    recent_blockhash: message.recent_blockhash.to_string(),
+                    fee: format!("◎ {}", pretty_lamports_to_sol(meta.as_ref().unwrap().fee)),
+                })
+            } else {
+                None
             };
 
-            let transaction = DisplayRawTransactionContent {
-                signatures: versioned_transaction
-                    .signatures
-                    .into_iter()
-                    .map(|sig| sig.to_string())
-                    .collect(),
-                message: DisplayRawMessage {
-                    header: DisplayRawMessageHeader {
-                        num_required_signatures: message.header.num_required_signatures,
-                        num_readonly_signed_accounts: message.header.num_readonly_signed_accounts,
-                        num_readonly_unsigned_accounts: message
-                            .header
-                            .num_readonly_unsigned_accounts,
+            let transaction = if visibility.transaction {
+                Some(DisplayRawTransactionContent {
+                    signatures: versioned_transaction
+                        .signatures
+                        .into_iter()
+                        .map(|sig| sig.to_string())
+                        .collect(),
+                    message: DisplayRawMessage {
+                        header: DisplayRawMessageHeader {
+                            num_required_signatures: message.header.num_required_signatures,
+                            num_readonly_signed_accounts: message
+                                .header
+                                .num_readonly_signed_accounts,
+                            num_readonly_unsigned_accounts: message
+                                .header
+                                .num_readonly_unsigned_accounts,
+                        },
+                        account_keys: message
+                            .account_keys
+                            .into_iter()
+                            .map(|key| key.to_string())
+                            .collect(),
+                        recent_blockhash: message.recent_blockhash.to_string(),
+                        instructions: message
+                            .instructions
+                            .into_iter()
+                            .map(|instruction| DisplayRawInstruction {
+                                program_id_index: instruction.program_id_index,
+                                accounts: instruction.accounts,
+                                data: bs58::encode(instruction.data).into_string(),
+                            })
+                            .collect(),
                     },
-                    account_keys: message
-                        .account_keys
-                        .into_iter()
-                        .map(|key| key.to_string())
-                        .collect(),
-                    recent_blockhash: message.recent_blockhash.to_string(),
-                    instructions: message
-                        .instructions
-                        .into_iter()
-                        .map(|instruction| DisplayRawInstruction {
-                            program_id_index: instruction.program_id_index,
-                            accounts: instruction.accounts,
-                            data: bs58::encode(instruction.data).into_string(),
-                        })
-                        .collect(),
-                },
+                })
+            } else {
+                None
             };
 
             Ok(DisplayRawTransaction {
@@ -236,162 +213,152 @@ impl DisplayRawTransaction {
 
 impl fmt::Display for DisplayRawTransaction {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        writeln!(
-            f,
-            "================================================================================"
-        )?;
-        writeln!(f, "{:^80}", style("Overview").bold())?;
-        writeln!(
-            f,
-            "================================================================================"
-        )?;
+        if let Some(overview) = &self.overview {
+            writeln!(
+                f,
+                "================================================================================"
+            )?;
+            writeln!(f, "{:^80}", style("Overview").bold())?;
+            writeln!(
+                f,
+                "================================================================================"
+            )?;
 
-        writeln!(f)?;
-
-        writeln!(
-            f,
-            "{} {}",
-            style("Signature:").bold(),
-            self.overview.signature
-        )?;
-        writeln!(f, "{} {}", style("Result:").bold(), self.overview.result)?;
-        writeln!(
-            f,
-            "{} {}",
-            style("Timestamp:").bold(),
-            self.overview.timestamp
-        )?;
-        writeln!(
-            f,
-            "{} {}",
-            style("Confirmation Status:").bold(),
-            self.overview.confirmation_status
-        )?;
-        writeln!(
-            f,
-            "{} {}",
-            style("Confirmations:").bold(),
-            self.overview.confirmations
-        )?;
-        writeln!(f, "{} {}", style("Slot:").bold(), self.overview.slot)?;
-        writeln!(
-            f,
-            "{} {}",
-            style("Recent Blockhash:").bold(),
-            self.overview.recent_blockhash
-        )?;
-        writeln!(f, "{} {}", style("Fee:").bold(), self.overview.fee)?;
-
-        writeln!(f)?;
-
-        writeln!(
-            f,
-            "================================================================================"
-        )?;
-        writeln!(f, "{:^80}", style("Raw Transaction").bold())?;
-        writeln!(
-            f,
-            "================================================================================"
-        )?;
-
-        writeln!(f)?;
-
-        writeln!(
-            f,
-            "{}",
-            style(format!(
-                "Signatures ({}):",
-                self.transaction.signatures.len()
-            ))
-            .bold()
-        )?;
-
-        for (index, signature) in self.transaction.signatures.iter().enumerate() {
-            writeln!(f, "  {:>2} {}", style(index).bold(), signature)?;
-        }
-
-        writeln!(f)?;
-
-        writeln!(f, "{}", style("Message:").bold())?;
-
-        writeln!(f, "  {}", style("Header:").bold())?;
-
-        writeln!(
-            f,
-            "    {} {}",
-            style("# of required signatures:").bold(),
-            self.transaction.message.header.num_required_signatures
-        )?;
-
-        writeln!(
-            f,
-            "    {} {}",
-            style("# of read-only signed accounts:").bold(),
-            self.transaction.message.header.num_readonly_signed_accounts
-        )?;
-
-        writeln!(
-            f,
-            "    {} {}",
-            style("# of read-only unsigned accounts:").bold(),
-            self.transaction
-                .message
-                .header
-                .num_readonly_unsigned_accounts
-        )?;
-
-        writeln!(
-            f,
-            "  {}",
-            style(format!(
-                "Account Keys ({}):",
-                self.transaction.message.account_keys.len()
-            ))
-            .bold()
-        )?;
-
-        for (index, account_key) in self.transaction.message.account_keys.iter().enumerate() {
-            writeln!(f, "   {:>2} {}", style(index).bold(), account_key)?;
-        }
-
-        writeln!(f, "  {}", style("Recent Blockhash:").bold())?;
-
-        writeln!(f, "    {}", self.transaction.message.recent_blockhash)?;
-
-        write!(
-            f,
-            "  {}",
-            style(format!(
-                "Instructions ({}):",
-                self.transaction.message.instructions.len()
-            ))
-            .bold()
-        )?;
-
-        for (
-            index,
-            DisplayRawInstruction {
-                program_id_index,
-                accounts,
-                data,
-            },
-        ) in self.transaction.message.instructions.iter().enumerate()
-        {
             writeln!(f)?;
+
+            writeln!(f, "{} {}", style("Signature:").bold(), overview.signature)?;
+            writeln!(f, "{} {}", style("Result:").bold(), overview.result)?;
+            writeln!(f, "{} {}", style("Timestamp:").bold(), overview.timestamp)?;
             writeln!(
                 f,
-                "   {:>2} {} {}",
-                style(index).bold(),
-                style("Program Id Index:").bold(),
-                program_id_index
+                "{} {}",
+                style("Confirmation Status:").bold(),
+                overview.confirmation_status
             )?;
             writeln!(
                 f,
-                "      {} {:?}",
-                style("Account Indices:").bold(),
-                accounts
+                "{} {}",
+                style("Confirmations:").bold(),
+                overview.confirmations
             )?;
-            write!(f, "      {} {:?}", style("Data:").bold(), data)?;
+            writeln!(f, "{} {}", style("Slot:").bold(), overview.slot)?;
+            writeln!(
+                f,
+                "{} {}",
+                style("Recent Blockhash:").bold(),
+                overview.recent_blockhash
+            )?;
+            write!(f, "{} {}", style("Fee:").bold(), overview.fee)?;
+        }
+
+        if self.overview.is_some() && self.transaction.is_some() {
+            writeln!(f)?;
+            writeln!(f)?;
+        }
+
+        if let Some(transaction) = &self.transaction {
+            writeln!(
+                f,
+                "================================================================================"
+            )?;
+            writeln!(f, "{:^80}", style("Raw Transaction").bold())?;
+            writeln!(
+                f,
+                "================================================================================"
+            )?;
+
+            writeln!(f)?;
+
+            writeln!(
+                f,
+                "{}",
+                style(format!("Signatures ({}):", transaction.signatures.len())).bold()
+            )?;
+
+            for (index, signature) in transaction.signatures.iter().enumerate() {
+                writeln!(f, "  {:>2} {}", style(index).bold(), signature)?;
+            }
+
+            writeln!(f)?;
+
+            writeln!(f, "{}", style("Message:").bold())?;
+
+            writeln!(f, "  {}", style("Header:").bold())?;
+
+            writeln!(
+                f,
+                "    {} {}",
+                style("# of required signatures:").bold(),
+                transaction.message.header.num_required_signatures
+            )?;
+
+            writeln!(
+                f,
+                "    {} {}",
+                style("# of read-only signed accounts:").bold(),
+                transaction.message.header.num_readonly_signed_accounts
+            )?;
+
+            writeln!(
+                f,
+                "    {} {}",
+                style("# of read-only unsigned accounts:").bold(),
+                transaction.message.header.num_readonly_unsigned_accounts
+            )?;
+
+            writeln!(
+                f,
+                "  {}",
+                style(format!(
+                    "Account Keys ({}):",
+                    transaction.message.account_keys.len()
+                ))
+                .bold()
+            )?;
+
+            for (index, account_key) in transaction.message.account_keys.iter().enumerate() {
+                writeln!(f, "   {:>2} {}", style(index).bold(), account_key)?;
+            }
+
+            writeln!(f, "  {}", style("Recent Blockhash:").bold())?;
+
+            writeln!(f, "    {}", transaction.message.recent_blockhash)?;
+
+            write!(
+                f,
+                "  {}",
+                style(format!(
+                    "Instructions ({}):",
+                    transaction.message.instructions.len()
+                ))
+                .bold()
+            )?;
+
+            for (
+                index,
+                DisplayRawInstruction {
+                    program_id_index,
+                    accounts,
+                    data,
+                },
+            ) in transaction.message.instructions.iter().enumerate()
+            {
+                writeln!(f)?;
+                writeln!(
+                    f,
+                    "   {:>2} {} {}",
+                    style(index).bold(),
+                    style("Program Id Index:").bold(),
+                    program_id_index
+                )?;
+                writeln!(
+                    f,
+                    "      {} {:?}",
+                    style("Account Indices:").bold(),
+                    accounts
+                )?;
+                write!(f, "      {} {:?}", style("Data:").bold(), data)?;
+            }
         }
 
         Ok(())
