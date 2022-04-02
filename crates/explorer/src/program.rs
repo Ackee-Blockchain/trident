@@ -28,12 +28,12 @@ impl ProgramFieldVisibility {
         self.program_account
     }
 
-    pub fn enable_program_account(&mut self) -> &mut Self {
+    pub fn enable_program_account(mut self) -> Self {
         self.program_account = true;
         self
     }
 
-    pub fn disable_program_account(&mut self) -> &mut Self {
+    pub fn disable_program_account(mut self) -> Self {
         self.program_account = false;
         self
     }
@@ -42,12 +42,12 @@ impl ProgramFieldVisibility {
         self.program_account
     }
 
-    pub fn enable_programdata_account(&mut self) -> &mut Self {
+    pub fn enable_programdata_account(mut self) -> Self {
         self.programdata_account = true;
         self
     }
 
-    pub fn disable_programdata_account(&mut self) -> &mut Self {
+    pub fn disable_programdata_account(mut self) -> Self {
         self.programdata_account = false;
         self
     }
