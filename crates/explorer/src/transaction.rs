@@ -38,12 +38,12 @@ impl RawTransactionFieldVisibility {
         self.overview
     }
 
-    pub fn enable_overview(mut self) -> Self {
+    pub fn enable_overview(&mut self) -> &mut Self {
         self.overview = true;
         self
     }
 
-    pub fn disable_overview(mut self) -> Self {
+    pub fn disable_overview(&mut self) -> &mut Self {
         self.overview = false;
         self
     }
@@ -52,12 +52,12 @@ impl RawTransactionFieldVisibility {
         self.transaction
     }
 
-    pub fn enable_transaction(mut self) -> Self {
+    pub fn enable_transaction(&mut self) -> &mut Self {
         self.transaction = true;
         self
     }
 
-    pub fn disable_transaction(mut self) -> Self {
+    pub fn disable_transaction(&mut self) -> &mut Self {
         self.transaction = false;
         self
     }
@@ -392,12 +392,12 @@ impl TransactionFieldVisibility {
         self.overview
     }
 
-    pub fn enable_overview(mut self) -> Self {
+    pub fn enable_overview(&mut self) -> &mut Self {
         self.overview = true;
         self
     }
 
-    pub fn disable_overview(mut self) -> Self {
+    pub fn disable_overview(&mut self) -> &mut Self {
         self.overview = false;
         self
     }
@@ -406,12 +406,12 @@ impl TransactionFieldVisibility {
         self.transaction
     }
 
-    pub fn enable_transaction(mut self) -> Self {
+    pub fn enable_transaction(&mut self) -> &mut Self {
         self.transaction = true;
         self
     }
 
-    pub fn disable_transaction(mut self) -> Self {
+    pub fn disable_transaction(&mut self) -> &mut Self {
         self.transaction = false;
         self
     }
@@ -420,12 +420,12 @@ impl TransactionFieldVisibility {
         self.log_messages
     }
 
-    pub fn enable_log_messages(mut self) -> Self {
+    pub fn enable_log_messages(&mut self) -> &mut Self {
         self.log_messages = true;
         self
     }
 
-    pub fn disable_log_messages(mut self) -> Self {
+    pub fn disable_log_messages(&mut self) -> &mut Self {
         self.log_messages = false;
         self
     }
@@ -768,7 +768,7 @@ impl fmt::Display for DisplayTransaction {
             }
         }
 
-        if self.overview.is_some() && self.transaction.is_none() {
+        if self.overview.is_some() && self.transaction.is_none() && self.log_messages.is_some() {
             writeln!(f)?;
             writeln!(f)?;
         }
