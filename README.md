@@ -47,7 +47,7 @@ Currently only by cloning the repo and building from source. See [Examples](#exa
 <!-- Examples -->
 
 ## **Examples**
-Here's a test of [turnstile program](examples/turnstile/programs/turnstile/src/lib.rs).Currently there are few compulsory step you need to follow:
+Here's a test of [turnstile program](examples/turnstile/programs/turnstile/src/lib.rs). Currently there are few compulsory step you need to follow:
 
 - Import of the `trdelnik_client` crate.
 - Create an empty test and annotate it with the `trdelnik_test` macro (as shown bellow).
