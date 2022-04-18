@@ -22,6 +22,7 @@ use anchor_client::{
 use borsh::BorshDeserialize;
 use fehler::{throw, throws};
 use futures::stream::{self, StreamExt};
+use log::debug;
 use serde::de::DeserializeOwned;
 use solana_cli_output::display::println_transaction;
 use solana_transaction_status::{EncodedConfirmedTransaction, UiTransactionEncoding};
@@ -29,7 +30,6 @@ use spl_associated_token_account::get_associated_token_address;
 use std::rc::Rc;
 use std::{thread::sleep, time::Duration};
 use tokio::task;
-use log::debug;
 
 // @TODO: Make compatible with the latest Anchor deps.
 // https://github.com/project-serum/anchor/pull/1307#issuecomment-1022592683

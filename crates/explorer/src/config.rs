@@ -1,5 +1,5 @@
 use solana_cli_config::{Config, CONFIG_FILE};
-use solana_client::nonblocking::rpc_client::RpcClient;
+use solana_client::rpc_client::RpcClient;
 use solana_sdk::commitment_config::CommitmentConfig;
 
 pub struct ExplorerConfig {

@@ -1,5 +1,4 @@
 use crate::{
-    error::ExplorerError,
     error::Result,
     output::{change_in_sol, classify_account, pretty_lamports_to_sol, status_to_string},
     parse::{parse, partially_parse},
@@ -8,9 +7,9 @@ use chrono::{TimeZone, Utc};
 use console::style;
 use serde::Serialize;
 use serde_json::Value;
-use solana_sdk::{instruction::CompiledInstruction, message::VersionedMessage, pubkey::Pubkey};
+use solana_sdk::{instruction::CompiledInstruction, pubkey::Pubkey};
 use solana_transaction_status::{
-    EncodedConfirmedTransactionWithStatusMeta, EncodedTransactionWithStatusMeta, TransactionStatus,
+    EncodedConfirmedTransaction, EncodedTransactionWithStatusMeta, TransactionStatus,
 };
 use std::fmt;
 
@@ -119,95 +118,87 @@ pub struct DisplayRawTransaction {
 
 impl DisplayRawTransaction {
     pub fn from(
-        transaction: &EncodedConfirmedTransactionWithStatusMeta,
+        transaction: &EncodedConfirmedTransaction,
         transaction_status: &TransactionStatus,
         visibility: &RawTransactionFieldVisibility,
     ) -> Result<Self> {
-        let EncodedConfirmedTransactionWithStatusMeta {
+        let EncodedConfirmedTransaction {
             slot,
             transaction,
             block_time,
         } = transaction;
 
-        let EncodedTransactionWithStatusMeta {
-            transaction,
-            meta,
-            version: _version,
-        } = transaction;
+        let EncodedTransactionWithStatusMeta { transaction, meta } = transaction;
 
-        let versioned_transaction = transaction.decode().unwrap();
+        let decoded_transaction = transaction.decode().unwrap();
 
-        if let VersionedMessage::Legacy(message) = versioned_transaction.message {
-            let overview = if visibility.overview {
-                Some(DisplayRawTransactionOverview {
-                    signature: versioned_transaction.signatures[0].to_string(),
-                    result: meta
-                        .as_ref()
-                        .unwrap()
-                        .err
-                        .as_ref()
-                        .map(|err| err.to_string())
-                        .unwrap_or_else(|| "Success".to_string()),
-                    timestamp: Utc.timestamp(block_time.unwrap(), 0).to_string(),
-                    confirmation_status: status_to_string(
-                        transaction_status.confirmation_status.as_ref().unwrap(),
-                    ),
-                    confirmations: transaction_status
-                        .confirmations
-                        .map_or_else(|| "MAX (32)".to_string(), |n| n.to_string()),
-                    slot: *slot,
-                    recent_blockhash: message.recent_blockhash.to_string(),
-                    fee: format!("◎ {}", pretty_lamports_to_sol(meta.as_ref().unwrap().fee)),
-                })
-            } else {
-                None
-            };
+        let message = decoded_transaction.message;
 
-            let transaction = if visibility.transaction {
-                Some(DisplayRawTransactionContent {
-                    signatures: versioned_transaction
-                        .signatures
-                        .into_iter()
-                        .map(|sig| sig.to_string())
-                        .collect(),
-                    message: DisplayRawMessage {
-                        header: DisplayRawMessageHeader {
-                            num_required_signatures: message.header.num_required_signatures,
-                            num_readonly_signed_accounts: message
-                                .header
-                                .num_readonly_signed_accounts,
-                            num_readonly_unsigned_accounts: message
-                                .header
-                                .num_readonly_unsigned_accounts,
-                        },
-                        account_keys: message
-                            .account_keys
-                            .into_iter()
-                            .map(|key| key.to_string())
-                            .collect(),
-                        recent_blockhash: message.recent_blockhash.to_string(),
-                        instructions: message
-                            .instructions
-                            .into_iter()
-                            .map(|instruction| DisplayRawInstruction {
-                                program_id_index: instruction.program_id_index,
-                                accounts: instruction.accounts,
-                                data: bs58::encode(instruction.data).into_string(),
-                            })
-                            .collect(),
-                    },
-                })
-            } else {
-                None
-            };
-
-            Ok(DisplayRawTransaction {
-                overview,
-                transaction,
+        let overview = if visibility.overview {
+            Some(DisplayRawTransactionOverview {
+                signature: decoded_transaction.signatures[0].to_string(),
+                result: meta
+                    .as_ref()
+                    .unwrap()
+                    .err
+                    .as_ref()
+                    .map(|err| err.to_string())
+                    .unwrap_or_else(|| "Success".to_string()),
+                timestamp: Utc.timestamp(block_time.unwrap(), 0).to_string(),
+                confirmation_status: status_to_string(
+                    transaction_status.confirmation_status.as_ref().unwrap(),
+                ),
+                confirmations: transaction_status
+                    .confirmations
+                    .map_or_else(|| "MAX (32)".to_string(), |n| n.to_string()),
+                slot: *slot,
+                recent_blockhash: message.recent_blockhash.to_string(),
+                fee: format!("◎ {}", pretty_lamports_to_sol(meta.as_ref().unwrap().fee)),
             })
         } else {
-            Err(ExplorerError::Custom("message in wrong format".to_string()))
-        }
+            None
+        };
+
+        let transaction = if visibility.transaction {
+            Some(DisplayRawTransactionContent {
+                signatures: decoded_transaction
+                    .signatures
+                    .into_iter()
+                    .map(|sig| sig.to_string())
+                    .collect(),
+                message: DisplayRawMessage {
+                    header: DisplayRawMessageHeader {
+                        num_required_signatures: message.header.num_required_signatures,
+                        num_readonly_signed_accounts: message.header.num_readonly_signed_accounts,
+                        num_readonly_unsigned_accounts: message
+                            .header
+                            .num_readonly_unsigned_accounts,
+                    },
+                    account_keys: message
+                        .account_keys
+                        .into_iter()
+                        .map(|key| key.to_string())
+                        .collect(),
+                    recent_blockhash: message.recent_blockhash.to_string(),
+                    instructions: message
+                        .instructions
+                        .into_iter()
+                        .map(|instruction| DisplayRawInstruction {
+                            program_id_index: instruction.program_id_index,
+                            accounts: instruction.accounts,
+                            data: bs58::encode(instruction.data).into_string(),
+                        })
+                        .collect(),
+                },
+            })
+        } else {
+            None
+        };
+
+        Ok(DisplayRawTransaction {
+            overview,
+            transaction,
+        })
     }
 }
 
@@ -514,105 +505,96 @@ pub struct DisplayTransaction {
 
 impl DisplayTransaction {
     pub fn from(
-        transaction: &EncodedConfirmedTransactionWithStatusMeta,
+        transaction: &EncodedConfirmedTransaction,
         transaction_status: &TransactionStatus,
         visibility: &TransactionFieldVisibility,
     ) -> Result<Self> {
-        let EncodedConfirmedTransactionWithStatusMeta {
+        let EncodedConfirmedTransaction {
             slot,
             transaction,
             block_time,
         } = transaction;
 
-        let EncodedTransactionWithStatusMeta {
-            transaction,
-            meta,
-            version: _version,
-        } = transaction;
+        let EncodedTransactionWithStatusMeta { transaction, meta } = transaction;
 
-        let versioned_transaction = transaction.decode().unwrap();
+        let decoded_transaction = transaction.decode().unwrap();
 
-        if let VersionedMessage::Legacy(message) = versioned_transaction.message {
-            let overview = if visibility.overview {
-                Some(DisplayTransactionOverview {
-                    signature: versioned_transaction.signatures[0].to_string(),
-                    result: meta
-                        .as_ref()
-                        .unwrap()
-                        .err
-                        .as_ref()
-                        .map(|err| err.to_string())
-                        .unwrap_or_else(|| "Success".to_string()),
-                    timestamp: Utc.timestamp(block_time.unwrap(), 0).to_string(),
-                    confirmation_status: status_to_string(
-                        transaction_status.confirmation_status.as_ref().unwrap(),
-                    ),
-                    confirmations: transaction_status
-                        .confirmations
-                        .map_or_else(|| "MAX (32)".to_string(), |n| n.to_string()),
-                    slot: *slot,
-                    recent_blockhash: message.recent_blockhash.to_string(),
-                    fee: format!("◎ {}", pretty_lamports_to_sol(meta.as_ref().unwrap().fee)),
-                })
-            } else {
-                None
-            };
-
-            let mut fee_payer_found = false; // always first account
-            let transaction = if visibility.transaction {
-                Some(DisplayTransactionContent {
-                    accounts: message
-                        .account_keys
-                        .iter()
-                        .enumerate()
-                        .map(|(index, account_key)| DisplayInputAccount {
-                            pubkey: account_key.to_string(),
-                            fee_payer: if !fee_payer_found {
-                                fee_payer_found = true;
-                                true
-                            } else {
-                                false
-                            },
-                            writable: message.is_writable(index),
-                            signer: message.is_signer(index),
-                            program: message.maybe_executable(index),
-                            post_balance_in_sol: pretty_lamports_to_sol(
-                                meta.as_ref().unwrap().post_balances[index],
-                            ),
-                            balance_change_in_sol: change_in_sol(
-                                meta.as_ref().unwrap().post_balances[index],
-                                meta.as_ref().unwrap().pre_balances[index],
-                            ),
-                        })
-                        .collect(),
-                    instructions: message
-                        .instructions
-                        .iter()
-                        .map(|instruction| {
-                            DisplayInstruction::parse(instruction, &message.account_keys)
-                        })
-                        .collect(),
-                })
-            } else {
-                None
-            };
-
-            let log_messages = if visibility.log_messages {
-                Some(meta.as_ref().unwrap().log_messages.clone())
-            } else {
-                None
-            };
-
-            Ok(DisplayTransaction {
-                overview,
-                transaction,
-                log_messages,
+        let message = decoded_transaction.message;
+        let overview = if visibility.overview {
+            Some(DisplayTransactionOverview {
+                signature: decoded_transaction.signatures[0].to_string(),
+                result: meta
+                    .as_ref()
+                    .unwrap()
+                    .err
+                    .as_ref()
+                    .map(|err| err.to_string())
+                    .unwrap_or_else(|| "Success".to_string()),
+                timestamp: Utc.timestamp(block_time.unwrap(), 0).to_string(),
+                confirmation_status: status_to_string(
+                    transaction_status.confirmation_status.as_ref().unwrap(),
+                ),
+                confirmations: transaction_status
+                    .confirmations
+                    .map_or_else(|| "MAX (32)".to_string(), |n| n.to_string()),
+                slot: *slot,
+                recent_blockhash: message.recent_blockhash.to_string(),
+                fee: format!("◎ {}", pretty_lamports_to_sol(meta.as_ref().unwrap().fee)),
             })
         } else {
-            Err(ExplorerError::Custom(
-                "message in a new unsupported format".to_string(),
-            ))
-        }
+            None
+        };
+
+        let mut fee_payer_found = false; // always first account
+        let transaction = if visibility.transaction {
+            Some(DisplayTransactionContent {
+                accounts: message
+                    .account_keys
+                    .iter()
+                    .enumerate()
+                    .map(|(index, account_key)| DisplayInputAccount {
+                        pubkey: account_key.to_string(),
+                        fee_payer: if !fee_payer_found {
+                            fee_payer_found = true;
+                            true
+                        } else {
+                            false
+                        },
+                        writable: message.is_writable(index),
+                        signer: message.is_signer(index),
+                        program: message.maybe_executable(index),
+                        post_balance_in_sol: pretty_lamports_to_sol(
+                            meta.as_ref().unwrap().post_balances[index],
+                        ),
+                        balance_change_in_sol: change_in_sol(
+                            meta.as_ref().unwrap().post_balances[index],
+                            meta.as_ref().unwrap().pre_balances[index],
+                        ),
+                    })
+                    .collect(),
+                instructions: message
+                    .instructions
+                    .iter()
+                    .map(|instruction| {
+                        DisplayInstruction::parse(instruction, &message.account_keys)
+                    })
+                    .collect(),
+            })
+        } else {
+            None
+        };
+
+        let log_messages = if visibility.log_messages {
+            Some(meta.as_ref().unwrap().log_messages.clone())
+        } else {
+            None
+        };
+
+        Ok(DisplayTransaction {
+            overview,
+            transaction,
+            log_messages,
+        })
     }
 }
 
