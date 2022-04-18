@@ -67,45 +67,6 @@ pub fn parse_vote(
                 }),
             })
         }
-        VoteInstruction::UpdateVoteState(vote_state_update) => {
-            check_num_vote_accounts(&instruction.accounts, 4)?;
-            let vote_state_update = json!({
-                "Lockouts": vote_state_update.lockouts,
-                "Root": vote_state_update.root,
-                "Hash": vote_state_update.hash.to_string(),
-                "Timestamp": vote_state_update.timestamp,
-            });
-            Ok(ParsedInstructionEnum {
-                instruction_type: "UpdateVoteState".to_string(),
-                info: json!({
-                    "Vote Account": account_keys[instruction.accounts[0] as usize].to_string(),
-                    "Slot Hashes Sysvar": account_keys[instruction.accounts[1] as usize].to_string(),
-                    "Clock Sysvar": account_keys[instruction.accounts[2] as usize].to_string(),
-                    "Vote Authority": account_keys[instruction.accounts[3] as usize].to_string(),
-                    "Vote State Update": vote_state_update,
-                }),
-            })
-        }
-        VoteInstruction::UpdateVoteStateSwitch(vote_state_update, hash) => {
-            check_num_vote_accounts(&instruction.accounts, 4)?;
-            let vote_state_update = json!({
-                "Lockouts": vote_state_update.lockouts,
-                "Root": vote_state_update.root,
-                "Hash": vote_state_update.hash.to_string(),
-                "Timestamp": vote_state_update.timestamp,
-            });
-            Ok(ParsedInstructionEnum {
-                instruction_type: "UpdateVoteStateSwitch".to_string(),
-                info: json!({
-                    "Vote Account": account_keys[instruction.accounts[0] as usize].to_string(),
-                    "Slot Hashes Sysvar": account_keys[instruction.accounts[1] as usize].to_string(),
-                    "Clock Sysvar": account_keys[instruction.accounts[2] as usize].to_string(),
-                    "Vote Authority": account_keys[instruction.accounts[3] as usize].to_string(),
-                    "Vote State Update": vote_state_update,
-                    "Hash": hash.to_string(),
-                }),
-            })
-        }
         VoteInstruction::Withdraw(lamports) => {
             check_num_vote_accounts(&instruction.accounts, 3)?;
             Ok(ParsedInstructionEnum {

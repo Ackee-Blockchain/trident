@@ -142,7 +142,7 @@ pub async fn get_account_string(
     config: &ExplorerConfig,
 ) -> Result<String> {
     let rpc_client = config.rpc_client();
-    let account = rpc_client.get_account(pubkey).await?;
+    let account = rpc_client.get_account(pubkey)?;
     let keyed_account = KeyedAccount {
         pubkey: *pubkey,
         account,
@@ -198,7 +198,7 @@ pub async fn get_program_string(
     config: &ExplorerConfig,
 ) -> Result<String> {
     let rpc_client = config.rpc_client();
-    let program_account = rpc_client.get_account(program_id).await?;
+    let program_account = rpc_client.get_account(program_id)?;
     let program_keyed_account = KeyedAccount {
         pubkey: *program_id,
         account: program_account,
@@ -230,7 +230,7 @@ it is an executable account with program.so in its data, hence this output.",
             programdata_address,
         }) = program_keyed_account.account.state()
         {
-            if let Ok(programdata_account) = rpc_client.get_account(&programdata_address).await {
+            if let Ok(programdata_account) = rpc_client.get_account(&programdata_address) {
                 let programdata_keyed_account = KeyedAccount {
                     pubkey: programdata_address,
                     account: programdata_account,
@@ -324,16 +324,11 @@ pub async fn get_raw_transaction_string(
     let config = RpcTransactionConfig {
         encoding: Some(UiTransactionEncoding::Binary),
         commitment: Some(CommitmentConfig::confirmed()),
-        max_supported_transaction_version: Some(0),
     };
 
-    let transaction = rpc_client
-        .get_transaction_with_config(signature, config)
-        .await?;
+    let transaction = rpc_client.get_transaction_with_config(signature, config)?;
 
-    let response = rpc_client
-        .get_signature_statuses_with_history(&[*signature])
-        .await?;
+    let response = rpc_client.get_signature_statuses_with_history(&[*signature])?;
 
     let transaction_status = response.value[0].as_ref().unwrap();
 
@@ -355,16 +350,11 @@ pub async fn get_transaction_string(
     let config = RpcTransactionConfig {
         encoding: Some(UiTransactionEncoding::Binary),
         commitment: Some(CommitmentConfig::confirmed()),
-        max_supported_transaction_version: Some(0),
     };
 
-    let transaction = rpc_client
-        .get_transaction_with_config(signature, config)
-        .await?;
+    let transaction = rpc_client.get_transaction_with_config(signature, config)?;
 
-    let response = rpc_client
-        .get_signature_statuses_with_history(&[*signature])
-        .await?;
+    let response = rpc_client.get_signature_statuses_with_history(&[*signature])?;
 
     let transaction_status = response.value[0].as_ref().unwrap();
 

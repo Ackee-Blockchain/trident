@@ -1,13 +1,13 @@
 {
     "rust-analyzer.linkedProjects": [
         // examples in its own workspace are ignored by autodiscovery
-        // "examples/turnstile/program_client/Cargo.toml",
-        // "examples/turnstile/Cargo.toml",
-        // autodiscovery is disabled, list all crates
+        "examples/turnstile/program_client/Cargo.toml",
+        "examples/turnstile/Cargo.toml",
+        // autodiscovery is disabled, must list all crates
         "crates/cli/Cargo.toml",
-        // "crates/client/Cargo.toml",
-        "crates/explorer/Cargo.toml"
-        // "crates/test/Cargo.toml",
+        "crates/client/Cargo.toml",
+        "crates/explorer/Cargo.toml",
+        "crates/test/Cargo.toml",
     ],
     "rust-analyzer.diagnostics.disabled": [
         "missing-unsafe",
