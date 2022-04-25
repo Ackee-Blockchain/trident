@@ -71,7 +71,7 @@ pub enum ParseInstructionError {
     SerdeJsonError(#[from] serde_json::error::Error),
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, PartialEq, Eq, Debug)]
 pub struct ParsedInstructionEnum {
     #[serde(rename = "type")]
     pub instruction_type: String,

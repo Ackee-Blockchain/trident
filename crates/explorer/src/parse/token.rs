@@ -429,3 +429,158 @@ fn parse_signers(
 fn check_num_token_accounts(accounts: &[u8], num: usize) -> Result<(), ParseInstructionError> {
     check_num_accounts(accounts, num, ParsableProgram::SPLToken)
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use solana_account_decoder::parse_token::pubkey_from_spl_token;
+    use solana_sdk::{instruction::CompiledInstruction, pubkey::Pubkey};
+    use spl_token::{
+        instruction::*,
+        solana_program::{
+            instruction::CompiledInstruction as SplTokenCompiledInstruction,
+            instruction::Instruction as SplTokenInstruction, message::Message,
+            pubkey::Pubkey as SplTokenPubkey,
+        },
+    };
+    use std::str::FromStr;
+
+    fn convert_pubkey(pubkey: Pubkey) -> SplTokenPubkey {
+        SplTokenPubkey::from_str(&pubkey.to_string()).unwrap()
+    }
+
+    fn convert_compiled_instruction(
+        instruction: &SplTokenCompiledInstruction,
+    ) -> CompiledInstruction {
+        CompiledInstruction {
+            program_id_index: instruction.program_id_index,
+            accounts: instruction.accounts.clone(),
+            data: instruction.data.clone(),
+        }
+    }
+
+    fn convert_account_keys(message: &Message) -> Vec<Pubkey> {
+        message
+            .account_keys
+            .iter()
+            .map(pubkey_from_spl_token)
+            .collect()
+    }
+
+    fn make_coerced_message(
+        mut instruction: SplTokenInstruction,
+        program_id: &SplTokenPubkey,
+    ) -> Message {
+        instruction.program_id = *program_id;
+        Message::new(&[instruction], None)
+    }
+
+    #[test]
+    #[allow(clippy::same_item_push)]
+    fn test_parse_token_v3() {
+        test_parse_token(&spl_token::id());
+    }
+
+    fn test_parse_token(program_id: &SplTokenPubkey) {
+        let mint_pubkey = Pubkey::new_unique();
+        let mint_authority = Pubkey::new_unique();
+        let freeze_authority = Pubkey::new_unique();
+        let rent_sysvar = solana_sdk::sysvar::rent::id();
+
+        // Test InitializeMint variations
+        let initialize_mint_ix = initialize_mint(
+            &spl_token::id(), // TODO: replace with `program_id`
+            &convert_pubkey(mint_pubkey),
+            &convert_pubkey(mint_authority),
+            Some(&convert_pubkey(freeze_authority)),
+            2,
+        )
+        .unwrap();
+        let message = make_coerced_message(initialize_mint_ix, program_id);
+        let compiled_instruction = convert_compiled_instruction(&message.instructions[0]);
+        assert_eq!(
+            parse_token(&compiled_instruction, &convert_account_keys(&message)).unwrap(),
+            ParsedInstructionEnum {
+                instruction_type: "initializeMint".to_string(),
+                info: json!({
+                    "mint": mint_pubkey.to_string(),
+                    "decimals": 2,
+                    "mintAuthority": mint_authority.to_string(),
+                    "freezeAuthority": freeze_authority.to_string(),
+                    "rentSysvar": rent_sysvar.to_string(),
+                })
+            }
+        );
+
+        let initialize_mint_ix = initialize_mint(
+            &spl_token::id(), // TODO: replace with `program_id`
+            &convert_pubkey(mint_pubkey),
+            &convert_pubkey(mint_authority),
+            None,
+            2,
+        )
+        .unwrap();
+        let message = make_coerced_message(initialize_mint_ix, program_id);
+        let compiled_instruction = convert_compiled_instruction(&message.instructions[0]);
+        assert_eq!(
+            parse_token(&compiled_instruction, &convert_account_keys(&message)).unwrap(),
+            ParsedInstructionEnum {
+                instruction_type: "initializeMint".to_string(),
+                info: json!({
+                    "mint": mint_pubkey.to_string(),
+                    "decimals": 2,
+                    "mintAuthority": mint_authority.to_string(),
+                    "rentSysvar": rent_sysvar.to_string(),
+                })
+            }
+        );
+
+        // Test InitializeAccount
+        let account_pubkey = Pubkey::new_unique();
+        let owner = Pubkey::new_unique();
+        let initialize_account_ix = initialize_account(
+            &spl_token::id(), // TODO: replace with `program_id`
+            &convert_pubkey(account_pubkey),
+            &convert_pubkey(mint_pubkey),
+            &convert_pubkey(owner),
+        )
+        .unwrap();
+        let message = make_coerced_message(initialize_account_ix, program_id);
+        let compiled_instruction = convert_compiled_instruction(&message.instructions[0]);
+        assert_eq!(
+            parse_token(&compiled_instruction, &convert_account_keys(&message)).unwrap(),
+            ParsedInstructionEnum {
+                instruction_type: "initializeAccount".to_string(),
+                info: json!({
+                    "account": account_pubkey.to_string(),
+                    "mint": mint_pubkey.to_string(),
+                    "owner": owner.to_string(),
+                    "rentSysvar": rent_sysvar.to_string(),
+                })
+            }
+        );
+
+        // Test InitializeAccount2
+        let initialize_account_ix = initialize_account2(
+            &spl_token::id(), // TODO: replace with `program_id`
+            &convert_pubkey(account_pubkey),
+            &convert_pubkey(mint_pubkey),
+            &convert_pubkey(owner),
+        )
+        .unwrap();
+        let message = make_coerced_message(initialize_account_ix, program_id);
+        let compiled_instruction = convert_compiled_instruction(&message.instructions[0]);
+        assert_eq!(
+            parse_token(&compiled_instruction, &convert_account_keys(&message)).unwrap(),
+            ParsedInstructionEnum {
+                instruction_type: "initializeAccount2".to_string(),
+                info: json!({
+                   "account": account_pubkey.to_string(),
+                   "mint": mint_pubkey.to_string(),
+                   "owner": owner.to_string(),
+                   "rentSysvar": rent_sysvar.to_string(),
+                })
+            }
+        );
+    }
+}
