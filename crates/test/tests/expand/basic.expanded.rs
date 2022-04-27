@@ -15,9 +15,6 @@ async fn test_turnstile() -> trdelnik_client::anyhow::Result<()> {
         }
         Ok::<(), trdelnik_client::anyhow::Error>(())
     };
-    {
-        ::std::io::_print(::core::fmt::Arguments::new_v1(&["____ TEST ____\n"], &[]));
-    };
     let result = std::panic::AssertUnwindSafe(test).catch_unwind().await;
     tester.after(localnet_handle).await?;
     if !result.is_ok() {
