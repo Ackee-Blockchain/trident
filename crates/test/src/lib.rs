@@ -68,9 +68,6 @@ pub fn trdelnik_test(args: TokenStream, input: TokenStream) -> TokenStream {
                 #input_fn_body
                 Ok::<(), trdelnik_client::anyhow::Error>(())
             };
-            {
-                ::std::io::_print(::core::fmt::Arguments::new_v1(&["____ TEST ____\n"], &[]));
-            };
             let result = std::panic::AssertUnwindSafe(test).catch_unwind().await;
             tester.after(localnet_handle).await?;
             assert!(result.is_ok());
