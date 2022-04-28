@@ -29,6 +29,8 @@ enum Command {
         #[clap(subcommand)]
         subcmd: ExplorerCommand,
     },
+    /// Initialize test environment
+    Init,
 }
 
 #[throws]
@@ -39,5 +41,6 @@ pub async fn start() {
         Command::Test { root } => command::test(root).await?,
         Command::Localnet => command::localnet().await?,
         Command::Explorer { subcmd } => command::explorer(subcmd).await?,
+        Command::Init => command::init().await,
     }
 }
