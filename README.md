@@ -60,8 +60,9 @@ Here's a test of [turnstile program](examples/turnstile/programs/turnstile/src/l
 use program_client::turnstile_instruction;
 use trdelnik_client::*;
 
-#[trdelnik_test]
-async fn test_happy_path() {
+#[throws]
+#[fixture]
+async fn init_fixture() -> Fixture {
     // create a test fixture
     let mut fixture = Fixture {
         client: Client::new(system_keypair(0)),
@@ -80,6 +81,13 @@ async fn test_happy_path() {
         Some(fixture.state.clone()),
     )
     .await?;
+
+    fixture
+}
+
+#[trdelnik_test]
+async fn test_happy_path(#[future] init_fixture: Result<Fixture>) {
+    let fixture = init_fixture.await?;
     // coin instruction call
     turnstile_instruction::coin(
         &fixture.client,
