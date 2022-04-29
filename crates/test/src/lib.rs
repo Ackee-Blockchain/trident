@@ -57,9 +57,14 @@ pub fn trdelnik_test(args: TokenStream, input: TokenStream) -> TokenStream {
     let input_fn_span = input_fn.span();
     let input_fn_body = input_fn.block;
     let input_fn_name = input_fn.sig.ident;
+    let input_fn_attrs = input_fn.attrs;
     let input_fn_inputs = input_fn.sig.inputs;
 
     quote::quote_spanned!(input_fn_span=>
+        #(#input_fn_attrs)*
+        // Note: The line `#(#input_fn_attrs)*` has to be above the line with the code
+        // `#[trdelnik_client::tokio::test...` to make macros like `#[rstest]` work -
+        // see https://github.com/la10736/rstest#inject-test-attribute
         #[trdelnik_client::rstest]
         #[trdelnik_client::tokio::test(flavor = "multi_thread")]
         #[trdelnik_client::serial_test::serial]
