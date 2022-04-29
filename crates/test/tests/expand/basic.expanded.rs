@@ -1,3 +1,4 @@
+#[trdelnik_client::rstest]
 #[trdelnik_client::tokio::test(flavor = "multi_thread")]
 #[trdelnik_client::serial_test::serial]
 async fn test_turnstile() -> trdelnik_client::anyhow::Result<()> {
