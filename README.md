@@ -16,12 +16,12 @@ developed by [Ackee Blockchain](https://ackeeblockchain.com)
 
 <div align="left">
 
-Trdelník is Rust based testing framework providing several convenient developer tools for testing Solana programs written in [Anchor](https://github.com/project-serum/anchor).
+Trdelník is rust based testing framework providing several convenient developer tools for testing Solana programs written in [Anchor](https://github.com/project-serum/anchor).
 
 - _Trdelnik client_ - build and deploy an Anchor program to a local cluster and run a test suite against it.
 - _Trdelnik console_ - built-in console to give developers a command prompt for quick program interaction.
 - _Trdelnik fuzz_ - property-based and stateful testing.
-- _Trdelnik explorer_ - exploring a ledger changes.
+- _Trdelnik explorer_ - exploring ledger changes.
 
 </div>
 
@@ -42,18 +42,18 @@ Trdelník is Rust based testing framework providing several convenient developer
 <!-- Installation -->
 
 ## **Installation**
-Currently only by cloning the repo and building from source. See [Examples](#examples)
+Currently, only by cloning the repo and building from the source. See [Examples](#examples)
 
 <!-- Examples -->
 
 ## **Examples**
-Here's a test of [turnstile program](examples/turnstile/programs/turnstile/src/lib.rs).Currently there are few compulsory step you need to follow:
+Here's a test of [turnstile program](examples/turnstile/programs/turnstile/src/lib.rs). Currently, there are a few compulsory steps you need to follow:
 
-- Import of the `trdelnik_client` crate.
-- Run `makers trdelnik build` in order to generate a `program_client` crate (containing an auto generated code for easy invocation of instructions of your program)
-- Add `program_client` crate into your `Cargo.toml` and import it to the test (as shown bellow).
-- Now you can easilly invoke instructions of your program and do whatever you want in your test.
-- After you are finished with your tests run `makers trdelnik test` and check the results.
+- Import the `trdelnik_client` crate.
+- Run `makers trdelnik build` to generate a `program_client` crate (containing an auto-generated code for easy invocation of instructions of your program)
+- Add the `program_client` crate into your `Cargo.toml` and import it to the test (as shown below).
+- Now, you can easily invoke instructions of your program and do whatever you want in your test.
+- After you are finished with your tests, run `makers trdelnik test` and check the results.
 ```rust
 // ...
 use program_client::turnstile_instruction;
