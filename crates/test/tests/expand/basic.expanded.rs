@@ -1,3 +1,4 @@
+#[trdelnik_client::rstest]
 #[trdelnik_client::tokio::test(flavor = "multi_thread")]
 #[trdelnik_client::serial_test::serial]
 async fn test_turnstile() -> trdelnik_client::anyhow::Result<()> {
@@ -14,9 +15,6 @@ async fn test_turnstile() -> trdelnik_client::anyhow::Result<()> {
             turnstile.push_locked().await?;
         }
         Ok::<(), trdelnik_client::anyhow::Error>(())
-    };
-    {
-        ::std::io::_print(::core::fmt::Arguments::new_v1(&["____ TEST ____\n"], &[]));
     };
     let result = std::panic::AssertUnwindSafe(test).catch_unwind().await;
     tester.after(localnet_handle).await?;
