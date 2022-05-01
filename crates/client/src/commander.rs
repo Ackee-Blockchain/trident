@@ -5,6 +5,7 @@ use crate::{
 use cargo_metadata::{MetadataCommand, Package};
 use fehler::{throw, throws};
 use futures::future::try_join_all;
+use log::debug;
 use solana_sdk::signer::keypair::Keypair;
 use std::{borrow::Cow, io, iter, path::Path, process::Stdio, string::FromUtf8Error};
 use thiserror::Error;
@@ -13,7 +14,6 @@ use tokio::{
     io::AsyncWriteExt,
     process::{Child, Command},
 };
-use log::debug;
 
 pub static PROGRAM_CLIENT_DIRECTORY: &str = "program_client";
 

@@ -1,7 +1,7 @@
 use crate::{commander::Error, Commander, LocalnetHandle};
 use fehler::throws;
-use std::{borrow::Cow, mem};
 use log::debug;
+use std::{borrow::Cow, mem};
 
 /// `Tester` is used primarily by [`#[trdelnik_test]`](trdelnik_test::trdelnik_test) macro.
 ///
