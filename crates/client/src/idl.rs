@@ -418,7 +418,9 @@ pub async fn parse_to_idl_program(name: String, code: &str) -> Result<IdlProgram
 
         let account_item_struct = account_mod_item
             .content
-            .ok_or(Error::MissingOrInvalidProgramItems("account mod: empty content"))?
+            .ok_or(Error::MissingOrInvalidProgramItems(
+                "account mod: empty content",
+            ))?
             .1
             .into_iter()
             .find_map(|item| match item {
@@ -427,14 +429,18 @@ pub async fn parse_to_idl_program(name: String, code: &str) -> Result<IdlProgram
                 }
                 _ => None?,
             })
-            .ok_or(Error::MissingOrInvalidProgramItems("account mod: struct not found"))?;
+            .ok_or(Error::MissingOrInvalidProgramItems(
+                "account mod: struct not found",
+            ))?;
 
         let account_item_struct_fields = match account_item_struct.fields {
             syn::Fields::Named(fields_named) => fields_named.named,
             syn::Fields::Unit => syn::punctuated::Punctuated::new(),
-            syn::Fields::Unnamed(_) => return Err(Error::MissingOrInvalidProgramItems(
-                "account struct: unnamed fields not allowed",
-            )),
+            syn::Fields::Unnamed(_) => {
+                return Err(Error::MissingOrInvalidProgramItems(
+                    "account struct: unnamed fields not allowed",
+                ))
+            }
         };
 
         let accounts = account_item_struct_fields
