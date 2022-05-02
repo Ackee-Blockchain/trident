@@ -17,9 +17,3 @@ default = []
 
 [dependencies]
 anchor-lang = "0.24.2"
-
-[dev-dependencies]
-fehler = "1.0.0"
-trdelnik-client = { path = "../../../../crates/client" }
-program_client = { path = "../../program_client" }
-rstest = "0.12.0"
