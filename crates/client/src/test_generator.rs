@@ -1,4 +1,5 @@
 use anyhow::Context;
+use std::env::current_dir;
 use fehler::{throw, throws};
 use std::path::{Path, PathBuf};
 use thiserror::Error;
@@ -28,13 +29,13 @@ pub enum Error {
 }
 
 pub struct TestGenerator {
-    root: PathBuf,
+    path: PathBuf,
 }
 
 impl TestGenerator {
     pub fn new() -> Self {
         Self {
-            root: std::env::current_dir().unwrap(),
+            path: current_dir().unwrap(),
         }
     }
 
@@ -73,8 +74,8 @@ impl TestGenerator {
     /// It fails when:
     /// - there is not a root directory (no `Anchor.toml` file)
     #[throws]
-    pub async fn generate(&mut self) {
-        self.root = self.discover_root()?;
+    pub async fn generate(&self) {
+        self.check_workspace().await?;
         self.generate_test_files().await?;
         self.update_workspace().await?;
     }
@@ -191,5 +192,14 @@ program_client = { path = "../program_client" }
             }
         }
         fs::write(cargo, content.to_string()).await?;
+    }
+
+    #[throws]
+    async fn check_workspace(&self) {
+        let anchor_toml = Path::new(&self.path).join(ANCHOR_TOML);
+        match anchor_toml.exists() {
+            false => throw!(Error::BadWorkspace),
+            _ => {}
+        }
     }
 }
