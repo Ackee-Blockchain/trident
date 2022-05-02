@@ -18,36 +18,51 @@ pub enum Error {
 }
 
 pub struct TestGenerator {
-    path: PathBuf,
+    root: PathBuf,
 }
 
 impl TestGenerator {
     pub fn new() -> Self {
         Self {
-            path: current_dir().unwrap(),
+            root: current_dir().unwrap(),
         }
     }
 
+    /// Initializes the the `tests` directory with all the necessary files. Adds the `test.rs` file
+    /// and generates `Cargo.toml` with `dev-dependencies`
+    ///
+    /// # Errors
+    ///
+    /// It fails when:
+    /// - the directory is not the root directory (does not contain the `Anchor.toml` file)
     #[throws]
     pub async fn generate(&self) {
-        self.check_workspace().await?;
+        self.check_workspace()?;
         self.generate_test_files().await?;
     }
 
+    /// Creates the `test` folder in the `root` directory, adds the empty `test.rs` file and
+    /// generates the `Cargo.toml` file.
     #[throws]
     async fn generate_test_files(&self) {
-        let path = Path::new(&self.path).join(TESTS_DIRECTORY);
-        if fs::metadata(&path).await.is_ok() {
-            return;
+        let path = Path::new(&self.root).join(TESTS_DIRECTORY);
+        if !path.exists() {
+            fs::create_dir(&path).await?;
         }
-        fs::create_dir(&path).await?;
-        fs::write(path.join(TESTS_FILE_NAME), "").await?;
+        let test_path = path.join(TESTS_FILE_NAME);
+        if !test_path.exists() {
+            fs::write(test_path, "").await?;
+        }
         self.initialize_cargo_toml().await?;
     }
 
+    /// Creates and initializes the Cargo.toml. Adds `dev-dependencies` for the tests runner.
     #[throws]
     async fn initialize_cargo_toml(&self) {
-        let cargo_toml = Path::new(&self.path).join(TESTS_DIRECTORY).join(CARGO_TOML);
+        let cargo_toml = Path::new(&self.root).join(TESTS_DIRECTORY).join(CARGO_TOML);
+        if cargo_toml.exists() {
+            return;
+        }
         // todo: the `trdelnik-client` path should be changed to crate version after the release
         let toml = r#"[package]
 name = "tests"
@@ -63,12 +78,13 @@ program_client = { path = "../program_client" }
         fs::write(cargo_toml, toml).await?;
     }
 
-    #[throws]
-    async fn check_workspace(&self) {
-        let anchor_toml = Path::new(&self.path).join(ANCHOR_TOML);
+    /// Checks if the command is called from the `root` directory
+    /// The `root` directory is your program workspace - the place where `Anchor.toml` file is located
+    fn check_workspace(&self) -> Result<(), Error> {
+        let anchor_toml = Path::new(&self.root).join(ANCHOR_TOML);
         match anchor_toml.exists() {
             false => throw!(Error::BadWorkspace),
-            _ => {}
+            _ => Ok(())
         }
     }
 }
