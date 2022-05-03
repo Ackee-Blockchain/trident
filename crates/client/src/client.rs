@@ -277,9 +277,8 @@ impl Client {
             Some(&self.payer.pubkey()),
             &signers,
             rpc_client
-                .get_recent_blockhash()
-                .expect("Error while getting recent blockhash")
-                .0,
+                .get_latest_blockhash()
+                .expect("Error while getting recent blockhash"),
         );
         // @TODO make this call async with task::spawn_blocking
         let signature = rpc_client.send_and_confirm_transaction(tx)?;
