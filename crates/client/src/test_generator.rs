@@ -1,5 +1,5 @@
+use anyhow::Context;
 use fehler::{throw, throws};
-use std::env::current_dir;
 use std::path::{Path, PathBuf};
 use thiserror::Error;
 use tokio::fs;
@@ -13,8 +13,12 @@ const ANCHOR_TOML: &str = "Anchor.toml";
 pub enum Error {
     #[error("invalid workspace")]
     BadWorkspace,
+    #[error("must have current dir")]
+    MustHaveCurrentDir,
     #[error("{0:?}")]
     Io(#[from] std::io::Error),
+    #[error("{0:?}")]
+    Anyhow(#[from] anyhow::Error),
 }
 
 pub struct TestGenerator {
@@ -24,7 +28,7 @@ pub struct TestGenerator {
 impl TestGenerator {
     pub fn new() -> Self {
         Self {
-            root: current_dir().unwrap(),
+            root: std::env::current_dir().unwrap(),
         }
     }
 
@@ -34,10 +38,10 @@ impl TestGenerator {
     /// # Errors
     ///
     /// It fails when:
-    /// - the directory is not the root directory (does not contain the `Anchor.toml` file)
+    /// - there is not a root directory (no `Anchor.toml` file)
     #[throws]
-    pub async fn generate(&self) {
-        self.check_workspace()?;
+    pub async fn generate(&mut self) {
+        self.root = self.discover_root()?;
         self.generate_test_files().await?;
     }
 
@@ -78,13 +82,28 @@ program_client = { path = "../program_client" }
         fs::write(cargo_toml, toml).await?;
     }
 
-    /// Checks if the command is called from the `root` directory
-    /// The `root` directory is your program workspace - the place where `Anchor.toml` file is located
-    fn check_workspace(&self) -> Result<(), Error> {
-        let anchor_toml = Path::new(&self.root).join(ANCHOR_TOML);
-        match anchor_toml.exists() {
-            false => throw!(Error::BadWorkspace),
-            _ => Ok(())
+    /// Tries to find the root directory with the `Anchor.toml` file.
+    /// Throws an error when there is no directory with the `Anchor.toml` file
+    // todo: this function should be a part of some Config / File implementation
+    fn discover_root(&self) -> Result<PathBuf, Error> {
+        let mut dir = Some(self.root.as_path());
+        while let Some(cwd) = dir {
+            for file in std::fs::read_dir(cwd).with_context(|| {
+                format!("Error reading the directory with path: {}", cwd.display())
+            })? {
+                let path = file
+                    .with_context(|| {
+                        format!("Error reading the directory with path: {}", cwd.display())
+                    })?
+                    .path();
+                if let Some(filename) = path.file_name() {
+                    if filename.to_str() == Some(ANCHOR_TOML) {
+                        return Ok(PathBuf::from(cwd));
+                    }
+                }
+            }
+            dir = cwd.parent();
         }
+        throw!(Error::BadWorkspace)
     }
 }
