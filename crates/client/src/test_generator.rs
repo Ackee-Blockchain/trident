@@ -1,7 +1,10 @@
 use anyhow::Context;
 use std::env::current_dir;
 use fehler::{throw, throws};
-use std::path::{Path, PathBuf};
+use std::{
+    env, io,
+    path::{Path, PathBuf},
+};
 use thiserror::Error;
 use tokio::fs;
 use toml::{value::Table, Value};
@@ -21,22 +24,17 @@ pub enum Error {
     #[error("cannot parse Cargo.toml")]
     CannotParseCargoToml,
     #[error("{0:?}")]
-    Io(#[from] std::io::Error),
+    Io(#[from] io::Error),
     #[error("{0:?}")]
     Anyhow(#[from] anyhow::Error),
     #[error("{0:?}")]
     Toml(#[from] toml::de::Error),
 }
 
-pub struct TestGenerator {
-    path: PathBuf,
-}
-
+pub struct TestGenerator;
 impl TestGenerator {
     pub fn new() -> Self {
-        Self {
-            path: current_dir().unwrap(),
-        }
+        Self
     }
 
     /// Initializes the `trdelnik-tests/tests` directory with all the necessary files. Adds the
@@ -75,6 +73,7 @@ impl TestGenerator {
     /// - there is not a root directory (no `Anchor.toml` file)
     #[throws]
     pub async fn generate(&self) {
+        let root = self.discover_root()?;
         self.check_workspace().await?;
         self.generate_test_files().await?;
         self.update_workspace().await?;
@@ -120,7 +119,7 @@ impl TestGenerator {
     /// Creates and initializes the Cargo.toml. Adds `dev-dependencies` for the tests runner.
     #[throws]
     async fn initialize_cargo_toml(&self) {
-        let cargo_toml = Path::new(&self.root).join(TESTS_WORKSPACE).join(CARGO_TOML);
+        let cargo_toml = Path::new(root_dir).join(TESTS_DIRECTORY).join(CARGO_TOML);
         if cargo_toml.exists() {
             println!("Skipping creating the {} file", CARGO_TOML);
             return;
@@ -146,7 +145,8 @@ program_client = { path = "../program_client" }
     /// Throws an error when there is no directory with the `Anchor.toml` file
     // todo: this function should be a part of some Config / File implementation
     fn discover_root(&self) -> Result<PathBuf, Error> {
-        let mut dir = Some(self.root.as_path());
+        let current_dir = env::current_dir()?;
+        let mut dir = Some(current_dir.as_path());
         while let Some(cwd) = dir {
             for file in std::fs::read_dir(cwd).with_context(|| {
                 format!("Error reading the directory with path: {}", cwd.display())
