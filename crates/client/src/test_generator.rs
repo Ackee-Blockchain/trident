@@ -50,13 +50,21 @@ impl TestGenerator {
     #[throws]
     async fn generate_test_files(&self) {
         let path = Path::new(&self.root).join(TESTS_DIRECTORY);
-        if !path.exists() {
-            fs::create_dir(&path).await?;
-        }
+        match path.exists() {
+            true => println!("Skipping creating the {} directory", TESTS_DIRECTORY),
+            false => {
+                println!("Creating the {} directory ...", TESTS_DIRECTORY);
+                fs::create_dir(&path).await?;
+            }
+        };
         let test_path = path.join(TESTS_FILE_NAME);
-        if !test_path.exists() {
-            fs::write(test_path, "").await?;
-        }
+        match test_path.exists() {
+            true => println!("Skipping creating the {} file", TESTS_FILE_NAME),
+            false => {
+                println!("Creating the {} file ...", TESTS_FILE_NAME);
+                fs::write(test_path, "").await?;
+            }
+        };
         self.initialize_cargo_toml().await?;
     }
 
@@ -65,8 +73,10 @@ impl TestGenerator {
     async fn initialize_cargo_toml(&self) {
         let cargo_toml = Path::new(&self.root).join(TESTS_DIRECTORY).join(CARGO_TOML);
         if cargo_toml.exists() {
+            println!("Skipping creating the {} file", CARGO_TOML);
             return;
         }
+        println!("Creating the {} file ...", CARGO_TOML);
         // todo: the `trdelnik-client` path should be changed to crate version after the release
         let toml = r#"[package]
 name = "tests"
