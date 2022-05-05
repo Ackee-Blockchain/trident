@@ -1,8 +1,8 @@
 use crate::TempClone;
 use anchor_client::{
     anchor_lang::{
-        solana_program::program_pack::Pack, AccountDeserialize, Id, InstructionData, System,
-        ToAccountMetas,
+        prelude::System, solana_program::program_pack::Pack, AccountDeserialize, Id,
+        InstructionData, ToAccountMetas,
     },
     solana_client::{client_error::ClientErrorKind, rpc_config::RpcTransactionConfig},
     solana_sdk::{
@@ -22,6 +22,7 @@ use anchor_client::{
 use borsh::BorshDeserialize;
 use fehler::{throw, throws};
 use futures::stream::{self, StreamExt};
+use log::debug;
 use serde::de::DeserializeOwned;
 use solana_cli_output::display::println_transaction;
 use solana_transaction_status::{EncodedConfirmedTransaction, UiTransactionEncoding};
@@ -29,7 +30,6 @@ use spl_associated_token_account::get_associated_token_address;
 use std::rc::Rc;
 use std::{thread::sleep, time::Duration};
 use tokio::task;
-use log::debug;
 
 // @TODO: Make compatible with the latest Anchor deps.
 // https://github.com/project-serum/anchor/pull/1307#issuecomment-1022592683
@@ -277,9 +277,8 @@ impl Client {
             Some(&self.payer.pubkey()),
             &signers,
             rpc_client
-                .get_recent_blockhash()
-                .expect("Error while getting recent blockhash")
-                .0,
+                .get_latest_blockhash()
+                .expect("Error while getting recent blockhash"),
         );
         // @TODO make this call async with task::spawn_blocking
         let signature = rpc_client.send_and_confirm_transaction(tx)?;

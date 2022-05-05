@@ -2,11 +2,14 @@ use anyhow::Error;
 use clap::{Parser, Subcommand};
 use fehler::throws;
 
+// subcommand functions to call and nested subcommands
 mod command;
+// bring nested subcommand enums into scope
+use command::ExplorerCommand;
 
 #[derive(Parser)]
 #[clap(version, propagate_version = true)]
-pub struct Cli {
+struct Cli {
     #[clap(subcommand)]
     command: Command,
 }
@@ -21,6 +24,11 @@ enum Command {
     },
     /// Run local test validator
     Localnet,
+    /// The Hacker's Explorer
+    Explorer {
+        #[clap(subcommand)]
+        subcmd: ExplorerCommand,
+    },
 }
 
 #[throws]
@@ -30,5 +38,6 @@ pub async fn start() {
     match cli.command {
         Command::Test { root } => command::test(root).await?,
         Command::Localnet => command::localnet().await?,
+        Command::Explorer { subcmd } => command::explorer(subcmd).await?,
     }
 }

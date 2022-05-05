@@ -12,13 +12,13 @@ pretty_assertions = "1.1.0"
 
 [dependencies]
 trdelnik-test = { path = "../test" }
-solana-transaction-status = "=1.8.12"
-anchor-client = "0.22.0"
+solana-sdk = "~1.9"
+solana-cli-output = "~1.9"
+solana-transaction-status = "~1.9"
+anchor-client = "0.24.2"
 spl-token = "3.2.0"
 spl-associated-token-account = "1.0.3"
 tokio = { version = "1.13.0", features = ["rt-multi-thread", "macros", "fs", "signal", "sync", "time", "io-util", "process"], default-features = false }
-solana-sdk = "1.8.5"
-solana-cli-output = "1.8.5"
 rand = "0.7.3"
 serde_json = "1.0.72"
 serde = "1.0.136"

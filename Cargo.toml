@@ -3,5 +3,6 @@
 members = [
     "crates/cli",
     "crates/client",
+    "crates/explorer",
     "crates/test",
 ]

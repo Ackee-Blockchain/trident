@@ -1,7 +1,6 @@
 use anyhow::Error;
 use fehler::throws;
 use tokio::signal;
-
 use trdelnik_client::*;
 
 #[throws]
