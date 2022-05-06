@@ -5,7 +5,7 @@
 
 pub use anchor_client::{
     self,
-    anchor_lang::{self, Id, InstructionData, System, ToAccountMetas},
+    anchor_lang::{self, prelude::System, Id, InstructionData, ToAccountMetas},
     solana_sdk::{
         self,
         instruction::Instruction,
@@ -17,8 +17,8 @@ pub use anchor_client::{
 };
 pub use anyhow::{self, Error};
 pub use futures::{self, FutureExt};
-pub use serial_test;
 pub use rstest::*;
+pub use serial_test;
 pub use solana_transaction_status::EncodedConfirmedTransaction;
 pub use tokio;
 pub use trdelnik_test::trdelnik_test;
