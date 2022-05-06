@@ -1,0 +1,102 @@
+on:
+  pull_request:
+  push:
+    branches: master
+
+name: Lints
+
+jobs:
+  checks:
+    runs-on: ubuntu-18.04
+    needs:
+      - explorer
+      - cli
+      - client
+      - test
+    steps:
+      - run: echo "Done"
+
+  explorer:
+    runs-on: ubuntu-18.04
+    defaults:
+      run:
+        working-directory: crates/explorer
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install depends
+        run: |
+          sudo apt-get update && sudo apt-get install -y build-essential libudev-dev
+          rustup default nightly
+          rustup component add rustfmt clippy
+      - name: Cargo build
+        run: cargo build
+      - name: Cargo fmt
+        run: cargo fmt -- --check
+      - name: Cargo clippy
+        run: cargo clippy -- -D warnings
+      - name: Cargo test
+        run: cargo test
+
+  cli:
+    runs-on: ubuntu-18.04
+    defaults:
+      run:
+        working-directory: crates/cli
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install depends
+        run: |
+          sudo apt-get update && sudo apt-get install -y build-essential libudev-dev
+          rustup default nightly
+          rustup component add rustfmt clippy
+      - name: Cargo build
+        run: cargo build
+      - name: Cargo fmt
+        run: cargo fmt -- --check
+      - name: Cargo clippy
+        run: cargo clippy -- -D warnings
+      - name: Cargo test
+        run: cargo test
+
+  client:
+    runs-on: ubuntu-18.04
+    defaults:
+      run:
+        working-directory: crates/client
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install depends
+        run: |
+          sudo apt-get update && sudo apt-get install -y build-essential libudev-dev
+          rustup default nightly
+          rustup component add rustfmt clippy
+      - name: Cargo build
+        run: cargo build
+      - name: Cargo fmt
+        run: cargo fmt -- --check
+      - name: Cargo clippy
+        run: cargo clippy -- -D warnings
+      - name: Cargo test
+        run: cargo test
+
+  test:
+    runs-on: ubuntu-18.04
+    defaults:
+      run:
+        working-directory: crates/test
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install depends
+        run: |
+          sudo apt-get update && sudo apt-get install -y build-essential libudev-dev
+          rustup default nightly
+          cargo install cargo-expand
+          rustup component add rustfmt clippy
+      - name: Cargo build
+        run: cargo build
+      - name: Cargo fmt
+        run: cargo fmt -- --check
+      - name: Cargo clippy
+        run: cargo clippy -- -D warnings
+      - name: Cargo test
+        run: cargo test
