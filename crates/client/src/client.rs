@@ -1,8 +1,8 @@
 use crate::TempClone;
 use anchor_client::{
     anchor_lang::{
-        solana_program::program_pack::Pack, AccountDeserialize, Id, InstructionData, System,
-        ToAccountMetas,
+        prelude::System, solana_program::program_pack::Pack, AccountDeserialize, Id,
+        InstructionData, ToAccountMetas,
     },
     solana_client::{client_error::ClientErrorKind, rpc_config::RpcTransactionConfig},
     solana_sdk::{
