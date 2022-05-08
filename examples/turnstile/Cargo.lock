@@ -3335,17 +3335,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "tests"
-version = "0.1.0"
-dependencies = [
- "fehler",
- "program_client",
- "rstest",
- "trdelnik-client",
- "turnstile",
-]
-
-[[package]]
 name = "textwrap"
 version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3563,6 +3552,17 @@ dependencies = [
  "proc-macro2 1.0.38",
  "quote 1.0.18",
  "syn 1.0.92",
+]
+
+[[package]]
+name = "trdelnik-tests"
+version = "0.1.0"
+dependencies = [
+ "fehler",
+ "program_client",
+ "rstest",
+ "trdelnik-client",
+ "turnstile",
 ]
 
 [[package]]
