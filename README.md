@@ -53,12 +53,22 @@ Here's a test of [turnstile program](examples/turnstile/programs/turnstile/src/l
 - Create an empty test and annotate it with the `trdelnik_test` macro (as shown bellow).
 - Run `makers trdelnik test` in order to generate a `program_client` crate (containing an auto generated code for easy invocation of instructions of your program)
 - Add `program_client` crate into your `Cargo.toml` and import it to the test (as shown bellow).
+- Run the `makers trdelnik init` command to initialize a test workspace
 - Now you can easily invoke instructions of your program and do whatever you want in your test.
 - After you are finished with your tests run `makers trdelnik test` and check the results.
+```toml
+# <project_root>/trdelnik-tests/Cargo.toml
+# Do not forget to import all the necessary crates to your test workspace
+# ...
+[dev-dependencies]
+turnstile = { path = "../programs/turnstile" }
+# ...
+```
 ```rust
 // ...
 use program_client::turnstile_instruction;
 use trdelnik_client::*;
+use turnstile;
 
 #[throws]
 #[fixture]
