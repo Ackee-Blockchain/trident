@@ -1,7 +1,8 @@
 use fehler::throws;
 use program_client::turnstile_instruction;
 use std::mem;
-use trdelnik_client::{*, anyhow::Result};
+use trdelnik_client::{anyhow::Result, *};
+use turnstile;
 
 #[throws]
 #[fixture]
@@ -50,7 +51,6 @@ async fn test_happy_path(#[future] init_fixture: Result<Fixture>) {
     assert_eq!(state.locked, true);
     // the last push was successfull
     assert_eq!(state.res, true);
-    
 }
 
 #[trdelnik_test]
