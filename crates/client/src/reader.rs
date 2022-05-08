@@ -73,7 +73,6 @@ impl Reader {
     /// It fails when the requested file does not exist or it is not readable.
     #[throws]
     pub async fn program_data(&self, name: &str) -> Vec<u8> {
-        println!("{}", format!("{}target/deploy/{}.so", self.root, name));
         fs::read(format!("{}target/deploy/{}.so", self.root, name)).await?
     }
 }

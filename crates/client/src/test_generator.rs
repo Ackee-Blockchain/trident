@@ -46,11 +46,11 @@ impl TestGenerator {
     /// to the `trdelnik-tests/Cargo.toml`. For example:
     ///
     /// ```toml
-    /// // trdelnik-tests/Cargo.toml
-    /// // ...
+    /// # <project_root>/trdelnik-tests/Cargo.toml
+    /// # ...
     /// [dev-dependencies]
     /// my-program = { path = "../programs/my-program" }
-    /// // ...
+    /// # ...
     /// ```
     ///
     /// Then you can easily use it in tests:
