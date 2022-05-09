@@ -84,21 +84,10 @@ impl TestGenerator {
     #[throws]
     async fn generate_test_files(&self) {
         let workspace_path = Path::new(&self.root).join(TESTS_WORKSPACE);
-        match workspace_path.exists() {
-            true => println!("Skipping creating the {} workspace", TESTS_WORKSPACE),
-            false => {
-                println!("Creating the {} workspace ...", TESTS_WORKSPACE);
-                fs::create_dir(&workspace_path).await?;
-            }
-        };
+        self.create_directory(&workspace_path, TESTS_WORKSPACE)
+            .await?;
         let tests_path = workspace_path.join(TESTS_DIRECTORY);
-        match tests_path.exists() {
-            true => println!("Skipping creating the {} directory", TESTS_DIRECTORY),
-            false => {
-                println!("Creating the {} directory ...", TESTS_DIRECTORY);
-                fs::create_dir(&tests_path).await?;
-            }
-        }
+        self.create_directory(&tests_path, TESTS_DIRECTORY).await?;
         let test_path = tests_path.join(TESTS_FILE_NAME);
         match test_path.exists() {
             true => println!("Skipping creating the {} file", TESTS_FILE_NAME),
@@ -108,6 +97,23 @@ impl TestGenerator {
             }
         };
         self.initialize_cargo_toml().await?;
+    }
+
+    /// Creates a new directory on the specified `path` and with the specified `name`
+    // todo: the function should be located in the different module, File module for example
+    async fn create_directory<'a>(
+        &self,
+        path: &'a PathBuf,
+        name: &str,
+    ) -> Result<&'a PathBuf, Error> {
+        match path.exists() {
+            true => println!("Skipping creating the {} directory", name),
+            false => {
+                println!("Creating the {} directory ...", name);
+                fs::create_dir(path).await?;
+            }
+        };
+        Ok(path)
     }
 
     /// Creates and initializes the Cargo.toml. Adds `dev-dependencies` for the tests runner.
