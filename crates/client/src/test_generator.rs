@@ -1,5 +1,4 @@
 use anyhow::Context;
-use std::env::current_dir;
 use fehler::{throw, throws};
 use std::{
     env, io,
@@ -19,8 +18,6 @@ const ANCHOR_TOML: &str = "Anchor.toml";
 pub enum Error {
     #[error("invalid workspace")]
     BadWorkspace,
-    #[error("must have current dir")]
-    MustHaveCurrentDir,
     #[error("cannot parse Cargo.toml")]
     CannotParseCargoToml,
     #[error("{0:?}")]
@@ -32,6 +29,11 @@ pub enum Error {
 }
 
 pub struct TestGenerator;
+impl Default for TestGenerator {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 impl TestGenerator {
     pub fn new() -> Self {
         Self
@@ -74,16 +76,15 @@ impl TestGenerator {
     #[throws]
     pub async fn generate(&self) {
         let root = self.discover_root()?;
-        self.check_workspace().await?;
-        self.generate_test_files().await?;
-        self.update_workspace().await?;
+        self.generate_test_files(&root).await?;
+        self.update_workspace(&root).await?;
     }
 
     /// Creates the `trdelnik-tests` workspace with `tests` directory and empty `test.rs` file
     /// finally it generates the `Cargo.toml` file.
     #[throws]
-    async fn generate_test_files(&self) {
-        let workspace_path = Path::new(&self.root).join(TESTS_WORKSPACE);
+    async fn generate_test_files(&self, root: &PathBuf) {
+        let workspace_path = Path::new(root).join(TESTS_WORKSPACE);
         self.create_directory(&workspace_path, TESTS_WORKSPACE)
             .await?;
         let tests_path = workspace_path.join(TESTS_DIRECTORY);
@@ -96,7 +97,7 @@ impl TestGenerator {
                 fs::write(test_path, "").await?;
             }
         };
-        self.initialize_cargo_toml().await?;
+        self.initialize_cargo_toml(root).await?;
     }
 
     /// Creates a new directory on the specified `path` and with the specified `name`
@@ -118,8 +119,8 @@ impl TestGenerator {
 
     /// Creates and initializes the Cargo.toml. Adds `dev-dependencies` for the tests runner.
     #[throws]
-    async fn initialize_cargo_toml(&self) {
-        let cargo_toml = Path::new(root_dir).join(TESTS_DIRECTORY).join(CARGO_TOML);
+    async fn initialize_cargo_toml(&self, root: &PathBuf) {
+        let cargo_toml = Path::new(root).join(TESTS_WORKSPACE).join(CARGO_TOML);
         if cargo_toml.exists() {
             println!("Skipping creating the {} file", CARGO_TOML);
             return;
@@ -169,8 +170,8 @@ program_client = { path = "../program_client" }
 
     /// Adds `trdelnik-tests` workspace to the `root`'s `Cargo.toml` workspace members if needed.
     #[throws]
-    async fn update_workspace(&self) {
-        let cargo = Path::new(&self.root).join(CARGO_TOML);
+    async fn update_workspace(&self, root: &PathBuf) {
+        let cargo = Path::new(&root).join(CARGO_TOML);
         let mut content: Value = fs::read_to_string(&cargo).await?.parse()?;
         let test_workspace_value = Value::String(String::from(TESTS_WORKSPACE));
         let members = content
@@ -192,14 +193,5 @@ program_client = { path = "../program_client" }
             }
         }
         fs::write(cargo, content.to_string()).await?;
-    }
-
-    #[throws]
-    async fn check_workspace(&self) {
-        let anchor_toml = Path::new(&self.path).join(ANCHOR_TOML);
-        match anchor_toml.exists() {
-            false => throw!(Error::BadWorkspace),
-            _ => {}
-        }
     }
 }
