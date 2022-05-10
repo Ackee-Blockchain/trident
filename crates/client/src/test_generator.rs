@@ -56,7 +56,7 @@ impl TestGenerator {
     ///
     /// Then you can easily use it in tests:
     ///
-    /// ```rust
+    /// ```ignore
     /// use my_program;
     ///
     /// // ...
