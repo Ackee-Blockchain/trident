@@ -43,6 +43,8 @@ impl TestGenerator {
     /// `test.rs` file and generates `Cargo.toml` with `dev-dependencies`. Updates root's `Cargo.toml`
     /// workspace members.
     ///
+    /// The crate is generated from `trdelnik-tests` template located in `client/src/templates`.
+    ///
     /// Before you start writing trdelnik tests do not forget to add your program as a dependency
     /// to the `trdelnik-tests/Cargo.toml`. For example:
     ///
@@ -81,7 +83,8 @@ impl TestGenerator {
     }
 
     /// Creates the `trdelnik-tests` workspace with `tests` directory and empty `test.rs` file
-    /// finally it generates the `Cargo.toml` file.
+    /// finally it generates the `Cargo.toml` file. Crate is generated from `trdelnik-tests`
+    /// template located in `client/src/templates`
     #[throws]
     async fn generate_test_files(&self, root: &PathBuf) {
         let workspace_path = Path::new(root).join(TESTS_WORKSPACE);
@@ -90,14 +93,31 @@ impl TestGenerator {
         let tests_path = workspace_path.join(TESTS_DIRECTORY);
         self.create_directory(&tests_path, TESTS_DIRECTORY).await?;
         let test_path = tests_path.join(TESTS_FILE_NAME);
-        match test_path.exists() {
-            true => println!("Skipping creating the {} file", TESTS_FILE_NAME),
+        let test_content = include_str!("templates/trdelnik-tests/tests/test.rs");
+        self.create_file(&test_path, TESTS_FILE_NAME, test_content)
+            .await?;
+        let toml_path = workspace_path.join(CARGO_TOML);
+        let toml_content = include_str!("templates/trdelnik-tests/Cargo.toml");
+        self.create_file(&toml_path, CARGO_TOML, toml_content)
+            .await?;
+    }
+
+    /// Creates a new file with a given content on the specified `path` and `name`
+    // todo: the function should be located in the different module, File module for example
+    async fn create_file<'a>(
+        &self,
+        path: &'a PathBuf,
+        name: &str,
+        content: &str,
+    ) -> Result<&'a PathBuf, Error> {
+        match path.exists() {
+            true => println!("Skipping creating the {} file", name),
             false => {
-                println!("Creating the {} file ...", TESTS_FILE_NAME);
-                fs::write(test_path, "").await?;
+                println!("Creating the {} file ...", name);
+                fs::write(path, content).await?;
             }
         };
-        self.initialize_cargo_toml(root).await?;
+        Ok(path)
     }
 
     /// Creates a new directory on the specified `path` and with the specified `name`
@@ -115,31 +135,6 @@ impl TestGenerator {
             }
         };
         Ok(path)
-    }
-
-    /// Creates and initializes the Cargo.toml. Adds `dev-dependencies` for the tests runner.
-    #[throws]
-    async fn initialize_cargo_toml(&self, root: &PathBuf) {
-        let cargo_toml = Path::new(root).join(TESTS_WORKSPACE).join(CARGO_TOML);
-        if cargo_toml.exists() {
-            println!("Skipping creating the {} file", CARGO_TOML);
-            return;
-        }
-        println!("Creating the {} file ...", CARGO_TOML);
-        // todo: the `trdelnik-client` path should be changed to crate version after the release
-        let toml = r#"[package]
-name = "trdelnik-tests"
-version = "0.1.0"
-description = "Created with Trdelnik"
-edition = "2021"
-
-[dev-dependencies]
-fehler = "1.0.0"
-rstest = "0.12.0"
-trdelnik-client = { path = "../../../crates/client" }
-program_client = { path = "../program_client" }
-"#;
-        fs::write(cargo_toml, toml).await?;
     }
 
     /// Tries to find the root directory with the `Anchor.toml` file.
