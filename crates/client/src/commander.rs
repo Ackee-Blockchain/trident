@@ -154,13 +154,13 @@ impl Commander {
 
         fs::create_dir(&crate_path).await?;
 
-        let cargo_toml_content = include_str!("program_client_template/Cargo.toml");
+        let cargo_toml_content = include_str!("templates/program_client/Cargo.toml");
         fs::write(crate_path.join("Cargo.toml"), &cargo_toml_content).await?;
 
         let src_path = crate_path.join("src");
         fs::create_dir(&src_path).await?;
 
-        let lib_rs_content = include_str!("program_client_template/src/lib.rs");
+        let lib_rs_content = include_str!("templates/program_client/src/lib.rs");
         fs::write(src_path.join("lib.rs"), &lib_rs_content).await?;
 
         debug!("program_client crate created")
