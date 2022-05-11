@@ -1,5 +1,7 @@
-[workspace]
+[profile.release]
+lto = true
 
+[workspace]
 members = [
     "crates/cli",
     "crates/client",

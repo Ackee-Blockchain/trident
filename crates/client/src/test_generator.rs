@@ -136,7 +136,7 @@ edition = "2021"
 [dev-dependencies]
 fehler = "1.0.0"
 rstest = "0.12.0"
-trdelnik-client = { path = "../../../crates/client" }
+trdelnik-client = "0.1.3"
 program_client = { path = "../program_client" }
 "#;
         fs::write(cargo_toml, toml).await?;

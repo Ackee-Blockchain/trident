@@ -1,6 +1,6 @@
 use crate::idl::Idl;
 use quote::{format_ident, ToTokens};
-use syn::{parse_quote, parse_str};
+use syn::{parse_quote, parse_str, FieldValue, FnArg, ItemFn, ItemMod};
 
 /// Generates `program_client`'s `lib.rs` from [Idl] created from Anchor programs.
 ///
@@ -37,7 +37,7 @@ pub fn generate_source_code(idl: Idl) -> String {
                             .map(|(name, ty)| {
                                 let name = format_ident!("i_{name}");
                                 let ty: syn::Type = parse_str(ty).unwrap();
-                                let parameter: syn::FnArg = parse_quote!(#name: #ty);
+                                let parameter: FnArg = parse_quote!(#name: #ty);
                                 parameter
                             })
                             .collect::<Vec<_>>();
@@ -48,7 +48,7 @@ pub fn generate_source_code(idl: Idl) -> String {
                             .map(|(name, ty)| {
                                 let name = format_ident!("a_{name}");
                                 let ty: syn::Type = parse_str(ty).unwrap();
-                                let account: syn::FnArg = parse_quote!(#name: #ty);
+                                let account: FnArg = parse_quote!(#name: #ty);
                                 account
                             })
                             .collect::<Vec<_>>();
@@ -59,7 +59,7 @@ pub fn generate_source_code(idl: Idl) -> String {
                             .map(|(name, _)| {
                                 let name: syn::Ident = parse_str(name).unwrap();
                                 let value = format_ident!("i_{name}");
-                                let parameter: syn::FieldValue = parse_quote!(#name: #value);
+                                let parameter: FieldValue = parse_quote!(#name: #value);
                                 parameter
                             })
                             .collect::<Vec<_>>();
@@ -70,12 +70,12 @@ pub fn generate_source_code(idl: Idl) -> String {
                             .map(|(name, _)| {
                                 let name: syn::Ident = parse_str(name).unwrap();
                                 let value = format_ident!("a_{name}");
-                                let account: syn::FieldValue = parse_quote!(#name: #value);
+                                let account: FieldValue = parse_quote!(#name: #value);
                                 account
                             })
                             .collect::<Vec<_>>();
 
-                        let instruction: syn::ItemFn = parse_quote! {
+                        let instruction: ItemFn = parse_quote! {
                             pub async fn #instruction_fn_name(
                                 client: &Client,
                                 #(#parameters,)*
@@ -95,7 +95,7 @@ pub fn generate_source_code(idl: Idl) -> String {
                             }
                         };
 
-                        let instruction_raw: syn::ItemFn = parse_quote! {
+                        let instruction_raw: ItemFn = parse_quote! {
                             pub  fn #instruction_name(
                                 #(#parameters,)*
                                 #(#accounts,)*
@@ -119,7 +119,7 @@ pub fn generate_source_code(idl: Idl) -> String {
                 )
                 .into_iter();
 
-            let program_module: syn::ItemMod = parse_quote! {
+            let program_module: ItemMod = parse_quote! {
                 pub mod #instruction_module_name {
                     use trdelnik_client::*;
                     pub static PROGRAM_ID: Pubkey = Pubkey::new_from_array(#pubkey_bytes);
