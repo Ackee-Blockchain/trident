@@ -154,13 +154,19 @@ impl Commander {
 
         fs::create_dir(&crate_path).await?;
 
-        let cargo_toml_content = include_str!("templates/program_client/Cargo.toml");
+        let cargo_toml_content = include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/src/templates/program_client/Cargo.tmp"
+        ));
         fs::write(crate_path.join("Cargo.toml"), &cargo_toml_content).await?;
 
         let src_path = crate_path.join("src");
         fs::create_dir(&src_path).await?;
 
-        let lib_rs_content = include_str!("templates/program_client/lib.rs");
+        let lib_rs_content = include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/src/templates/program_client/lib.rs"
+        ));
         fs::write(src_path.join("lib.rs"), &lib_rs_content).await?;
 
         debug!("program_client crate created")
@@ -187,9 +193,7 @@ impl Commander {
     /// It's used internally by the [`#[trdelnik_test]`](trdelnik_test::trdelnik_test) macro.
     #[throws]
     pub async fn generate_program_client_deps(&self) {
-        let trdelnik_dep = r#"trdelnik-client = { path = "../../../crates/client" }"#
-            .parse()
-            .unwrap();
+        let trdelnik_dep = r#"trdelnik-client = "0.1.0""#.parse().unwrap();
         // @TODO replace the line above with the specific version or commit hash
         // when Trdelnik is released or when its repo is published.
         // Or use both variants - path for Trdelnik repo/dev and version/commit for users.

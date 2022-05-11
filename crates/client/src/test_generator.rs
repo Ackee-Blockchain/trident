@@ -143,6 +143,31 @@ impl TestGenerator {
         Ok(path)
     }
 
+    /// Creates and initializes the Cargo.toml. Adds `dev-dependencies` for the tests runner.
+    #[throws]
+    async fn initialize_cargo_toml(&self, root: &PathBuf) {
+        let cargo_toml = Path::new(root).join(TESTS_WORKSPACE).join(CARGO_TOML);
+        if cargo_toml.exists() {
+            println!("Skipping creating the {} file", CARGO_TOML);
+            return;
+        }
+        println!("Creating the {} file ...", CARGO_TOML);
+        // todo: the `trdelnik-client` path should be changed to crate version after the release
+        let toml = r#"[package]
+name = "trdelnik-tests"
+version = "0.1.0"
+description = "Created with Trdelnik"
+edition = "2021"
+
+[dev-dependencies]
+fehler = "1.0.0"
+rstest = "0.12.0"
+trdelnik-client = "0.1.3"
+program_client = { path = "../program_client" }
+"#;
+        fs::write(cargo_toml, toml).await?;
+    }
+
     /// Tries to find the root directory with the `Anchor.toml` file.
     /// Throws an error when there is no directory with the `Anchor.toml` file
     // todo: this function should be a part of some Config / File implementation
