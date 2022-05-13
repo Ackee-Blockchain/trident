@@ -122,6 +122,7 @@ impl TestGenerator {
         ));
         self.create_file(&toml_path, CARGO_TOML, toml_content)
             .await?;
+        self.add_program_dev_deps(root, &toml_path).await?;
     }
 
     /// Creates a new file with a given content on the specified `path` and `name`
@@ -208,7 +209,48 @@ impl TestGenerator {
                 members.push(test_workspace_value);
                 println!("Project workspace successfully updated");
             }
-        }
+        };
         fs::write(cargo, content.to_string()).await?;
+    }
+
+    /// Adds programs to Cargo.toml as a dev dependencies to be able to be used in tests
+    #[throws]
+    async fn add_program_dev_deps(&self, root: &Path, cargo_toml_path: &Path) {
+        let programs = self.get_programs(root)?;
+        if !programs.is_empty() {
+            println!("Adding programs to Cargo.toml ...");
+            let mut content: Value = fs::read_to_string(cargo_toml_path).await?.parse()?;
+            let dev_deps = content
+                .get_mut("dev-dependencies")
+                .and_then(Value::as_table_mut)
+                .ok_or(Error::CannotParseCargoToml)?;
+            for dep in programs {
+                if let Value::Table(table) = dep {
+                    let (name, value) = table.into_iter().next().unwrap();
+                    dev_deps.entry(name).or_insert(value);
+                }
+            }
+            fs::write(cargo_toml_path, content.to_string()).await?;
+        }
+    }
+
+    /// Scans `programs` directory and returns a list of `toml::Value` programs and their paths.
+    fn get_programs(&self, root: &Path) -> Result<Vec<Value>, Error> {
+        let programs = root.join("programs");
+        if !programs.exists() {
+            println!("Programs folder does not exist. Skipping adding dev dependencies.");
+            return Ok(Vec::new());
+        }
+        println!("Searching for programs ...");
+        let programs = std::fs::read_dir(programs)?
+            .map(|x| {
+                let file_name = x.unwrap().file_name();
+                let name = file_name.to_str().unwrap();
+                format!(r#"{name} = {{ path = "../programs/{name}" }}"#)
+                    .parse()
+                    .unwrap()
+            })
+            .collect::<Vec<Value>>();
+        Ok(programs)
     }
 }
