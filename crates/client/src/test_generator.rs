@@ -93,11 +93,17 @@ impl TestGenerator {
         let tests_path = workspace_path.join(TESTS_DIRECTORY);
         self.create_directory(&tests_path, TESTS_DIRECTORY).await?;
         let test_path = tests_path.join(TESTS_FILE_NAME);
-        let test_content = include_str!("templates/trdelnik-tests/tests/test.rs");
+        let test_content = include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/src/templates/trdelnik-tests/test.rs"
+        ));
         self.create_file(&test_path, TESTS_FILE_NAME, test_content)
             .await?;
         let toml_path = workspace_path.join(CARGO_TOML);
-        let toml_content = include_str!("templates/trdelnik-tests/Cargo.toml");
+        let toml_content = include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/src/templates/trdelnik-tests/Cargo.toml"
+        ));
         self.create_file(&toml_path, CARGO_TOML, toml_content)
             .await?;
     }
