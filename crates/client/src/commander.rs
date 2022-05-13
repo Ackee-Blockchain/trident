@@ -160,7 +160,7 @@ impl Commander {
         let src_path = crate_path.join("src");
         fs::create_dir(&src_path).await?;
 
-        let lib_rs_content = include_str!("templates/program_client/src/lib.rs");
+        let lib_rs_content = include_str!("templates/program_client/lib.rs");
         fs::write(src_path.join("lib.rs"), &lib_rs_content).await?;
 
         debug!("program_client crate created")
