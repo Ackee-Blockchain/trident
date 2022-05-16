@@ -2,7 +2,7 @@
 name = "trdelnik-test"
 version = "0.1.0"
 edition = "2018"
-authors = ["AckeeBlockchain <hello@ackeeblockchain.com>>"]
+authors = ["AckeeBlockchain <hello@ackeeblockchain.com>"]
 license = "Apache-2.0"
 repository = "https://github.com/Ackee-Blockchain/trdelnik"
 description = "Trdelnik proc-macro"
