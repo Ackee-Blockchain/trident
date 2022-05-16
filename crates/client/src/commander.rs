@@ -194,7 +194,7 @@ impl Commander {
     #[throws]
     pub async fn generate_program_client_deps(&self) {
         let trdelnik_dep = r#"trdelnik-client = "0.1.0""#.parse().unwrap();
-        // @TODO replace the line above with the specific version or commit hash
+        // @TODO move specific version of Trdelnik to template file, so it's easier to update with new releases
         // when Trdelnik is released or when its repo is published.
         // Or use both variants - path for Trdelnik repo/dev and version/commit for users.
         // Some related snippets:
