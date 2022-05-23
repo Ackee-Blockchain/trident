@@ -27,6 +27,6 @@ jobs:
       - name: Cargo build
         run: cargo build
       - name: Prepare program client
-        run: makers trdelnik test
+        run: makers trdelnik build
       - name: Run trdelnik test
         run: makers trdelnik test
