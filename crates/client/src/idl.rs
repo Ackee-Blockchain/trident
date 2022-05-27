@@ -155,7 +155,36 @@ pub async fn parse_to_idl_program(name: String, code: &str) -> Result<IdlProgram
                 name if name.starts_with(ACCOUNT_MOD_PREFIX) => {
                     account_mods.push(item_mod);
                 }
-                _ => (),
+                _ => {
+                    let modules = item_mod
+                        .content
+                        .ok_or(Error::MissingOrInvalidProgramItems(
+                            "account mod: empty content",
+                        ))?
+                        .1;
+                    for module in modules {
+                        if let syn::Item::Mod(nested_mod) = module {
+                            if nested_mod.ident.to_string().starts_with(ACCOUNT_MOD_PREFIX) {
+                                account_mods.push(nested_mod);
+                            } else {
+                                let nested_modules = nested_mod
+                                    .content
+                                    .ok_or(Error::MissingOrInvalidProgramItems(
+                                        "account mod: empty content",
+                                    ))?
+                                    .1;
+                                for module in nested_modules {
+                                    if let syn::Item::Mod(nested) = module {
+                                        if nested.ident.to_string().starts_with(ACCOUNT_MOD_PREFIX)
+                                        {
+                                            account_mods.push(nested);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             },
             _ => (),
         }
