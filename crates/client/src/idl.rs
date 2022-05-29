@@ -98,6 +98,8 @@ use heck::{ToSnakeCase, ToUpperCamelCase};
 use quote::ToTokens;
 use thiserror::Error;
 
+static ACCOUNT_MOD_PREFIX: &str = "__client_accounts_";
+
 #[derive(Error, Debug)]
 pub enum Error {
     #[error("{0:?}")]
@@ -137,8 +139,6 @@ pub struct IdlAccountGroup {
 }
 
 pub async fn parse_to_idl_program(name: String, code: &str) -> Result<IdlProgram, Error> {
-    static ACCOUNT_MOD_PREFIX: &str = "__client_accounts_";
-
     let mut static_program_id = None::<syn::ItemStatic>;
     let mut mod_private = None::<syn::ItemMod>;
     let mut mod_instruction = None::<syn::ItemMod>;
@@ -152,39 +152,7 @@ pub async fn parse_to_idl_program(name: String, code: &str) -> Result<IdlProgram
             syn::Item::Mod(item_mod) => match item_mod.ident.to_string().as_str() {
                 "__private" => mod_private = Some(item_mod),
                 "instruction" => mod_instruction = Some(item_mod),
-                name if name.starts_with(ACCOUNT_MOD_PREFIX) => {
-                    account_mods.push(item_mod);
-                }
-                _ => {
-                    let modules = item_mod
-                        .content
-                        .ok_or(Error::MissingOrInvalidProgramItems(
-                            "account mod: empty content",
-                        ))?
-                        .1;
-                    for module in modules {
-                        if let syn::Item::Mod(nested_mod) = module {
-                            if nested_mod.ident.to_string().starts_with(ACCOUNT_MOD_PREFIX) {
-                                account_mods.push(nested_mod);
-                            } else {
-                                let nested_modules = nested_mod
-                                    .content
-                                    .ok_or(Error::MissingOrInvalidProgramItems(
-                                        "account mod: empty content",
-                                    ))?
-                                    .1;
-                                for module in nested_modules {
-                                    if let syn::Item::Mod(nested) = module {
-                                        if nested.ident.to_string().starts_with(ACCOUNT_MOD_PREFIX)
-                                        {
-                                            account_mods.push(nested);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+                _ => set_account_modules(&mut account_mods, item_mod),
             },
             _ => (),
         }
@@ -498,4 +466,27 @@ pub async fn parse_to_idl_program(name: String, code: &str) -> Result<IdlProgram
         id: program_id_bytes.into_token_stream().to_string(),
         instruction_account_pairs,
     })
+}
+
+fn set_account_modules(account_modules: &mut Vec<syn::ItemMod>, item_module: syn::ItemMod) {
+    if item_module
+        .ident
+        .to_string()
+        .starts_with(ACCOUNT_MOD_PREFIX)
+    {
+        account_modules.push(item_module);
+        return;
+    }
+    let modules = item_module
+        .content
+        .ok_or(Error::MissingOrInvalidProgramItems(
+            "account mod: empty content",
+        ))
+        .unwrap()
+        .1;
+    for module in modules {
+        if let syn::Item::Mod(nested_module) = module {
+            set_account_modules(account_modules, nested_module);
+        }
+    }
 }
