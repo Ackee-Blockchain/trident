@@ -1,3 +1,4 @@
+use crate::commander::{Commander, Error as CommanderError};
 use anyhow::Context;
 use fehler::{throw, throws};
 use std::{
@@ -26,6 +27,8 @@ pub enum Error {
     Anyhow(#[from] anyhow::Error),
     #[error("{0:?}")]
     Toml(#[from] toml::de::Error),
+    #[error("{0:?}")]
+    Commander(#[from] CommanderError),
 }
 
 pub struct TestGenerator;
@@ -39,7 +42,8 @@ impl TestGenerator {
         Self
     }
 
-    /// Initializes the `trdelnik-tests/tests` directory with all the necessary files. Adds the
+    /// Builds all the programs and creates `program_client` directory. Initializes the
+    /// `trdelnik-tests/tests` directory with all the necessary files. Adds the
     /// `test.rs` file and generates `Cargo.toml` with `dev-dependencies`. Updates root's `Cargo.toml`
     /// workspace members.
     ///
@@ -78,8 +82,20 @@ impl TestGenerator {
     #[throws]
     pub async fn generate(&self) {
         let root = self.discover_root()?;
+        let root_path = root.to_str().unwrap().to_string();
+        let commander = Commander::with_root(root_path);
+        commander.create_program_client_crate().await?;
         self.generate_test_files(&root).await?;
         self.update_workspace(&root).await?;
+        self.build_program_client(&commander).await?;
+    }
+
+    /// Builds and generates programs for `program_client` module
+    #[throws]
+    async fn build_program_client(&self, commander: &Commander) {
+        commander.build_programs().await?;
+        commander.generate_program_client_deps().await?;
+        commander.generate_program_client_lib_rs().await?;
     }
 
     /// Creates the `trdelnik-tests` workspace with `tests` directory and empty `test.rs` file
