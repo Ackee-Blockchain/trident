@@ -216,7 +216,7 @@ impl TestGenerator {
     /// Adds programs to Cargo.toml as a dev dependencies to be able to be used in tests
     #[throws]
     async fn add_program_dev_deps(&self, root: &Path, cargo_toml_path: &Path) {
-        let programs = self.get_programs(root)?;
+        let programs = self.get_programs(root).await?;
         if !programs.is_empty() {
             println!("Adding programs to Cargo.toml ...");
             let mut content: Value = fs::read_to_string(cargo_toml_path).await?.parse()?;
@@ -235,22 +235,42 @@ impl TestGenerator {
     }
 
     /// Scans `programs` directory and returns a list of `toml::Value` programs and their paths.
-    fn get_programs(&self, root: &Path) -> Result<Vec<Value>, Error> {
+    async fn get_programs(&self, root: &Path) -> Result<Vec<Value>, Error> {
         let programs = root.join("programs");
         if !programs.exists() {
             println!("Programs folder does not exist. Skipping adding dev dependencies.");
             return Ok(Vec::new());
         }
         println!("Searching for programs ...");
-        let programs = std::fs::read_dir(programs)?
-            .map(|x| {
-                let file_name = x.unwrap().file_name();
-                let name = file_name.to_str().unwrap();
-                format!(r#"{name} = {{ path = "../programs/{name}" }}"#)
-                    .parse()
-                    .unwrap()
-            })
-            .collect::<Vec<Value>>();
-        Ok(programs)
+        let mut program_names: Vec<Value> = vec![];
+        let programs = std::fs::read_dir(programs)?;
+        for program in programs {
+            let file = program?;
+            let file_name = file.file_name();
+            if file.path().is_dir() {
+                let path = file.path().join(CARGO_TOML);
+                if path.exists() {
+                    let name = file_name.to_str().unwrap();
+                    let dependency = self.get_program_dep(&path, name).await?;
+                    program_names.push(dependency);
+                }
+            }
+        }
+        Ok(program_names)
+    }
+
+    /// Gets the program name from `<program>/Cargo.toml` and returns a `toml::Value` program dependency.
+    #[throws]
+    async fn get_program_dep<'a>(&self, dir: &Path, dir_name: &'a str) -> Value {
+        let content: Value = fs::read_to_string(&dir).await?.parse()?;
+        let name = content
+            .get("package")
+            .and_then(Value::as_table)
+            .and_then(|table| table.get("name"))
+            .and_then(Value::as_str)
+            .ok_or(Error::CannotParseCargoToml)?;
+        format!("{} = {{ path = \"../programs/{}\" }}", name, dir_name)
+            .parse()
+            .unwrap()
     }
 }
