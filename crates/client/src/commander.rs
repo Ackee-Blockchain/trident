@@ -15,7 +15,7 @@ use tokio::{
     process::{Child, Command},
 };
 
-pub static PROGRAM_CLIENT_DIRECTORY: &str = "program_client";
+pub static PROGRAM_CLIENT_DIRECTORY: &str = ".program_client";
 
 #[derive(Error, Debug)]
 pub enum Error {

@@ -42,7 +42,7 @@ impl TestGenerator {
         Self
     }
 
-    /// Builds all the programs and creates `program_client` directory. Initializes the
+    /// Builds all the programs and creates `.program_client` directory. Initializes the
     /// `trdelnik-tests/tests` directory with all the necessary files. Adds the
     /// `test.rs` file and generates `Cargo.toml` with `dev-dependencies`. Updates root's `Cargo.toml`
     /// workspace members.
