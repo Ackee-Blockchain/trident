@@ -51,7 +51,7 @@ cargo install --version <version> trdelnik-cli
 ```shell
 # navigate to your project root directory
 trdelnik init
-# it will generate `program_client` and `trdelnik-tests` directories with all the necessary files
+# it will generate `.program_client` and `trdelnik-tests` directories with all the necessary files
 trdelnik test
 # want more?
 trdelnik --help
