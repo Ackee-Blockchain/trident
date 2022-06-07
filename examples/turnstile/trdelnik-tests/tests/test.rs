@@ -84,9 +84,17 @@ impl Fixture {
         self.client
             .airdrop(self.client.payer().pubkey(), 5_000_000_000)
             .await?;
+
         self.client
             .deploy(self.program.clone(), mem::take(&mut program_data))
             .await?;
+
+        println!(
+            "Payer's balance after deploy: {}",
+            self.client
+                .get_balance(self.client.payer().pubkey())
+                .await?
+        );
     }
 
     #[throws]
