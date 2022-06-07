@@ -17,10 +17,11 @@ pub fn program_keypair(n: usize) -> Keypair {
     keypair
 }
 
-/// Returns a system wallet (wallet which is owned by the system). The public key will
-/// start with `Sxx`, where xx are the three digits of the number. You shouldn't call the method with the same `n`
-/// twice. `o` is used instead of `0`, as `0` is not part of the base58 charset. Returns a recognisable `Keypair`.
-/// This is NOT the same as `anchor_lang::system_program::System::id()`!
+/// Returns a system wallet (wallet which is owned by the system) but it is not required, you can also use the
+/// `keypair` method bellow. The public key will start with `Sxx`, where xx are the three digits of the number.
+/// You shouldn't call the method with the same `n` twice. `o` is used instead of `0`, as `0` is not part of
+/// the base58 charset. Returns a recognisable `Keypair`. This is NOT the same as
+/// `anchor_lang::system_program::System::id()`!
 /// The `n` must be a number between `0` and `29`.
 pub fn system_keypair(n: usize) -> Keypair {
     Keypair::from_bytes(&SYSTEM_KEYPAIRS[n]).unwrap()
