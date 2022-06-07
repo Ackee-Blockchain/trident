@@ -1,4 +1,4 @@
-use anchor_client::solana_sdk::signer::keypair::Keypair;
+use anchor_client::solana_sdk::{signature::Signer, signer::keypair::Keypair};
 use rand::rngs::OsRng;
 
 /// Generate a random keypair.
@@ -6,20 +6,30 @@ pub fn random_keypair() -> Keypair {
     Keypair::generate(&mut OsRng::default())
 }
 
-/// Return a recognisable Keypair. The public key will start with `Pxx`, where xx are the three digits of the number.
-/// `o` is used instead of `0`, as `0` is not part of the base58 charset.
+/// Returns a recognisable Keypair of your created program. The public key will start with `Pxx`, where
+/// xx are the three digits of the number. `o` is used instead of `0`, as `0` is not part of the base58 charset.
+/// You shouldn't call the method with the same `n` twice. It also prints the program's pubkey so you can copy it
+/// and replace it in your `Anchor.toml` and `programs/<my_program>/lib.rs`.
+/// The `n` must be a number between `0` and `29`.
 pub fn program_keypair(n: usize) -> Keypair {
-    Keypair::from_bytes(&PROGRAM_KEYPAIRS[n]).unwrap()
+    let keypair = Keypair::from_bytes(&PROGRAM_KEYPAIRS[n]).unwrap();
+    println!("program_keypair({}).pubkey = {}", n, keypair.pubkey());
+    keypair
 }
 
-/// Return a recognisable Keypair. The public key will start with `Sxx`, where xx are the three digits of the number.
-/// `o` is used instead of `0`, as `0` is not part of the base58 charset.
+/// Returns a system wallet (wallet which is owned by the system). The public key will
+/// start with `Sxx`, where xx are the three digits of the number. You shouldn't call the method with the same `n`
+/// twice. `o` is used instead of `0`, as `0` is not part of the base58 charset. Returns a recognisable `Keypair`.
+/// This is NOT the same as `anchor_lang::system_program::System::id()`!
+/// The `n` must be a number between `0` and `29`.
 pub fn system_keypair(n: usize) -> Keypair {
     Keypair::from_bytes(&SYSTEM_KEYPAIRS[n]).unwrap()
 }
 
-/// Return a recognisable Keypair. The public key will start with `Txxx`, where xxx are the three digits of the number.
-/// `o` is used instead of `0`, as `0` is not part of the base58 charset.
+/// Returns a recognisable `Keypair` / wallet that can be used for the mint account for example. The public key will
+/// start with `Txxx`, where xxx are the three digits of the number. You shouldn't call the method with the same `n`
+/// twice. `o` is used instead of `0`, as `0` is not part of the base58 charset.
+/// The `n` must be a number between `0` and `255`.
 pub fn keypair(n: usize) -> Keypair {
     Keypair::from_bytes(&KEYPAIRS[n]).unwrap()
 }
