@@ -326,6 +326,15 @@ impl Client {
         .expect("airdrop task failed")?
     }
 
+    /// Get balance of an account
+    #[throws]
+    pub async fn get_balance(&mut self, address: Pubkey) -> u64 {
+        let rpc_client = self.anchor_client.program(System::id()).rpc();
+        task::spawn_blocking(move || rpc_client.get_balance(&address))
+            .await
+            .expect("get_balance task failed")?
+    }
+
     /// Deploys the program.
     #[throws]
     pub async fn deploy(&self, program_keypair: Keypair, program_data: Vec<u8>) {
