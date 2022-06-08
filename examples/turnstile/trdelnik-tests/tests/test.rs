@@ -81,20 +81,22 @@ impl Fixture {
         let reader = Reader::new();
         let mut program_data = reader.program_data("turnstile").await?;
 
+        let amount = 5_000_000_000;
+
         self.client
-            .airdrop(self.client.payer().pubkey(), 5_000_000_000)
+            .airdrop(self.client.payer().pubkey(), amount)
             .await?;
+
+        assert_eq!(
+            self.client
+                .get_balance(self.client.payer().pubkey())
+                .await?,
+            amount
+        );
 
         self.client
             .deploy(self.program.clone(), mem::take(&mut program_data))
             .await?;
-
-        println!(
-            "Payer's balance after deploy: {}",
-            self.client
-                .get_balance(self.client.payer().pubkey())
-                .await?
-        );
     }
 
     #[throws]
