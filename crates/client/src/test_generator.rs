@@ -130,7 +130,7 @@ impl TestGenerator {
     async fn create_file<'a>(
         &self,
         path: &'a PathBuf,
-        name: &str,
+        name: &'a str,
         content: &str,
     ) -> Result<&'a PathBuf, Error> {
         match path.exists() {
@@ -148,7 +148,7 @@ impl TestGenerator {
     async fn create_directory<'a>(
         &self,
         path: &'a PathBuf,
-        name: &str,
+        name: &'a str,
     ) -> Result<&'a PathBuf, Error> {
         match path.exists() {
             true => println!("Skipping creating the {} directory", name),
