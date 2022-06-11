@@ -1,4 +1,4 @@
-use crate::TempClone;
+use crate::{Reader, TempClone};
 use anchor_client::{
     anchor_lang::{
         prelude::System, solana_program::program_pack::Pack, AccountDeserialize, Id,
@@ -27,7 +27,7 @@ use serde::de::DeserializeOwned;
 use solana_cli_output::display::println_transaction;
 use solana_transaction_status::{EncodedConfirmedTransaction, UiTransactionEncoding};
 use spl_associated_token_account::get_associated_token_address;
-use std::rc::Rc;
+use std::{mem, rc::Rc};
 use std::{thread::sleep, time::Duration};
 use tokio::task;
 
@@ -335,9 +335,46 @@ impl Client {
             .expect("get_balance task failed")?
     }
 
+    /// Deploys the program and wraps the boilerplate code related to the deployment.
+    #[throws]
+    pub async fn deploy_program(&self, client: &Client, program_keypair: &Keypair, name: &str) {
+        debug!("reading program data");
+
+        let reader = Reader::new();
+        let mut program_data = reader
+            .program_data(name)
+            .await
+            .expect("reading program data failed");
+        let program_data_len = program_data.len();
+
+        debug!("calculation minimum rent expemtion balance");
+
+        let system_program = self.anchor_client.program(System::id());
+        let rpc_client = system_program.rpc();
+        let min_balance_for_rent_exemption = 2 * task::spawn_blocking(move || {
+            rpc_client.get_minimum_balance_for_rent_exemption(program_data_len)
+        })
+        .await
+        .expect("crate program account task failed")?;
+
+        debug!("airdropping the minimum balance required to deploy the program");
+
+        client
+            .airdrop(client.payer().pubkey(), min_balance_for_rent_exemption)
+            .await
+            .expect("airdropping for deployment failed");
+
+        debug!("deploying program");
+
+        client
+            .deploy(program_keypair.clone(), mem::take(&mut program_data))
+            .await
+            .expect("deploying program failed");
+    }
+
     /// Deploys the program.
     #[throws]
-    pub async fn deploy(&self, program_keypair: Keypair, program_data: Vec<u8>) {
+    async fn deploy(&self, program_keypair: Keypair, program_data: Vec<u8>) {
         const PROGRAM_DATA_CHUNK_SIZE: usize = 900;
 
         let program_pubkey = program_keypair.pubkey();
