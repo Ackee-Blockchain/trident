@@ -1,6 +1,5 @@
 use fehler::throws;
 use program_client::turnstile_instruction;
-use std::mem;
 use trdelnik_client::{anyhow::Result, *};
 use turnstile;
 
@@ -8,13 +7,17 @@ use turnstile;
 #[fixture]
 async fn init_fixture() -> Fixture {
     // create a test fixture
-    let mut fixture = Fixture {
+    let fixture = Fixture {
         client: Client::new(system_keypair(0)),
         program: program_keypair(1),
         state: keypair(42),
     };
+
     // deploy a tested program
-    fixture.deploy().await?;
+    fixture
+        .client
+        .deploy_program(&fixture.client, &fixture.program, "turnstile")
+        .await?;
 
     // init instruction call
     turnstile_instruction::initialize(
@@ -76,29 +79,6 @@ struct Fixture {
 }
 
 impl Fixture {
-    #[throws]
-    async fn deploy(&mut self) {
-        let reader = Reader::new();
-        let mut program_data = reader.program_data("turnstile").await?;
-
-        let amount = 5_000_000_000;
-
-        self.client
-            .airdrop(self.client.payer().pubkey(), amount)
-            .await?;
-
-        assert_eq!(
-            self.client
-                .get_balance(self.client.payer().pubkey())
-                .await?,
-            amount
-        );
-
-        self.client
-            .deploy(self.program.clone(), mem::take(&mut program_data))
-            .await?;
-    }
-
     #[throws]
     async fn get_state(&self) -> turnstile::State {
         self.client.account_data(self.state.pubkey()).await?
