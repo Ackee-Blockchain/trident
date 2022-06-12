@@ -373,15 +373,13 @@ impl Client {
         debug!("airdropping the minimum balance required to deploy the program");
 
         // TODO: This will fail on devnet where airdrops are limited to 1 SOL
-        self
-            .airdrop(self.payer().pubkey(), 5_000_000_000)
+        self.airdrop(self.payer().pubkey(), 5_000_000_000)
             .await
             .expect("airdropping for deployment failed");
 
         debug!("deploying program");
 
-        self
-            .deploy(program_keypair.clone(), mem::take(&mut program_data))
+        self.deploy(program_keypair.clone(), mem::take(&mut program_data))
             .await
             .expect("deploying program failed");
     }
