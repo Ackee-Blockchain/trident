@@ -336,37 +336,51 @@ impl Client {
     }
 
     /// Deploys the program and wraps the boilerplate code related to the deployment.
+    ///
+    /// # Arguments
+    ///
+    /// * `program_keypair` - [Keypair] used for the program
+    /// * `program_name` - Name of the program to be deployed
+    ///
+    /// # Example:
+    ///
+    /// *Project structure*
+    ///
+    /// ```text
+    /// project
+    /// - programs
+    ///   - awesomecontract
+    ///   - turnstile
+    /// - Cargo.toml
+    /// ```
+    ///
+    /// *Code*
+    ///
+    /// ```rust,ignore
+    /// client.deploy_program(program_keypair(0), "awesomecontract");
+    /// client.deploy_program(program_keypair(1), "turnstile");
+    /// ```
     #[throws]
-    pub async fn deploy_program(&self, client: &Client, program_keypair: &Keypair, name: &str) {
+    pub async fn deploy_program(&self, program_keypair: &Keypair, program_name: &str) {
         debug!("reading program data");
 
         let reader = Reader::new();
         let mut program_data = reader
-            .program_data(name)
+            .program_data(program_name)
             .await
             .expect("reading program data failed");
-        let program_data_len = program_data.len();
-
-        debug!("calculation minimum rent expemtion balance");
-
-        let system_program = self.anchor_client.program(System::id());
-        let rpc_client = system_program.rpc();
-        let min_balance_for_rent_exemption = 2 * task::spawn_blocking(move || {
-            rpc_client.get_minimum_balance_for_rent_exemption(program_data_len)
-        })
-        .await
-        .expect("crate program account task failed")?;
 
         debug!("airdropping the minimum balance required to deploy the program");
 
-        client
-            .airdrop(client.payer().pubkey(), min_balance_for_rent_exemption)
+        // TODO: This will fail on devnet where airdrops are limited to 1 SOL
+        self
+            .airdrop(self.payer().pubkey(), 5_000_000_000)
             .await
             .expect("airdropping for deployment failed");
 
         debug!("deploying program");
 
-        client
+        self
             .deploy(program_keypair.clone(), mem::take(&mut program_data))
             .await
             .expect("deploying program failed");

@@ -16,7 +16,7 @@ async fn init_fixture() -> Fixture {
     // deploy a tested program
     fixture
         .client
-        .deploy_program(&fixture.client, &fixture.program, "turnstile")
+        .deploy_program(&fixture.program, "turnstile")
         .await?;
 
     // init instruction call
