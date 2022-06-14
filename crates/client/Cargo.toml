@@ -15,6 +15,7 @@ trdelnik-test = { path = "../test" }
 solana-sdk = "^1.9"
 solana-cli-output = "^1.9"
 solana-transaction-status = "^1.9"
+solana-account-decoder = "^1.9"
 anchor-client = "^0.24"
 spl-token = "^3.2.0"
 spl-associated-token-account = "^1.0.3"

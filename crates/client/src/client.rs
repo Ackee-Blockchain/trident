@@ -24,6 +24,7 @@ use fehler::{throw, throws};
 use futures::stream::{self, StreamExt};
 use log::debug;
 use serde::de::DeserializeOwned;
+use solana_account_decoder::parse_token::UiTokenAmount;
 use solana_cli_output::display::println_transaction;
 use solana_transaction_status::{EncodedConfirmedTransaction, UiTransactionEncoding};
 use spl_associated_token_account::get_associated_token_address;
@@ -333,6 +334,15 @@ impl Client {
         task::spawn_blocking(move || rpc_client.get_balance(&address))
             .await
             .expect("get_balance task failed")?
+    }
+
+    /// Get token balance of an token account
+    #[throws]
+    pub async fn get_token_balance(&mut self, address: Pubkey) -> UiTokenAmount {
+        let rpc_client = self.anchor_client.program(System::id()).rpc();
+        task::spawn_blocking(move || rpc_client.get_token_account_balance(&address))
+            .await
+            .expect("get_token_balance task failed")?
     }
 
     /// Deploys a program based on it's name.
