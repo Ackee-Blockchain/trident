@@ -335,7 +335,9 @@ impl Client {
             .expect("get_balance task failed")?
     }
 
-    /// Deploys the program and wraps the boilerplate code related to the deployment.
+    /// Deploys a program based on it's name.
+    /// This function wraps boilerplate code required for the successful deployment of a program,
+    /// i.e. SOLs airdrop etc.
     ///
     /// # Arguments
     ///
@@ -347,21 +349,26 @@ impl Client {
     /// *Project structure*
     ///
     /// ```text
-    /// project
-    /// - programs
-    ///   - awesomecontract
-    ///   - turnstile
+    /// project/
+    /// - programs/
+    ///   - awesome_contract/
+    ///     - ...
+    ///     - Cargo.toml
+    ///   - turnstile/
+    ///     - ...
+    ///     - Cargo.toml
+    /// - ...
     /// - Cargo.toml
     /// ```
     ///
     /// *Code*
     ///
     /// ```rust,ignore
-    /// client.deploy_program(program_keypair(0), "awesomecontract");
+    /// client.deploy_program(program_keypair(0), "awesome_contract");
     /// client.deploy_program(program_keypair(1), "turnstile");
     /// ```
     #[throws]
-    pub async fn deploy_program(&self, program_keypair: &Keypair, program_name: &str) {
+    pub async fn deploy_by_name(&self, program_keypair: &Keypair, program_name: &str) {
         debug!("reading program data");
 
         let reader = Reader::new();
