@@ -38,8 +38,10 @@ Trdelník is Rust based testing framework providing several convenient developer
 
 ## Installation
 
+**Currently Trdelnik is only available as a [beta release](https://crates.io/crates/trdelnik-sandbox-cli) we are working hard toward the first official release coming within a few days.**
+
 ```shell
-cargo install trdelnik-cli 
+cargo install trdelnik-cli
 
 # or the specific version
 
@@ -160,7 +162,7 @@ async fn init_fixture() -> Fixture {
 - We support `Anchor` and `Solana` versions specified in table bellow
 
 | Trdelnik CLI |  Anchor  |  Solana |
-|--------------|:--------:|--------:|
+| ------------ | :------: | ------: |
 | `latest`     | `>=0.24` | `>=1.9` |
 
 - _Please make sure you are using the correct versions_
@@ -169,7 +171,7 @@ async fn init_fixture() -> Fixture {
 
 - [x] Q1/22 Trdelnik announcement at Prague Hacker House
   - [x] Trdelnik client available for testing
-- [ ] Q2/22 Trdelnik explorer available
+- [x] Q2/22 Trdelnik explorer available
 - [ ] Q3/22 Trdelnik fuzz available
 - [ ] Q3/22 Trdelnik console available
 
