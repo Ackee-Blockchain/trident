@@ -19,12 +19,12 @@ developed by [Ackee Blockchain](https://ackeeblockchain.com)
 
 </div>
 
-Trdelník is Rust based testing framework providing several convenient developer tools for testing Solana programs written in [Anchor](https://github.com/project-serum/anchor)
+Trdelník is Rust based testing framework providing several convenient developer tools for testing Solana programs written in [Anchor](https://github.com/project-serum/anchor).
 
-- **Trdelnik client** - build and deploy an Anchor program to a local cluster and run a test suite against it
-- **Trdelnik console** - built-in console to give developers a command prompt for quick program interaction
-- **Trdelnik fuzz** - property-based and stateful testing
-- **Trdelnik explorer** - exploring a ledger changes
+- **Trdelnik client** - build and deploy an Anchor program to a local cluster and run a test suite against it;
+- **Trdelnik console** - built-in console to give developers a command prompt for quick program interaction;
+- **Trdelnik fuzz** - property-based and stateful testing;
+- **Trdelnik explorer** - exploring a ledger changes.
 
 <div align="center">
   <img src="./assets/demo.svg" />
@@ -38,7 +38,7 @@ Trdelník is Rust based testing framework providing several convenient developer
 
 ## Installation
 
-**Currently Trdelnik is only available as a [beta release](https://crates.io/crates/trdelnik-sandbox-cli) we are working hard toward the first official release coming within a few days.**
+**Currently Trdelnik is only available as a [beta release](https://crates.io/crates/trdelnik-sandbox-cli), we are working hard toward the first official release coming within a few days.**
 
 ```shell
 cargo install trdelnik-cli
@@ -108,7 +108,7 @@ async fn test_happy_path(#[future] init_fixture: Result<Fixture>) {
 
 #### Skipping tests
 
-- You can add the `#[ignore]` macro to skip the test
+- You can add the `#[ignore]` macro to skip the test.
 
 ```rust
 #[trdelnik_test]
@@ -118,7 +118,7 @@ async fn test() {}
 
 #### Testing programs with associated token accounts
 
-- `Trdelnik` does not export `anchor-spl` and `spl-associated-token-account` so you have to add it manually
+- `Trdelnik` does not export `anchor-spl` and `spl-associated-token-account`, so you have to add it manually.
 
 ```toml
 # <my-project>/trdelnik-tests/Cargo.toml
@@ -154,31 +154,41 @@ async fn init_fixture() -> Fixture {
 }
 ```
 
-- The `trdelnik init` command generated a dummy test suite for you
+- The `trdelnik init` command generated a dummy test suite for you.
 - For more details, see the [complete test](examples/turnstile/programs/tests/) implementation.
 
 ### Supported versions
 
-- We support `Anchor` and `Solana` versions specified in table bellow
+- We support `Anchor` and `Solana` versions specified in the table bellow.
 
 | Trdelnik CLI |  Anchor  |  Solana |
 | ------------ | :------: | ------: |
 | `latest`     | `>=0.24` | `>=1.9` |
 
-- _Please make sure you are using the correct versions_
+- _Please make sure you are using the correct versions._
 
 ## Roadmap
 
-- [x] Q1/22 Trdelnik announcement at Prague Hacker House
+- [x] Q1/22 Trdelnik announcement at Solana Hacker House Prague
   - [x] Trdelnik client available for testing
 - [x] Q2/22 Trdelnik explorer available
+- [x] Q2/22 Trdelnik console, client and explorer introduced at Solana Hacker House Barcelona
 - [ ] Q3/22 Trdelnik fuzz available
 - [ ] Q3/22 Trdelnik console available
 
+## Awards
+
+**Marinade Community Prize** - winner of the [Marinade grant](https://solana.blog/riptide-hackathon-winners/) for the 2022 Solana Riptide Hackathon.
+
 ## Contribution
 
-Thank you for your interest in contributing to Trdelník! Please see the [CONTRIBUTING.md](./CONTRIBUTING.md) to learn how
+Thank you for your interest in contributing to Trdelník! Please see the [CONTRIBUTING.md](./CONTRIBUTING.md) to learn how.
 
 ## License
 
-This project is licensed under the [MIT license](https://github.com/Ackee-Blockchain/trdelnik/blob/master/LICENSE)
+This project is licensed under the [MIT license](https://github.com/Ackee-Blockchain/trdelnik/blob/master/LICENSE).
+
+## University and investment partners 
+- [Czech technical university in Prague](https://www.cvut.cz/en)
+- [Ackee](https://www.ackee.cz/)
+- [Rockaway Blockchain Fund](https://rbf.capital/)
