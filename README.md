@@ -159,7 +159,7 @@ async fn init_fixture() -> Fixture {
 
 ### Supported versions
 
-- We support `Anchor` and `Solana` versions specified in the table bellow.
+- We support `Anchor` and `Solana` versions specified in the table below.
 
 | Trdelnik CLI |  Anchor  |  Solana |
 | ------------ | :------: | ------: |
@@ -189,6 +189,7 @@ Thank you for your interest in contributing to Trdelník! Please see the [CONTRI
 This project is licensed under the [MIT license](https://github.com/Ackee-Blockchain/trdelnik/blob/master/LICENSE).
 
 ## University and investment partners 
+
 - [Czech technical university in Prague](https://www.cvut.cz/en)
 - [Ackee](https://www.ackee.cz/)
 - [Rockaway Blockchain Fund](https://rbf.capital/)
