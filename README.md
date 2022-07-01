@@ -172,9 +172,9 @@ async fn init_fixture() -> Fixture {
 - [x] Q1/22 Trdelnik announcement at Solana Hacker House Prague
   - [x] Trdelnik client available for testing
 - [x] Q2/22 Trdelnik explorer available
-- [x] Q2/22 Trdelnik console, client and explorer introduced at Solana Hacker House Barcelona
-- [ ] Q3/22 Trdelnik fuzz available
+- [x] Q2/22 Trdelnik client and explorer introduced at Solana Hacker House Barcelona
 - [ ] Q3/22 Trdelnik console available
+- [ ] Q4/22 Trdelnik fuzz available
 
 ## Awards
 
