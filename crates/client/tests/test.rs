@@ -8,11 +8,17 @@ pub async fn generate_program_client() {
     // Generate with this command:
     // `trdelnik/examples/turnstile/programs/turnstile$ cargo expand > turnstile_expanded.rs`
     // and the content copy to `test_data/expanded_anchor_program.rs`
-    let expanded_anchor_program = include_str!("test_data/expanded_anchor_program.rs");
+    let expanded_anchor_program = include_str!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/tests/test_data/expanded_anchor_program.rs"
+    ));
 
     // You can copy the content from the `program_client` crate from an example
     // after you've called `makers trdelnik test`.
-    let expected_client_code = include_str!("test_data/expected_client_code.rs");
+    let expected_client_code = include_str!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/tests/test_data/expected_client_code.rs"
+    ));
 
     let program_idl =
         trdelnik_client::idl::parse_to_idl_program("turnstile".to_owned(), expanded_anchor_program)
