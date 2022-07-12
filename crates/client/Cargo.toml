@@ -1,6 +1,6 @@
 [package]
 name = "trdelnik-client"
-version = "0.1.0"
+version = "0.1.3"
 edition = "2018"
 
 [build-dependencies]
@@ -11,7 +11,7 @@ anyhow = { version = "1.0.45", features = ["std"], default-features = false }
 pretty_assertions = "1.1.0"
 
 [dependencies]
-trdelnik-test = { path = "../test" }
+trdelnik-test = { path = "../test", version = "0.1.1" }
 solana-sdk = "^1.9"
 solana-cli-output = "^1.9"
 solana-transaction-status = "^1.9"
