@@ -9,14 +9,13 @@ async fn init_fixture() -> Fixture {
     // create a test fixture
     let fixture = Fixture {
         client: Client::new(system_keypair(0)),
-        program: program_keypair(1),
         state: keypair(42),
     };
 
     // deploy a tested program
     fixture
         .client
-        .deploy_by_name(&fixture.program, "turnstile")
+        .deploy_all_programs()
         .await?;
 
     // init instruction call
@@ -74,7 +73,6 @@ async fn test_unhappy_path(#[future] init_fixture: Result<Fixture>) {
 
 struct Fixture {
     client: Client,
-    program: Keypair,
     state: Keypair,
 }
 

@@ -1,4 +1,4 @@
-use crate::{Reader, TempClone};
+use crate::{Reader, TempClone, TestGenerator};
 use anchor_client::{
     anchor_lang::{
         prelude::System, solana_program::program_pack::Pack, AccountDeserialize, Id,
@@ -343,6 +343,26 @@ impl Client {
         task::spawn_blocking(move || rpc_client.get_token_account_balance(&address))
             .await
             .expect("get_token_balance task failed")?
+    }
+
+    /// Deploys all programs from the 'programs' folder
+    #[throws]
+    pub async fn deploy_all_programs(&self) {
+        let root = TestGenerator::discover_root().expect("project root (Anchor.toml) not found");
+        let programs = TestGenerator::get_programs(root.as_path())
+            .await
+            .expect("can not get the list of programs");
+
+        debug!("found program(s): {:?}", programs);
+
+        for (i, (program_name, _)) in programs.iter().enumerate() {
+            debug!("deploying program no. {} '{}'", i, program_name);
+
+            let program_keypair = crate::program_keypair(i);
+            self.deploy_by_name(&program_keypair, program_name.as_str())
+                .await
+                .expect("deployment failed");
+        }
     }
 
     /// Deploys a program based on it's name.
