@@ -2,9 +2,9 @@
 pub mod turnstile_instruction {
     use trdelnik_client::*;
     pub static PROGRAM_ID: Pubkey = Pubkey::new_from_array([
-        5u8, 214u8, 204u8, 101u8, 166u8, 163u8, 239u8, 244u8, 13u8, 110u8, 64u8, 106u8, 230u8,
-        81u8, 141u8, 186u8, 208u8, 155u8, 78u8, 83u8, 194u8, 215u8, 103u8, 17u8, 94u8, 15u8, 137u8,
-        68u8, 170u8, 153u8, 74u8, 59u8,
+        5u8, 215u8, 176u8, 66u8, 255u8, 47u8, 77u8, 122u8, 100u8, 249u8, 156u8, 251u8, 44u8, 92u8,
+        36u8, 220u8, 226u8, 147u8, 127u8, 109u8, 198u8, 92u8, 1u8, 127u8, 95u8, 116u8, 186u8,
+        180u8, 149u8, 157u8, 170u8, 34u8,
     ]);
     pub async fn initialize(
         client: &Client,

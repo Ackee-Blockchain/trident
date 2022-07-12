@@ -178,7 +178,6 @@ async fn test_happy_path2(#[future] init_fixture: Result<Fixture>) {
 
 struct Fixture {
     client: Client,
-    program: Keypair,
     // Mint stuff
     mint_a: Keypair,
     mint_b: Keypair,
@@ -200,7 +199,6 @@ impl Fixture {
     fn new() -> Self {
         Fixture {
             client: Client::new(system_keypair(0)),
-            program: program_keypair(1),
 
             mint_a: keypair(1),
             mint_b: keypair(2),
@@ -226,7 +224,7 @@ impl Fixture {
             .airdrop(self.alice_wallet.pubkey(), 5_000_000_000)
             .await?;
         self.client
-            .deploy_by_name(&self.program.clone(), "escrow")
+            .deploy_all_programs()
             .await?;
     }
 

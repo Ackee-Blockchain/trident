@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 
-declare_id!("Po1RaS8BEDbNcn5oXsFryAeQ6Wn8fvmE111DJaKCgPC");
+declare_id!("Poo5jhFcGjMjYaz2cpmSNVq4ehvjKJhjU7aCZiS2LMP");
 
 #[program]
 pub mod turnstile {
