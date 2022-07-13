@@ -74,6 +74,7 @@ async fn init_fixture() -> Fixture {
   // create a test fixture
   let mut fixture = Fixture {
     client: Client::new(system_keypair(0)),
+    // make sure your program is using a correct program ID
     program: program_keypair(1),
     state: keypair(42),
   };
@@ -105,6 +106,15 @@ async fn test_happy_path(#[future] init_fixture: Result<Fixture>) {
   assert_eq!(state.something_changed, "yes");
 }
 ```
+
+Make sure your program is using a correct program ID in the `derive_id!(...)` macro and inside `Anchor.toml`.
+If not, obtain the public key of a key pair you're using and replace it in these two places.
+To get the program ID of a key pair (key pair's public key) the `trdelnik key-pair` command can be used.
+For example
+```
+$ trdelnik key-pair program 7
+```
+will print information about the key pair received from `program_keypair(7)`.
 
 #### Skipping tests
 
@@ -188,7 +198,7 @@ Thank you for your interest in contributing to Trdelník! Please see the [CONTRI
 
 This project is licensed under the [MIT license](https://github.com/Ackee-Blockchain/trdelnik/blob/master/LICENSE).
 
-## University and investment partners 
+## University and investment partners
 
 - [Czech technical university in Prague](https://www.cvut.cz/en)
 - [Ackee](https://www.ackee.cz/)
