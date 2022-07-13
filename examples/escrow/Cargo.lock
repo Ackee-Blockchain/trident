@@ -3518,6 +3518,7 @@ dependencies = [
  "serde",
  "serde_json",
  "serial_test",
+ "solana-account-decoder",
  "solana-cli-output",
  "solana-sdk",
  "solana-transaction-status",
