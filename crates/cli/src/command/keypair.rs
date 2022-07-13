@@ -13,7 +13,7 @@ pub enum KeyPairCommand {
 
 #[throws]
 pub fn keypair(subcmd: KeyPairCommand) {
-    let kp: solana_sdk::signer::keypair::Keypair = match subcmd {
+    let kp = match subcmd {
         KeyPairCommand::Program { n } => program_keypair(n),
         KeyPairCommand::System { n } => system_keypair(n),
         KeyPairCommand::Other { n } => other_keypair(n),
