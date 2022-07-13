@@ -1,4 +1,4 @@
-use anchor_client::solana_sdk::{signature::Signer, signer::keypair::Keypair};
+use anchor_client::solana_sdk::signer::keypair::Keypair;
 use rand::rngs::OsRng;
 
 /// Generate a random keypair.
