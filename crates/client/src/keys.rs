@@ -8,13 +8,10 @@ pub fn random_keypair() -> Keypair {
 
 /// Returns a recognisable Keypair of your created program. The public key will start with `Pxx`, where
 /// xx are the three digits of the number. `o` is used instead of `0`, as `0` is not part of the base58 charset.
-/// You shouldn't call the method with the same `n` twice. It also prints the program's pubkey so you can copy it
-/// and replace it in your `Anchor.toml` and `programs/<my_program>/lib.rs`.
+/// You shouldn't call the method with the same `n` twice.
 /// The `n` must be a number between `0` and `29`.
 pub fn program_keypair(n: usize) -> Keypair {
-    let keypair = Keypair::from_bytes(&PROGRAM_KEYPAIRS[n]).unwrap();
-    println!("program_keypair({}).pubkey = {}", n, keypair.pubkey());
-    keypair
+    Keypair::from_bytes(&PROGRAM_KEYPAIRS[n]).unwrap()
 }
 
 /// Returns a system wallet (wallet which is owned by the system) but it is not required, you can also use the

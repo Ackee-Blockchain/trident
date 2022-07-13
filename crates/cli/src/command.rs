@@ -1,6 +1,9 @@
 mod build;
 pub use build::build;
 
+mod keypair;
+pub use keypair::{keypair, KeyPairCommand};
+
 mod test;
 pub use test::test;
 
