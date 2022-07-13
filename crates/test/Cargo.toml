@@ -1,7 +1,11 @@
 [package]
 name = "trdelnik-test"
-version = "0.1.1"
-edition = "2018"
+version = "0.1.2"
+edition = "2021"
+repository = "https://github.com/Ackee-Blockchain/trdelnik"
+license-file = "../../LICENSE"
+readme = "../../README.md"
+description = "The trdelnik_test crate helps you to write Rust tests for your programs with Trdelnik."
 
 [lib]
 proc-macro = true
