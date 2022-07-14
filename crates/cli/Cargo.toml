@@ -5,6 +5,7 @@ edition = "2021"
 repository = "https://github.com/Ackee-Blockchain/trdelnik"
 license-file = "../../LICENSE"
 readme = "../../README.md"
+description = "Trdelník is Rust based testing framework providing several convenient developer tools for testing Solana programs written in Anchor."
 
 [dependencies]
 clap = { version = "3.1.6", features = ["derive"] }
