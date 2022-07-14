@@ -38,8 +38,6 @@ Trdelník is Rust based testing framework providing several convenient developer
 
 ## Installation
 
-**Currently Trdelnik is only available as a [beta release](https://crates.io/crates/trdelnik-sandbox-cli), we are working hard toward the first official release coming within a few days.**
-
 ```shell
 cargo install trdelnik-cli
 
