@@ -11,10 +11,13 @@ runs:
   steps:
     - name: Install system packages
       run: sudo apt-fast update && sudo apt-fast install -y build-essential libudev-dev
+      shell: bash
     - name: Install Rust nightly
       run: |
         rustup default nightly
         rustup component add rustfmt clippy
+      shell: bash
     - name: Get rustc version
       id: rust-version
       run: echo "::set-output name=RUSTC_HASH::$(rustc -V | cut -d " " -f 3 | tail -c +2)"
+      shell: bash
