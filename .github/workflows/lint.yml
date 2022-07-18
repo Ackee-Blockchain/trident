@@ -3,11 +3,11 @@ on:
   push:
     branches: [master]
 
-name: Lints
+name: Lint crates
 
 jobs:
   checks:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     needs:
       - explorer
       - cli
@@ -17,17 +17,24 @@ jobs:
       - run: echo "Done"
 
   explorer:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     defaults:
       run:
         working-directory: crates/explorer
     steps:
-      - uses: actions/checkout@v2
-      - name: Install depends
-        run: |
-          sudo apt-get update && sudo apt-get install -y build-essential libudev-dev
-          rustup default nightly
-          rustup component add rustfmt clippy
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/setup-rust/
+        id: rust-setup
+      - uses: actions/cache@v3
+        name: Cache Rust and it's packages
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: rust-${{ runner.os }}-v0000-${{ steps.rust-setup.outputs.rustc-hash }}-${{ hashFiles('**/Cargo.lock') }}
       - name: Cargo build
         run: cargo build
       - name: Cargo fmt
@@ -38,17 +45,24 @@ jobs:
         run: cargo test
 
   cli:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     defaults:
       run:
         working-directory: crates/cli
     steps:
-      - uses: actions/checkout@v2
-      - name: Install depends
-        run: |
-          sudo apt-get update && sudo apt-get install -y build-essential libudev-dev
-          rustup default nightly
-          rustup component add rustfmt clippy
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/setup-rust/
+        id: rust-setup
+      - uses: actions/cache@v3
+        name: Cache Rust and it's packages
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: rust-${{ runner.os }}-v0000-${{ steps.rust-setup.outputs.rustc-hash }}-${{ hashFiles('**/Cargo.lock') }}
       - name: Cargo build
         run: cargo build
       - name: Cargo fmt
@@ -59,17 +73,24 @@ jobs:
         run: cargo test
 
   client:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     defaults:
       run:
         working-directory: crates/client
     steps:
-      - uses: actions/checkout@v2
-      - name: Install depends
-        run: |
-          sudo apt-get update && sudo apt-get install -y build-essential libudev-dev
-          rustup default nightly
-          rustup component add rustfmt clippy
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/setup-rust/
+        id: rust-setup
+      - uses: actions/cache@v3
+        name: Cache Rust and it's packages
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: rust-${{ runner.os }}-v0000-${{ steps.rust-setup.outputs.rustc-hash }}-${{ hashFiles('**/Cargo.lock') }}
       - name: Cargo build
         run: cargo build
       - name: Cargo fmt
@@ -80,18 +101,28 @@ jobs:
         run: cargo test
 
   test:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     defaults:
       run:
         working-directory: crates/test
     steps:
-      - uses: actions/checkout@v2
-      - name: Install depends
-        run: |
-          sudo apt-get update && sudo apt-get install -y build-essential libudev-dev
-          rustup default nightly
-          cargo install cargo-expand
-          rustup component add rustfmt clippy
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/setup-rust/
+        id: rust-setup
+      - uses: actions/cache@v3
+        id: cargo-cache
+        name: Cache Rust and it's packages
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: rust-${{ runner.os }}-v0000-${{ steps.rust-setup.outputs.rustc-hash }}-${{ hashFiles('**/Cargo.lock') }}
+      - name: Install cargo packages
+        if: steps.cargo-cache.outputs.cache-hit != 'true'
+        run: cargo install cargo-expand
       - name: Cargo build
         run: cargo build
       - name: Cargo fmt
