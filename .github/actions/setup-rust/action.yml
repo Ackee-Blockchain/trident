@@ -1,0 +1,20 @@
+name: "Setup Rust"
+description: "Setup Rust"
+
+outputs:
+  rustc-hash:
+    description: "Hash of the rustc version"
+    value: ${{ steps.rust-version.outputs.RUSTC_HASH }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install system packages
+      run: sudo apt-fast update && sudo apt-fast install -y build-essential libudev-dev
+    - name: Install Rust nightly
+      run: |
+        rustup default nightly
+        rustup component add rustfmt clippy
+    - name: Get rustc version
+      id: rust-version
+      run: echo "::set-output name=RUSTC_HASH::$(rustc -V | cut -d " " -f 3 | tail -c +2)"
