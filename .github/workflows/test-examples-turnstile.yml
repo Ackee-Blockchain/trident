@@ -21,6 +21,8 @@ jobs:
         id: rust-setup
       - uses: Swatinem/rust-cache@v2
         name: Cache Rust and it's packages
+        with:
+          workspaces: "examples/turnstile -> target"
       - name: Install cargo packages
         run: |
           cargo install cargo-expand

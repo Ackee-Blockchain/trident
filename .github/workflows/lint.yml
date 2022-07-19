@@ -27,8 +27,6 @@ jobs:
         id: rust-setup
       - uses: Swatinem/rust-cache@v2
         name: Cache Rust and it's packages
-        with:
-          workspaces: "../../ -> target"
       - name: Cargo build
         run: cargo build
       - name: Cargo fmt
@@ -49,8 +47,6 @@ jobs:
         id: rust-setup
       - uses: Swatinem/rust-cache@v2
         name: Cache Rust and it's packages
-        with:
-          workspaces: "../../ -> target"
       - name: Cargo build
         run: cargo build
       - name: Cargo fmt
@@ -71,8 +67,6 @@ jobs:
         id: rust-setup
       - uses: Swatinem/rust-cache@v2
         name: Cache Rust and it's packages
-        with:
-          workspaces: "../../ -> target"
       - name: Cargo build
         run: cargo build
       - name: Cargo fmt
@@ -93,8 +87,6 @@ jobs:
         id: rust-setup
       - uses: Swatinem/rust-cache@v2
         name: Cache Rust and it's packages
-        with:
-          workspaces: "../../ -> target"
       - name: Install cargo packages
         run: cargo install cargo-expand
       - name: Cargo build
