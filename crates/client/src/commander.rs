@@ -300,13 +300,16 @@ impl Commander {
     /// Starts the localnet (Solana validator).
     #[throws]
     pub async fn start_localnet(&self) -> LocalnetHandle {
-        let process = Command::new("solana-test-validator")
+        let mut process = Command::new("solana-test-validator")
             .arg("-C")
             .arg([&self.root, "config.yml"].concat())
             .arg("-r")
             .arg("-q")
             .spawn()?;
         if !Client::new(Keypair::new()).is_localnet_running(true).await {
+            // The validator might not be running, but the process might be still alive (very slow start, some bug, ...),
+            // therefore we want to kill it if it's still running so ports aren't held.
+            process.kill().await.ok();
             throw!(Error::LocalnetIsNotRunning);
         }
         debug!("localnet started");
