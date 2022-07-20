@@ -71,13 +71,13 @@ impl Client {
 
     /// Finds out if the Solana localnet is running.
     ///
-    /// Set `retry` to `true` when you want to wait until the localnet is running
-    /// or until 10 retries with 500ms delays are performed.
+    /// Set `retry` to `true` when you want to wait for up to 15 seconds until
+    /// the localnet is running (until 30 retries with 500ms delays are performed).
     pub async fn is_localnet_running(&self, retry: bool) -> bool {
         let dummy_pubkey = Pubkey::new_from_array([0; 32]);
         let rpc_client = self.anchor_client.program(dummy_pubkey).rpc();
         task::spawn_blocking(move || {
-            for _ in 0..(if retry { 10 } else { 1 }) {
+            for _ in 0..(if retry { 30 } else { 1 }) {
                 if rpc_client.get_health().is_ok() {
                     return true;
                 }
