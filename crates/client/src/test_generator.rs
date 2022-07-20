@@ -98,7 +98,7 @@ impl TestGenerator {
     /// finally it generates the `Cargo.toml` file. Crate is generated from `trdelnik-tests`
     /// template located in `client/src/templates`
     #[throws]
-    async fn generate_test_files(&self, root: &PathBuf) {
+    async fn generate_test_files(&self, root: &Path) {
         let workspace_path = root.join(TESTS_WORKSPACE);
         self.create_directory(&workspace_path, TESTS_WORKSPACE)
             .await?;
