@@ -23,6 +23,8 @@ pub use solana_transaction_status::EncodedConfirmedTransaction;
 pub use tokio;
 pub use trdelnik_test::trdelnik_test;
 
+mod config;
+
 mod client;
 pub use client::Client;
 pub use client::PrintableTransaction;

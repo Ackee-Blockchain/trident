@@ -175,6 +175,14 @@ async fn init_fixture() -> Fixture {
 
 - _We are exploring a new versions of Anchor, please make sure you only use the supported versions. We are working on it :muscle:_
 
+### Configuration
+
+The configuration variables can be edited in the `Trdelnik.toml` file that'll be generated in the root of the project.
+
+| Name                      | Default value | Description                                                                 |
+|---------------------------|---------------|-----------------------------------------------------------------------------|
+| `test.validator_startup_timeout` | 10 000        | Time to wait for the `solana-test-validator` in milliseconds before failure |
+
 ## Roadmap
 
 - [x] Q1/22 Trdelnik announcement at Solana Hacker House Prague

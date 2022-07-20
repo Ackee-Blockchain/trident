@@ -1,4 +1,4 @@
-use crate::{Reader, TempClone};
+use crate::{config::CONFIG, Reader, TempClone};
 use anchor_client::{
     anchor_lang::{
         prelude::System, solana_program::program_pack::Pack, AccountDeserialize, Id,
@@ -34,6 +34,8 @@ use tokio::task;
 
 // @TODO: Make compatible with the latest Anchor deps.
 // https://github.com/project-serum/anchor/pull/1307#issuecomment-1022592683
+
+const RETRY_LOCALNET_EVERY_MILLIS: u64 = 500;
 
 /// `Client` allows you to send typed RPC requests to a Solana cluster.
 pub struct Client {
@@ -77,12 +79,16 @@ impl Client {
         let dummy_pubkey = Pubkey::new_from_array([0; 32]);
         let rpc_client = self.anchor_client.program(dummy_pubkey).rpc();
         task::spawn_blocking(move || {
-            for _ in 0..(if retry { 30 } else { 1 }) {
+            for _ in 0..(if retry {
+                CONFIG.test.validator_startup_timeout / RETRY_LOCALNET_EVERY_MILLIS
+            } else {
+                1
+            }) {
                 if rpc_client.get_health().is_ok() {
                     return true;
                 }
                 if retry {
-                    sleep(Duration::from_millis(500));
+                    sleep(Duration::from_millis(RETRY_LOCALNET_EVERY_MILLIS));
                 }
             }
             false
