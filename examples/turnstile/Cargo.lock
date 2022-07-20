@@ -3487,6 +3487,7 @@ dependencies = [
  "fehler",
  "futures",
  "heck 0.4.0",
+ "lazy_static",
  "log",
  "quote 1.0.18",
  "rand 0.7.3",

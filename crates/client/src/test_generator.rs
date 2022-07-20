@@ -1,6 +1,8 @@
-use crate::commander::{Commander, Error as CommanderError};
-use anyhow::Context;
-use fehler::{throw, throws};
+use crate::{
+    commander::{Commander, Error as CommanderError},
+    config::{Config, CARGO_TOML, TRDELNIK_TOML},
+};
+use fehler::throws;
 use std::{
     env, io,
     path::{Path, PathBuf},
@@ -12,19 +14,13 @@ use toml::{value::Table, Value};
 const TESTS_WORKSPACE: &str = "trdelnik-tests";
 const TESTS_DIRECTORY: &str = "tests";
 const TESTS_FILE_NAME: &str = "test.rs";
-const CARGO_TOML: &str = "Cargo.toml";
-const ANCHOR_TOML: &str = "Anchor.toml";
 
 #[derive(Error, Debug)]
 pub enum Error {
-    #[error("invalid workspace")]
-    BadWorkspace,
     #[error("cannot parse Cargo.toml")]
     CannotParseCargoToml,
     #[error("{0:?}")]
     Io(#[from] io::Error),
-    #[error("{0:?}")]
-    Anyhow(#[from] anyhow::Error),
     #[error("{0:?}")]
     Toml(#[from] toml::de::Error),
     #[error("{0:?}")]
@@ -81,7 +77,7 @@ impl TestGenerator {
     /// - there is not a root directory (no `Anchor.toml` file)
     #[throws]
     pub async fn generate(&self) {
-        let root = self.discover_root()?;
+        let root = Config::discover_root().expect("failed to find the root folder");
         let root_path = root.to_str().unwrap().to_string();
         let commander = Commander::with_root(root_path);
         commander.create_program_client_crate().await?;
@@ -103,9 +99,10 @@ impl TestGenerator {
     /// template located in `client/src/templates`
     #[throws]
     async fn generate_test_files(&self, root: &PathBuf) {
-        let workspace_path = Path::new(root).join(TESTS_WORKSPACE);
+        let workspace_path = root.join(TESTS_WORKSPACE);
         self.create_directory(&workspace_path, TESTS_WORKSPACE)
             .await?;
+
         let tests_path = workspace_path.join(TESTS_DIRECTORY);
         self.create_directory(&tests_path, TESTS_DIRECTORY).await?;
         let test_path = tests_path.join(TESTS_FILE_NAME);
@@ -115,14 +112,23 @@ impl TestGenerator {
         ));
         self.create_file(&test_path, TESTS_FILE_NAME, test_content)
             .await?;
-        let toml_path = workspace_path.join(CARGO_TOML);
-        let toml_content = include_str!(concat!(
+
+        let cargo_toml_path = workspace_path.join(CARGO_TOML);
+        let cargo_toml_content = include_str!(concat!(
             env!("CARGO_MANIFEST_DIR"),
             "/src/templates/trdelnik-tests/Cargo.toml.tmpl"
         ));
-        self.create_file(&toml_path, CARGO_TOML, toml_content)
+        self.create_file(&cargo_toml_path, CARGO_TOML, cargo_toml_content)
             .await?;
-        self.add_program_dev_deps(root, &toml_path).await?;
+        self.add_program_dev_deps(root, &cargo_toml_path).await?;
+
+        let trdelnik_toml_path = root.join(TRDELNIK_TOML);
+        let trdelnik_toml_content = include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/src/templates/Trdelnik.toml.tmpl"
+        ));
+        self.create_file(&trdelnik_toml_path, TRDELNIK_TOML, trdelnik_toml_content)
+            .await?;
     }
 
     /// Creates a new file with a given content on the specified `path` and `name`
@@ -158,32 +164,6 @@ impl TestGenerator {
             }
         };
         Ok(path)
-    }
-
-    /// Tries to find the root directory with the `Anchor.toml` file.
-    /// Throws an error when there is no directory with the `Anchor.toml` file
-    // todo: this function should be a part of some Config / File implementation
-    fn discover_root(&self) -> Result<PathBuf, Error> {
-        let current_dir = env::current_dir()?;
-        let mut dir = Some(current_dir.as_path());
-        while let Some(cwd) = dir {
-            for file in std::fs::read_dir(cwd).with_context(|| {
-                format!("Error reading the directory with path: {}", cwd.display())
-            })? {
-                let path = file
-                    .with_context(|| {
-                        format!("Error reading the directory with path: {}", cwd.display())
-                    })?
-                    .path();
-                if let Some(filename) = path.file_name() {
-                    if filename.to_str() == Some(ANCHOR_TOML) {
-                        return Ok(PathBuf::from(cwd));
-                    }
-                }
-            }
-            dir = cwd.parent();
-        }
-        throw!(Error::BadWorkspace)
     }
 
     /// Adds `trdelnik-tests` workspace to the `root`'s `Cargo.toml` workspace members if needed.
