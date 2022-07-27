@@ -9,3 +9,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 incremented upon a breaking change and the patch version will be incremented for features.
 
 ## [Unreleased]
+### Added
+- Trdelnik is now configurable. This requires `Trdelnik.toml` file to exist in the project's root directory - without this file the execution will fail. To solve this re-run `trdelnik init` or just create an empty `Trdelnik.toml` file in the project's root directory.
