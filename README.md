@@ -1,21 +1,21 @@
 <div align="center">
-  <img height="250" width="250" src="./assets/Badge_Trdelnik.png"/>
+  <img height="250" width="250" src="https://github.com/Ackee-Blockchain/trdelnik/raw/master/assets/Badge_Trdelnik.png" alt="Trdelnik Logo"/>
 
-# Trdelník
+  # Trdelník
 
-<a href="https://discord.gg/x7qXXnGCsa">
-  <img src="https://discordapp.com/api/guilds/867746290678104064/widget.png?style=banner2" width="250" title="AckeeBlockchain/Trdelnik discord">
-</a>
+  <a href="https://discord.gg/x7qXXnGCsa">
+    <img src="https://discordapp.com/api/guilds/867746290678104064/widget.png?style=banner2" width="250" title="AckeeBlockchain/Trdelnik discord" alt="Ackee Blockchain Discord invitation">
+  </a>
 
-developed by [Ackee Blockchain](https://ackeeblockchain.com)
+  developed by [Ackee Blockchain](https://ackeeblockchain.com)
 
-[![Crates.io](https://img.shields.io/crates/v/trdelnik-cli?label=CLI)](https://crates.io/crates/trdelnik-cli)
-[![Crates.io](https://img.shields.io/crates/v/trdelnik-test?label=Test)](https://crates.io/crates/trdelnik-test)
-[![Crates.io](https://img.shields.io/crates/v/trdelnik-client?label=Client)](https://crates.io/crates/trdelnik-client)
-[![Crates.io](https://img.shields.io/crates/v/trdelnik-explorer?label=Explorer)](https://crates.io/crates/trdelnik-explorer)
-<br />
-[![lint](https://github.com/Ackee-Blockchain/trdelnik/actions/workflows/lint.yml/badge.svg)](https://github.com/Ackee-Blockchain/trdelnik/actions/workflows/lint.yml)
-[![test-examples-turnstile](https://github.com/Ackee-Blockchain/trdelnik/actions/workflows/test-examples-turnstile.yml/badge.svg)](https://github.com/Ackee-Blockchain/trdelnik/actions/workflows/test-examples-turnstile.yml)
+  [![Crates.io](https://img.shields.io/crates/v/trdelnik-cli?label=CLI)](https://crates.io/crates/trdelnik-cli)
+  [![Crates.io](https://img.shields.io/crates/v/trdelnik-test?label=Test)](https://crates.io/crates/trdelnik-test)
+  [![Crates.io](https://img.shields.io/crates/v/trdelnik-client?label=Client)](https://crates.io/crates/trdelnik-client)
+  [![Crates.io](https://img.shields.io/crates/v/trdelnik-explorer?label=Explorer)](https://crates.io/crates/trdelnik-explorer)
+  <br />
+  [![lint](https://github.com/Ackee-Blockchain/trdelnik/actions/workflows/lint.yml/badge.svg)](https://github.com/Ackee-Blockchain/trdelnik/actions/workflows/lint.yml)
+  [![test-examples-turnstile](https://github.com/Ackee-Blockchain/trdelnik/actions/workflows/test-examples-turnstile.yml/badge.svg)](https://github.com/Ackee-Blockchain/trdelnik/actions/workflows/test-examples-turnstile.yml)
 
 </div>
 
@@ -27,7 +27,7 @@ Trdelník is Rust based testing framework providing several convenient developer
 - **Trdelnik explorer** - exploring a ledger changes.
 
 <div align="center">
-  <img src="./assets/demo.svg" />
+  <img src="https://github.com/Ackee-Blockchain/trdelnik/raw/master/assets/demo.svg" alt="Trdelnik Demo" />
 </div>
 
 ## Dependencies
@@ -61,7 +61,7 @@ trdelnik --help
 
 ```rust
 // <my_project>/trdelnik-tests/tests/test.rs
-// @todo: do not forget to add all necessary dependencies to the generated `trdelnik-tests/Cargo.toml`
+// TODO: do not forget to add all necessary dependencies to the generated `trdelnik-tests/Cargo.toml`
 use program_client::my_instruction;
 use trdelnik_client::*;
 use my_program;
@@ -163,14 +163,14 @@ async fn init_fixture() -> Fixture {
 ```
 
 - The `trdelnik init` command generated a dummy test suite for you.
-- For more details, see the [complete test](examples/turnstile/programs/tests/) implementation.
+- For more details, see the [complete test](examples/turnstile/trdelnik-tests/tests/test.rs) implementation.
 
 ### Supported versions
 
 - We support `Anchor` and `Solana` versions specified in the table below.
 
 | Trdelnik CLI |  Anchor   |  Solana |
-| ------------ |:---------:| ------: |
+|--------------|:---------:|--------:|
 | `latest`     | `~0.24.*` | `>=1.9` |
 
 - _We are exploring a new versions of Anchor, please make sure you only use the supported versions. We are working on it :muscle:_
@@ -179,8 +179,8 @@ async fn init_fixture() -> Fixture {
 
 The configuration variables can be edited in the `Trdelnik.toml` file that'll be generated in the root of the project.
 
-| Name                      | Default value | Description                                                                 |
-|---------------------------|---------------|-----------------------------------------------------------------------------|
+| Name                             | Default value | Description                                                                 |
+|----------------------------------|---------------|-----------------------------------------------------------------------------|
 | `test.validator_startup_timeout` | 10 000        | Time to wait for the `solana-test-validator` in milliseconds before failure |
 
 ## Roadmap
