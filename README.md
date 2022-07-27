@@ -15,7 +15,7 @@ developed by [Ackee Blockchain](https://ackeeblockchain.com)
 [![Crates.io](https://img.shields.io/crates/v/trdelnik-explorer?label=Explorer)](https://crates.io/crates/trdelnik-explorer)
 <br />
 [![lint](https://github.com/Ackee-Blockchain/trdelnik/actions/workflows/lint.yml/badge.svg)](https://github.com/Ackee-Blockchain/trdelnik/actions/workflows/lint.yml)
-[![test](https://github.com/Ackee-Blockchain/trdelnik/actions/workflows/test.yml/badge.svg)](https://github.com/Ackee-Blockchain/trdelnik/actions/workflows/test.yml)
+[![test-examples-turnstile](https://github.com/Ackee-Blockchain/trdelnik/actions/workflows/test-examples-turnstile.yml/badge.svg)](https://github.com/Ackee-Blockchain/trdelnik/actions/workflows/test-examples-turnstile.yml)
 
 </div>
 
