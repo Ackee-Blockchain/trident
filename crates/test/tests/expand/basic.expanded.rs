@@ -21,6 +21,10 @@ async fn test_turnstile() -> trdelnik_client::anyhow::Result<()> {
     if !result.is_ok() {
         ::core::panicking::panic("assertion failed: result.is_ok()")
     };
-    result.unwrap()?;
+    let final_result = result.unwrap();
+    if let Err(error) = final_result {
+        trdelnik_client::error_reporter::report_error(&error);
+        return Err(error);
+    }
     Ok(())
 }
