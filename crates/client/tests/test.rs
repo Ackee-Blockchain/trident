@@ -27,7 +27,9 @@ pub async fn generate_program_client() {
         programs: vec![program_idl],
     };
 
-    let client_code = trdelnik_client::program_client_generator::generate_source_code(idl);
+    let use_modules: Vec<syn::ItemUse> = vec![syn::parse_quote! { use trdelnik_client::*; }];
+    let client_code =
+        trdelnik_client::program_client_generator::generate_source_code(idl, &use_modules);
     let client_code = trdelnik_client::Commander::format_program_code(&client_code).await?;
 
     assert_str_eq!(client_code, expected_client_code);
