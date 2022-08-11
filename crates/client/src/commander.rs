@@ -272,7 +272,8 @@ impl Commander {
         let idl = Idl {
             programs: try_join_all(idl_programs).await?,
         };
-        let program_client = program_client_generator::generate_source_code(idl);
+        let use_tokens = self.parse_program_client_imports().await?;
+        let program_client = program_client_generator::generate_source_code(idl, &use_tokens);
         let program_client = Self::format_program_code(&program_client).await?;
 
         let rust_file_path = Path::new(self.root.as_ref())
@@ -316,6 +317,44 @@ impl Commander {
         LocalnetHandle {
             solana_test_validator_process: process,
         }
+    }
+
+    /// Returns `use` modules / statements
+    /// The goal of this method is to find all `use` statements defined by the user in the `.program_client`
+    /// crate. It solves the problem with regenerating the program client and removing imports defined by
+    /// the user.
+    #[throws]
+    pub async fn parse_program_client_imports(&self) -> Vec<syn::ItemUse> {
+        let output = Command::new("cargo")
+            .arg("+nightly")
+            .arg("rustc")
+            .args(["--package", "program_client"])
+            .arg("--profile=check")
+            .arg("--")
+            .arg("-Zunpretty=expanded")
+            .output()
+            .await?;
+        let code = String::from_utf8(output.stdout)?;
+        let mut use_modules: Vec<syn::ItemUse> = vec![];
+        for item in syn::parse_file(code.as_str()).unwrap().items.into_iter() {
+            if let syn::Item::Mod(module) = item {
+                let modules = module
+                    .content
+                    .ok_or("account mod: empty content")
+                    .unwrap()
+                    .1
+                    .into_iter();
+                for module in modules {
+                    if let syn::Item::Use(u) = module {
+                        use_modules.push(u);
+                    }
+                }
+            }
+        }
+        if use_modules.is_empty() {
+            use_modules.push(syn::parse_quote! { use trdelnik_client::*; })
+        }
+        use_modules
     }
 }
 

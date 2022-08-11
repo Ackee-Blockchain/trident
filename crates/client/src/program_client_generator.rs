@@ -3,10 +3,11 @@ use quote::{format_ident, ToTokens};
 use syn::{parse_quote, parse_str};
 
 /// Generates `program_client`'s `lib.rs` from [Idl] created from Anchor programs.
+/// Disable regenerating the `use` statements with a used imports `use_modules`
 ///
 /// _Note_: See the crate's tests for output example.
-pub fn generate_source_code(idl: Idl) -> String {
-    let mut output = "// DO NOT EDIT - automatically generated file\n".to_owned();
+pub fn generate_source_code(idl: Idl, use_modules: &Vec<syn::ItemUse>) -> String {
+    let mut output = "// DO NOT EDIT - automatically generated file (except `use` statements inside the `*_instruction` module\n".to_owned();
     let code = idl
         .programs
         .into_iter()
@@ -121,7 +122,7 @@ pub fn generate_source_code(idl: Idl) -> String {
 
             let program_module: syn::ItemMod = parse_quote! {
                 pub mod #instruction_module_name {
-                    use trdelnik_client::*;
+                    #(#use_modules)*
                     pub static PROGRAM_ID: Pubkey = Pubkey::new_from_array(#pubkey_bytes);
                     #(#instructions)*
                 }

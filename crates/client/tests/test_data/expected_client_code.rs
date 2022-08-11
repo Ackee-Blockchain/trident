@@ -1,4 +1,4 @@
-// DO NOT EDIT - automatically generated file
+// DO NOT EDIT - automatically generated file (except `use` statements inside the `*_instruction` module
 pub mod turnstile_instruction {
     use trdelnik_client::*;
     pub static PROGRAM_ID: Pubkey = Pubkey::new_from_array([
