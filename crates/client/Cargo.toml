@@ -16,10 +16,10 @@ pretty_assertions = "1.1.0"
 
 [dependencies]
 trdelnik-test = { path = "../test", version = "0.1.2" }
-solana-sdk = "1.10.29"
-solana-cli-output = "1.10.29"
-solana-transaction-status = "1.10.29"
-solana-account-decoder = "1.10.29"
+solana-sdk = "1.10.35"
+solana-cli-output = "1.10.35"
+solana-transaction-status = "1.10.35"
+solana-account-decoder = "1.10.35"
 anchor-client = "0.25.0"
 spl-token = "^3.2.0"
 spl-associated-token-account = "^1.0.3"
