@@ -10,6 +10,9 @@ incremented upon a breaking change and the patch version will be incremented for
 
 ## [Unreleased]
 
+### Added
+- Custom Solana RPC error reporter. If the Solana RPC error is thrown, the error code, message and data (logs) are reported to the output.
+
 ## [0.2.0] - 2022-07-27
 ### Added
 - Trdelnik is now configurable. This requires `Trdelnik.toml` file to exist in the project's root directory - without this file the execution will fail. To solve this re-run `trdelnik init` or just create an empty `Trdelnik.toml` file in the project's root directory.
