@@ -12,7 +12,7 @@ async fn test_with_defined_root() -> trdelnik_client::anyhow::Result<()> {
     tester.after(localnet_handle).await?;
     if !result.is_ok() {
         ::core::panicking::panic("assertion failed: result.is_ok()")
-    };
+    }
     let final_result = result.unwrap();
     if let Err(error) = final_result {
         trdelnik_client::error_reporter::report_error(&error);
