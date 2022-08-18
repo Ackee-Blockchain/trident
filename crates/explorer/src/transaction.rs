@@ -8,9 +8,7 @@ use console::style;
 use serde::Serialize;
 use serde_json::Value;
 use solana_sdk::{instruction::CompiledInstruction, pubkey::Pubkey};
-use solana_transaction_status::{
-    EncodedConfirmedTransaction, EncodedTransactionWithStatusMeta, TransactionStatus,
-};
+use solana_transaction_status::{EncodedTransaction, EncodedTransactionWithStatusMeta, TransactionStatus};
 use std::fmt;
 
 pub struct RawTransactionFieldVisibility {
@@ -118,11 +116,11 @@ pub struct DisplayRawTransaction {
 
 impl DisplayRawTransaction {
     pub fn from(
-        transaction: &EncodedConfirmedTransaction,
+        transaction: &EncodedTransaction,
         transaction_status: &TransactionStatus,
         visibility: &RawTransactionFieldVisibility,
     ) -> Result<Self> {
-        let EncodedConfirmedTransaction {
+        let EncodedTransaction {
             slot,
             transaction,
             block_time,
@@ -152,7 +150,7 @@ impl DisplayRawTransaction {
                     .confirmations
                     .map_or_else(|| "MAX (32)".to_string(), |n| n.to_string()),
                 slot: *slot,
-                recent_blockhash: message.recent_blockhash.to_string(),
+                recent_blockhash: message.recent_blockhash().to_string(),
                 fee: format!("◎ {}", pretty_lamports_to_sol(meta.as_ref().unwrap().fee)),
             })
         } else {
@@ -168,10 +166,10 @@ impl DisplayRawTransaction {
                     .collect(),
                 message: DisplayRawMessage {
                     header: DisplayRawMessageHeader {
-                        num_required_signatures: message.header.num_required_signatures,
-                        num_readonly_signed_accounts: message.header.num_readonly_signed_accounts,
+                        num_required_signatures: message.header().num_required_signatures,
+                        num_readonly_signed_accounts: message.header().num_readonly_signed_accounts,
                         num_readonly_unsigned_accounts: message
-                            .header
+                            .header()
                             .num_readonly_unsigned_accounts,
                     },
                     account_keys: message
@@ -179,9 +177,9 @@ impl DisplayRawTransaction {
                         .into_iter()
                         .map(|key| key.to_string())
                         .collect(),
-                    recent_blockhash: message.recent_blockhash.to_string(),
+                    recent_blockhash: message.recent_blockhash().to_string(),
                     instructions: message
-                        .instructions
+                        .instructions()
                         .into_iter()
                         .map(|instruction| DisplayRawInstruction {
                             program_id_index: instruction.program_id_index,
@@ -505,11 +503,11 @@ pub struct DisplayTransaction {
 
 impl DisplayTransaction {
     pub fn from(
-        transaction: &EncodedConfirmedTransaction,
+        transaction: &EncodedTransaction,
         transaction_status: &TransactionStatus,
         visibility: &TransactionFieldVisibility,
     ) -> Result<Self> {
-        let EncodedConfirmedTransaction {
+        let EncodedTransaction {
             slot,
             transaction,
             block_time,
@@ -538,7 +536,7 @@ impl DisplayTransaction {
                     .confirmations
                     .map_or_else(|| "MAX (32)".to_string(), |n| n.to_string()),
                 slot: *slot,
-                recent_blockhash: message.recent_blockhash.to_string(),
+                recent_blockhash: message.recent_blockhash().to_string(),
                 fee: format!("◎ {}", pretty_lamports_to_sol(meta.as_ref().unwrap().fee)),
             })
         } else {
@@ -573,7 +571,7 @@ impl DisplayTransaction {
                     })
                     .collect(),
                 instructions: message
-                    .instructions
+                    .instructions()
                     .iter()
                     .map(|instruction| {
                         DisplayInstruction::parse(instruction, &message.account_keys)
