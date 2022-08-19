@@ -376,7 +376,8 @@ pub fn parse_token(
                     "account": account_keys[instruction.accounts[0] as usize].to_string(),
                 }),
             })
-        }
+        },
+        _ => todo!("What should be returned here?"),
     }
 }
 

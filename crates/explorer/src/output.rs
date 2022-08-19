@@ -324,6 +324,7 @@ pub async fn get_raw_transaction_string(
     let config = RpcTransactionConfig {
         encoding: Some(UiTransactionEncoding::Binary),
         commitment: Some(CommitmentConfig::confirmed()),
+        max_supported_transaction_version: None,
     };
 
     let transaction = rpc_client.get_transaction_with_config(signature, config)?;
@@ -350,6 +351,7 @@ pub async fn get_transaction_string(
     let config = RpcTransactionConfig {
         encoding: Some(UiTransactionEncoding::Binary),
         commitment: Some(CommitmentConfig::confirmed()),
+        max_supported_transaction_version: None,
     };
 
     let transaction = rpc_client.get_transaction_with_config(signature, config)?;
