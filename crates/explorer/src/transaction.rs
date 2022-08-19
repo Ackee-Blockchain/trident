@@ -9,7 +9,9 @@ use serde::Serialize;
 use serde_json::Value;
 use solana_program::message::VersionedMessage;
 use solana_sdk::{instruction::CompiledInstruction, pubkey::Pubkey};
-use solana_transaction_status::{EncodedTransaction, EncodedTransactionWithStatusMeta, TransactionStatus};
+use solana_transaction_status::{
+    EncodedConfirmedTransactionWithStatusMeta, EncodedTransactionWithStatusMeta, TransactionStatus,
+};
 use std::fmt;
 
 pub struct RawTransactionFieldVisibility {
@@ -117,17 +119,19 @@ pub struct DisplayRawTransaction {
 
 impl DisplayRawTransaction {
     pub fn from(
-        transaction: &EncodedTransaction,
+        transaction: &EncodedConfirmedTransactionWithStatusMeta,
         transaction_status: &TransactionStatus,
         visibility: &RawTransactionFieldVisibility,
     ) -> Result<Self> {
-        let EncodedTransaction {
+        let EncodedConfirmedTransactionWithStatusMeta {
             slot,
             transaction,
             block_time,
         } = transaction;
 
-        let EncodedTransactionWithStatusMeta { transaction, meta } = transaction;
+        let EncodedTransactionWithStatusMeta {
+            transaction, meta, ..
+        } = transaction;
 
         let decoded_transaction = transaction.decode().unwrap();
 
@@ -174,7 +178,7 @@ impl DisplayRawTransaction {
                             .num_readonly_unsigned_accounts,
                     },
                     account_keys: message
-                        .account_keys
+                        .static_account_keys()
                         .into_iter()
                         .map(|key| key.to_string())
                         .collect(),
@@ -184,8 +188,8 @@ impl DisplayRawTransaction {
                         .into_iter()
                         .map(|instruction| DisplayRawInstruction {
                             program_id_index: instruction.program_id_index,
-                            accounts: instruction.accounts,
-                            data: bs58::encode(instruction.data).into_string(),
+                            accounts: instruction.accounts.clone(),
+                            data: bs58::encode(instruction.data.clone()).into_string(),
                         })
                         .collect(),
                 },
@@ -504,17 +508,19 @@ pub struct DisplayTransaction {
 
 impl DisplayTransaction {
     pub fn from(
-        transaction: &EncodedTransaction,
+        transaction: &EncodedConfirmedTransactionWithStatusMeta,
         transaction_status: &TransactionStatus,
         visibility: &TransactionFieldVisibility,
     ) -> Result<Self> {
-        let EncodedTransaction {
+        let EncodedConfirmedTransactionWithStatusMeta {
             slot,
             transaction,
             block_time,
         } = transaction;
 
-        let EncodedTransactionWithStatusMeta { transaction, meta } = transaction;
+        let EncodedTransactionWithStatusMeta {
+            transaction, meta, ..
+        } = transaction;
 
         let decoded_transaction = transaction.decode().unwrap();
 
@@ -548,7 +554,7 @@ impl DisplayTransaction {
         let transaction = if visibility.transaction {
             Some(DisplayTransactionContent {
                 accounts: message
-                    .account_keys
+                    .static_account_keys()
                     .iter()
                     .enumerate()
                     .map(|(index, account_key)| DisplayInputAccount {
@@ -559,9 +565,12 @@ impl DisplayTransaction {
                         } else {
                             false
                         },
-                        writable: message.is_writable(index),
+                        writable: message.is_maybe_writable(index),
                         signer: message.is_signer(index),
-                        program: message.maybe_executable(index),
+                        program: match message.clone() {
+                            VersionedMessage::Legacy(m) => m.maybe_executable(index),
+                            _ => false, // @todo: false? how should it be checked?
+                        },
                         post_balance_in_sol: pretty_lamports_to_sol(
                             meta.as_ref().unwrap().post_balances[index],
                         ),
@@ -575,7 +584,7 @@ impl DisplayTransaction {
                     .instructions()
                     .iter()
                     .map(|instruction| {
-                        DisplayInstruction::parse(instruction, &message.account_keys)
+                        DisplayInstruction::parse(instruction, &message.static_account_keys())
                     })
                     .collect(),
             })
