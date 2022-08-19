@@ -26,8 +26,10 @@ use log::debug;
 use serde::de::DeserializeOwned;
 use solana_account_decoder::parse_token::UiTokenAmount;
 use solana_cli_output::display::println_transaction;
-use solana_transaction_status::{EncodedConfirmedTransaction, UiTransactionEncoding};
-use spl_associated_token_account::get_associated_token_address;
+use solana_transaction_status::{EncodedConfirmedTransactionWithStatusMeta, UiTransactionEncoding};
+use spl_associated_token_account::{
+    get_associated_token_address, instruction::create_associated_token_account,
+};
 use std::{mem, rc::Rc};
 use std::{thread::sleep, time::Duration};
 use tokio::task;
@@ -215,7 +217,7 @@ impl Client {
         instruction: impl InstructionData + Send + 'static,
         accounts: impl ToAccountMetas + Send + 'static,
         signers: impl IntoIterator<Item = Keypair> + Send + 'static,
-    ) -> EncodedConfirmedTransaction {
+    ) -> EncodedConfirmedTransactionWithStatusMeta {
         let payer = self.payer().clone();
         let signature = task::spawn_blocking(move || {
             let program = Client::new(payer).program(program);
@@ -236,6 +238,7 @@ impl Client {
                 RpcTransactionConfig {
                     encoding: Some(UiTransactionEncoding::Binary),
                     commitment: Some(CommitmentConfig::confirmed()),
+                    max_supported_transaction_version: None,
                 },
             )
         })
@@ -274,7 +277,7 @@ impl Client {
         &self,
         instructions: &[Instruction],
         signers: impl IntoIterator<Item = &Keypair> + Send,
-    ) -> EncodedConfirmedTransaction {
+    ) -> EncodedConfirmedTransactionWithStatusMeta {
         let rpc_client = self.anchor_client.program(System::id()).rpc();
         let mut signers = signers.into_iter().collect::<Vec<_>>();
         signers.push(self.payer());
@@ -295,6 +298,7 @@ impl Client {
                 RpcTransactionConfig {
                     encoding: Some(UiTransactionEncoding::Binary),
                     commitment: Some(CommitmentConfig::confirmed()),
+                    max_supported_transaction_version: None,
                 },
             )
         })
@@ -508,7 +512,7 @@ impl Client {
         lamports: u64,
         space: u64,
         owner: &Pubkey,
-    ) -> EncodedConfirmedTransaction {
+    ) -> EncodedConfirmedTransactionWithStatusMeta {
         self.send_transaction(
             &[system_instruction::create_account(
                 &self.payer().pubkey(),
@@ -529,7 +533,7 @@ impl Client {
         keypair: &Keypair,
         space: u64,
         owner: &Pubkey,
-    ) -> EncodedConfirmedTransaction {
+    ) -> EncodedConfirmedTransactionWithStatusMeta {
         let rpc_client = self.anchor_client.program(System::id()).rpc();
         self.send_transaction(
             &[system_instruction::create_account(
@@ -552,7 +556,7 @@ impl Client {
         authority: Pubkey,
         freeze_authority: Option<Pubkey>,
         decimals: u8,
-    ) -> EncodedConfirmedTransaction {
+    ) -> EncodedConfirmedTransactionWithStatusMeta {
         let rpc_client = self.anchor_client.program(System::id()).rpc();
         self.send_transaction(
             &[
@@ -586,7 +590,7 @@ impl Client {
         authority: &Keypair,
         account: Pubkey,
         amount: u64,
-    ) -> EncodedConfirmedTransaction {
+    ) -> EncodedConfirmedTransactionWithStatusMeta {
         self.send_transaction(
             &[spl_token::instruction::mint_to(
                 &spl_token::ID,
@@ -610,7 +614,7 @@ impl Client {
         account: &Keypair,
         mint: &Pubkey,
         owner: &Pubkey,
-    ) -> EncodedConfirmedTransaction {
+    ) -> EncodedConfirmedTransactionWithStatusMeta {
         let rpc_client = self.anchor_client.program(System::id()).rpc();
         self.send_transaction(
             &[
@@ -639,13 +643,12 @@ impl Client {
     #[throws]
     pub async fn create_associated_token_account(&self, owner: &Keypair, mint: Pubkey) -> Pubkey {
         self.send_transaction(
-            &[
-                spl_associated_token_account::create_associated_token_account(
-                    &self.payer().pubkey(),
-                    &owner.pubkey(),
-                    &mint,
-                ),
-            ],
+            &[create_associated_token_account(
+                &self.payer().pubkey(),
+                &owner.pubkey(),
+                &mint,
+                &spl_token::ID,
+            )],
             &[],
         )
         .await?;
@@ -700,10 +703,13 @@ pub trait PrintableTransaction {
     }
 }
 
-impl PrintableTransaction for EncodedConfirmedTransaction {
+impl PrintableTransaction for EncodedConfirmedTransactionWithStatusMeta {
     fn print_named(&self, name: &str) {
         let tx = self.transaction.transaction.decode().unwrap();
         debug!("EXECUTE {} (slot {})", name, self.slot);
-        println_transaction(&tx, &self.transaction.meta, "  ", None, None);
+        match self.transaction.meta.clone() {
+            Some(meta) => println_transaction(&tx, Some(&meta), "  ", None, None),
+            _ => println_transaction(&tx, None, "  ", None, None),
+        }
     }
 }

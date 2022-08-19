@@ -132,7 +132,8 @@ pub fn parse_vote(
                     "Authority Type": authority_type,
                 }),
             })
-        }
+        },
+        _ => todo!("What should be returned here?"),
     }
 }
 
