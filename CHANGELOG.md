@@ -12,6 +12,7 @@ incremented upon a breaking change and the patch version will be incremented for
 
 ### Added
 - Custom Solana RPC error reporter. If the Solana RPC error is thrown, the error code, message and data (logs) are reported to the output.
+- Custom imports in the `.program_client`. User is able to import custom types and structures into program client. The import part of the code would not be re-generated.
 
 ## [0.2.0] - 2022-07-27
 ### Added
