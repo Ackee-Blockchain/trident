@@ -179,13 +179,13 @@ impl DisplayRawTransaction {
                     },
                     account_keys: message
                         .static_account_keys()
-                        .into_iter()
+                        .iter()
                         .map(|key| key.to_string())
                         .collect(),
                     recent_blockhash: message.recent_blockhash().to_string(),
                     instructions: message
                         .instructions()
-                        .into_iter()
+                        .iter()
                         .map(|instruction| DisplayRawInstruction {
                             program_id_index: instruction.program_id_index,
                             accounts: instruction.accounts.clone(),
@@ -584,7 +584,7 @@ impl DisplayTransaction {
                     .instructions()
                     .iter()
                     .map(|instruction| {
-                        DisplayInstruction::parse(instruction, &message.static_account_keys())
+                        DisplayInstruction::parse(instruction, message.static_account_keys())
                     })
                     .collect(),
             })
