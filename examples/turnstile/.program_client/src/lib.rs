@@ -12,7 +12,7 @@ pub mod turnstile_instruction {
         a_user: anchor_lang::solana_program::pubkey::Pubkey,
         a_system_program: anchor_lang::solana_program::pubkey::Pubkey,
         signers: impl IntoIterator<Item = Keypair> + Send + 'static,
-    ) -> Result<EncodedConfirmedTransaction, ClientError> {
+    ) -> Result<EncodedConfirmedTransactionWithStatusMeta, ClientError> {
         Ok(client
             .send_instruction(
                 PROGRAM_ID,
@@ -47,7 +47,7 @@ pub mod turnstile_instruction {
         i_dummy_arg: String,
         a_state: anchor_lang::solana_program::pubkey::Pubkey,
         signers: impl IntoIterator<Item = Keypair> + Send + 'static,
-    ) -> Result<EncodedConfirmedTransaction, ClientError> {
+    ) -> Result<EncodedConfirmedTransactionWithStatusMeta, ClientError> {
         Ok(client
             .send_instruction(
                 PROGRAM_ID,
@@ -76,7 +76,7 @@ pub mod turnstile_instruction {
         client: &Client,
         a_state: anchor_lang::solana_program::pubkey::Pubkey,
         signers: impl IntoIterator<Item = Keypair> + Send + 'static,
-    ) -> Result<EncodedConfirmedTransaction, ClientError> {
+    ) -> Result<EncodedConfirmedTransactionWithStatusMeta, ClientError> {
         Ok(client
             .send_instruction(
                 PROGRAM_ID,

@@ -81,7 +81,7 @@ pub fn generate_source_code(idl: Idl) -> String {
                                 #(#parameters,)*
                                 #(#accounts,)*
                                 signers: impl IntoIterator<Item = Keypair> + Send + 'static,
-                            ) -> Result<EncodedConfirmedTransaction, ClientError> {
+                            ) -> Result<EncodedConfirmedTransactionWithStatusMeta, ClientError> {
                                 Ok(client.send_instruction(
                                     PROGRAM_ID,
                                     #module_name::instruction::#instruction_struct_name {
