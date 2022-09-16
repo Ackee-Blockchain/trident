@@ -17,7 +17,7 @@ pub mod escrow_instruction {
         a_system_program: anchor_lang::solana_program::pubkey::Pubkey,
         a_token_program: anchor_lang::solana_program::pubkey::Pubkey,
         signers: impl IntoIterator<Item = Keypair> + Send + 'static,
-    ) -> Result<EncodedConfirmedTransaction, ClientError> {
+    ) -> Result<EncodedConfirmedTransactionWithStatusMeta, ClientError> {
         Ok(client
             .send_instruction(
                 PROGRAM_ID,
@@ -73,7 +73,7 @@ pub mod escrow_instruction {
         a_escrow_account: anchor_lang::solana_program::pubkey::Pubkey,
         a_token_program: anchor_lang::solana_program::pubkey::Pubkey,
         signers: impl IntoIterator<Item = Keypair> + Send + 'static,
-    ) -> Result<EncodedConfirmedTransaction, ClientError> {
+    ) -> Result<EncodedConfirmedTransactionWithStatusMeta, ClientError> {
         Ok(client
             .send_instruction(
                 PROGRAM_ID,
@@ -121,7 +121,7 @@ pub mod escrow_instruction {
         a_pda_account: anchor_lang::solana_program::pubkey::Pubkey,
         a_token_program: anchor_lang::solana_program::pubkey::Pubkey,
         signers: impl IntoIterator<Item = Keypair> + Send + 'static,
-    ) -> Result<EncodedConfirmedTransaction, ClientError> {
+    ) -> Result<EncodedConfirmedTransactionWithStatusMeta, ClientError> {
         Ok(client
             .send_instruction(
                 PROGRAM_ID,
