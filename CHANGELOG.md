@@ -11,6 +11,7 @@ incremented upon a breaking change and the patch version will be incremented for
 ## [Unreleased]
 
 ### Added
+- Upgrade Solana (`~1.10`) and Anchor framework (`~0.25`) versions
 - Custom Solana RPC error reporter. If the Solana RPC error is thrown, the error code, message and data (logs) are reported to the output.
 
 ## [0.2.0] - 2022-07-27

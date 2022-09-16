@@ -569,7 +569,7 @@ impl DisplayTransaction {
                         signer: message.is_signer(index),
                         program: match message.clone() {
                             VersionedMessage::Legacy(m) => m.maybe_executable(index),
-                            _ => false, // @todo: false? how should it be checked?
+                            VersionedMessage::V0(m) => m.is_key_called_as_program(index),
                         },
                         post_balance_in_sol: pretty_lamports_to_sol(
                             meta.as_ref().unwrap().post_balances[index],

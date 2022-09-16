@@ -376,8 +376,81 @@ pub fn parse_token(
                     "account": account_keys[instruction.accounts[0] as usize].to_string(),
                 }),
             })
-        },
-        _ => todo!("What should be returned here?"),
+        }
+        TokenInstruction::InitializeAccount3 { owner } => {
+            check_num_token_accounts(&instruction.accounts, 2)?;
+            Ok(ParsedInstructionEnum {
+                instruction_type: "initializeAccount3".to_string(),
+                info: json!({
+                    "account": account_keys[instruction.accounts[0] as usize].to_string(),
+                    "mintAccount": account_keys[instruction.accounts[1] as usize].to_string(),
+                    "owner": owner.to_string(),
+                }),
+            })
+        }
+        TokenInstruction::InitializeMint2 { mint_authority, .. } => {
+            check_num_token_accounts(&instruction.accounts, 1)?;
+            Ok(ParsedInstructionEnum {
+                instruction_type: "initializeMint2".to_string(),
+                info: json!({
+                    "account": account_keys[instruction.accounts[0] as usize].to_string(),
+                    "mintAuthority": mint_authority.to_string(),
+                }),
+            })
+        }
+        TokenInstruction::GetAccountDataSize => {
+            check_num_token_accounts(&instruction.accounts, 1)?;
+            Ok(ParsedInstructionEnum {
+                instruction_type: "getAccountDataSize".to_string(),
+                info: json!({
+                    "account": account_keys[instruction.accounts[0] as usize].to_string(),
+                }),
+            })
+        }
+        TokenInstruction::InitializeImmutableOwner => {
+            check_num_token_accounts(&instruction.accounts, 1)?;
+            Ok(ParsedInstructionEnum {
+                instruction_type: "initializeImmutableOwner".to_string(),
+                info: json!({
+                    "account": account_keys[instruction.accounts[0] as usize].to_string(),
+                }),
+            })
+        }
+        TokenInstruction::AmountToUiAmount { amount } => {
+            check_num_token_accounts(&instruction.accounts, 1)?;
+            Ok(ParsedInstructionEnum {
+                instruction_type: "amountToUiAmount".to_string(),
+                info: json!({
+                    "account": account_keys[instruction.accounts[0] as usize].to_string(),
+                    "amount": amount.to_string(),
+                }),
+            })
+        }
+        TokenInstruction::UiAmountToAmount { ui_amount } => {
+            check_num_token_accounts(&instruction.accounts, 1)?;
+            Ok(ParsedInstructionEnum {
+                instruction_type: "uiAmountToAmount".to_string(),
+                info: json!({
+                    "account": account_keys[instruction.accounts[0] as usize].to_string(),
+                    "uiAmount": ui_amount.to_string(),
+                }),
+            })
+        }
+        TokenInstruction::InitializeMultisig2 { m } => {
+            check_num_token_accounts(&instruction.accounts, 2)?;
+            let mut signers: Vec<String> = vec![];
+            for i in instruction.accounts[1..].iter() {
+                signers.push(account_keys[*i as usize].to_string());
+            }
+            Ok(ParsedInstructionEnum {
+                instruction_type: "initializeMultisig2".to_string(),
+                info: json!({
+                    "multisig": account_keys[instruction.accounts[0] as usize].to_string(),
+                    "signers": signers,
+                    "m": m,
+                }),
+            })
+        }
     }
 }
 
