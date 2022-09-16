@@ -38,8 +38,16 @@ pub fn parse_system(
                     "Owner": owner.to_string(),
                 }),
             })
-        },
-        SystemInstruction::UpgradeNonceAccount => todo!("What should be returned here?"),
+        }
+        SystemInstruction::UpgradeNonceAccount => {
+            check_num_system_accounts(&instruction.accounts, 1)?;
+            Ok(ParsedInstructionEnum {
+                instruction_type: "UpgradeNonceAccount".to_string(),
+                info: json!({
+                    "Nonce Account": account_keys[instruction.accounts[0] as usize].to_string(),
+                }),
+            })
+        }
         SystemInstruction::Assign { owner } => {
             check_num_system_accounts(&instruction.accounts, 1)?;
             Ok(ParsedInstructionEnum {

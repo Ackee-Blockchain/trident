@@ -133,7 +133,54 @@ pub fn parse_vote(
                 }),
             })
         },
-        _ => todo!("What should be returned here?"),
+        VoteInstruction::UpdateVoteState(state) => {
+            check_num_vote_accounts(&instruction.accounts, 2)?;
+            Ok(ParsedInstructionEnum {
+                instruction_type: "UpdateVoteState".to_string(),
+                info: json!({
+                    "Vote Account": account_keys[instruction.accounts[0] as usize].to_string(),
+                    "Vote Authority": account_keys[instruction.accounts[1] as usize].to_string(),
+                    "State Hash": state.hash.to_string(),
+                })
+            })
+        }
+        VoteInstruction::UpdateVoteStateSwitch(state, hash) => {
+            check_num_vote_accounts(&instruction.accounts, 2)?;
+            Ok(ParsedInstructionEnum {
+                instruction_type: "UpdateVoteStateSwitch".to_string(),
+                info: json!({
+                    "Vote Account": account_keys[instruction.accounts[0] as usize].to_string(),
+                    "Vote Authority": account_keys[instruction.accounts[1] as usize].to_string(),
+                    "Hash": hash.to_string(),
+                    "State Hash": state.hash.to_string(),
+                })
+            })
+        }
+        VoteInstruction::AuthorizeWithSeed(authority_type) => {
+            check_num_vote_accounts(&instruction.accounts, 3)?;
+            Ok(ParsedInstructionEnum {
+                instruction_type: "AuthorizeWithSeed".to_string(),
+                info: json!({
+                    "Vote Account": account_keys[instruction.accounts[0] as usize].to_string(),
+                    "Clock Sysvar": account_keys[instruction.accounts[1] as usize].to_string(),
+                    "Authority": account_keys[instruction.accounts[2] as usize].to_string(),
+                    "Authority Type": authority_type,
+                })
+            })
+        }
+        VoteInstruction::AuthorizeCheckedWithSeed(authority_type) => {
+            check_num_vote_accounts(&instruction.accounts, 4)?;
+            Ok(ParsedInstructionEnum {
+                instruction_type: "AuthorizeCheckedWithSeed".to_string(),
+                info: json!({
+                    "Vote Account": account_keys[instruction.accounts[0] as usize].to_string(),
+                    "Clock Sysvar": account_keys[instruction.accounts[1] as usize].to_string(),
+                    "Authority": account_keys[instruction.accounts[2] as usize].to_string(),
+                    "New Authority": account_keys[instruction.accounts[3] as usize].to_string(),
+                    "Authority Type": authority_type,
+                })
+            })
+        }
     }
 }
 
