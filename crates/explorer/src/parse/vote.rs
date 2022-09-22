@@ -132,7 +132,7 @@ pub fn parse_vote(
                     "Authority Type": authority_type,
                 }),
             })
-        },
+        }
         VoteInstruction::UpdateVoteState(state) => {
             check_num_vote_accounts(&instruction.accounts, 2)?;
             Ok(ParsedInstructionEnum {
@@ -141,7 +141,7 @@ pub fn parse_vote(
                     "Vote Account": account_keys[instruction.accounts[0] as usize].to_string(),
                     "Vote Authority": account_keys[instruction.accounts[1] as usize].to_string(),
                     "State Hash": state.hash.to_string(),
-                })
+                }),
             })
         }
         VoteInstruction::UpdateVoteStateSwitch(state, hash) => {
@@ -153,7 +153,7 @@ pub fn parse_vote(
                     "Vote Authority": account_keys[instruction.accounts[1] as usize].to_string(),
                     "Hash": hash.to_string(),
                     "State Hash": state.hash.to_string(),
-                })
+                }),
             })
         }
         VoteInstruction::AuthorizeWithSeed(authority_type) => {
@@ -165,7 +165,7 @@ pub fn parse_vote(
                     "Clock Sysvar": account_keys[instruction.accounts[1] as usize].to_string(),
                     "Authority": account_keys[instruction.accounts[2] as usize].to_string(),
                     "Authority Type": authority_type,
-                })
+                }),
             })
         }
         VoteInstruction::AuthorizeCheckedWithSeed(authority_type) => {
@@ -178,7 +178,7 @@ pub fn parse_vote(
                     "Authority": account_keys[instruction.accounts[2] as usize].to_string(),
                     "New Authority": account_keys[instruction.accounts[3] as usize].to_string(),
                     "Authority Type": authority_type,
-                })
+                }),
             })
         }
     }
