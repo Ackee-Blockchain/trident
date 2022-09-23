@@ -1,6 +1,6 @@
 [package]
 name = "trdelnik-client"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
 repository = "https://github.com/Ackee-Blockchain/trdelnik"
 license-file = "../../LICENSE"
@@ -15,7 +15,7 @@ anyhow = { version = "1.0.45", features = ["std"], default-features = false }
 pretty_assertions = "1.1.0"
 
 [dependencies]
-trdelnik-test = { path = "../test", version = "0.1.2" }
+trdelnik-test = { path = "../test", version = "0.2.0" }
 solana-sdk = "~1.10.39"
 solana-cli-output = "~1.10.39"
 solana-transaction-status = "~1.10.39"

@@ -4081,7 +4081,7 @@ dependencies = [
 
 [[package]]
 name = "trdelnik-cli"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "clap 3.2.17",
@@ -4094,7 +4094,7 @@ dependencies = [
 
 [[package]]
 name = "trdelnik-client"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "anchor-client",
  "anyhow",
@@ -4130,7 +4130,7 @@ dependencies = [
 
 [[package]]
 name = "trdelnik-explorer"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "base64 0.13.0",
  "bincode",
@@ -4159,7 +4159,7 @@ dependencies = [
 
 [[package]]
 name = "trdelnik-test"
-version = "0.1.2"
+version = "0.2.0"
 dependencies = [
  "darling",
  "macrotest",

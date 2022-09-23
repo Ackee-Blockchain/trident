@@ -10,8 +10,11 @@ incremented upon a breaking change and the patch version will be incremented for
 
 ## [Unreleased]
 
-### Added
+## [0.3.0] - 2022-09-23
+### Changed
 - Upgrade Solana (`~1.10`) and Anchor framework (`~0.25`) versions
+
+### Added
 - Custom Solana RPC error reporter. If the Solana RPC error is thrown, the error code, message and data (logs) are reported to the output.
 - Custom imports in the `.program_client`. User is able to import custom types and structures into program client. The import part of the code would not be re-generated.
 

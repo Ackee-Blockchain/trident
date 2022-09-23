@@ -1,6 +1,6 @@
 [package]
 name = "trdelnik-cli"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
 repository = "https://github.com/Ackee-Blockchain/trdelnik"
 license-file = "../../LICENSE"
@@ -13,5 +13,5 @@ tokio = { version = "1.17.0", features = ["rt-multi-thread", "macros", "fs", "si
 anyhow = { version = "1.0.56", features = ["std"], default-features = false }
 fehler = { version = "1.0.0", default-features = false }
 solana-sdk = "~1.10.39"
-trdelnik-client = { path = "../client", version = "0.2.0" }
-trdelnik-explorer = { path = "../explorer", version = "0.1.0" }
+trdelnik-client = { path = "../client", version = "0.3.0" }
+trdelnik-explorer = { path = "../explorer", version = "0.2.0" }
