@@ -39,7 +39,7 @@ impl ProgramFieldVisibility {
     }
 
     pub fn programdata_account(&self) -> bool {
-        self.program_account
+        self.programdata_account
     }
 
     pub fn enable_programdata_account(&mut self) -> &mut Self {

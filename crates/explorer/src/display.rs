@@ -15,7 +15,7 @@ impl DisplayFormat {
         T: fmt::Display + Serialize,
     {
         match self {
-            DisplayFormat::Cli => Ok(format!("{}", item)),
+            DisplayFormat::Cli => Ok(format!("{item}")),
             DisplayFormat::JSONPretty => Ok(serde_json::to_string_pretty(&item)?),
             DisplayFormat::JSON => Ok(serde_json::to_string(&item)?),
         }
