@@ -26,10 +26,7 @@ impl ErrorReporter<ClientError> for ClientError {
                     ) => logs.join("\n   "),
                     _ => "".to_string(),
                 };
-                println!(
-                    "RpcResponseError [{}]: {}\n{}",
-                    code, message, formatted_data
-                );
+                println!("RpcResponseError [{code}]: {message}\n{formatted_data}");
             }
         }
     }

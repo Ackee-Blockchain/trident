@@ -147,7 +147,10 @@ impl DisplayRawTransaction {
                     .as_ref()
                     .map(|err| err.to_string())
                     .unwrap_or_else(|| "Success".to_string()),
-                timestamp: Utc.timestamp(block_time.unwrap(), 0).to_string(),
+                timestamp: Utc
+                    .timestamp_opt(block_time.unwrap(), 0)
+                    .unwrap()
+                    .to_string(),
                 confirmation_status: status_to_string(
                     transaction_status.confirmation_status.as_ref().unwrap(),
                 ),
@@ -535,7 +538,10 @@ impl DisplayTransaction {
                     .as_ref()
                     .map(|err| err.to_string())
                     .unwrap_or_else(|| "Success".to_string()),
-                timestamp: Utc.timestamp(block_time.unwrap(), 0).to_string(),
+                timestamp: Utc
+                    .timestamp_opt(block_time.unwrap(), 0)
+                    .unwrap()
+                    .to_string(),
                 confirmation_status: status_to_string(
                     transaction_status.confirmation_status.as_ref().unwrap(),
                 ),
