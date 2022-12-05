@@ -10,8 +10,7 @@ use serde_json::Value;
 use solana_program::message::VersionedMessage;
 use solana_sdk::{instruction::CompiledInstruction, pubkey::Pubkey};
 use solana_transaction_status::{
-    option_serializer::OptionSerializer, EncodedConfirmedTransactionWithStatusMeta,
-    EncodedTransactionWithStatusMeta, TransactionStatus,
+    EncodedConfirmedTransactionWithStatusMeta, EncodedTransactionWithStatusMeta, TransactionStatus,
 };
 use std::fmt;
 
@@ -594,10 +593,7 @@ impl DisplayTransaction {
         };
 
         let log_messages = if visibility.log_messages {
-            match meta.as_ref().unwrap().log_messages.clone() {
-                OptionSerializer::Some(messages) => Some(messages),
-                _ => None,
-            }
+            Some(meta.as_ref().unwrap().log_messages.clone())
         } else {
             None
         };
@@ -605,7 +601,7 @@ impl DisplayTransaction {
         Ok(DisplayTransaction {
             overview,
             transaction,
-            log_messages: Some(log_messages),
+            log_messages,
         })
     }
 }
