@@ -141,9 +141,9 @@ impl TestGenerator {
         content: &str,
     ) -> Result<&'a PathBuf, Error> {
         match path.exists() {
-            true => println!("Skipping creating the {} file", name),
+            true => println!("Skipping creating the {name} file"),
             false => {
-                println!("Creating the {} file ...", name);
+                println!("Creating the {name} file ...");
                 fs::write(path, content).await?;
             }
         };
@@ -159,9 +159,9 @@ impl TestGenerator {
         name: &str,
     ) -> Result<&'a PathBuf, Error> {
         match path.exists() {
-            true => println!("Skipping creating the {} directory", name),
+            true => println!("Skipping creating the {name} directory"),
             false => {
-                println!("Creating the {} directory ...", name);
+                println!("Creating the {name} directory ...");
                 fs::create_dir(path).await?;
             }
         };
@@ -252,7 +252,7 @@ impl TestGenerator {
             .and_then(|table| table.get("name"))
             .and_then(Value::as_str)
             .ok_or(Error::CannotParseCargoToml)?;
-        format!("{} = {{ path = \"../programs/{}\" }}", name, dir_name)
+        format!("{name} = {{ path = \"../programs/{dir_name}\" }}")
             .parse()
             .unwrap()
     }
