@@ -108,7 +108,7 @@ pub fn parse(
     };
 
     Ok(DisplayParsedInstruction {
-        program: format!("{:?}", program_name),
+        program: format!("{program_name:?}"),
         program_id: program_id.to_string(),
         parsed: parsed_json,
     })

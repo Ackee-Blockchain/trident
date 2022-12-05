@@ -97,7 +97,7 @@ pub async fn print_account(
     config: &ExplorerConfig,
 ) -> Result<()> {
     let account_string = get_account_string(pubkey, visibility, format, config).await?;
-    println!("{}", account_string);
+    println!("{account_string}");
     Ok(())
 }
 
@@ -108,7 +108,7 @@ pub async fn print_program(
     config: &ExplorerConfig,
 ) -> Result<()> {
     let program_string = get_program_string(program_id, visibility, format, config).await?;
-    println!("{}", program_string);
+    println!("{program_string}");
     Ok(())
 }
 
@@ -120,7 +120,7 @@ pub async fn print_raw_transaction(
 ) -> Result<()> {
     let raw_transaction_string =
         get_raw_transaction_string(signature, visibility, format, config).await?;
-    println!("{}", raw_transaction_string);
+    println!("{raw_transaction_string}");
     Ok(())
 }
 
@@ -131,7 +131,7 @@ pub async fn print_transaction(
     config: &ExplorerConfig,
 ) -> Result<()> {
     let transaction_string = get_transaction_string(signature, visibility, format, config).await?;
-    println!("{}", transaction_string);
+    println!("{transaction_string}");
     Ok(())
 }
 
@@ -290,26 +290,22 @@ it is an executable account with program.so in its data, hence this output.",
                     Ok(program_string)
                 } else {
                     Err(ExplorerError::Custom(format!(
-                        "Program {} has been closed",
-                        program_id
+                        "Program {program_id} has been closed"
                     )))
                 }
             } else {
                 Err(ExplorerError::Custom(format!(
-                    "Program {} has been closed",
-                    program_id
+                    "Program {program_id} has been closed"
                 )))
             }
         } else {
             Err(ExplorerError::Custom(format!(
-                "{} is not a Program account",
-                program_id
+                "{program_id} is not a Program account"
             )))
         }
     } else {
         Err(ExplorerError::Custom(format!(
-            "{} is not a pubkey of an on-chain BPF program.",
-            program_id
+            "{program_id} is not a pubkey of an on-chain BPF program."
         )))
     }
 }
