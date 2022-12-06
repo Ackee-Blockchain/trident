@@ -133,7 +133,6 @@ impl TestGenerator {
 
     /// Creates a new file with a given content on the specified `path` and `name`
     // todo: the function should be located in the different module, File module for example
-    #[allow(clippy::ptr_arg)]
     async fn create_file<'a>(
         &self,
         path: &'a PathBuf,
@@ -152,7 +151,6 @@ impl TestGenerator {
 
     /// Creates a new directory on the specified `path` and with the specified `name`
     // todo: the function should be located in the different module, File module for example
-    #[allow(clippy::ptr_arg)]
     async fn create_directory<'a>(
         &self,
         path: &'a PathBuf,
@@ -170,7 +168,6 @@ impl TestGenerator {
 
     /// Adds `trdelnik-tests` workspace to the `root`'s `Cargo.toml` workspace members if needed.
     #[throws]
-    #[allow(clippy::ptr_arg)]
     async fn update_workspace(&self, root: &PathBuf) {
         let cargo = Path::new(&root).join(CARGO_TOML);
         let mut content: Value = fs::read_to_string(&cargo).await?.parse()?;
