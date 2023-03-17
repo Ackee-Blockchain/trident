@@ -40,10 +40,12 @@ use tokio::task;
 
 const RETRY_LOCALNET_EVERY_MILLIS: u64 = 500;
 
+type Payer = Rc<Keypair>;
+
 /// `Client` allows you to send typed RPC requests to a Solana cluster.
 pub struct Client {
     payer: Keypair,
-    anchor_client: AnchorClient,
+    anchor_client: AnchorClient<Payer>,
 }
 
 impl Client {
@@ -65,12 +67,12 @@ impl Client {
     }
 
     /// Gets the internal Anchor client to call Anchor client's methods directly.
-    pub fn anchor_client(&self) -> &AnchorClient {
+    pub fn anchor_client(&self) -> &AnchorClient<Payer> {
         &self.anchor_client
     }
 
     /// Creates [Program] instance to communicate with the selected program.
-    pub fn program(&self, program_id: Pubkey) -> Program {
+    pub fn program(&self, program_id: Pubkey) -> Program<Payer> {
         self.anchor_client.program(program_id)
     }
 
