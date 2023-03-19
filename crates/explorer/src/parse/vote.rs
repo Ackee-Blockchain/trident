@@ -180,7 +180,30 @@ pub fn parse_vote(
                     "Authority Type": authority_type,
                 }),
             })
-        }
+        },
+        VoteInstruction::CompactUpdateVoteState(state) => {
+            check_num_vote_accounts(&instruction.accounts, 2)?;
+            Ok(ParsedInstructionEnum {
+                instruction_type: "CompactUpdateVoteState".to_string(),
+                info: json!({
+                    "Vote Account": account_keys[instruction.accounts[0] as usize].to_string(),
+                    "Vote Authority": account_keys[instruction.accounts[1] as usize].to_string(),
+                    "State Hash": state.hash.to_string(),
+                }),
+            })
+        },
+        VoteInstruction::CompactUpdateVoteStateSwitch(state, hash) => {
+            check_num_vote_accounts(&instruction.accounts, 2)?;
+            Ok(ParsedInstructionEnum {
+                instruction_type: "CompactUpdateVoteStateSwitch".to_string(),
+                info: json!({
+                    "Vote Account": account_keys[instruction.accounts[0] as usize].to_string(),
+                    "Vote Authority": account_keys[instruction.accounts[1] as usize].to_string(),
+                    "Hash": hash.to_string(),
+                    "State Hash": state.hash.to_string(),
+                }),
+            })
+        },
     }
 }
 

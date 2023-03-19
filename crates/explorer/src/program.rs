@@ -125,7 +125,7 @@ impl DisplayUpgradeableProgram {
                             .unwrap_or_else(|| "none".to_string()),
                         raw_program_data: base64::encode(
                             &programdata_account.account.data
-                                [UpgradeableLoaderState::programdata_data_offset().unwrap()..],
+                                [UpgradeableLoaderState::size_of_programdata_metadata()..],
                         ),
                     },
                     owner: programdata_account.account.owner.to_string(),

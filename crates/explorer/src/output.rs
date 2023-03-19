@@ -258,13 +258,13 @@ it is an executable account with program.so in its data, hence this output.",
                                 "{} {} bytes",
                                 style("Followed by Raw Program Data (program.so):").bold(),
                                 programdata_keyed_account.account.data.len()
-                                    - UpgradeableLoaderState::programdata_data_offset().unwrap()
+                                    - UpgradeableLoaderState::size_of_programdata_metadata()
                             )?;
 
                             // Show hexdump of not more than MAX_BYTES_SHOWN bytes
                             const MAX_BYTES_SHOWN: usize = 64;
                             let len = programdata_keyed_account.account.data.len();
-                            let offset = UpgradeableLoaderState::programdata_data_offset().unwrap();
+                            let offset = UpgradeableLoaderState::size_of_programdata_metadata();
                             let (end, finished) = if offset + MAX_BYTES_SHOWN > len {
                                 (len, true)
                             } else {

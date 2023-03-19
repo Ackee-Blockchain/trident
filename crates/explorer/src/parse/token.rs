@@ -413,6 +413,44 @@ pub fn parse_token(
                 }),
             })
         }
+        TokenInstruction::GetAccountDataSize => {
+            check_num_token_accounts(&instruction.accounts, 1)?;
+            Ok(ParsedInstructionEnum {
+                instruction_type: "getAccountDataSize".to_string(),
+                info: json!({
+                    "mint": account_keys[instruction.accounts[0] as usize].to_string(),
+                }),
+            })
+        }
+        TokenInstruction::InitializeImmutableOwner => {
+            check_num_token_accounts(&instruction.accounts, 1)?;
+            Ok(ParsedInstructionEnum {
+                instruction_type: "initializeImmutableOwner".to_string(),
+                info: json!({
+                    "account": account_keys[instruction.accounts[0] as usize].to_string(),
+                }),
+            })
+        }
+        TokenInstruction::AmountToUiAmount { amount } => {
+            check_num_token_accounts(&instruction.accounts, 1)?;
+            Ok(ParsedInstructionEnum {
+                instruction_type: "amountToUiAmount".to_string(),
+                info: json!({
+                    "amount": amount,
+                    "mint": account_keys[instruction.accounts[0] as usize].to_string(),
+                }),
+            })
+        }
+        TokenInstruction::UiAmountToAmount { ui_amount } => {
+            check_num_token_accounts(&instruction.accounts, 1)?;
+            Ok(ParsedInstructionEnum {
+                instruction_type: "uiAmountToAmount".to_string(),
+                info: json!({
+                    "uiAmount": ui_amount,
+                    "mint": account_keys[instruction.accounts[0] as usize].to_string(),
+                }),
+            })
+        }
     }
 }
 

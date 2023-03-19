@@ -112,6 +112,30 @@ pub fn parse_bpf_upgradeable_loader(
                 }),
             })
         }
+        UpgradeableLoaderInstruction::ExtendProgram { additional_bytes } => {
+            check_num_bpf_upgradeable_loader_accounts(&instruction.accounts, 4)?;
+            Ok(ParsedInstructionEnum {
+                instruction_type: "Close".to_string(),
+                info: json!({
+                    "AdditionalBytes": additional_bytes,
+                    "ProgramData Account": account_keys[instruction.accounts[0] as usize].to_string(),
+                    "Program Account": account_keys[instruction.accounts[1] as usize].to_string(),
+                    "System Program": account_keys[instruction.accounts[2] as usize].to_string(),
+                    "Payer Account": account_keys[instruction.accounts[3] as usize].to_string(),
+                }),
+            })
+        }
+        UpgradeableLoaderInstruction::SetAuthorityChecked => {
+            check_num_bpf_upgradeable_loader_accounts(&instruction.accounts, 3)?;
+            Ok(ParsedInstructionEnum {
+                instruction_type: "SetAuthorityChecked".to_string(),
+                info: json!({
+                    "Account": account_keys[instruction.accounts[0] as usize].to_string(),
+                    "Authority": account_keys[instruction.accounts[1] as usize].to_string(),
+                    "New Authority": account_keys[instruction.accounts[2] as usize].to_string()
+                }),
+            })
+        }
     }
 }
 
