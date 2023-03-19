@@ -4661,7 +4661,7 @@ dependencies = [
 
 [[package]]
 name = "trdelnik-client"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
  "anchor-client",
  "anyhow",
@@ -4697,7 +4697,7 @@ dependencies = [
 
 [[package]]
 name = "trdelnik-explorer"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "base64 0.13.1",
  "bincode",
