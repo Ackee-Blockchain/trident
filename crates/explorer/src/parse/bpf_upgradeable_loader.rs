@@ -115,7 +115,7 @@ pub fn parse_bpf_upgradeable_loader(
         UpgradeableLoaderInstruction::ExtendProgram { additional_bytes } => {
             check_num_bpf_upgradeable_loader_accounts(&instruction.accounts, 4)?;
             Ok(ParsedInstructionEnum {
-                instruction_type: "Close".to_string(),
+                instruction_type: "ExtendProgram".to_string(),
                 info: json!({
                     "AdditionalBytes": additional_bytes,
                     "ProgramData Account": account_keys[instruction.accounts[0] as usize].to_string(),
