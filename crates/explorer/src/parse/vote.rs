@@ -180,7 +180,7 @@ pub fn parse_vote(
                     "Authority Type": authority_type,
                 }),
             })
-        },
+        }
         VoteInstruction::CompactUpdateVoteState(state) => {
             check_num_vote_accounts(&instruction.accounts, 2)?;
             Ok(ParsedInstructionEnum {
@@ -191,7 +191,7 @@ pub fn parse_vote(
                     "State Hash": state.hash.to_string(),
                 }),
             })
-        },
+        }
         VoteInstruction::CompactUpdateVoteStateSwitch(state, hash) => {
             check_num_vote_accounts(&instruction.accounts, 2)?;
             Ok(ParsedInstructionEnum {
@@ -203,7 +203,7 @@ pub fn parse_vote(
                     "State Hash": state.hash.to_string(),
                 }),
             })
-        },
+        }
     }
 }
 

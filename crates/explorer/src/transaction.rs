@@ -10,7 +10,8 @@ use serde_json::Value;
 use solana_program::message::VersionedMessage;
 use solana_sdk::{instruction::CompiledInstruction, pubkey::Pubkey};
 use solana_transaction_status::{
-    EncodedConfirmedTransactionWithStatusMeta, EncodedTransactionWithStatusMeta, TransactionStatus, option_serializer::OptionSerializer,
+    option_serializer::OptionSerializer, EncodedConfirmedTransactionWithStatusMeta,
+    EncodedTransactionWithStatusMeta, TransactionStatus,
 };
 use std::fmt;
 
