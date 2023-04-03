@@ -10,7 +10,8 @@ use serde_json::Value;
 use solana_program::message::VersionedMessage;
 use solana_sdk::{instruction::CompiledInstruction, pubkey::Pubkey};
 use solana_transaction_status::{
-    EncodedConfirmedTransactionWithStatusMeta, EncodedTransactionWithStatusMeta, TransactionStatus,
+    option_serializer::OptionSerializer, EncodedConfirmedTransactionWithStatusMeta,
+    EncodedTransactionWithStatusMeta, TransactionStatus,
 };
 use std::fmt;
 
@@ -506,7 +507,7 @@ pub struct DisplayTransaction {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub transaction: Option<DisplayTransactionContent>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub log_messages: Option<Option<Vec<String>>>,
+    pub log_messages: Option<OptionSerializer<Vec<String>>>,
 }
 
 impl DisplayTransaction {
@@ -769,7 +770,7 @@ impl fmt::Display for DisplayTransaction {
             writeln!(f)?;
         }
 
-        if let Some(Some(log_messages)) = &self.log_messages {
+        if let Some(OptionSerializer::Some(log_messages)) = &self.log_messages {
             write!(
                 f,
                 "{}",

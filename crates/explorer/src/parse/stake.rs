@@ -265,6 +265,34 @@ pub fn parse_stake(
                 }),
             })
         }
+        StakeInstruction::GetMinimumDelegation => Ok(ParsedInstructionEnum {
+            instruction_type: "GetMinimumDelegation".to_string(),
+            info: json!({}),
+        }),
+        StakeInstruction::DeactivateDelinquent => {
+            check_num_stake_accounts(&instruction.accounts, 3)?;
+            Ok(ParsedInstructionEnum {
+                instruction_type: "DeactivateDelinquent".to_string(),
+                info: json!({
+                    "Stake Account": account_keys[instruction.accounts[0] as usize].to_string(),
+                    "Delinquent Vote Account": account_keys[instruction.accounts[1] as usize].to_string(),
+                    "Reference Vote Account": account_keys[instruction.accounts[2] as usize].to_string(),
+                }),
+            })
+        }
+        StakeInstruction::Redelegate => {
+            check_num_stake_accounts(&instruction.accounts, 5)?;
+            Ok(ParsedInstructionEnum {
+                instruction_type: "Redelegate".to_string(),
+                info: json!({
+                    "Stake Account": account_keys[instruction.accounts[0] as usize].to_string(),
+                    "Uninitialized Stake Account": account_keys[instruction.accounts[1] as usize].to_string(),
+                    "Vote Account": account_keys[instruction.accounts[2] as usize].to_string(),
+                    "Config Address": account_keys[instruction.accounts[3] as usize].to_string(),
+                    "Stake Authority": account_keys[instruction.accounts[4] as usize].to_string(),
+                }),
+            })
+        }
     }
 }
 

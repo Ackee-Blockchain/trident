@@ -201,7 +201,8 @@ async fn init_fixture() -> Fixture {
 
 | Trdelnik CLI |  Anchor   |   Solana |
 |--------------|:---------:|---------:|
-| `latest`     | `~0.25.*` | `>=1.10` |
+| `latest`     | `~0.27.*` | `>=1.15` |
+| `v0.3.0`     | `~0.25.*` | `>=1.10` |
 | `v0.2.0`     | `~0.24.*` |  `>=1.9` |
 
 - _We are exploring a new versions of Anchor, please make sure you only use the supported versions. We are working on it :muscle:_
