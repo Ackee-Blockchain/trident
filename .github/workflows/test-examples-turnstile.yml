@@ -7,7 +7,7 @@ on:
 name: Test examples/turnstile
 
 env:
-  SOLANA_CLI_VERSION: 1.10.8
+  SOLANA_CLI_VERSION: 1.15.2
 
 jobs:
   turnstile:
