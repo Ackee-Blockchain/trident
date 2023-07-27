@@ -73,7 +73,7 @@ impl Client {
 
     /// Creates [Program] instance to communicate with the selected program.
     pub fn program(&self, program_id: Pubkey) -> Program<Payer> {
-        self.anchor_client.program(program_id)
+        self.anchor_client.program(program_id).unwrap()
     }
 
     /// Finds out if the Solana localnet is running.
@@ -82,7 +82,7 @@ impl Client {
     /// the localnet is running (until 30 retries with 500ms delays are performed).
     pub async fn is_localnet_running(&self, retry: bool) -> bool {
         let dummy_pubkey = Pubkey::new_from_array([0; 32]);
-        let rpc_client = self.anchor_client.program(dummy_pubkey).rpc();
+        let rpc_client = self.anchor_client.program(dummy_pubkey).unwrap().rpc();
         task::spawn_blocking(move || {
             for _ in 0..(if retry {
                 CONFIG.test.validator_startup_timeout / RETRY_LOCALNET_EVERY_MILLIS
@@ -176,7 +176,7 @@ impl Client {
     /// It fails when the Solana cluster is not running.
     #[throws]
     pub async fn get_account(&self, account: Pubkey) -> Option<Account> {
-        let rpc_client = self.anchor_client.program(System::id()).rpc();
+        let rpc_client = self.anchor_client.program(System::id())?.rpc();
         task::spawn_blocking(move || {
             rpc_client.get_account_with_commitment(&account, rpc_client.commitment())
         })
@@ -234,7 +234,7 @@ impl Client {
         .await
         .expect("send instruction task failed")?;
 
-        let rpc_client = self.anchor_client.program(System::id()).rpc();
+        let rpc_client = self.anchor_client.program(System::id())?.rpc();
         task::spawn_blocking(move || {
             rpc_client.get_transaction_with_config(
                 &signature,
@@ -281,7 +281,7 @@ impl Client {
         instructions: &[Instruction],
         signers: impl IntoIterator<Item = &Keypair> + Send,
     ) -> EncodedConfirmedTransactionWithStatusMeta {
-        let rpc_client = self.anchor_client.program(System::id()).rpc();
+        let rpc_client = self.anchor_client.program(System::id())?.rpc();
         let mut signers = signers.into_iter().collect::<Vec<_>>();
         signers.push(self.payer());
 
@@ -314,7 +314,7 @@ impl Client {
     /// Airdrops lamports to the chosen account.
     #[throws]
     pub async fn airdrop(&self, address: Pubkey, lamports: u64) {
-        let rpc_client = self.anchor_client.program(System::id()).rpc();
+        let rpc_client = self.anchor_client.program(System::id())?.rpc();
         task::spawn_blocking(move || -> Result<(), Error> {
             let signature = rpc_client.request_airdrop(&address, lamports)?;
             for _ in 0..5 {
@@ -343,7 +343,7 @@ impl Client {
     /// Get balance of an account
     #[throws]
     pub async fn get_balance(&mut self, address: Pubkey) -> u64 {
-        let rpc_client = self.anchor_client.program(System::id()).rpc();
+        let rpc_client = self.anchor_client.program(System::id())?.rpc();
         task::spawn_blocking(move || rpc_client.get_balance(&address))
             .await
             .expect("get_balance task failed")?
@@ -352,7 +352,7 @@ impl Client {
     /// Get token balance of an token account
     #[throws]
     pub async fn get_token_balance(&mut self, address: Pubkey) -> UiTokenAmount {
-        let rpc_client = self.anchor_client.program(System::id()).rpc();
+        let rpc_client = self.anchor_client.program(System::id())?.rpc();
         task::spawn_blocking(move || rpc_client.get_token_account_balance(&address))
             .await
             .expect("get_token_balance task failed")?
@@ -420,7 +420,7 @@ impl Client {
         const PROGRAM_DATA_CHUNK_SIZE: usize = 900;
 
         let program_pubkey = program_keypair.pubkey();
-        let system_program = self.anchor_client.program(System::id());
+        let system_program = self.anchor_client.program(System::id())?;
 
         let program_data_len = program_data.len();
         debug!("program_data_len: {}", program_data_len);
@@ -434,7 +434,7 @@ impl Client {
         .await
         .expect("crate program account task failed")?;
 
-        let create_account_ix = system_instruction::create_account(
+        let create_account_ix: Instruction = system_instruction::create_account(
             &system_program.payer(),
             &program_pubkey,
             min_balance_for_rent_exemption,
@@ -537,7 +537,7 @@ impl Client {
         space: u64,
         owner: &Pubkey,
     ) -> EncodedConfirmedTransactionWithStatusMeta {
-        let rpc_client = self.anchor_client.program(System::id()).rpc();
+        let rpc_client = self.anchor_client.program(System::id())?.rpc();
         self.send_transaction(
             &[system_instruction::create_account(
                 &self.payer().pubkey(),
@@ -560,7 +560,7 @@ impl Client {
         freeze_authority: Option<Pubkey>,
         decimals: u8,
     ) -> EncodedConfirmedTransactionWithStatusMeta {
-        let rpc_client = self.anchor_client.program(System::id()).rpc();
+        let rpc_client = self.anchor_client.program(System::id())?.rpc();
         self.send_transaction(
             &[
                 system_instruction::create_account(
@@ -618,7 +618,7 @@ impl Client {
         mint: &Pubkey,
         owner: &Pubkey,
     ) -> EncodedConfirmedTransactionWithStatusMeta {
-        let rpc_client = self.anchor_client.program(System::id()).rpc();
+        let rpc_client = self.anchor_client.program(System::id())?.rpc();
         self.send_transaction(
             &[
                 system_instruction::create_account(
@@ -664,7 +664,7 @@ impl Client {
     pub async fn create_account_with_data(&self, account: &Keypair, data: Vec<u8>) {
         const DATA_CHUNK_SIZE: usize = 900;
 
-        let rpc_client = self.anchor_client.program(System::id()).rpc();
+        let rpc_client = self.anchor_client.program(System::id())?.rpc();
         self.send_transaction(
             &[system_instruction::create_account(
                 &self.payer().pubkey(),
