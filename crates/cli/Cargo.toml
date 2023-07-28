@@ -10,7 +10,7 @@ description = "Trdelník is Rust based testing framework providing several conve
 
 [dependencies]
 clap = { version = "3.1.6", features = ["derive"] }
-tokio = { version = "~1.14.1", features = [
+tokio = { version = "1", features = [
     "rt-multi-thread",
     "macros",
     "fs",

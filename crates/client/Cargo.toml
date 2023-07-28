@@ -24,7 +24,7 @@ solana-account-decoder = ">=1.14, <1.17"
 anchor-client = "0.28.0"
 spl-token = "^3.5.0"
 spl-associated-token-account = "^1.0.3"
-tokio = { version = "~1.14.1", features = [
+tokio = { version = "1", features = [
     "rt-multi-thread",
     "macros",
     "fs",
