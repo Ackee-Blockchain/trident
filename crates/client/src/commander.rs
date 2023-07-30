@@ -59,7 +59,7 @@ impl LocalnetHandle {
     #[throws]
     pub async fn stop(mut self) {
         self.solana_test_validator_process.kill().await?;
-        if Client::new(Keypair::new()).is_localnet_running(false).await {
+        if Client::new(Keypair::new()).is_localnet_running(false) {
             throw!(Error::LocalnetIsStillRunning);
         }
         debug!("localnet stopped");
@@ -307,7 +307,7 @@ impl Commander {
             .arg("-r")
             .arg("-q")
             .spawn()?;
-        if !Client::new(Keypair::new()).is_localnet_running(true).await {
+        if !Client::new(Keypair::new()).is_localnet_running(true) {
             // The validator might not be running, but the process might be still alive (very slow start, some bug, ...),
             // therefore we want to kill it if it's still running so ports aren't held.
             process.kill().await.ok();

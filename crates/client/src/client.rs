@@ -80,10 +80,10 @@ impl Client {
     ///
     /// Set `retry` to `true` when you want to wait for up to 15 seconds until
     /// the localnet is running (until 30 retries with 500ms delays are performed).
-    pub async fn is_localnet_running(&self, retry: bool) -> bool {
-        let dummy_pubkey = Pubkey::new_from_array([0; 32]);
-        let rpc_client = self.anchor_client.program(dummy_pubkey).unwrap().rpc();
-        task::spawn_blocking(move || {
+    pub fn is_localnet_running(&self, retry: bool) -> bool {
+        tokio::task::block_in_place(move || -> bool {
+            let dummy_pubkey = Pubkey::new_from_array([0; 32]);
+            let rpc_client = self.anchor_client.program(dummy_pubkey).unwrap().rpc();
             for _ in 0..(if retry {
                 CONFIG.test.validator_startup_timeout / RETRY_LOCALNET_EVERY_MILLIS
             } else {
@@ -98,8 +98,25 @@ impl Client {
             }
             false
         })
-        .await
-        .expect("is_localnet_running task failed")
+        // let dummy_pubkey = Pubkey::new_from_array([0; 32]);
+        // let rpc_client = self.anchor_client.program(dummy_pubkey).unwrap().rpc();
+        // task::spawn_blocking(move || {
+        //     for _ in 0..(if retry {
+        //         CONFIG.test.validator_startup_timeout / RETRY_LOCALNET_EVERY_MILLIS
+        //     } else {
+        //         1
+        //     }) {
+        //         if rpc_client.get_health().is_ok() {
+        //             return true;
+        //         }
+        //         if retry {
+        //             sleep(Duration::from_millis(RETRY_LOCALNET_EVERY_MILLIS));
+        //         }
+        //     }
+        //     false
+        // })
+        // .await
+        // .expect("is_localnet_running task failed")
     }
 
     /// Gets deserialized data from the chosen account serialized with Anchor
@@ -314,14 +331,14 @@ impl Client {
     /// Airdrops lamports to the chosen account.
     #[throws]
     pub async fn airdrop(&self, address: Pubkey, lamports: u64) {
-        let rpc_client = self.anchor_client.program(System::id())?.rpc();
-        task::spawn_blocking(move || -> Result<(), Error> {
-            let signature = rpc_client.request_airdrop(&address, lamports)?;
+        tokio::task::block_in_place(move || {
+            let rpc_client = self.anchor_client.program(System::id()).unwrap().rpc();
+            let signature = rpc_client.request_airdrop(&address, lamports).unwrap();
             for _ in 0..5 {
-                match rpc_client.get_signature_status(&signature)? {
+                match rpc_client.get_signature_status(&signature).unwrap() {
                     Some(Ok(_)) => {
                         debug!("{} lamports airdropped", lamports);
-                        return Ok(());
+                        return;
                     }
                     Some(Err(transaction_error)) => {
                         throw!(Error::SolanaClientError(transaction_error.into()));
@@ -329,15 +346,37 @@ impl Client {
                     None => sleep(Duration::from_millis(500)),
                 }
             }
-            throw!(Error::SolanaClientError(
-                ClientErrorKind::Custom(
-                    "Airdrop transaction has not been processed yet".to_owned(),
-                )
-                .into(),
-            ));
+            // throw!(Error::SolanaClientError(
+            //     ClientErrorKind::Custom(
+            //         "Airdrop transaction has not been processed yet".to_owned(),
+            //     )
+            //     .into(),
+            // ));
         })
-        .await
-        .expect("airdrop task failed")?
+        // let rpc_client = self.anchor_client.program(System::id())?.rpc();
+        // task::spawn_blocking(move || -> Result<(), Error> {
+        //     let signature = rpc_client.request_airdrop(&address, lamports)?;
+        //     for _ in 0..5 {
+        //         match rpc_client.get_signature_status(&signature)? {
+        //             Some(Ok(_)) => {
+        //                 debug!("{} lamports airdropped", lamports);
+        //                 return Ok(());
+        //             }
+        //             Some(Err(transaction_error)) => {
+        //                 throw!(Error::SolanaClientError(transaction_error.into()));
+        //             }
+        //             None => sleep(Duration::from_millis(500)),
+        //         }
+        //     }
+        //     throw!(Error::SolanaClientError(
+        //         ClientErrorKind::Custom(
+        //             "Airdrop transaction has not been processed yet".to_owned(),
+        //         )
+        //         .into(),
+        //     ));
+        // })
+        // .await
+        // .expect("airdrop task failed")?
     }
 
     /// Get balance of an account
@@ -428,6 +467,7 @@ impl Client {
         debug!("create program account");
 
         let rpc_client = system_program.rpc();
+
         let min_balance_for_rent_exemption = task::spawn_blocking(move || {
             rpc_client.get_minimum_balance_for_rent_exemption(program_data_len)
         })
