@@ -80,10 +80,12 @@ impl Client {
     ///
     /// Set `retry` to `true` when you want to wait for up to 15 seconds until
     /// the localnet is running (until 30 retries with 500ms delays are performed).
-    pub fn is_localnet_running(&self, retry: bool) -> bool {
-        tokio::task::block_in_place(move || -> bool {
-            let dummy_pubkey = Pubkey::new_from_array([0; 32]);
-            let rpc_client = self.anchor_client.program(dummy_pubkey).unwrap().rpc();
+    pub async fn is_localnet_running(&self, retry: bool) -> bool {
+        let payer = Keypair::from_bytes(&self.payer.to_bytes()).unwrap();
+
+        task::spawn_blocking(move || {
+            let rpc_client = Client::new(payer).program(System::id()).rpc();
+
             for _ in 0..(if retry {
                 CONFIG.test.validator_startup_timeout / RETRY_LOCALNET_EVERY_MILLIS
             } else {
@@ -98,25 +100,8 @@ impl Client {
             }
             false
         })
-        // let dummy_pubkey = Pubkey::new_from_array([0; 32]);
-        // let rpc_client = self.anchor_client.program(dummy_pubkey).unwrap().rpc();
-        // task::spawn_blocking(move || {
-        //     for _ in 0..(if retry {
-        //         CONFIG.test.validator_startup_timeout / RETRY_LOCALNET_EVERY_MILLIS
-        //     } else {
-        //         1
-        //     }) {
-        //         if rpc_client.get_health().is_ok() {
-        //             return true;
-        //         }
-        //         if retry {
-        //             sleep(Duration::from_millis(RETRY_LOCALNET_EVERY_MILLIS));
-        //         }
-        //     }
-        //     false
-        // })
-        // .await
-        // .expect("is_localnet_running task failed")
+        .await
+        .expect("Error during localnet health check")
     }
 
     /// Gets deserialized data from the chosen account serialized with Anchor
@@ -331,61 +316,49 @@ impl Client {
     /// Airdrops lamports to the chosen account.
     #[throws]
     pub async fn airdrop(&self, address: Pubkey, lamports: u64) {
-        tokio::task::block_in_place(move || {
-            let rpc_client = self.anchor_client.program(System::id()).unwrap().rpc();
+        let payer = Keypair::from_bytes(&self.payer.to_bytes()).unwrap();
+
+        let aidrop_done = task::spawn_blocking(move || -> bool {
+            let rpc_client = Client::new(payer).program(System::id()).rpc();
+
             let signature = rpc_client.request_airdrop(&address, lamports).unwrap();
-            for _ in 0..5 {
+            loop {
                 match rpc_client.get_signature_status(&signature).unwrap() {
                     Some(Ok(_)) => {
                         debug!("{} lamports airdropped", lamports);
-                        return;
+                        return true;
                     }
-                    Some(Err(transaction_error)) => {
-                        throw!(Error::SolanaClientError(transaction_error.into()));
+                    Some(Err(_transaction_error)) => {
+                        return false;
                     }
-                    None => sleep(Duration::from_millis(500)),
+                    None => sleep(Duration::from_millis(1500)),
                 }
             }
-            // throw!(Error::SolanaClientError(
-            //     ClientErrorKind::Custom(
-            //         "Airdrop transaction has not been processed yet".to_owned(),
-            //     )
-            //     .into(),
-            // ));
         })
-        // let rpc_client = self.anchor_client.program(System::id())?.rpc();
-        // task::spawn_blocking(move || -> Result<(), Error> {
-        //     let signature = rpc_client.request_airdrop(&address, lamports)?;
-        //     for _ in 0..5 {
-        //         match rpc_client.get_signature_status(&signature)? {
-        //             Some(Ok(_)) => {
-        //                 debug!("{} lamports airdropped", lamports);
-        //                 return Ok(());
-        //             }
-        //             Some(Err(transaction_error)) => {
-        //                 throw!(Error::SolanaClientError(transaction_error.into()));
-        //             }
-        //             None => sleep(Duration::from_millis(500)),
-        //         }
-        //     }
-        //     throw!(Error::SolanaClientError(
-        //         ClientErrorKind::Custom(
-        //             "Airdrop transaction has not been processed yet".to_owned(),
-        //         )
-        //         .into(),
-        //     ));
-        // })
-        // .await
-        // .expect("airdrop task failed")?
+        .await
+        .expect("Airdrop Failed");
+
+        if !aidrop_done {
+            throw!(Error::SolanaClientError(
+                ClientErrorKind::Custom(
+                    "Airdrop transaction has not been processed yet".to_owned(),
+                )
+                .into(),
+            ));
+        }
     }
 
     /// Get balance of an account
     #[throws]
     pub async fn get_balance(&mut self, address: Pubkey) -> u64 {
-        let rpc_client = self.anchor_client.program(System::id())?.rpc();
-        task::spawn_blocking(move || rpc_client.get_balance(&address))
-            .await
-            .expect("get_balance task failed")?
+        let payer = Keypair::from_bytes(&self.payer.to_bytes()).unwrap();
+
+        task::spawn_blocking(move || {
+            let rpc_client = Client::new(payer).program(System::id()).rpc();
+            rpc_client.get_balance(&address)
+        })
+        .await
+        .expect("get_balance task failed")?
     }
 
     /// Get token balance of an token account
@@ -442,6 +415,7 @@ impl Client {
         debug!("airdropping the minimum balance required to deploy the program");
 
         // TODO: This will fail on devnet where airdrops are limited to 1 SOL
+
         self.airdrop(self.payer().pubkey(), 5_000_000_000)
             .await
             .expect("airdropping for deployment failed");
@@ -449,61 +423,61 @@ impl Client {
         debug!("deploying program");
 
         self.deploy(program_keypair.clone(), mem::take(&mut program_data))
-            .await
-            .expect("deploying program failed");
+            .await?;
     }
 
     /// Deploys the program.
     #[throws]
     async fn deploy(&self, program_keypair: Keypair, program_data: Vec<u8>) {
+        let payer_create_acc = Keypair::from_bytes(&self.payer.to_bytes()).unwrap();
+        let program_create = Keypair::from_bytes(&program_keypair.to_bytes()).unwrap();
+        let program_send = Keypair::from_bytes(&program_keypair.to_bytes()).unwrap();
+        let program_finalize = Keypair::from_bytes(&program_keypair.to_bytes()).unwrap();
+
         const PROGRAM_DATA_CHUNK_SIZE: usize = 900;
 
-        let program_pubkey = program_keypair.pubkey();
-        let system_program = self.anchor_client.program(System::id())?;
-
         let program_data_len = program_data.len();
-        debug!("program_data_len: {}", program_data_len);
 
-        debug!("create program account");
+        task::spawn_blocking(move || {
+            //let rpc_client = Client::new(payer_create_acc).program(System::id()).rpc();
 
-        let rpc_client = system_program.rpc();
+            let system_program = Client::new(payer_create_acc).program(System::id());
 
-        let min_balance_for_rent_exemption = task::spawn_blocking(move || {
-            rpc_client.get_minimum_balance_for_rent_exemption(program_data_len)
+            let rpc_client = system_program.rpc();
+
+            debug!("program_data_len: {}", program_data_len);
+
+            debug!("create program account");
+
+            let min_balance_for_rent_exemption = rpc_client
+                .get_minimum_balance_for_rent_exemption(program_data_len)
+                .unwrap();
+
+            let create_account_ix: Instruction = system_instruction::create_account(
+                &system_program.payer(),
+                &program_create.pubkey(),
+                min_balance_for_rent_exemption,
+                program_data_len as u64,
+                &bpf_loader::id(),
+            );
+            system_program
+                .request()
+                .instruction(create_account_ix)
+                .signer(&program_create)
+                .send()
+                .unwrap();
         })
         .await
-        .expect("crate program account task failed")?;
-
-        let create_account_ix: Instruction = system_instruction::create_account(
-            &system_program.payer(),
-            &program_pubkey,
-            min_balance_for_rent_exemption,
-            program_data_len as u64,
-            &bpf_loader::id(),
-        );
-        {
-            let program_keypair = Keypair::from_bytes(&program_keypair.to_bytes()).unwrap();
-            let payer = self.payer().clone();
-            task::spawn_blocking(move || {
-                let system_program = Client::new(payer).program(System::id());
-                system_program
-                    .request()
-                    .instruction(create_account_ix)
-                    .signer(&program_keypair)
-                    .send()
-            })
-            .await
-            .expect("create program account task failed")?;
-        }
+        .expect("Account Creation Failed");
 
         debug!("write program data");
 
         let mut offset = 0usize;
         let mut futures = Vec::new();
         for chunk in program_data.chunks(PROGRAM_DATA_CHUNK_SIZE) {
-            let program_keypair = Keypair::from_bytes(&program_keypair.to_bytes()).unwrap();
+            let program_keypair = Keypair::from_bytes(&program_send.to_bytes()).unwrap();
             let loader_write_ix = loader_instruction::write(
-                &program_pubkey,
+                &program_keypair.pubkey(),
                 &bpf_loader::id(),
                 offset as u32,
                 chunk.to_vec(),
@@ -531,14 +505,15 @@ impl Client {
 
         debug!("finalize program");
 
-        let loader_finalize_ix = loader_instruction::finalize(&program_pubkey, &bpf_loader::id());
+        let loader_finalize_ix =
+            loader_instruction::finalize(&program_finalize.pubkey(), &bpf_loader::id());
         let payer = self.payer().clone();
         task::spawn_blocking(move || {
             let system_program = Client::new(payer).program(System::id());
             system_program
                 .request()
                 .instruction(loader_finalize_ix)
-                .signer(&program_keypair)
+                .signer(&program_finalize)
                 .send()
         })
         .await
