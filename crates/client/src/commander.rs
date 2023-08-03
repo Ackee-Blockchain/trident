@@ -314,7 +314,6 @@ impl Commander {
             process.kill().await.ok();
             throw!(Error::LocalnetIsNotRunning);
         }
-        println!("localnet started");
         debug!("localnet started");
         LocalnetHandle {
             solana_test_validator_process: process,
