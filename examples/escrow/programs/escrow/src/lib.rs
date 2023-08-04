@@ -16,8 +16,9 @@
 //! - Initializer will get back ownership of their token X account
 
 use anchor_lang::prelude::*;
-use anchor_spl::token::{self, SetAuthority, Token, TokenAccount, Transfer};
-use spl_token::instruction::AuthorityType;
+use anchor_spl::token::{
+    self, spl_token::instruction::AuthorityType, SetAuthority, Token, TokenAccount, Transfer,
+};
 
 declare_id!("Po1RaS8BEDbNcn5oXsFryAeQ6Wn8fvmE111DJaKCgPC");
 
