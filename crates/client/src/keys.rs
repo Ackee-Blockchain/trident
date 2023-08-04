@@ -1,9 +1,8 @@
 use anchor_client::solana_sdk::signer::keypair::Keypair;
-use rand::rngs::OsRng;
 
 /// Generate a random keypair.
 pub fn random_keypair() -> Keypair {
-    Keypair::generate(&mut OsRng::default())
+    Keypair::new()
 }
 
 /// Returns a recognisable Keypair of your created program. The public key will start with `Pxx`, where
