@@ -33,7 +33,6 @@ use solana_transaction_status::{EncodedConfirmedTransactionWithStatusMeta, UiTra
 use spl_associated_token_account::{create_associated_token_account, get_associated_token_address};
 use std::{mem, rc::Rc};
 use std::{thread::sleep, time::Duration};
-use tokio::task;
 
 // @TODO: Make compatible with the latest Anchor deps.
 // https://github.com/project-serum/anchor/pull/1307#issuecomment-1022592683
@@ -326,10 +325,7 @@ impl Client {
 
         if !aidrop_done {
             throw!(Error::SolanaClientError(
-                ClientErrorKind::Custom(
-                    "Airdrop transaction has not been processed yet".to_owned(),
-                )
-                .into(),
+                ClientErrorKind::Custom("Airdrop transaction failed".to_owned(),).into(),
             ));
         }
     }
@@ -337,23 +333,15 @@ impl Client {
     /// Get balance of an account
     #[throws]
     pub async fn get_balance(&mut self, address: Pubkey) -> u64 {
-        let payer = Keypair::from_bytes(&self.payer.to_bytes()).unwrap();
-
-        task::spawn_blocking(move || {
-            let rpc_client = Client::new(payer).program(System::id()).rpc();
-            rpc_client.get_balance(&address)
-        })
-        .await
-        .expect("get_balance task failed")?
+        let rpc_client = self.anchor_client.program(System::id())?.async_rpc();
+        rpc_client.get_balance(&address).await?
     }
 
     /// Get token balance of an token account
     #[throws]
     pub async fn get_token_balance(&mut self, address: Pubkey) -> UiTokenAmount {
-        let rpc_client = self.anchor_client.program(System::id())?.rpc();
-        task::spawn_blocking(move || rpc_client.get_token_account_balance(&address))
-            .await
-            .expect("get_token_balance task failed")?
+        let rpc_client = self.anchor_client.program(System::id())?.async_rpc();
+        rpc_client.get_token_account_balance(&address).await?
     }
 
     /// Deploys a program based on it's name.
@@ -438,7 +426,7 @@ impl Client {
             .unwrap();
 
         let create_account_ix: Instruction = system_instruction::create_account(
-            &system_program.payer(),
+            &self.payer.pubkey(),
             &program_keypair.pubkey(),
             min_balance_for_rent_exemption,
             program_data_len as u64,
@@ -529,12 +517,14 @@ impl Client {
         space: u64,
         owner: &Pubkey,
     ) -> EncodedConfirmedTransactionWithStatusMeta {
-        let rpc_client = self.anchor_client.program(System::id())?.rpc();
+        let rpc_client = self.anchor_client.program(System::id())?.async_rpc();
         self.send_transaction(
             &[system_instruction::create_account(
                 &self.payer().pubkey(),
                 &keypair.pubkey(),
-                rpc_client.get_minimum_balance_for_rent_exemption(space as usize)?,
+                rpc_client
+                    .get_minimum_balance_for_rent_exemption(space as usize)
+                    .await?,
                 space,
                 owner,
             )],
@@ -552,14 +542,15 @@ impl Client {
         freeze_authority: Option<Pubkey>,
         decimals: u8,
     ) -> EncodedConfirmedTransactionWithStatusMeta {
-        let rpc_client = self.anchor_client.program(System::id())?.rpc();
+        let rpc_client = self.anchor_client.program(System::id())?.async_rpc();
         self.send_transaction(
             &[
                 system_instruction::create_account(
                     &self.payer().pubkey(),
                     &mint.pubkey(),
                     rpc_client
-                        .get_minimum_balance_for_rent_exemption(spl_token::state::Mint::LEN)?,
+                        .get_minimum_balance_for_rent_exemption(spl_token::state::Mint::LEN)
+                        .await?,
                     spl_token::state::Mint::LEN as u64,
                     &spl_token::ID,
                 ),
@@ -610,14 +601,15 @@ impl Client {
         mint: &Pubkey,
         owner: &Pubkey,
     ) -> EncodedConfirmedTransactionWithStatusMeta {
-        let rpc_client = self.anchor_client.program(System::id())?.rpc();
+        let rpc_client = self.anchor_client.program(System::id())?.async_rpc();
         self.send_transaction(
             &[
                 system_instruction::create_account(
                     &self.payer().pubkey(),
                     &account.pubkey(),
                     rpc_client
-                        .get_minimum_balance_for_rent_exemption(spl_token::state::Account::LEN)?,
+                        .get_minimum_balance_for_rent_exemption(spl_token::state::Account::LEN)
+                        .await?,
                     spl_token::state::Account::LEN as u64,
                     &spl_token::ID,
                 ),
@@ -656,12 +648,14 @@ impl Client {
     pub async fn create_account_with_data(&self, account: &Keypair, data: Vec<u8>) {
         const DATA_CHUNK_SIZE: usize = 900;
 
-        let rpc_client = self.anchor_client.program(System::id())?.rpc();
+        let rpc_client = self.anchor_client.program(System::id())?.async_rpc();
         self.send_transaction(
             &[system_instruction::create_account(
                 &self.payer().pubkey(),
                 &account.pubkey(),
-                rpc_client.get_minimum_balance_for_rent_exemption(data.len())?,
+                rpc_client
+                    .get_minimum_balance_for_rent_exemption(data.len())
+                    .await?,
                 data.len() as u64,
                 &bpf_loader::id(),
             )],
