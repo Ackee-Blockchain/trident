@@ -288,7 +288,7 @@ pub async fn parse_to_idl_program(name: String, code: &str) -> Result<IdlProgram
             } else {
                 None?
             };
-            if !matches!(&local.pat, syn::Pat::Ident(pat_ident) if pat_ident.ident == "accounts") {
+            if !matches!(&local.pat, syn::Pat::Ident(pat_ident) if pat_ident.ident == "__accounts") {
                 None?
             }
             let init_expr = *local.init?.1;
