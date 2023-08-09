@@ -3,14 +3,14 @@ on:
   pull_request:
   push:
 
-name: Test Escrow
+name: Test Escrow and Turnstile
 
 env:
   SOLANA_CLI_VERSION: 1.16.6
   ANCHOR_VERSION: 0.28.0
 
 jobs:      
-  test_escrow:
+  run_examples:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3
@@ -31,4 +31,10 @@ jobs:
         run: anchor build
       - name: Test Escrow
         working-directory: examples/escrow
+        run: ../../target/release/trdelnik test
+      - name: Build Turnstile 
+        working-directory: examples/turnstile
+        run: anchor build
+      - name: Test Turnstile
+        working-directory: examples/turnstile
         run: ../../target/release/trdelnik test
