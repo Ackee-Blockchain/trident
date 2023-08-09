@@ -4,7 +4,7 @@ use anchor_client::{
         prelude::System, solana_program::program_pack::Pack, AccountDeserialize, Id,
         InstructionData, ToAccountMetas,
     },
-    solana_client::{client_error::ClientErrorKind, rpc_config::RpcTransactionConfig},
+    solana_client::rpc_config::RpcTransactionConfig,
     solana_sdk::{
         account::Account,
         bpf_loader,
@@ -312,29 +312,26 @@ impl Client {
             .await
             .unwrap();
 
-        let aidrop_done: bool = loop {
+        let (airdrop_result, error) = loop {
             match rpc_client.get_signature_status(&signature).await.unwrap() {
                 Some(Ok(_)) => {
                     debug!("{} lamports airdropped", lamports);
-                    break true;
+                    break (true, None);
                 }
-                Some(Err(_transaction_error)) => break false,
-                None => sleep(Duration::from_millis(1500)),
+                Some(Err(transaction_error)) => break (false, Some(transaction_error)),
+                None => sleep(Duration::from_millis(500)),
             }
         };
-
-        if !aidrop_done {
-            throw!(Error::SolanaClientError(
-                ClientErrorKind::Custom("Airdrop transaction failed".to_owned(),).into(),
-            ));
+        if !airdrop_result {
+            throw!(Error::SolanaClientError(error.unwrap().into()));
         }
     }
 
     /// Get balance of an account
     #[throws]
-    pub async fn get_balance(&mut self, address: Pubkey) -> u64 {
+    pub async fn get_balance(&mut self, address: &Pubkey) -> u64 {
         let rpc_client = self.anchor_client.program(System::id())?.async_rpc();
-        rpc_client.get_balance(&address).await?
+        rpc_client.get_balance(address).await?
     }
 
     /// Get token balance of an token account
@@ -399,6 +396,28 @@ impl Client {
 
         self.deploy(program_keypair.clone(), mem::take(&mut program_data))
             .await?;
+
+        // this will slow down the process because if we call program instruction right after deploy,
+        // data are not yet completely deployed so error occures
+        let deploy_done = loop {
+            match self.anchor_client.program(program_keypair.pubkey()) {
+                Ok(_) => {
+                    debug!("program deployed succefully");
+                    sleep(Duration::from_millis(1000));
+                    break true;
+                }
+                Err(_) => {
+                    sleep(Duration::from_millis(500));
+                }
+            }
+        };
+
+        // this is not necessarry, but we want to avoid "throws" macro warning of unused code
+        if !deploy_done {
+            throw!(Error::ProgramError(
+                solana_sdk::program_error::ProgramError::Custom(0)
+            ));
+        }
     }
 
     /// Deploys the program.
@@ -443,7 +462,7 @@ impl Client {
         debug!("write program data");
 
         let mut offset = 0usize;
-        let mut futures = Vec::new();
+        let mut futures_vec = Vec::new();
 
         for chunk in program_data.chunks(PROGRAM_DATA_CHUNK_SIZE) {
             let loader_write_ix = loader_instruction::write(
@@ -452,11 +471,8 @@ impl Client {
                 offset as u32,
                 chunk.to_vec(),
             );
-
-            futures.push(async {
-                let deploy_payer = self.payer.clone();
-
-                let system_program = Client::new(deploy_payer).program(System::id());
+            futures_vec.push(async {
+                let system_program = self.anchor_client.program(System::id()).unwrap();
                 system_program
                     .request()
                     .instruction(loader_write_ix)
@@ -467,8 +483,8 @@ impl Client {
             });
             offset += chunk.len();
         }
-        stream::iter(futures)
-            .buffer_unordered(100)
+        stream::iter(futures_vec)
+            .buffer_unordered(500)
             .collect::<Vec<_>>()
             .await;
 
