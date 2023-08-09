@@ -4,17 +4,17 @@ on:
   push:
     branches: [master]
 
-name: Test examples/turnstile
+name: Test examples/escrow
 
 env:
-  SOLANA_CLI_VERSION: 1.15.2
+  SOLANA_CLI_VERSION: 1.16.6
 
 jobs:
   turnstile:
     runs-on: ubuntu-20.04
     defaults:
       run:
-        working-directory: examples/turnstile
+        working-directory: examples/escrow
     steps:
       - uses: actions/checkout@v3
       - uses: ./.github/actions/setup-solana/
