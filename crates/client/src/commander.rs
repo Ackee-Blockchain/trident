@@ -39,6 +39,10 @@ pub enum Error {
     TomlDeserialize(#[from] toml::de::Error),
     #[error("parsing Cargo.toml dependencies failed")]
     ParsingCargoTomlDependenciesFailed,
+    #[error("fuzzing failed")]
+    FuzzingFailed,
+    #[error("Trdelnik it not correctly initialized! The trdelnik-tests folder in the root of your project does not exist")]
+    NotInitialized,
 }
 
 /// Localnet (the validator process) handle.
@@ -136,6 +140,29 @@ impl Commander {
             .success();
         if !success {
             throw!(Error::TestingFailed);
+        }
+    }
+
+    /// Runs fuzzer on the given target.
+    #[throws]
+    pub async fn run_fuzzer(&self, target: String) {
+        let cur_dir_str = format!("{}/trdelnik-tests", &self.root.to_string());
+        let cur_dir = Path::new(&cur_dir_str);
+        if !cur_dir.try_exists()? {
+            throw!(Error::NotInitialized);
+        }
+
+        let success = Command::new("cargo")
+            .current_dir(cur_dir)
+            .arg("hfuzz")
+            .arg("run")
+            .arg(target)
+            .spawn()?
+            .wait()
+            .await?
+            .success();
+        if !success {
+            throw!(Error::FuzzingFailed);
         }
     }
 

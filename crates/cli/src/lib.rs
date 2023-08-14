@@ -34,6 +34,14 @@ enum Command {
         #[clap(short, long, default_value = "./")]
         root: String,
     },
+    /// Run fuzz tests
+    Fuzz {
+        /// Anchor project root
+        #[clap(short, long)]
+        root: Option<String>,
+        /// Name of the fuzz target
+        target: String,
+    },
     /// Run local test validator
     Localnet,
     /// The Hacker's Explorer
@@ -53,6 +61,7 @@ pub async fn start() {
         Command::Build { root } => command::build(root).await?,
         Command::KeyPair { subcmd } => command::keypair(subcmd)?,
         Command::Test { root } => command::test(root).await?,
+        Command::Fuzz { root, target } => command::fuzz(root, target).await?,
         Command::Localnet => command::localnet().await?,
         Command::Explorer { subcmd } => command::explorer(subcmd).await?,
         Command::Init => command::init().await?,

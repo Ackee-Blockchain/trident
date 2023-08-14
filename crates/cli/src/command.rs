@@ -4,6 +4,9 @@ pub use build::build;
 mod keypair;
 pub use keypair::{keypair, KeyPairCommand};
 
+mod fuzz;
+pub use fuzz::fuzz;
+
 mod test;
 pub use test::test;
 
