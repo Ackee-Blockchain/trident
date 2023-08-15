@@ -11,7 +11,7 @@ env:
   ANCHOR_VERSION: 0.28.0
 
 jobs:
-  run_examples:
+  setup:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3
@@ -21,12 +21,20 @@ jobs:
         id: rust-setup
       - uses: Swatinem/rust-cache@v2
         name: Cache Rust and it's packages
+  test_escrow:
+    runs-on: ubuntu-20.04
+    needs: [setup]
+    steps:
       - name: Build Escrow
         working-directory: examples/escrow
         run: anchor build
       - name: Test Escrow
         working-directory: examples/escrow
         run: cargo run --manifest-path ../../Cargo.toml test
+  test_turnstile:
+    runs-on: ubuntu-20.04
+    needs: [setup]
+    steps:
       - name: Build Turnstile
         working-directory: examples/turnstile
         run: anchor build
