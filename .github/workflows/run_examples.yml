@@ -25,6 +25,7 @@ jobs:
     runs-on: ubuntu-20.04
     needs: [setup]
     steps:
+      - uses: actions/checkout@v3
       - name: Build Escrow
         working-directory: examples/escrow
         run: anchor build
@@ -35,6 +36,7 @@ jobs:
     runs-on: ubuntu-20.04
     needs: [setup]
     steps:
+      - uses: actions/checkout@v3
       - name: Build Turnstile
         working-directory: examples/turnstile
         run: anchor build
