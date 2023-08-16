@@ -148,6 +148,11 @@ impl TestGenerator {
         ));
         self.create_file(&fuzzer_test_path, FUZZ_TEST_FILE_NAME, fuzz_test_content)
             .await?;
+
+        let workspace_path = root.join(TESTS_WORKSPACE);
+        let cargo_toml_path = workspace_path.join(CARGO_TOML);
+        self.add_feature_to_dep(root, &cargo_toml_path, "trdelnik-client", "fuzzing")
+            .await?;
     }
 
     /// Creates a new file with a given content on the specified `path` and `name`
@@ -248,6 +253,43 @@ impl TestGenerator {
             }
             fs::write(cargo_toml_path, content.to_string()).await?;
         }
+    }
+
+    /// Adds programs to Cargo.toml as a dev dependencies to be able to be used in tests
+    #[throws]
+    async fn add_feature_to_dep(
+        &self,
+        root: &Path,
+        cargo_toml_path: &Path,
+        dependency: &str,
+        feature: &str,
+    ) {
+        let rel_path = cargo_toml_path
+            .strip_prefix(root)
+            .unwrap_or(Path::new("Cargo.toml"))
+            .to_string_lossy()
+            .to_string();
+        println!("Adding feature {feature} to dependency {dependency} in {rel_path} ...");
+        let mut content: Value = fs::read_to_string(cargo_toml_path).await?.parse()?;
+        let deps = content
+            .get_mut("dependencies")
+            .and_then(Value::as_table_mut)
+            .ok_or(Error::CannotParseCargoToml)?;
+        let values = deps
+            .get_mut(dependency)
+            .and_then(Value::as_table_mut)
+            .ok_or(Error::CannotParseCargoToml)?;
+
+        let fuzzing = Value::String(feature.to_string());
+        let value = Value::Array(vec![fuzzing.clone()]);
+        let features = values.entry("features").or_insert(value);
+        if let Some(features) = features.as_array_mut() {
+            if !features.iter().any(|f| *f == fuzzing) {
+                features.push(fuzzing);
+            };
+        }
+
+        fs::write(cargo_toml_path, content.to_string()).await?;
     }
 
     /// Scans `programs` directory and returns a list of `toml::Value` programs and their paths.
