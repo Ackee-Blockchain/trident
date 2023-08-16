@@ -11,9 +11,11 @@ use thiserror::Error;
 use tokio::fs;
 use toml::{value::Table, Value};
 
-const TESTS_WORKSPACE: &str = "trdelnik-tests";
+pub(crate) const TESTS_WORKSPACE: &str = "trdelnik-tests";
 const TESTS_DIRECTORY: &str = "tests";
+const FUZZ_DIRECTORY: &str = "src/bin";
 const TESTS_FILE_NAME: &str = "test.rs";
+const FUZZ_TEST_FILE_NAME: &str = "fuzz_target.rs";
 
 #[derive(Error, Debug)]
 pub enum Error {
@@ -82,6 +84,7 @@ impl TestGenerator {
         let commander = Commander::with_root(root_path);
         commander.create_program_client_crate().await?;
         self.generate_test_files(&root).await?;
+        self.generate_fuzz_test_files(&root).await?;
         self.update_workspace(&root).await?;
         self.build_program_client(&commander).await?;
     }
@@ -131,6 +134,22 @@ impl TestGenerator {
             .await?;
     }
 
+    /// Creates the `trdelnik-tests` workspace with `src/bin` directory and empty `fuzz_target.rs` file
+    #[throws]
+    async fn generate_fuzz_test_files(&self, root: &Path) {
+        let fuzzer_path = root.join(TESTS_WORKSPACE).join(FUZZ_DIRECTORY);
+        self.create_directory_all(&fuzzer_path, FUZZ_DIRECTORY)
+            .await?;
+
+        let fuzzer_test_path = fuzzer_path.join(FUZZ_TEST_FILE_NAME);
+        let fuzz_test_content = include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/src/templates/trdelnik-tests/fuzz_target.rs"
+        ));
+        self.create_file(&fuzzer_test_path, FUZZ_TEST_FILE_NAME, fuzz_test_content)
+            .await?;
+    }
+
     /// Creates a new file with a given content on the specified `path` and `name`
     // todo: the function should be located in the different module, File module for example
     async fn create_file<'a>(
@@ -161,6 +180,23 @@ impl TestGenerator {
             false => {
                 println!("Creating the {name} directory ...");
                 fs::create_dir(path).await?;
+            }
+        };
+        Ok(path)
+    }
+
+    /// Creates a new directory and all missing parent directories on the specified `path` and with the specified `name`
+    // todo: the function should be located in the different module, File module for example
+    async fn create_directory_all<'a>(
+        &self,
+        path: &'a PathBuf,
+        name: &str,
+    ) -> Result<&'a PathBuf, Error> {
+        match path.exists() {
+            true => println!("Skipping creating the {name} directory"),
+            false => {
+                println!("Creating the {name} directory ...");
+                fs::create_dir_all(path).await?;
             }
         };
         Ok(path)

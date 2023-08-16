@@ -1,6 +1,8 @@
 use crate::{
     idl::{self, Idl},
-    program_client_generator, Client,
+    program_client_generator,
+    test_generator::TESTS_WORKSPACE,
+    Client,
 };
 use cargo_metadata::{MetadataCommand, Package};
 use fehler::{throw, throws};
@@ -146,8 +148,7 @@ impl Commander {
     /// Runs fuzzer on the given target.
     #[throws]
     pub async fn run_fuzzer(&self, target: String) {
-        let cur_dir_str = format!("{}/trdelnik-tests", &self.root.to_string());
-        let cur_dir = Path::new(&cur_dir_str);
+        let cur_dir = Path::new(&self.root.to_string()).join(TESTS_WORKSPACE);
         if !cur_dir.try_exists()? {
             throw!(Error::NotInitialized);
         }
@@ -161,6 +162,7 @@ impl Commander {
             .wait()
             .await?
             .success();
+
         if !success {
             throw!(Error::FuzzingFailed);
         }
