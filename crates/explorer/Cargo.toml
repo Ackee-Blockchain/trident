@@ -1,33 +1,33 @@
 [package]
 name = "trdelnik-explorer"
 version = "0.4.0"
-rust-version = "1.71"
 edition = "2021"
+repository = "https://github.com/Ackee-Blockchain/trdelnik"
 license-file = "../../LICENSE"
 readme = "../../README.md"
 description = "Trdelnik explorer for Solana."
 
 [dependencies]
-solana-cli-config = { workspace = true }
-solana-client = { workspace = true }
-solana-sdk = { workspace = true }
-solana-program = { workspace = true }
-solana-logger = { workspace = true }
-solana-transaction-status = { workspace = true }
-solana-vote-program = { workspace = true }
-solana-account-decoder = { workspace = true }
-spl-token = { workspace = true }
-spl-memo = { workspace = true }
-spl-associated-token-account = { workspace = true }
-thiserror = { workspace = true }
-serde = { workspace = true }
-serde_json = { workspace = true }
-bs58 = { workspace = true }
-base64 = { workspace = true }
-pretty-hex = { workspace = true }
-console = { workspace = true }
-chrono = { workspace = true }
-phf = { workspace = true }
-bincode = { workspace = true }
-num-derive = { workspace = true }
-num-traits = { workspace = true }
+solana-cli-config               = { workspace = true }
+solana-client                   = { workspace = true }
+solana-sdk                      = { workspace = true }
+solana-program                  = { workspace = true }
+solana-logger                   = { workspace = true }
+solana-transaction-status       = { workspace = true }
+solana-vote-program             = { workspace = true }
+solana-account-decoder          = { workspace = true }
+spl-token                       = { workspace = true }
+spl-memo                        = { workspace = true }
+spl-associated-token-account    = { workspace = true }
+thiserror                       = { workspace = true }
+serde                           = { workspace = true }
+serde_json                      = { workspace = true }
+bs58                            = { workspace = true }
+base64                          = { workspace = true }
+pretty-hex                      = { workspace = true }
+console                         = { workspace = true }
+chrono                          = { workspace = true }
+phf                             = { workspace = true }
+bincode                         = { workspace = true }
+num-derive                      = { workspace = true }
+num-traits                      = { workspace = true }
