@@ -15,6 +15,7 @@ use tokio::{
     fs,
     io::AsyncWriteExt,
     process::{Child, Command},
+    signal,
 };
 
 pub static PROGRAM_CLIENT_DIRECTORY: &str = ".program_client";
@@ -153,18 +154,24 @@ impl Commander {
             throw!(Error::NotInitialized);
         }
 
-        let success = Command::new("cargo")
+        let mut child = Command::new("cargo")
             .current_dir(cur_dir)
             .arg("hfuzz")
             .arg("run")
             .arg(target)
-            .spawn()?
-            .wait()
-            .await?
-            .success();
+            .spawn()?;
 
-        if !success {
-            throw!(Error::FuzzingFailed);
+        tokio::select! {
+            res = child.wait() =>
+                match res {
+                    Ok(status) => if !status.success() {
+                        throw!(Error::FuzzingFailed);
+                    },
+                    Err(_) => throw!(Error::FuzzingFailed),
+            },
+            _ = signal::ctrl_c() => {
+                child.kill().await.expect("kill failed")
+            },
         }
     }
 
