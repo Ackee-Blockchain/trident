@@ -9,7 +9,10 @@ use std::{
 };
 use thiserror::Error;
 use tokio::fs;
-use toml::{value::Table, Value};
+use toml::{
+    value::{Map, Table},
+    Value,
+};
 
 pub(crate) const TESTS_WORKSPACE: &str = "trdelnik-tests";
 const TESTS_DIRECTORY: &str = "tests";
@@ -275,9 +278,24 @@ impl TestGenerator {
             .get_mut("dependencies")
             .and_then(Value::as_table_mut)
             .ok_or(Error::CannotParseCargoToml)?;
+
         let values = deps
             .get_mut(dependency)
-            .and_then(Value::as_table_mut)
+            .and_then(|f| {
+                if f.is_table() {
+                    f.as_table_mut()
+                } else if f.is_str() {
+                    // if the value is only a string with version such as dependency = 0.0, create a new table with that version
+                    let version = f.as_str().unwrap();
+                    let mut map = Map::new();
+                    let _ = map.insert("version".to_string(), Value::String(version.to_string()));
+                    let t = Value::Table(map);
+                    *f = t.to_owned();
+                    f.as_table_mut()
+                } else {
+                    None
+                }
+            })
             .ok_or(Error::CannotParseCargoToml)?;
 
         let fuzzing = Value::String(feature.to_string());

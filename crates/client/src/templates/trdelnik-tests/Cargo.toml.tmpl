@@ -4,19 +4,11 @@ version = "0.1.0"
 description = "Created with Trdelnik"
 edition = "2021"
 
-[features]
-default = ["fuzzing"]
-fuzzing = ["dep:solana-program-test"]
-
 [dependencies]
-honggfuzz = { version = "0.5.55" }
-arbitrary = { version = "1.0", features = ["derive"] }
-solana-program-test = {version = "=1.16.7", optional = true}
+trdelnik-client = "0.5.0"
 assert_matches = "1.4.0"
-quinn-proto = {version = "0.9.4", features = ["arbitrary"]}
 
 [dev-dependencies]
 fehler = "1.0.0"
 rstest = "0.12.0"
-trdelnik-client = "0.5.0"
 program_client = { path = "../.program_client" }
