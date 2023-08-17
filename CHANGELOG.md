@@ -10,6 +10,14 @@ incremented upon a breaking change and the patch version will be incremented for
 
 ## [Unreleased]
 
+## [0.5.0] - 2023-08-21
+### Changed
+- Upgrade Solana (`=1.16.6`) and Anchor framework (`=0.28.0`) versions.
+### Fixed
+- Implemented Anchor Client logic was not able to work with newer version of Anchor. Fixed with `async_rpc` and `async` feature.
+- Trdelnik init IDL Parse Error on newer version of Rust, fixed with updated `accounts` token.
+
+
 ## [0.3.0] - 2022-09-23
 ### Changed
 - Upgrade Solana (`~1.10`) and Anchor framework (`~0.25`) versions
