@@ -21,7 +21,7 @@ pub use anyhow::{self, Error};
 pub mod fuzzing {
     pub use super::{
         anchor_lang, anchor_lang::system_program::ID as SYSTEM_PROGRAM_ID,
-        solana_sdk::transaction::Transaction, Keypair, Pubkey, Signer,
+        solana_sdk::transaction::Transaction, Instruction, Keypair, Pubkey, Signer,
     };
     pub use anchor_client::anchor_lang::solana_program::hash::Hash;
     pub use arbitrary;

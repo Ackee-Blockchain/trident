@@ -45,7 +45,7 @@ impl TestGenerator {
 
     /// Builds all the programs and creates `.program_client` directory. Initializes the
     /// `trdelnik-tests/tests` directory with all the necessary files. Adds the
-    /// `test.rs` file and generates `Cargo.toml` with `dev-dependencies`. Updates root's `Cargo.toml`
+    /// `test.rs` file and generates `Cargo.toml` with `dependencies`. Updates root's `Cargo.toml`
     /// workspace members.
     ///
     /// The crate is generated from `trdelnik-tests` template located in `client/src/templates`.
@@ -56,7 +56,7 @@ impl TestGenerator {
     /// ```toml
     /// # <project_root>/trdelnik-tests/Cargo.toml
     /// # ...
-    /// [dev-dependencies]
+    /// [dependencies]
     /// my-program = { path = "../programs/my-program" }
     /// # ...
     /// ```
@@ -87,9 +87,9 @@ impl TestGenerator {
         let commander = Commander::with_root(root_path);
         commander.create_program_client_crate().await?;
         self.generate_test_files(&root).await?;
-        self.generate_fuzz_test_files(&root).await?;
         self.update_workspace(&root).await?;
         self.build_program_client(&commander).await?;
+        self.generate_fuzz_test_files(&root).await?;
     }
 
     /// Builds and generates programs for `program_client` module
@@ -126,7 +126,7 @@ impl TestGenerator {
         ));
         self.create_file(&cargo_toml_path, CARGO_TOML, cargo_toml_content)
             .await?;
-        self.add_program_dev_deps(root, &cargo_toml_path).await?;
+        self.add_program_deps(root, &cargo_toml_path).await?;
 
         let trdelnik_toml_path = root.join(TRDELNIK_TOML);
         let trdelnik_toml_content = include_str!(concat!(
@@ -144,12 +144,25 @@ impl TestGenerator {
         self.create_directory_all(&fuzzer_path, FUZZ_DIRECTORY)
             .await?;
 
+        let libs = self.get_libs(root).await?;
+
         let fuzzer_test_path = fuzzer_path.join(FUZZ_TEST_FILE_NAME);
         let fuzz_test_content = include_str!(concat!(
             env!("CARGO_MANIFEST_DIR"),
             "/src/templates/trdelnik-tests/fuzz_target.rs"
-        ));
-        self.create_file(&fuzzer_test_path, FUZZ_TEST_FILE_NAME, fuzz_test_content)
+        ))
+        .to_string();
+
+        let fuzz_test_content = if let Some(lib) = libs.first() {
+            let use_entry = format!("use {}::entry;\n", lib);
+            let prog_name = format!("const PROGRAM_NAME: &str  = \"{lib}\";\n");
+            let use_instructions = format!("use program_client::{}_instruction::*;\n", lib);
+            format!("{use_entry}{use_instructions}{prog_name}{fuzz_test_content}")
+        } else {
+            fuzz_test_content
+        };
+
+        self.create_file(&fuzzer_test_path, FUZZ_TEST_FILE_NAME, &fuzz_test_content)
             .await?;
 
         let workspace_path = root.join(TESTS_WORKSPACE);
@@ -237,15 +250,15 @@ impl TestGenerator {
         fs::write(cargo, content.to_string()).await?;
     }
 
-    /// Adds programs to Cargo.toml as a dev dependencies to be able to be used in tests
+    /// Adds programs to Cargo.toml as a dependencies to be able to be used in tests and fuzz targets
     #[throws]
-    async fn add_program_dev_deps(&self, root: &Path, cargo_toml_path: &Path) {
+    async fn add_program_deps(&self, root: &Path, cargo_toml_path: &Path) {
         let programs = self.get_programs(root).await?;
         if !programs.is_empty() {
             println!("Adding programs to Cargo.toml ...");
             let mut content: Value = fs::read_to_string(cargo_toml_path).await?.parse()?;
             let dev_deps = content
-                .get_mut("dev-dependencies")
+                .get_mut("dependencies")
                 .and_then(Value::as_table_mut)
                 .ok_or(Error::CannotParseCargoToml)?;
             for dep in programs {
@@ -255,6 +268,8 @@ impl TestGenerator {
                 }
             }
             fs::write(cargo_toml_path, content.to_string()).await?;
+        } else {
+            println!("Skipping adding programs to Cargo.toml ...");
         }
     }
 
@@ -314,7 +329,7 @@ impl TestGenerator {
     async fn get_programs(&self, root: &Path) -> Result<Vec<Value>, Error> {
         let programs = root.join("programs");
         if !programs.exists() {
-            println!("Programs folder does not exist. Skipping adding dev dependencies.");
+            println!("Programs folder does not exist.");
             return Ok(Vec::new());
         }
         println!("Searching for programs ...");
@@ -329,6 +344,36 @@ impl TestGenerator {
                     let name = file_name.to_str().unwrap();
                     let dependency = self.get_program_dep(&path, name).await?;
                     program_names.push(dependency);
+                }
+            }
+        }
+        Ok(program_names)
+    }
+
+    /// Scans `programs` directory and returns a list of names of libraries
+    async fn get_libs(&self, root: &Path) -> Result<Vec<String>, Error> {
+        let programs = root.join("programs");
+        if !programs.exists() {
+            println!("Programs folder does not exist.");
+            return Ok(Vec::new());
+        }
+        println!("Searching for programs ...");
+        let mut program_names: Vec<String> = vec![];
+        let programs = std::fs::read_dir(programs)?;
+        for program in programs {
+            let file = program?;
+            if file.path().is_dir() {
+                let path = file.path().join(CARGO_TOML);
+                if path.exists() {
+                    // let dir = file_name.to_str().unwrap();
+                    let content: Value = fs::read_to_string(&path).await?.parse()?;
+                    let name = content
+                        .get("lib")
+                        .and_then(Value::as_table)
+                        .and_then(|table| table.get("name"))
+                        .and_then(Value::as_str)
+                        .ok_or(Error::CannotParseCargoToml)?;
+                    program_names.push(name.to_string());
                 }
             }
         }
