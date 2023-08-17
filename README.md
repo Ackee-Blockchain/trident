@@ -222,7 +222,7 @@ The configuration variables can be edited in the `Trdelnik.toml` file that'll be
   - [x] Trdelnik client available for testing
 - [x] Q2/22 Trdelnik explorer available
 - [x] Q2/22 Trdelnik client and explorer introduced at Solana Hacker House Barcelona
-- [] Q3/23 Trdelnik fuzz introduced at Solana Hacker House Berlin
+- [ ] Q3/23 Trdelnik fuzz introduced at Solana Hacker House Berlin
 
 ## Awards
 
