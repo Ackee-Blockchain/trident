@@ -7,6 +7,7 @@ mod command;
 // bring nested subcommand enums into scope
 use command::ExplorerCommand;
 use command::KeyPairCommand;
+use command::FuzzCommand;
 
 #[derive(Parser)]
 #[clap(version, propagate_version = true)]
@@ -34,13 +35,13 @@ enum Command {
         #[clap(short, long, default_value = "./")]
         root: String,
     },
-    /// Run fuzz tests
+    /// Run and debug fuzz tests
     Fuzz {
         /// Anchor project root
         #[clap(short, long)]
         root: Option<String>,
-        /// Name of the fuzz target
-        target: String,
+        #[clap(subcommand)]
+        subcmd: FuzzCommand,
     },
     /// Run local test validator
     Localnet,
@@ -61,7 +62,7 @@ pub async fn start() {
         Command::Build { root } => command::build(root).await?,
         Command::KeyPair { subcmd } => command::keypair(subcmd)?,
         Command::Test { root } => command::test(root).await?,
-        Command::Fuzz { root, target } => command::fuzz(root, target).await?,
+        Command::Fuzz { root, subcmd } => command::fuzz(root, subcmd).await?,
         Command::Localnet => command::localnet().await?,
         Command::Explorer { subcmd } => command::explorer(subcmd).await?,
         Command::Init => command::init().await?,

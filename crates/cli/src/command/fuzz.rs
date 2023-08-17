@@ -1,10 +1,28 @@
 use anyhow::{bail, Context, Error, Result};
 
+use clap::Subcommand;
 use fehler::throws;
 use trdelnik_client::Commander;
 
+#[derive(Subcommand)]
+#[allow(non_camel_case_types)]
+pub enum FuzzCommand {
+    /// Run fuzz target
+    Run {
+        /// Name of the fuzz target
+        target: String,
+    },
+    /// Debug fuzz target with crash file
+    Run_Debug {
+        /// Name of the fuzz target
+        target: String,
+        /// Path to the crash file
+        crash_file_path: String,
+    },
+}
+
 #[throws]
-pub async fn fuzz(root: Option<String>, target: String) {
+pub async fn fuzz(root: Option<String>, subcmd: FuzzCommand) {
     let root = match root {
         Some(r) => r,
         _ => {
@@ -18,7 +36,18 @@ pub async fn fuzz(root: Option<String>, target: String) {
     };
 
     let commander = Commander::with_root(root);
-    commander.run_fuzzer(target).await?;
+
+    match subcmd {
+        FuzzCommand::Run { target } => {
+            commander.run_fuzzer(target).await?;
+        }
+        FuzzCommand::Run_Debug {
+            target,
+            crash_file_path,
+        } => {
+            commander.run_fuzzer_debug(target, crash_file_path).await?;
+        }
+    };
 }
 
 // Climbs each parent directory until we find Trdelnik.toml.

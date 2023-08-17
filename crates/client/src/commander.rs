@@ -46,6 +46,8 @@ pub enum Error {
     FuzzingFailed,
     #[error("Trdelnik it not correctly initialized! The trdelnik-tests folder in the root of your project does not exist")]
     NotInitialized,
+    #[error("the crash file does not exist")]
+    CrashFileNotFound,
 }
 
 /// Localnet (the validator process) handle.
@@ -159,6 +161,43 @@ impl Commander {
             .arg("hfuzz")
             .arg("run")
             .arg(target)
+            .spawn()?;
+
+        tokio::select! {
+            res = child.wait() =>
+                match res {
+                    Ok(status) => if !status.success() {
+                        throw!(Error::FuzzingFailed);
+                    },
+                    Err(_) => throw!(Error::FuzzingFailed),
+            },
+            _ = signal::ctrl_c() => {
+                child.kill().await.expect("kill failed")
+            },
+        }
+    }
+
+    /// Runs fuzzer on the given target.
+    #[throws]
+    pub async fn run_fuzzer_debug(&self, target: String, crash_file_path: String) {
+        let cur_dir = Path::new(&self.root.to_string()).join(TESTS_WORKSPACE);
+        let crash_file = std::env::current_dir()?.join(crash_file_path);
+
+        if !cur_dir.try_exists()? {
+            throw!(Error::NotInitialized);
+        }
+
+        if !crash_file.try_exists()? {
+            println!("The crash file {:?} not found!", crash_file);
+            throw!(Error::CrashFileNotFound);
+        }
+
+        let mut child = Command::new("cargo")
+            .current_dir(cur_dir)
+            .arg("hfuzz")
+            .arg("run-debug")
+            .arg(target)
+            .arg(crash_file)
             .spawn()?;
 
         tokio::select! {
