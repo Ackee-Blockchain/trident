@@ -9,13 +9,15 @@ use fehler::{throw, throws};
 use futures::future::try_join_all;
 use log::debug;
 use solana_sdk::signer::keypair::Keypair;
-use std::{borrow::Cow, io, iter, path::Path, process::Stdio, string::FromUtf8Error};
+use std::{
+    borrow::Cow, iter, os::unix::process::CommandExt, path::Path, process::Stdio,
+    string::FromUtf8Error, io,
+};
 use thiserror::Error;
 use tokio::{
     fs,
     io::AsyncWriteExt,
     process::{Child, Command},
-    signal,
 };
 
 pub static PROGRAM_CLIENT_DIRECTORY: &str = ".program_client";
@@ -156,25 +158,16 @@ impl Commander {
             throw!(Error::NotInitialized);
         }
 
-        let mut child = Command::new("cargo")
+        // using exec rather than spawn and replacing current process to avoid unflushed terminal output after ctrl+c signal
+        std::process::Command::new("cargo")
+            .stdout(Stdio::piped())
             .current_dir(cur_dir)
             .arg("hfuzz")
             .arg("run")
             .arg(target)
-            .spawn()?;
+            .exec();
 
-        tokio::select! {
-            res = child.wait() =>
-                match res {
-                    Ok(status) => if !status.success() {
-                        throw!(Error::FuzzingFailed);
-                    },
-                    Err(_) => throw!(Error::FuzzingFailed),
-            },
-            _ = signal::ctrl_c() => {
-                child.kill().await.expect("kill failed")
-            },
-        }
+        eprintln!("cannot execute \"cargo hfuzz run\" command");
     }
 
     /// Runs fuzzer on the given target.
@@ -192,26 +185,16 @@ impl Commander {
             throw!(Error::CrashFileNotFound);
         }
 
-        let mut child = Command::new("cargo")
+        // using exec rather than spawn and replacing current process to avoid unflushed terminal output after ctrl+c signal
+        std::process::Command::new("cargo")
             .current_dir(cur_dir)
             .arg("hfuzz")
             .arg("run-debug")
             .arg(target)
             .arg(crash_file)
-            .spawn()?;
+            .exec();
 
-        tokio::select! {
-            res = child.wait() =>
-                match res {
-                    Ok(status) => if !status.success() {
-                        throw!(Error::FuzzingFailed);
-                    },
-                    Err(_) => throw!(Error::FuzzingFailed),
-            },
-            _ = signal::ctrl_c() => {
-                child.kill().await.expect("kill failed")
-            },
-        }
+        eprintln!("cannot execute \"cargo hfuzz run-debug\" command");
     }
 
     /// Creates the `program_client` crate.
