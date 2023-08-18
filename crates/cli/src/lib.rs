@@ -6,8 +6,8 @@ use fehler::throws;
 mod command;
 // bring nested subcommand enums into scope
 use command::ExplorerCommand;
-use command::KeyPairCommand;
 use command::FuzzCommand;
+use command::KeyPairCommand;
 
 #[derive(Parser)]
 #[clap(version, propagate_version = true)]
@@ -51,7 +51,11 @@ enum Command {
         subcmd: ExplorerCommand,
     },
     /// Initialize test environment
-    Init,
+    Init {
+        /// Flag to skip generating template for fuzzing and activating the fuzzing feature.
+        #[arg(short, long)]
+        skip_fuzzer: bool,
+    },
 }
 
 #[throws]
@@ -65,6 +69,6 @@ pub async fn start() {
         Command::Fuzz { root, subcmd } => command::fuzz(root, subcmd).await?,
         Command::Localnet => command::localnet().await?,
         Command::Explorer { subcmd } => command::explorer(subcmd).await?,
-        Command::Init => command::init().await?,
+        Command::Init { skip_fuzzer } => command::init(skip_fuzzer).await?,
     }
 }

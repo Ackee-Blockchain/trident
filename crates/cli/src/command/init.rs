@@ -3,7 +3,7 @@ use fehler::throws;
 use trdelnik_client::TestGenerator;
 
 #[throws]
-pub async fn init() {
+pub async fn init(skip_fuzzer: bool) {
     let generator = TestGenerator::new();
-    generator.generate().await?;
+    generator.generate(skip_fuzzer).await?;
 }

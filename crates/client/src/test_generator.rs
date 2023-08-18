@@ -83,7 +83,7 @@ impl TestGenerator {
     /// It fails when:
     /// - there is not a root directory (no `Anchor.toml` file)
     #[throws]
-    pub async fn generate(&self) {
+    pub async fn generate(&self, skip_fuzzer: bool) {
         let root = match Config::discover_root() {
             Ok(root) => root,
             Err(_) => throw!(Error::BadWorkspace),
@@ -94,7 +94,9 @@ impl TestGenerator {
         self.generate_test_files(&root).await?;
         self.update_workspace(&root).await?;
         self.build_program_client(&commander).await?;
-        self.generate_fuzz_test_files(&root).await?;
+        if !skip_fuzzer {
+            self.generate_fuzz_test_files(&root).await?;
+        }
     }
 
     /// Builds and generates programs for `program_client` module
