@@ -8,23 +8,22 @@ pub struct FuzzData {
 }
 
 fn main() {
-    let rt = Runtime::new().unwrap();
-    let program_test = ProgramTest::new(PROGRAM_NAME, PROGRAM_ID, processor!(entry));
-
-    let mut ctx = rt.block_on(program_test.start_with_context());
-
-    // TODO: replace this instruction with one of your generated instructions from trdelnik_client
-    let init_ix = init_dummy_ix();
-    let mut transaction =
-        Transaction::new_with_payer(&[init_ix], Some(&ctx.payer.pubkey().clone()));
-
-    transaction.sign(&[&ctx.payer], ctx.last_blockhash);
-    let res = rt.block_on(ctx.banks_client.process_transaction(transaction));
-    assert_matches!(res, Ok(()));
-
     loop {
         fuzz!(|fuzz_data: FuzzData| {
-            rt.block_on(async {
+            Runtime::new().unwrap().block_on(async {
+                let program_test = ProgramTest::new(PROGRAM_NAME, PROGRAM_ID, processor!(entry));
+
+                let mut ctx = program_test.start_with_context().await;
+
+                // TODO: replace this instruction with one of your generated instructions from trdelnik_client
+                let init_ix = init_dummy_ix();
+                let mut transaction =
+                    Transaction::new_with_payer(&[init_ix], Some(&ctx.payer.pubkey().clone()));
+
+                transaction.sign(&[&ctx.payer], ctx.last_blockhash);
+                let res = ctx.banks_client.process_transaction(transaction).await;
+                assert_matches!(res, Ok(()));
+
                 let res = fuzz_ix(
                     &fuzz_data,
                     &mut ctx.banks_client,

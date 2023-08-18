@@ -2,7 +2,7 @@ use crate::{
     commander::{Commander, Error as CommanderError},
     config::{Config, CARGO_TOML, TRDELNIK_TOML},
 };
-use fehler::throws;
+use fehler::{throw, throws};
 use std::{
     env, io,
     path::{Path, PathBuf},
@@ -30,6 +30,8 @@ pub enum Error {
     Toml(#[from] toml::de::Error),
     #[error("{0:?}")]
     Commander(#[from] CommanderError),
+    #[error("Cannot find the Anchor.toml file to locate the root folder")]
+    BadWorkspace,
 }
 
 pub struct TestGenerator;
@@ -82,7 +84,10 @@ impl TestGenerator {
     /// - there is not a root directory (no `Anchor.toml` file)
     #[throws]
     pub async fn generate(&self) {
-        let root = Config::discover_root().expect("failed to find the root folder");
+        let root = match Config::discover_root() {
+            Ok(root) => root,
+            Err(_) => throw!(Error::BadWorkspace),
+        };
         let root_path = root.to_str().unwrap().to_string();
         let commander = Commander::with_root(root_path);
         commander.create_program_client_crate().await?;
