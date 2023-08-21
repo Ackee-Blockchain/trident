@@ -4,9 +4,9 @@ exclude = ["examples/"]
 
 
 [workspace.dependencies]
-trdelnik-test                   = { path = "./crates/test", version = "0.3.0" }
-trdelnik-client                 = { path = "./crates/client", version = "0.5.0" }
-trdelnik-explorer               = { path = "./crates/explorer", version = "0.4.0" }
+trdelnik-test                   = { path = "./crates/test", version = "0.3.1" }
+trdelnik-client                 = { path = "./crates/client", version = "0.4.1" }
+trdelnik-explorer               = { path = "./crates/explorer", version = "0.3.1" }
 anchor-client                   = { version="0.28.0", features = ["async"]}
 solana-sdk                      = "1.16.6"
 solana-cli-output               = "1.16.6"

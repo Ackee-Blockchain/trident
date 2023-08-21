@@ -1,6 +1,6 @@
 [package]
 name = "trdelnik-explorer"
-version = "0.4.0"
+version = "0.3.1"
 edition = "2021"
 repository = "https://github.com/Ackee-Blockchain/trdelnik"
 license-file = "../../LICENSE"

@@ -161,8 +161,8 @@ async fn test() {}
 ```toml
 # <my-project>/trdelnik-tests/Cargo.toml
 # import the correct versions manually
-anchor-spl = "0.24.2"
-spl-associated-token-account = "1.0.3"
+anchor-spl = "0.28.0"
+spl-associated-token-account = "2.0.0"
 ```
 
 ```rust
@@ -201,7 +201,8 @@ async fn init_fixture() -> Fixture {
 
 | Trdelnik CLI |  Anchor   |   Solana |
 |--------------|:---------:|---------:|
-| `latest`     | `~0.27.*` | `>=1.15` |
+| `latest`     | `~0.28.*` | `=1.16.6` |
+| `v0.4.0`     | `~0.27.*` | `>=1.15` |
 | `v0.3.0`     | `~0.25.*` | `>=1.10` |
 | `v0.2.0`     | `~0.24.*` |  `>=1.9` |
 
@@ -221,8 +222,7 @@ The configuration variables can be edited in the `Trdelnik.toml` file that'll be
   - [x] Trdelnik client available for testing
 - [x] Q2/22 Trdelnik explorer available
 - [x] Q2/22 Trdelnik client and explorer introduced at Solana Hacker House Barcelona
-- [ ] Q3/22 Trdelnik console available
-- [ ] Q4/22 Trdelnik fuzz available
+- [ ] Q3/23 Trdelnik fuzz introduced at Solana Hacker House Berlin
 
 ## Awards
 
