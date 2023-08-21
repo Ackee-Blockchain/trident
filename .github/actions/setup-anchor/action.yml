@@ -1,0 +1,16 @@
+name: "Setup Anchor"
+description: "Setup Anchor"
+
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/cache@v3
+      name: Cache Anchor Tool Suite
+      id: cache-anchor
+      with:
+        path: |
+          ~/.cache/anchor/
+          ~/.local/share/anchor/
+        key: anchor-${{ runner.os }}-v0000-${{ env.ANCHOR_VERSION }}
+    - run: npm i -g @coral-xyz/anchor-cli@${{ env.ANCHOR_VERSION }} ts-mocha typescript
+      shell: bash

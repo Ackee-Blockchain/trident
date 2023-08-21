@@ -1,5 +1,4 @@
 use anchor_spl::token;
-use escrow;
 use fehler::throws;
 use program_client::escrow_instruction;
 use trdelnik_client::{anyhow::Result, *};

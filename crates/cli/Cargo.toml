@@ -1,7 +1,6 @@
 [package]
 name = "trdelnik-cli"
-version = "0.4.0"
-rust-version = "1.59"
+version = "0.4.1"
 edition = "2021"
 repository = "https://github.com/Ackee-Blockchain/trdelnik"
 license-file = "../../LICENSE"
@@ -9,10 +8,10 @@ readme = "../../README.md"
 description = "Trdelník is Rust based testing framework providing several convenient developer tools for testing Solana programs written in Anchor."
 
 [dependencies]
-clap = { version = "3.1.6", features = ["derive"] }
-tokio = { version = "~1.14.1", features = ["rt-multi-thread", "macros", "fs", "signal", "sync", "time", "io-util", "process"], default-features = false }
-anyhow = { version = "1.0.56", features = ["std"], default-features = false }
-fehler = { version = "1.0.0", default-features = false }
-solana-sdk = "~1.15.2"
-trdelnik-client = { path = "../client", version = "0.5.0" }
-trdelnik-explorer = { path = "../explorer", version = "0.4.0" }
+clap                = { workspace = true }
+tokio               = { workspace = true }
+anyhow              = { workspace = true }
+fehler              = { workspace = true }
+solana-sdk          = { workspace = true }
+trdelnik-client     = { workspace = true }
+trdelnik-explorer   = { workspace = true }

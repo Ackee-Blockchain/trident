@@ -1,7 +1,6 @@
 use fehler::throws;
 use program_client::turnstile_instruction;
 use trdelnik_client::{anyhow::Result, *};
-use turnstile;
 
 #[throws]
 #[fixture]
@@ -11,8 +10,12 @@ async fn init_fixture() -> Fixture {
         client: Client::new(system_keypair(0)),
         program: program_keypair(1),
         state: keypair(42),
+        user_initializer: keypair(45),
     };
-
+    fixture
+        .client
+        .airdrop(fixture.user_initializer.pubkey(), 5_000_000_000)
+        .await?;
     // deploy a tested program
     fixture
         .client
@@ -23,9 +26,9 @@ async fn init_fixture() -> Fixture {
     turnstile_instruction::initialize(
         &fixture.client,
         fixture.state.pubkey(),
-        fixture.client.payer().pubkey(),
+        fixture.user_initializer.pubkey(),
         System::id(),
-        Some(fixture.state.clone()),
+        [fixture.state.clone(), fixture.user_initializer.clone()],
     )
     .await?;
 
@@ -51,9 +54,9 @@ async fn test_happy_path(#[future] init_fixture: Result<Fixture>) {
     let state = fixture.get_state().await?;
 
     // after pushing the turnstile should be locked
-    assert_eq!(state.locked, true);
+    assert!(state.locked);
     // the last push was successfull
-    assert_eq!(state.res, true);
+    assert!(state.res);
 }
 
 #[trdelnik_test]
@@ -67,15 +70,16 @@ async fn test_unhappy_path(#[future] init_fixture: Result<Fixture>) {
     let state = fixture.get_state().await?;
 
     // after pushing the turnstile should be locked
-    assert_eq!(state.locked, true);
+    assert!(state.locked);
     // the last push was successfull
-    assert_eq!(state.res, false);
+    assert!(!state.res);
 }
 
 struct Fixture {
     client: Client,
     program: Keypair,
     state: Keypair,
+    user_initializer: Keypair,
 }
 
 impl Fixture {

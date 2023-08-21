@@ -193,7 +193,7 @@ impl Commander {
     /// It's used internally by the [`#[trdelnik_test]`](trdelnik_test::trdelnik_test) macro.
     #[throws]
     pub async fn generate_program_client_deps(&self) {
-        let trdelnik_dep = r#"trdelnik-client = "0.4.0""#.parse().unwrap();
+        let trdelnik_dep = r#"trdelnik-client = "0.4.1""#.parse().unwrap();
         // @TODO replace the line above with the specific version or commit hash
         // when Trdelnik is released or when its repo is published.
         // Or use both variants - path for Trdelnik repo/dev and version/commit for users.
@@ -307,6 +307,7 @@ impl Commander {
             .arg("-r")
             .arg("-q")
             .spawn()?;
+
         if !Client::new(Keypair::new()).is_localnet_running(true).await {
             // The validator might not be running, but the process might be still alive (very slow start, some bug, ...),
             // therefore we want to kill it if it's still running so ports aren't held.
