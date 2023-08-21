@@ -10,7 +10,7 @@ incremented upon a breaking change and the patch version will be incremented for
 
 ## [Unreleased]
 
-## [0.5.0] - 2023-08-21
+## [0.4.1] - 2023-08-21
 ### Changed
 - Upgrade Solana (`=1.16.6`) and Anchor framework (`=0.28.0`) versions.
 ### Fixed
