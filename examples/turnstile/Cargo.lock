@@ -4781,7 +4781,7 @@ dependencies = [
 
 [[package]]
 name = "trdelnik-client"
-version = "0.4.1"
+version = "0.5.0"
 dependencies = [
  "anchor-client",
  "anyhow",
