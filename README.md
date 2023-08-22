@@ -196,7 +196,7 @@ async fn init_fixture() -> Fixture {
 - For more details, see the [complete test](examples/turnstile/trdelnik-tests/tests/test.rs) implementation.
 
 ### How to use the fuzzer?
-Once you initialize Trdelnik in your Anchor project, you will find a fuzz test template in the `trdelnik-tests/src/bin` folder that you can modify according to your needs or create new targets. Do not forget to install honggfuzz-rs using `cargo install honggfuz`.
+Once you initialize Trdelnik in your Anchor project, you will find a fuzz test template in the `trdelnik-tests/src/bin` folder that you can modify according to your needs or create new targets. Do not forget to install honggfuzz-rs using `cargo install honggfuzz`.
 
 
 ```shell
