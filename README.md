@@ -34,6 +34,7 @@ Trdelník is Rust based testing framework providing several convenient developer
 - Install [Rust](https://www.rust-lang.org/tools/install) (`nightly` release)
 - Install [Solana tool suite](https://docs.solana.com/cli/install-solana-cli-tools) (`stable` release)
 - Install [Anchor](https://book.anchor-lang.com/chapter_2/installation.html)
+- Optionally install [Honggfuzz-rs](https://github.com/rust-fuzz/honggfuzz-rs#how-to-use-this-crate) for fuzz testing
 
 ## Installation
 
@@ -195,7 +196,7 @@ async fn init_fixture() -> Fixture {
 - For more details, see the [complete test](examples/turnstile/trdelnik-tests/tests/test.rs) implementation.
 
 ### How to use the fuzzer?
-Once you initialize Trdelnik in your Anchor project, you will find a fuzz test template in the `trdelnik-tests/src/bin` folder that you can modify according to your needs or create new targets.
+Once you initialize Trdelnik in your Anchor project, you will find a fuzz test template in the `trdelnik-tests/src/bin` folder that you can modify according to your needs or create new targets. Do not forget to install honggfuzz-rs using `cargo install honggfuz`.
 
 
 ```shell
