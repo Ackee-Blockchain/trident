@@ -10,8 +10,8 @@ use futures::future::try_join_all;
 use log::debug;
 use solana_sdk::signer::keypair::Keypair;
 use std::{
-    borrow::Cow, iter, os::unix::process::CommandExt, path::Path, process::Stdio,
-    string::FromUtf8Error, io,
+    borrow::Cow, io, iter, os::unix::process::CommandExt, path::Path, process::Stdio,
+    string::FromUtf8Error,
 };
 use thiserror::Error;
 use tokio::{
@@ -251,7 +251,7 @@ impl Commander {
     /// It's used internally by the [`#[trdelnik_test]`](trdelnik_test::trdelnik_test) macro.
     #[throws]
     pub async fn generate_program_client_deps(&self) {
-        let trdelnik_dep = r#"trdelnik-client = "0.4.1""#.parse().unwrap();
+        let trdelnik_dep = r#"trdelnik-client = "0.5.0""#.parse().unwrap();
         // @TODO replace the line above with the specific version or commit hash
         // when Trdelnik is released or when its repo is published.
         // Or use both variants - path for Trdelnik repo/dev and version/commit for users.
