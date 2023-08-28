@@ -6,6 +6,7 @@ use fehler::throws;
 mod command;
 // bring nested subcommand enums into scope
 use command::ExplorerCommand;
+use command::FuzzCommand;
 use command::KeyPairCommand;
 
 #[derive(Parser)]
@@ -34,6 +35,14 @@ enum Command {
         #[clap(short, long, default_value = "./")]
         root: String,
     },
+    /// Run and debug fuzz tests
+    Fuzz {
+        /// Anchor project root
+        #[clap(short, long)]
+        root: Option<String>,
+        #[clap(subcommand)]
+        subcmd: FuzzCommand,
+    },
     /// Run local test validator
     Localnet,
     /// The Hacker's Explorer
@@ -42,7 +51,11 @@ enum Command {
         subcmd: ExplorerCommand,
     },
     /// Initialize test environment
-    Init,
+    Init {
+        /// Flag to skip generating template for fuzzing and activating the fuzzing feature.
+        #[arg(short, long)]
+        skip_fuzzer: bool,
+    },
 }
 
 #[throws]
@@ -53,8 +66,9 @@ pub async fn start() {
         Command::Build { root } => command::build(root).await?,
         Command::KeyPair { subcmd } => command::keypair(subcmd)?,
         Command::Test { root } => command::test(root).await?,
+        Command::Fuzz { root, subcmd } => command::fuzz(root, subcmd).await?,
         Command::Localnet => command::localnet().await?,
         Command::Explorer { subcmd } => command::explorer(subcmd).await?,
-        Command::Init => command::init().await?,
+        Command::Init { skip_fuzzer } => command::init(skip_fuzzer).await?,
     }
 }

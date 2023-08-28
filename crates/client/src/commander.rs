@@ -1,13 +1,18 @@
 use crate::{
     idl::{self, Idl},
-    program_client_generator, Client,
+    program_client_generator,
+    test_generator::TESTS_WORKSPACE,
+    Client,
 };
 use cargo_metadata::{MetadataCommand, Package};
 use fehler::{throw, throws};
 use futures::future::try_join_all;
 use log::debug;
 use solana_sdk::signer::keypair::Keypair;
-use std::{borrow::Cow, io, iter, path::Path, process::Stdio, string::FromUtf8Error};
+use std::{
+    borrow::Cow, io, iter, os::unix::process::CommandExt, path::Path, process::Stdio,
+    string::FromUtf8Error,
+};
 use thiserror::Error;
 use tokio::{
     fs,
@@ -39,6 +44,12 @@ pub enum Error {
     TomlDeserialize(#[from] toml::de::Error),
     #[error("parsing Cargo.toml dependencies failed")]
     ParsingCargoTomlDependenciesFailed,
+    #[error("fuzzing failed")]
+    FuzzingFailed,
+    #[error("Trdelnik it not correctly initialized! The trdelnik-tests folder in the root of your project does not exist")]
+    NotInitialized,
+    #[error("the crash file does not exist")]
+    CrashFileNotFound,
 }
 
 /// Localnet (the validator process) handle.
@@ -139,6 +150,53 @@ impl Commander {
         }
     }
 
+    /// Runs fuzzer on the given target.
+    #[throws]
+    pub async fn run_fuzzer(&self, target: String) {
+        let cur_dir = Path::new(&self.root.to_string()).join(TESTS_WORKSPACE);
+        if !cur_dir.try_exists()? {
+            throw!(Error::NotInitialized);
+        }
+
+        // using exec rather than spawn and replacing current process to avoid unflushed terminal output after ctrl+c signal
+        std::process::Command::new("cargo")
+            .stdout(Stdio::piped())
+            .current_dir(cur_dir)
+            .arg("hfuzz")
+            .arg("run")
+            .arg(target)
+            .exec();
+
+        eprintln!("cannot execute \"cargo hfuzz run\" command");
+    }
+
+    /// Runs fuzzer on the given target.
+    #[throws]
+    pub async fn run_fuzzer_debug(&self, target: String, crash_file_path: String) {
+        let cur_dir = Path::new(&self.root.to_string()).join(TESTS_WORKSPACE);
+        let crash_file = std::env::current_dir()?.join(crash_file_path);
+
+        if !cur_dir.try_exists()? {
+            throw!(Error::NotInitialized);
+        }
+
+        if !crash_file.try_exists()? {
+            println!("The crash file {:?} not found!", crash_file);
+            throw!(Error::CrashFileNotFound);
+        }
+
+        // using exec rather than spawn and replacing current process to avoid unflushed terminal output after ctrl+c signal
+        std::process::Command::new("cargo")
+            .current_dir(cur_dir)
+            .arg("hfuzz")
+            .arg("run-debug")
+            .arg(target)
+            .arg(crash_file)
+            .exec();
+
+        eprintln!("cannot execute \"cargo hfuzz run-debug\" command");
+    }
+
     /// Creates the `program_client` crate.
     ///
     /// It's used internally by the [`#[trdelnik_test]`](trdelnik_test::trdelnik_test) macro.
@@ -193,7 +251,7 @@ impl Commander {
     /// It's used internally by the [`#[trdelnik_test]`](trdelnik_test::trdelnik_test) macro.
     #[throws]
     pub async fn generate_program_client_deps(&self) {
-        let trdelnik_dep = r#"trdelnik-client = "0.4.1""#.parse().unwrap();
+        let trdelnik_dep = r#"trdelnik-client = "0.5.0""#.parse().unwrap();
         // @TODO replace the line above with the specific version or commit hash
         // when Trdelnik is released or when its repo is published.
         // Or use both variants - path for Trdelnik repo/dev and version/commit for users.

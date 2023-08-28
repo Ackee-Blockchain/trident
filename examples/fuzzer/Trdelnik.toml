@@ -1,0 +1,2 @@
+[test]
+validator_startup_timeout = 15000
