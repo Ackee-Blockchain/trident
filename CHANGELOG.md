@@ -10,6 +10,12 @@ incremented upon a breaking change and the patch version will be incremented for
 
 ## [Unreleased]
 
+## [0.5.0] - 2023-08-28
+### Added
+- cli: Added trdelnik subcommand `fuzz` to run and debug fuzz tests using honggfuzz-rs.
+- cli: Added trdelnik `--skip-fuzzer` option for `init` subcommand to skip generation of fuzz test templates.
+- client: Added new Cargo feature `fuzzing` that enables optional dependencies related to fuzz testing.
+
 ## [0.4.1] - 2023-08-21
 ### Changed
 - Upgrade Solana (`=1.16.6`) and Anchor framework (`=0.28.0`) versions.
