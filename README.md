@@ -25,10 +25,6 @@ Trdelník is Rust based testing framework providing several convenient developer
 - Trdelnik console - built-in console to give developers a command prompt for quick program interaction;
 - Trdelnik explorer - exploring a ledger changes.
 
-<div align="center">
-  <img src="https://github.com/Ackee-Blockchain/trdelnik/raw/master/assets/demo.svg" alt="Trdelnik Demo" />
-</div>
-
 ## Dependencies
 
 - Install [Rust](https://www.rust-lang.org/tools/install) (`nightly` release)
@@ -81,6 +77,10 @@ HFUZZ_RUN_ARGS="-t 10 -n 1 -N 10000 -Q" trdelnik fuzz run <TARGET_NAME>
 
 ### How to write tests?
 Trdelnik also supports writing integration tests in Rust.
+
+<div align="center">
+  <img src="https://github.com/Ackee-Blockchain/trdelnik/raw/master/assets/demo.svg" alt="Trdelnik Demo" />
+</div>
 
 ```rust
 // <my_project>/trdelnik-tests/tests/test.rs
