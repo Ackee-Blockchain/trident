@@ -20,10 +20,10 @@
 
 Trdelník is Rust based testing framework providing several convenient developer tools for testing Solana programs written in [Anchor](https://github.com/project-serum/anchor).
 
-- **Trdelnik client** - build and deploy an Anchor program to a local cluster and run a test suite against it;
-- **Trdelnik console** - built-in console to give developers a command prompt for quick program interaction;
 - **Trdelnik fuzz** - property-based and stateful testing;
-- **Trdelnik explorer** - exploring a ledger changes.
+- Trdelnik client - build and deploy an Anchor program to a local cluster and run a test suite against it;
+- Trdelnik console - built-in console to give developers a command prompt for quick program interaction;
+- Trdelnik explorer - exploring a ledger changes.
 
 <div align="center">
   <img src="https://github.com/Ackee-Blockchain/trdelnik/raw/master/assets/demo.svg" alt="Trdelnik Demo" />
@@ -52,12 +52,35 @@ cargo install --version <version> trdelnik-cli
 # navigate to your project root directory
 trdelnik init
 # it will generate `.program_client` and `trdelnik-tests` directories with all the necessary files
-trdelnik test
+trdelnik fuzz
 # want more?
 trdelnik --help
 ```
+### How to write fuzz tests?
+Once you initialize Trdelnik in your Anchor project, you will find a fuzz test template in the `trdelnik-tests/src/bin` folder that you can modify according to your needs or create new targets. Do not forget to install honggfuzz-rs using `cargo install honggfuzz`.
+
+
+```shell
+# To run the fuzz test, execute this command from your terminal and replace <TARGET_NAME> with the name of your fuzz target (by default "fuzz_target")
+trdelnik fuzz run <TARGET_NAME>
+
+# To debug your fuzz target crash with parameters from a crash file
+trdelnik fuzz run-debug <TARGET_NAME> <CRASH_FILE_PATH>
+```
+
+ Under the hood Trdelnik uses [honggfuzz-rs](https://github.com/rust-fuzz/honggfuzz-rs). You can pass parameters via [environment variables](https://github.com/rust-fuzz/honggfuzz-rs#environment-variables). List of hongfuzz parameters can be found in honggfuzz [usage documentation](https://github.com/google/honggfuzz/blob/master/docs/USAGE.md#cmdline---help). For example:
+ ```shell
+# Time-out: 10 secs
+# Number of concurrent fuzzing threads: 1
+# Number of fuzzing iterations: 10000
+# Display Solana logs in the terminal
+HFUZZ_RUN_ARGS="-t 10 -n 1 -N 10000 -Q" trdelnik fuzz run <TARGET_NAME>
+```
+
+> NOTE: If you will use the `solana-program-test` crate for fuzzing, creating a new test program using `ProgramTest::new()` will create temporary folders in your `/tmp` directory that will not be cleared in case your program panics. You might want to clear these folders manually.
 
 ### How to write tests?
+Trdelnik also supports writing integration tests in Rust.
 
 ```rust
 // <my_project>/trdelnik-tests/tests/test.rs
@@ -195,28 +218,6 @@ async fn init_fixture() -> Fixture {
 - The `trdelnik init` command generated a dummy test suite for you.
 - For more details, see the [complete test](examples/turnstile/trdelnik-tests/tests/test.rs) implementation.
 
-### How to use the fuzzer?
-Once you initialize Trdelnik in your Anchor project, you will find a fuzz test template in the `trdelnik-tests/src/bin` folder that you can modify according to your needs or create new targets. Do not forget to install honggfuzz-rs using `cargo install honggfuzz`.
-
-
-```shell
-# To run the fuzz test, execute this command from your terminal and replace <TARGET_NAME> with the name of your fuzz target (by default "fuzz_target")
-trdelnik fuzz run <TARGET_NAME>
-
-# To debug your fuzz target crash with parameters from a crash file
-trdelnik fuzz run-debug <TARGET_NAME> <CRASH_FILE_PATH>
-```
-
- Under the hood Trdelnik uses [honggfuzz-rs](https://github.com/rust-fuzz/honggfuzz-rs). You can pass parameters via [environment variables](https://github.com/rust-fuzz/honggfuzz-rs#environment-variables). List of hongfuzz parameters can be found in honggfuzz [usage documentation](https://github.com/google/honggfuzz/blob/master/docs/USAGE.md#cmdline---help). For example:
- ```shell
-# Time-out: 10 secs
-# Number of concurrent fuzzing threads: 1
-# Number of fuzzing iterations: 10000
-# Display Solana logs in the terminal
-HFUZZ_RUN_ARGS="-t 10 -n 1 -N 10000 -Q" trdelnik fuzz run <TARGET_NAME>
-```
-
-> NOTE: If you will use the `solana-program-test` crate for fuzzing, creating a new test program using `ProgramTest::new()` will create temporary folders in your `/tmp` directory that will not be cleared in case your program panics. You might want to clear these folders manually.
 
 ### Supported versions
 
