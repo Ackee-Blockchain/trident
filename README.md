@@ -45,11 +45,12 @@ cargo install --version <version> trdelnik-cli
 ## Usage
 
 ```shell
-# navigate to your project root directory
+# Navigate to your project root directory.
+# Trdelnik initialization will generate `.program_client` and `trdelnik-tests` directories with all the necessary files.
 trdelnik init
-# it will generate `.program_client` and `trdelnik-tests` directories with all the necessary files
-trdelnik fuzz
-# want more?
+# Run the fuzzer on the given target.
+trdelnik fuzz run <TARGET_NAME>
+# Want more?
 trdelnik --help
 ```
 ### How to write fuzz tests?
