@@ -20,4 +20,4 @@ mod init;
 pub use init::init;
 
 mod clean;
-pub use clean::{clean, CleanCommand};
+pub use clean::clean;

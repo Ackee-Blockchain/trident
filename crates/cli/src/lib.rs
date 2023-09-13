@@ -5,7 +5,6 @@ use fehler::throws;
 // subcommand functions to call and nested subcommands
 mod command;
 // bring nested subcommand enums into scope
-use command::CleanCommand;
 use command::ExplorerCommand;
 use command::FuzzCommand;
 
@@ -58,10 +57,8 @@ enum Command {
         #[arg(short, long)]
         skip_fuzzer: bool,
     },
-    Clean {
-        #[clap(subcommand)]
-        subcmd: CleanCommand,
-    },
+    /// Removes target contents except for KeyPair and removes hfuzz_target folder
+    Clean,
 }
 
 #[throws]
@@ -76,6 +73,6 @@ pub async fn start() {
         Command::Localnet => command::localnet().await?,
         Command::Explorer { subcmd } => command::explorer(subcmd).await?,
         Command::Init { skip_fuzzer } => command::init(skip_fuzzer).await?,
-        Command::Clean { subcmd } => command::clean(subcmd).await?,
+        Command::Clean => command::clean().await?,
     }
 }
