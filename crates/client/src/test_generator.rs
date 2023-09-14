@@ -123,7 +123,14 @@ impl TestGenerator {
             env!("CARGO_MANIFEST_DIR"),
             "/src/templates/trdelnik-tests/test.rs"
         ));
-        self.create_file(&test_path, TESTS_FILE_NAME, test_content)
+        let program_libs = self.get_program_lib_names(root).await?;
+        let program_name = if let Some(name) = program_libs.first() {
+            name
+        } else {
+            throw!(Error::CannotParseCargoToml)
+        };
+        let test_content = test_content.replace("###PROGRAM_NAME###", program_name);
+        self.create_file(&test_path, TESTS_FILE_NAME, &test_content)
             .await?;
 
         let cargo_toml_path = workspace_path.join(CARGO_TOML);
@@ -151,7 +158,7 @@ impl TestGenerator {
         self.create_directory_all(&fuzzer_path, FUZZ_DIRECTORY)
             .await?;
 
-        let libs = self.get_libs(root).await?;
+        let libs = self.get_program_lib_names(root).await?;
 
         let fuzzer_test_path = fuzzer_path.join(FUZZ_TEST_FILE_NAME);
         let fuzz_test_content = include_str!(concat!(
@@ -162,11 +169,11 @@ impl TestGenerator {
 
         let fuzz_test_content = if let Some(lib) = libs.first() {
             let use_entry = format!("use {}::entry;\n", lib);
-            let prog_name = format!("const PROGRAM_NAME: &str  = \"{lib}\";\n");
             let use_instructions = format!("use program_client::{}_instruction::*;\n", lib);
-            format!("{use_entry}{use_instructions}{prog_name}{fuzz_test_content}")
+            let template = format!("{use_entry}{use_instructions}{fuzz_test_content}");
+            template.replace("###PROGRAM_NAME###", lib)
         } else {
-            fuzz_test_content
+            fuzz_test_content.replace("###PROGRAM_NAME###", "")
         };
 
         self.create_file(&fuzzer_test_path, FUZZ_TEST_FILE_NAME, &fuzz_test_content)
@@ -358,7 +365,7 @@ impl TestGenerator {
     }
 
     /// Scans `programs` directory and returns a list of names of libraries
-    async fn get_libs(&self, root: &Path) -> Result<Vec<String>, Error> {
+    async fn get_program_lib_names(&self, root: &Path) -> Result<Vec<String>, Error> {
         let programs = root.join("programs");
         if !programs.exists() {
             println!("Programs folder does not exist.");
@@ -372,7 +379,6 @@ impl TestGenerator {
             if file.path().is_dir() {
                 let path = file.path().join(CARGO_TOML);
                 if path.exists() {
-                    // let dir = file_name.to_str().unwrap();
                     let content: Value = fs::read_to_string(&path).await?.parse()?;
                     let name = content
                         .get("lib")

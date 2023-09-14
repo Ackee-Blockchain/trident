@@ -1,7 +1,6 @@
 use fehler::throws;
-use program_client;
+use program_client::*;
 use trdelnik_client::{anyhow::Result, *};
-// @todo: do not forget to import your program crate (also in the ../Cargo.toml)
 
 // @todo: create and deploy your fixture
 #[throws]
@@ -40,6 +39,9 @@ impl Fixture {
     async fn deploy(&mut self) {
         self.client
             .airdrop(self.client.payer().pubkey(), 5_000_000_000)
+            .await?;
+        self.client
+            .deploy_by_name(&self.program.clone(), "###PROGRAM_NAME###")
             .await?;
     }
 }
