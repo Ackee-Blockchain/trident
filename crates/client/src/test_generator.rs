@@ -4,9 +4,12 @@ use crate::{
 };
 use fehler::{throw, throws};
 use std::{
-    env, io,
+    env,
+    fs::OpenOptions,
+    io,
     path::{Path, PathBuf},
 };
+use std::{fs::File, io::prelude::*};
 use thiserror::Error;
 use tokio::fs;
 use toml::{
@@ -96,6 +99,7 @@ impl TestGenerator {
         self.build_program_client(&commander).await?;
         if !skip_fuzzer {
             self.generate_fuzz_test_files(&root).await?;
+            self.update_gitignore(&root, "hfuzz_target")?;
         }
     }
 
@@ -255,6 +259,29 @@ impl TestGenerator {
             }
         };
         fs::write(cargo, content.to_string()).await?;
+    }
+
+    /// Updates .gitignore file in the `root` directory and appends `ignored_path` to the end of the file
+    #[throws]
+    fn update_gitignore(&self, root: &Path, ignored_path: &str) {
+        let file_path = root.join(".gitignore");
+        if file_path.exists() {
+            let file = File::open(&file_path)?;
+            for line in io::BufReader::new(file).lines().flatten() {
+                if line == ignored_path {
+                    // do not add the ignored path again if it is already in the .gitignore file
+                    return;
+                }
+            }
+            let file = OpenOptions::new().write(true).append(true).open(file_path);
+
+            if let Ok(mut file) = file {
+                writeln!(file, "{}", ignored_path)?;
+                println!(".gitignore file sucessfully updated");
+            }
+        } else {
+            println!("Skipping updating .gitignore file");
+        }
     }
 
     /// Adds programs to Cargo.toml as a dependencies to be able to be used in tests and fuzz targets
