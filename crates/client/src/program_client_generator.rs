@@ -48,7 +48,22 @@ pub fn generate_source_code(idl: Idl, use_modules: &[syn::ItemUse]) -> String {
                             .iter()
                             .map(|(name, ty)| {
                                 let name = format_ident!("a_{name}");
-                                let ty: syn::Type = parse_str(ty).unwrap();
+                                // do not use fully qualified type for Pubkey
+                                let ty = parse_str(ty).unwrap();
+                                let ty: syn::Type = match &ty {
+                                    syn::Type::Path(tp) => {
+                                        let last_type =
+                                            &tp.path.segments.last().unwrap().ident.to_string();
+                                        if last_type == "Pubkey" {
+                                            let t: syn::Type = parse_str(last_type).unwrap();
+                                            t
+                                        } else {
+                                            // we expect only Pubkey, but if it is something different, than return fully qualified type
+                                            ty
+                                        }
+                                    }
+                                    _ => ty,
+                                };
                                 let account: syn::FnArg = parse_quote!(#name: #ty);
                                 account
                             })
@@ -83,7 +98,7 @@ pub fn generate_source_code(idl: Idl, use_modules: &[syn::ItemUse]) -> String {
                                 #(#accounts,)*
                                 signers: impl IntoIterator<Item = Keypair> + Send + 'static,
                             ) -> Result<EncodedConfirmedTransactionWithStatusMeta, ClientError> {
-                                Ok(client.send_instruction(
+                                client.send_instruction(
                                     PROGRAM_ID,
                                     #module_name::instruction::#instruction_struct_name {
                                         #(#field_parameters,)*
@@ -92,7 +107,7 @@ pub fn generate_source_code(idl: Idl, use_modules: &[syn::ItemUse]) -> String {
                                         #(#field_accounts,)*
                                     },
                                     signers,
-                                ).await?)
+                                ).await
                             }
                         };
 

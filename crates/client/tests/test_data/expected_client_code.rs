@@ -10,15 +10,15 @@ pub mod escrow_instruction {
         client: &Client,
         i_initializer_amount: u64,
         i_taker_amount: u64,
-        a_initializer: anchor_lang::solana_program::pubkey::Pubkey,
-        a_initializer_deposit_token_account: anchor_lang::solana_program::pubkey::Pubkey,
-        a_initializer_receive_token_account: anchor_lang::solana_program::pubkey::Pubkey,
-        a_escrow_account: anchor_lang::solana_program::pubkey::Pubkey,
-        a_system_program: anchor_lang::solana_program::pubkey::Pubkey,
-        a_token_program: anchor_lang::solana_program::pubkey::Pubkey,
+        a_initializer: Pubkey,
+        a_initializer_deposit_token_account: Pubkey,
+        a_initializer_receive_token_account: Pubkey,
+        a_escrow_account: Pubkey,
+        a_system_program: Pubkey,
+        a_token_program: Pubkey,
         signers: impl IntoIterator<Item = Keypair> + Send + 'static,
     ) -> Result<EncodedConfirmedTransactionWithStatusMeta, ClientError> {
-        Ok(client
+        client
             .send_instruction(
                 PROGRAM_ID,
                 escrow::instruction::InitializeEscrow {
@@ -35,17 +35,17 @@ pub mod escrow_instruction {
                 },
                 signers,
             )
-            .await?)
+            .await
     }
     pub fn initialize_escrow_ix(
         i_initializer_amount: u64,
         i_taker_amount: u64,
-        a_initializer: anchor_lang::solana_program::pubkey::Pubkey,
-        a_initializer_deposit_token_account: anchor_lang::solana_program::pubkey::Pubkey,
-        a_initializer_receive_token_account: anchor_lang::solana_program::pubkey::Pubkey,
-        a_escrow_account: anchor_lang::solana_program::pubkey::Pubkey,
-        a_system_program: anchor_lang::solana_program::pubkey::Pubkey,
-        a_token_program: anchor_lang::solana_program::pubkey::Pubkey,
+        a_initializer: Pubkey,
+        a_initializer_deposit_token_account: Pubkey,
+        a_initializer_receive_token_account: Pubkey,
+        a_escrow_account: Pubkey,
+        a_system_program: Pubkey,
+        a_token_program: Pubkey,
     ) -> Instruction {
         Instruction {
             program_id: PROGRAM_ID,
@@ -67,14 +67,14 @@ pub mod escrow_instruction {
     }
     pub async fn cancel_escrow(
         client: &Client,
-        a_initializer: anchor_lang::solana_program::pubkey::Pubkey,
-        a_pda_deposit_token_account: anchor_lang::solana_program::pubkey::Pubkey,
-        a_pda_account: anchor_lang::solana_program::pubkey::Pubkey,
-        a_escrow_account: anchor_lang::solana_program::pubkey::Pubkey,
-        a_token_program: anchor_lang::solana_program::pubkey::Pubkey,
+        a_initializer: Pubkey,
+        a_pda_deposit_token_account: Pubkey,
+        a_pda_account: Pubkey,
+        a_escrow_account: Pubkey,
+        a_token_program: Pubkey,
         signers: impl IntoIterator<Item = Keypair> + Send + 'static,
     ) -> Result<EncodedConfirmedTransactionWithStatusMeta, ClientError> {
-        Ok(client
+        client
             .send_instruction(
                 PROGRAM_ID,
                 escrow::instruction::CancelEscrow {},
@@ -87,14 +87,14 @@ pub mod escrow_instruction {
                 },
                 signers,
             )
-            .await?)
+            .await
     }
     pub fn cancel_escrow_ix(
-        a_initializer: anchor_lang::solana_program::pubkey::Pubkey,
-        a_pda_deposit_token_account: anchor_lang::solana_program::pubkey::Pubkey,
-        a_pda_account: anchor_lang::solana_program::pubkey::Pubkey,
-        a_escrow_account: anchor_lang::solana_program::pubkey::Pubkey,
-        a_token_program: anchor_lang::solana_program::pubkey::Pubkey,
+        a_initializer: Pubkey,
+        a_pda_deposit_token_account: Pubkey,
+        a_pda_account: Pubkey,
+        a_escrow_account: Pubkey,
+        a_token_program: Pubkey,
     ) -> Instruction {
         Instruction {
             program_id: PROGRAM_ID,
@@ -111,18 +111,18 @@ pub mod escrow_instruction {
     }
     pub async fn exchange(
         client: &Client,
-        a_taker: anchor_lang::solana_program::pubkey::Pubkey,
-        a_taker_deposit_token_account: anchor_lang::solana_program::pubkey::Pubkey,
-        a_taker_receive_token_account: anchor_lang::solana_program::pubkey::Pubkey,
-        a_pda_deposit_token_account: anchor_lang::solana_program::pubkey::Pubkey,
-        a_initializer_receive_token_account: anchor_lang::solana_program::pubkey::Pubkey,
-        a_initializer_main_account: anchor_lang::solana_program::pubkey::Pubkey,
-        a_escrow_account: anchor_lang::solana_program::pubkey::Pubkey,
-        a_pda_account: anchor_lang::solana_program::pubkey::Pubkey,
-        a_token_program: anchor_lang::solana_program::pubkey::Pubkey,
+        a_taker: Pubkey,
+        a_taker_deposit_token_account: Pubkey,
+        a_taker_receive_token_account: Pubkey,
+        a_pda_deposit_token_account: Pubkey,
+        a_initializer_receive_token_account: Pubkey,
+        a_initializer_main_account: Pubkey,
+        a_escrow_account: Pubkey,
+        a_pda_account: Pubkey,
+        a_token_program: Pubkey,
         signers: impl IntoIterator<Item = Keypair> + Send + 'static,
     ) -> Result<EncodedConfirmedTransactionWithStatusMeta, ClientError> {
-        Ok(client
+        client
             .send_instruction(
                 PROGRAM_ID,
                 escrow::instruction::Exchange {},
@@ -139,18 +139,18 @@ pub mod escrow_instruction {
                 },
                 signers,
             )
-            .await?)
+            .await
     }
     pub fn exchange_ix(
-        a_taker: anchor_lang::solana_program::pubkey::Pubkey,
-        a_taker_deposit_token_account: anchor_lang::solana_program::pubkey::Pubkey,
-        a_taker_receive_token_account: anchor_lang::solana_program::pubkey::Pubkey,
-        a_pda_deposit_token_account: anchor_lang::solana_program::pubkey::Pubkey,
-        a_initializer_receive_token_account: anchor_lang::solana_program::pubkey::Pubkey,
-        a_initializer_main_account: anchor_lang::solana_program::pubkey::Pubkey,
-        a_escrow_account: anchor_lang::solana_program::pubkey::Pubkey,
-        a_pda_account: anchor_lang::solana_program::pubkey::Pubkey,
-        a_token_program: anchor_lang::solana_program::pubkey::Pubkey,
+        a_taker: Pubkey,
+        a_taker_deposit_token_account: Pubkey,
+        a_taker_receive_token_account: Pubkey,
+        a_pda_deposit_token_account: Pubkey,
+        a_initializer_receive_token_account: Pubkey,
+        a_initializer_main_account: Pubkey,
+        a_escrow_account: Pubkey,
+        a_pda_account: Pubkey,
+        a_token_program: Pubkey,
     ) -> Instruction {
         Instruction {
             program_id: PROGRAM_ID,
