@@ -46,7 +46,7 @@ impl Cleaner {
         let hfuzz_target_path = Path::new(root)
             .join(crate::test_generator::TESTS_WORKSPACE)
             .join(crate::test_generator::HFUZZ_TARGET);
-        if hfuzz_target_path.try_exists().unwrap() {
+        if hfuzz_target_path.exists() {
             fs::remove_dir_all(hfuzz_target_path).await?;
         } else {
             println!(
