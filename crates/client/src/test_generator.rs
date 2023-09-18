@@ -32,6 +32,8 @@ pub enum Error {
     Commander(#[from] CommanderError),
     #[error("Cannot find the Anchor.toml file to locate the root folder")]
     BadWorkspace,
+    #[error("The Anchor project does not contain any programs")]
+    NoProgramsFound,
 }
 
 pub struct TestGenerator;
@@ -127,7 +129,7 @@ impl TestGenerator {
         let program_name = if let Some(name) = program_libs.first() {
             name
         } else {
-            throw!(Error::CannotParseCargoToml)
+            throw!(Error::NoProgramsFound)
         };
         let test_content = test_content.replace("###PROGRAM_NAME###", program_name);
         self.create_file(&test_path, TESTS_FILE_NAME, &test_content)
@@ -173,7 +175,7 @@ impl TestGenerator {
             let template = format!("{use_entry}{use_instructions}{fuzz_test_content}");
             template.replace("###PROGRAM_NAME###", lib)
         } else {
-            fuzz_test_content.replace("###PROGRAM_NAME###", "")
+            throw!(Error::NoProgramsFound)
         };
 
         self.create_file(&fuzzer_test_path, FUZZ_TEST_FILE_NAME, &fuzz_test_content)
