@@ -1,6 +1,8 @@
 use assert_matches::*;
 use trdelnik_client::fuzzing::*;
 
+const PROGRAM_NAME: &str = "###PROGRAM_NAME###";
+
 #[derive(Arbitrary)]
 pub struct FuzzData {
     param1: u8,
