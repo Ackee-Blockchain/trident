@@ -18,3 +18,6 @@ pub use explorer::{explorer, ExplorerCommand};
 
 mod init;
 pub use init::init;
+
+mod clean;
+pub use clean::clean;

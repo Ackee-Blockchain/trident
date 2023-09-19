@@ -7,6 +7,7 @@ mod command;
 // bring nested subcommand enums into scope
 use command::ExplorerCommand;
 use command::FuzzCommand;
+
 use command::KeyPairCommand;
 
 #[derive(Parser)]
@@ -56,6 +57,8 @@ enum Command {
         #[arg(short, long)]
         skip_fuzzer: bool,
     },
+    /// Removes target contents except for KeyPair and removes hfuzz_target folder
+    Clean,
 }
 
 #[throws]
@@ -70,5 +73,6 @@ pub async fn start() {
         Command::Localnet => command::localnet().await?,
         Command::Explorer { subcmd } => command::explorer(subcmd).await?,
         Command::Init { skip_fuzzer } => command::init(skip_fuzzer).await?,
+        Command::Clean => command::clean().await?,
     }
 }

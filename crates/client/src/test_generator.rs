@@ -22,6 +22,7 @@ const TESTS_DIRECTORY: &str = "tests";
 const FUZZ_DIRECTORY: &str = "src/bin";
 const TESTS_FILE_NAME: &str = "test.rs";
 const FUZZ_TEST_FILE_NAME: &str = "fuzz_target.rs";
+pub(crate) const HFUZZ_TARGET: &str = "hfuzz_target";
 
 #[derive(Error, Debug)]
 pub enum Error {
