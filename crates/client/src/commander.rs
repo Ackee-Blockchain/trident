@@ -18,6 +18,7 @@ use tokio::{
     fs,
     io::AsyncWriteExt,
     process::{Child, Command},
+    signal,
 };
 
 pub static PROGRAM_CLIENT_DIRECTORY: &str = ".program_client";
@@ -157,17 +158,25 @@ impl Commander {
         if !cur_dir.try_exists()? {
             throw!(Error::NotInitialized);
         }
-
-        // using exec rather than spawn and replacing current process to avoid unflushed terminal output after ctrl+c signal
-        std::process::Command::new("cargo")
-            .stdout(Stdio::piped())
+        let mut child = Command::new("cargo")
             .current_dir(cur_dir)
             .arg("hfuzz")
             .arg("run")
             .arg(target)
-            .exec();
+            .spawn()?;
 
-        eprintln!("cannot execute \"cargo hfuzz run\" command");
+        tokio::select! {
+            res = child.wait() =>
+                match res {
+                    Ok(status) => if !status.success() {
+                        println!("Honggfuzz exited with an error!");
+                    },
+                    Err(_) => throw!(Error::FuzzingFailed),
+            },
+            _ = signal::ctrl_c() => {
+                tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
+            },
+        }
     }
 
     /// Runs fuzzer on the given target.
