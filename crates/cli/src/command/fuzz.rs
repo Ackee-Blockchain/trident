@@ -1,8 +1,16 @@
+use std::{
+    env,
+    path::{Path, PathBuf},
+};
+
 use anyhow::{bail, Context, Error, Result};
 
 use clap::Subcommand;
 use fehler::throws;
 use trdelnik_client::Commander;
+
+pub const TESTS_WORKSPACE: &str = "trdelnik-tests";
+pub const HFUZZ_WORKSPACE: &str = "hfuzz_workspace";
 
 #[derive(Subcommand)]
 #[allow(non_camel_case_types)]
@@ -11,6 +19,9 @@ pub enum FuzzCommand {
     Run {
         /// Name of the fuzz target
         target: String,
+        /// Trdelnik will return exit code 1 in case of found crash files in the crash folder. It is checked before and after the fuzz test run.
+        #[arg(short, long)]
+        with_exit_code: bool,
     },
     /// Debug fuzz target with crash file
     Run_Debug {
@@ -35,10 +46,17 @@ pub async fn fuzz(root: Option<String>, subcmd: FuzzCommand) {
         }
     };
 
-    let commander = Commander::with_root(root);
+    let commander = Commander::with_root(root.clone());
 
     match subcmd {
-        FuzzCommand::Run { target } => {
+        FuzzCommand::Run {
+            target,
+            with_exit_code,
+        } => {
+            if with_exit_code {
+                let hfuzz_run_args = env::var("HFUZZ_RUN_ARGS").unwrap_or_default();
+                let (crash_dir, ext) = get_crash_dir_and_ext(&root, &target, &hfuzz_run_args);
+            }
             commander.run_fuzzer(target).await?;
         }
         FuzzCommand::Run_Debug {
@@ -75,4 +93,181 @@ fn _discover() -> Result<Option<String>> {
     }
 
     Ok(None)
+}
+
+fn get_crash_dir_and_ext(root: &str, target: &str, hfuzz_run_args: &str) -> (PathBuf, String) {
+    // FIXME: we split by whitespace without respecting escaping or quotes
+    let hfuzz_run_args = hfuzz_run_args.split_whitespace();
+
+    let extension =
+        get_cmd_option_value(hfuzz_run_args.clone(), "-e", "--ext").unwrap_or("fuzz".to_string());
+
+    let crash_dir = get_cmd_option_value(hfuzz_run_args.clone(), "", "--cr")
+        .or_else(|| get_cmd_option_value(hfuzz_run_args.clone(), "-W", "--w"));
+
+    let crash_path = if let Some(dir) = crash_dir {
+        Path::new(root).join(dir)
+    } else {
+        Path::new(root)
+            .join(TESTS_WORKSPACE)
+            .join(HFUZZ_WORKSPACE)
+            .join(target)
+    };
+
+    (crash_path, extension)
+}
+
+fn get_cmd_option_value<'a>(
+    hfuzz_run_args: impl Iterator<Item = &'a str>,
+    short_opt: &str,
+    long_opt: &str,
+) -> Option<String> {
+    let mut args_iter = hfuzz_run_args;
+    let mut value: Option<String> = None;
+
+    // ensure short option starts with one dash and long option with two dashes
+    let short_opt = format!("-{}", short_opt.trim_start_matches('-'));
+    let long_opt = format!("--{}", long_opt.trim_start_matches('-'));
+
+    while let Some(arg) = args_iter.next() {
+        match arg.strip_prefix(&short_opt) {
+            Some(val) if short_opt.len() > 1 => {
+                if !val.is_empty() {
+                    // -ecrash for crash extension with no space
+                    value = Some(val.to_string());
+                } else if let Some(next_arg) = args_iter.next() {
+                    // -e crash for crash extension with space
+                    value = Some(next_arg.to_string());
+                } else {
+                    value = None;
+                }
+            }
+            _ => {
+                if arg.starts_with(&long_opt) && long_opt.len() > 2 {
+                    value = args_iter.next().map(|a| a.to_string());
+                }
+            }
+        }
+
+        // if let Some(val) = arg.strip_prefix(&short_opt) {
+        //     if !val.is_empty() {
+        //         // -ecrash for crash extension with no space
+        //         value = Some(val.to_string());
+        //     } else if let Some(next_arg) = args_iter.next() {
+        //         // -e crash for crash extension with space
+        //         value = Some(next_arg.to_string());
+        //     } else {
+        //         value = None;
+        //     }
+        // } else if arg.starts_with(&long_opt) {
+        //     value = args_iter.next().map(|a| a.to_string());
+        // }
+    }
+
+    value
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn test_cmd_options_parsing() {
+        let mut command = String::from("-Q -v --extension fuzz");
+        let args = command.split_whitespace();
+
+        let extension = get_cmd_option_value(args, "-e", "--ext");
+        assert_eq!(extension, Some("fuzz".to_string()));
+
+        command = String::from("-Q --extension fuzz -v");
+        let args = command.split_whitespace();
+
+        let extension = get_cmd_option_value(args, "-e", "--ext");
+        assert_eq!(extension, Some("fuzz".to_string()));
+
+        command = String::from("-Q -e fuzz -v");
+        let args = command.split_whitespace();
+
+        let extension = get_cmd_option_value(args, "-e", "--ext");
+        assert_eq!(extension, Some("fuzz".to_string()));
+
+        command = String::from("-Q --extension fuzz -v --extension ");
+        let args = command.split_whitespace();
+
+        let extension = get_cmd_option_value(args, "-e", "--ext");
+        assert_eq!(extension, None);
+
+        command = String::from("-Q --extension fuzz -v -e ");
+        let args = command.split_whitespace();
+
+        let extension = get_cmd_option_value(args, "-e", "--ext");
+        assert_eq!(extension, None);
+
+        let mut command = String::from("--extension buzz -e fuzz");
+        let args = command.split_whitespace();
+
+        let extension = get_cmd_option_value(args, "-e", "--ext");
+        assert_eq!(extension, Some("fuzz".to_string()));
+
+        command = String::from("-Q -v -e fuzz");
+        let args = command.split_whitespace();
+
+        let extension = get_cmd_option_value(args, "-e", "--ext");
+        assert_eq!(extension, Some("fuzz".to_string()));
+
+        command = String::from("-Q -v -efuzz");
+        let args = command.split_whitespace();
+
+        let extension = get_cmd_option_value(args, "-e", "--ext");
+        assert_eq!(extension, Some("fuzz".to_string()));
+
+        command = String::from("-Q -v --ext fuzz");
+        let args = command.split_whitespace();
+
+        let extension = get_cmd_option_value(args, "-e", "--ext");
+        assert_eq!(extension, Some("fuzz".to_string()));
+
+        command = String::from("-Q -v --extfuzz");
+        let args = command.split_whitespace();
+
+        let extension = get_cmd_option_value(args, "-e", "--ext");
+        assert_eq!(extension, None);
+
+        command = String::from("-Q -v --workspace");
+        let args = command.split_whitespace();
+
+        let extension = get_cmd_option_value(args, "-e", "--ext");
+        assert_eq!(extension, None);
+
+        command = String::from("-Q -v -e");
+        let args = command.split_whitespace();
+
+        let extension = get_cmd_option_value(args, "", "--ext");
+        assert_eq!(extension, None);
+
+        command = String::from("-Q -v --ext fuzz");
+        let args = command.split_whitespace();
+
+        let extension = get_cmd_option_value(args, "-e", "");
+        assert_eq!(extension, None);
+    }
+
+    #[test]
+    fn test_get_crash_dir_and_ext() {
+        let root = "/home/fuzz";
+        let target = "target";
+        let default_crash_path = Path::new(root)
+            .join(TESTS_WORKSPACE)
+            .join(HFUZZ_WORKSPACE)
+            .join(target);
+
+        let (crash_dir, ext) = get_crash_dir_and_ext(root, target, "");
+
+        assert_eq!(crash_dir, default_crash_path);
+        assert_eq!(&ext, "fuzz");
+
+        let (crash_dir, ext) = get_crash_dir_and_ext(root, target, "-Q -e");
+
+        assert_eq!(crash_dir, default_crash_path);
+        assert_eq!(&ext, "fuzz");
+    }
 }
