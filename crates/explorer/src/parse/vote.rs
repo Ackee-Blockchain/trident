@@ -214,6 +214,7 @@ fn check_num_vote_accounts(accounts: &[u8], num: usize) -> Result<(), ParseInstr
 #[cfg(test)]
 mod test {
     use super::*;
+    use solana_program::vote::instruction::CreateVoteAccountConfig;
     use solana_sdk::{hash::Hash, message::Message, pubkey::Pubkey, sysvar};
     use solana_vote_program::{
         vote_instruction,
@@ -236,11 +237,12 @@ mod test {
             commission,
         };
 
-        let instructions = vote_instruction::create_account(
+        let instructions = vote_instruction::create_account_with_config(
             &Pubkey::new_unique(),
             &vote_pubkey,
             &vote_init,
             lamports,
+            CreateVoteAccountConfig::default(),
         );
         let message = Message::new(&instructions, None);
         assert_eq!(
