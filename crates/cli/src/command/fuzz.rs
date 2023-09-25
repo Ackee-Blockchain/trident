@@ -1,6 +1,7 @@
 use std::{
     env,
     path::{Path, PathBuf},
+    process,
 };
 
 use anyhow::{bail, Context, Error, Result};
@@ -19,7 +20,7 @@ pub enum FuzzCommand {
     Run {
         /// Name of the fuzz target
         target: String,
-        /// Trdelnik will return exit code 1 in case of found crash files in the crash folder. It is checked before and after the fuzz test run.
+        /// Trdelnik will return exit code 1 in case of found crash files in the crash folder. This is checked before and after the fuzz test run.
         #[arg(short, long)]
         with_exit_code: bool,
     },
@@ -54,10 +55,29 @@ pub async fn fuzz(root: Option<String>, subcmd: FuzzCommand) {
             with_exit_code,
         } => {
             if with_exit_code {
+                // Parse the HFUZZ run arguments to find out if the crash folder and crash files extension was modified.
                 let hfuzz_run_args = env::var("HFUZZ_RUN_ARGS").unwrap_or_default();
                 let (crash_dir, ext) = get_crash_dir_and_ext(&root, &target, &hfuzz_run_args);
+
+                if let Ok(crash_files) = get_crash_files(&crash_dir, &ext) {
+                    if !crash_files.is_empty() {
+                        println!("The crash directory {} already contains crash files from previous runs. To run Trdelnik fuzzer with exit code, you must either (backup and) remove the old crash files or alternatively change the crash folder using for example the --crashdir option and the HFUZZ_RUN_ARGS env variable such as:\nHFUZZ_RUN_ARGS=\"--crashdir ./new_crash_dir\"", crash_dir.to_string_lossy());
+                        process::exit(1);
+                    }
+                }
+                commander.run_fuzzer(target).await?;
+                if let Ok(crash_files) = get_crash_files(&crash_dir, &ext) {
+                    if !crash_files.is_empty() {
+                        println!(
+                            "The crash directory {} contains new fuzz test crashes. Exiting!",
+                            crash_dir.to_string_lossy()
+                        );
+                        process::exit(1);
+                    }
+                }
+            } else {
+                commander.run_fuzzer(target).await?;
             }
-            commander.run_fuzzer(target).await?;
         }
         FuzzCommand::Run_Debug {
             target,
@@ -96,7 +116,7 @@ fn _discover() -> Result<Option<String>> {
 }
 
 fn get_crash_dir_and_ext(root: &str, target: &str, hfuzz_run_args: &str) -> (PathBuf, String) {
-    // FIXME: we split by whitespace without respecting escaping or quotes
+    // FIXME: we split by whitespace without respecting escaping or quotes - same approach as honggfuzz-rs so there is no point to fix it here before the upstream is fixed
     let hfuzz_run_args = hfuzz_run_args.split_whitespace();
 
     let extension =
@@ -148,23 +168,30 @@ fn get_cmd_option_value<'a>(
                 }
             }
         }
-
-        // if let Some(val) = arg.strip_prefix(&short_opt) {
-        //     if !val.is_empty() {
-        //         // -ecrash for crash extension with no space
-        //         value = Some(val.to_string());
-        //     } else if let Some(next_arg) = args_iter.next() {
-        //         // -e crash for crash extension with space
-        //         value = Some(next_arg.to_string());
-        //     } else {
-        //         value = None;
-        //     }
-        // } else if arg.starts_with(&long_opt) {
-        //     value = args_iter.next().map(|a| a.to_string());
-        // }
     }
 
     value
+}
+
+fn get_crash_files(
+    dir: &PathBuf,
+    extension: &str,
+) -> Result<Vec<PathBuf>, Box<dyn std::error::Error>> {
+    let paths = std::fs::read_dir(dir)?
+        // Filter out all those directory entries which couldn't be read
+        .filter_map(|res| res.ok())
+        // Map the directory entries to paths
+        .map(|dir_entry| dir_entry.path())
+        // Filter out all paths with extensions other than `extension`
+        .filter_map(|path| {
+            if path.extension().map_or(false, |ext| ext == extension) {
+                Some(path)
+            } else {
+                None
+            }
+        })
+        .collect::<Vec<_>>();
+    Ok(paths)
 }
 
 #[cfg(test)]
@@ -269,5 +296,47 @@ mod tests {
 
         assert_eq!(crash_dir, default_crash_path);
         assert_eq!(&ext, "fuzz");
+
+        let (crash_dir, ext) = get_crash_dir_and_ext(root, target, "-Q -e crash");
+
+        assert_eq!(crash_dir, default_crash_path);
+        assert_eq!(&ext, "crash");
+
+        // test absolute path
+        let (crash_dir, ext) = get_crash_dir_and_ext(root, target, "-Q -W /home/crash -e crash");
+
+        let expected_crash_path = Path::new("/home/crash");
+        assert_eq!(crash_dir, expected_crash_path);
+        assert_eq!(&ext, "crash");
+
+        // test absolute path
+        let (crash_dir, ext) =
+            get_crash_dir_and_ext(root, target, "-Q --crash /home/crash -e crash");
+
+        let expected_crash_path = Path::new("/home/crash");
+        assert_eq!(crash_dir, expected_crash_path);
+        assert_eq!(&ext, "crash");
+
+        // test relative path
+        let (crash_dir, ext) = get_crash_dir_and_ext(root, target, "-Q -W ../crash -e crash");
+
+        let expected_crash_path = Path::new(root).join("../crash");
+        assert_eq!(crash_dir, expected_crash_path);
+        assert_eq!(&ext, "crash");
+
+        // test relative path
+        let (crash_dir, ext) = get_crash_dir_and_ext(root, target, "-Q --crash ../crash -e crash");
+
+        let expected_crash_path = Path::new(root).join("../crash");
+        assert_eq!(crash_dir, expected_crash_path);
+        assert_eq!(&ext, "crash");
+
+        // crash directory has precedence before workspace
+        let (crash_dir, ext) =
+            get_crash_dir_and_ext(root, target, "-Q --crash ../crash -W /workspace -e crash");
+
+        let expected_crash_path = Path::new(root).join("../crash");
+        assert_eq!(crash_dir, expected_crash_path);
+        assert_eq!(&ext, "crash");
     }
 }
