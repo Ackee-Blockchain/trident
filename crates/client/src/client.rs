@@ -27,10 +27,8 @@ use serde::de::DeserializeOwned;
 use solana_account_decoder::parse_token::UiTokenAmount;
 use solana_cli_output::display::println_transaction;
 use solana_transaction_status::{EncodedConfirmedTransactionWithStatusMeta, UiTransactionEncoding};
-// The deprecated `create_associated_token_account` function is used because of different versions
-// of some crates are required in this `client` crate and `anchor-spl` crate
-#[allow(deprecated)]
-use spl_associated_token_account::{create_associated_token_account, get_associated_token_address};
+use spl_associated_token_account::get_associated_token_address;
+use spl_associated_token_account::instruction::create_associated_token_account;
 use std::{mem, rc::Rc};
 use std::{thread::sleep, time::Duration};
 
@@ -646,11 +644,11 @@ impl Client {
     #[throws]
     pub async fn create_associated_token_account(&self, owner: &Keypair, mint: Pubkey) -> Pubkey {
         self.send_transaction(
-            #[allow(deprecated)]
             &[create_associated_token_account(
                 &self.payer().pubkey(),
                 &owner.pubkey(),
                 &mint,
+                &spl_token::ID,
             )],
             &[],
         )
