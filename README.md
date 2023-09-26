@@ -96,11 +96,11 @@ async fn init_fixture() -> Fixture {
   // create a test fixture
   let mut fixture = Fixture {
     client: Client::new(system_keypair(0)),
-    // make sure your program is using a correct program ID
-    program: program_keypair(1),
+    // make sure to pass the correct name of your program
+    program: anchor_keypair("my_program_name").unwrap(),
     state: keypair(42),
   };
-  // deploy a tested program
+  // deploy the program to test
   fixture.deploy().await?;
   // call instruction init
   my_instruction::initialize(
@@ -128,15 +128,6 @@ async fn test_happy_path(#[future] init_fixture: Result<Fixture>) {
   assert_eq!(state.something_changed, "yes");
 }
 ```
-
-Make sure your program is using a correct program ID in the `derive_id!(...)` macro and inside `Anchor.toml`.
-If not, obtain the public key of a key pair you're using and replace it in these two places.
-To get the program ID of a key pair (key pair's public key) the `trdelnik key-pair` command can be used.
-For example
-```
-$ trdelnik key-pair program 7
-```
-will print information about the key pair received from `program_keypair(7)`.
 
 #### Instructions with custom structures
 

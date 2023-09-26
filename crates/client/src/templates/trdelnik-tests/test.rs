@@ -1,5 +1,4 @@
 use fehler::throws;
-use program_client::*;
 use trdelnik_client::{anyhow::Result, *};
 
 // @todo: create and deploy your fixture
@@ -30,7 +29,7 @@ impl Fixture {
     fn new() -> Self {
         Fixture {
             client: Client::new(system_keypair(0)),
-            program: program_keypair(1),
+            program: anchor_keypair("###PROGRAM_NAME###").unwrap(),
             state: keypair(42),
         }
     }

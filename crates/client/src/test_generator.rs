@@ -137,7 +137,10 @@ impl TestGenerator {
             throw!(Error::NoProgramsFound)
         };
         let test_content = test_content.replace("###PROGRAM_NAME###", program_name);
-        self.create_file(&test_path, TESTS_FILE_NAME, &test_content)
+        let use_instructions = format!("use program_client::{}_instruction::*;\n", program_name);
+        let template = format!("{use_instructions}{test_content}");
+
+        self.create_file(&test_path, TESTS_FILE_NAME, &template)
             .await?;
 
         let cargo_toml_path = workspace_path.join(CARGO_TOML);
