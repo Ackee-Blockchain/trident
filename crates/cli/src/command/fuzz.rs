@@ -61,7 +61,7 @@ pub async fn fuzz(root: Option<String>, subcmd: FuzzCommand) {
 
                 if let Ok(crash_files) = get_crash_files(&crash_dir, &ext) {
                     if !crash_files.is_empty() {
-                        println!("The crash directory {} already contains crash files from previous runs. To run Trdelnik fuzzer with exit code, you must either (backup and) remove the old crash files or alternatively change the crash folder using for example the --crashdir option and the HFUZZ_RUN_ARGS env variable such as:\nHFUZZ_RUN_ARGS=\"--crashdir ./new_crash_dir\"", crash_dir.to_string_lossy());
+                        println!("Error: The crash directory {} already contains crash files from previous runs. \n\nTo run Trdelnik fuzzer with exit code, you must either (backup and) remove the old crash files or alternatively change the crash folder using for example the --crashdir option and the HFUZZ_RUN_ARGS env variable such as:\nHFUZZ_RUN_ARGS=\"--crashdir ./new_crash_dir\"", crash_dir.to_string_lossy());
                         process::exit(1);
                     }
                 }
@@ -126,7 +126,7 @@ fn get_crash_dir_and_ext(root: &str, target: &str, hfuzz_run_args: &str) -> (Pat
         .or_else(|| get_cmd_option_value(hfuzz_run_args.clone(), "-W", "--w"));
 
     let crash_path = if let Some(dir) = crash_dir {
-        Path::new(root).join(dir)
+        Path::new(root).join(TESTS_WORKSPACE).join(dir)
     } else {
         Path::new(root)
             .join(TESTS_WORKSPACE)
@@ -320,14 +320,14 @@ mod tests {
         // test relative path
         let (crash_dir, ext) = get_crash_dir_and_ext(root, target, "-Q -W ../crash -e crash");
 
-        let expected_crash_path = Path::new(root).join("../crash");
+        let expected_crash_path = Path::new(root).join(TESTS_WORKSPACE).join("../crash");
         assert_eq!(crash_dir, expected_crash_path);
         assert_eq!(&ext, "crash");
 
         // test relative path
         let (crash_dir, ext) = get_crash_dir_and_ext(root, target, "-Q --crash ../crash -e crash");
 
-        let expected_crash_path = Path::new(root).join("../crash");
+        let expected_crash_path = Path::new(root).join(TESTS_WORKSPACE).join("../crash");
         assert_eq!(crash_dir, expected_crash_path);
         assert_eq!(&ext, "crash");
 
@@ -335,7 +335,7 @@ mod tests {
         let (crash_dir, ext) =
             get_crash_dir_and_ext(root, target, "-Q --crash ../crash -W /workspace -e crash");
 
-        let expected_crash_path = Path::new(root).join("../crash");
+        let expected_crash_path = Path::new(root).join(TESTS_WORKSPACE).join("../crash");
         assert_eq!(crash_dir, expected_crash_path);
         assert_eq!(&ext, "crash");
     }
