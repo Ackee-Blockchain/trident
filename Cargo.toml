@@ -60,3 +60,4 @@ num-traits                      = "0.2.14"
 proc-macro2                     = { version = "1.0.66", default-features = false }
 darling                         = "0.13.1"
 clap                            = { version = "4.3.19", features = ["derive"] }
+shellexpand                     = "3.1.0"

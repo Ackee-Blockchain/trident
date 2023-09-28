@@ -28,7 +28,7 @@ struct Fixture {
 impl Fixture {
     fn new() -> Self {
         Fixture {
-            client: Client::new(system_keypair(0)),
+            client: Client::default(),
             program: anchor_keypair("###PROGRAM_NAME###").unwrap(),
             state: keypair(42),
         }
