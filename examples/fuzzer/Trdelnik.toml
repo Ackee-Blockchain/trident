@@ -1,2 +1,8 @@
 [test]
 validator_startup_timeout = 15000
+
+[fuzz]
+# iterations = 587
+# timeout = 25
+# keep_out = true
+# verbose = false

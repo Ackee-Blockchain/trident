@@ -1,3 +1,4 @@
+use crate::config::CONFIG;
 use crate::{
     idl::{self, Idl},
     program_client_generator,
@@ -150,15 +151,24 @@ impl Commander {
             throw!(Error::TestingFailed);
         }
     }
-
     /// Runs fuzzer on the given target.
     #[throws]
     pub async fn run_fuzzer(&self, target: String) {
+        // get variables from Toml
+        let toml_fuzz_env = CONFIG.get_fuzz_env_variable();
+        // check if variables in CLI, and give them precedence
+        // TODO try to merge them or give precedence not just replace
+        let env_var = match std::env::var("HFUZZ_RUN_ARGS") {
+            Ok(var) => var,
+            Err(_) => toml_fuzz_env,
+        };
+
         let cur_dir = Path::new(&self.root.to_string()).join(TESTS_WORKSPACE);
         if !cur_dir.try_exists()? {
             throw!(Error::NotInitialized);
         }
         let mut child = Command::new("cargo")
+            .env("HFUZZ_RUN_ARGS", env_var)
             .current_dir(cur_dir)
             .arg("hfuzz")
             .arg("run")
