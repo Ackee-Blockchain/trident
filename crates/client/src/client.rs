@@ -56,7 +56,7 @@ impl Default for Client {
             payer: payer.clone(),
             anchor_client: AnchorClient::new_with_options(
                 Cluster::Localnet,
-                Rc::new(payer.clone()),
+                Rc::new(payer),
                 CommitmentConfig::confirmed(),
             ),
         }
