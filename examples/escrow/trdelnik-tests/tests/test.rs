@@ -199,6 +199,9 @@ struct Fixture {
 impl Fixture {
     fn new() -> Self {
         Fixture {
+            // We use the hardcoded system_keypair(0).
+            // However the default option in the test template is now to use implementation of trait Default
+            // for Client which will read keypair from "~/.config/solana/id.json" - (default path for `solana-keygen new`)
             client: Client::new(system_keypair(0)),
 
             // We use the hardcoded program_keypair(1) to ensure users can run these tests without the

@@ -12,6 +12,7 @@ use anchor_client::{
         instruction::Instruction,
         loader_instruction,
         pubkey::Pubkey,
+        signature::read_keypair_file,
         signer::{keypair::Keypair, Signer},
         system_instruction,
         transaction::Transaction,
@@ -36,6 +37,7 @@ use std::{thread::sleep, time::Duration};
 // https://github.com/project-serum/anchor/pull/1307#issuecomment-1022592683
 
 const RETRY_LOCALNET_EVERY_MILLIS: u64 = 500;
+const DEFAULT_KEYPAIR_PATH: &str = "~/.config/solana/id.json";
 
 type Payer = Rc<Keypair>;
 
@@ -43,6 +45,22 @@ type Payer = Rc<Keypair>;
 pub struct Client {
     payer: Keypair,
     anchor_client: AnchorClient<Payer>,
+}
+
+/// Implement Default trait for Client, which reads keypair from default path for `solana-keygen new`
+impl Default for Client {
+    fn default() -> Self {
+        let payer = read_keypair_file(&*shellexpand::tilde(DEFAULT_KEYPAIR_PATH))
+            .unwrap_or_else(|_| panic!("Default keypair {DEFAULT_KEYPAIR_PATH} not found."));
+        Self {
+            payer: payer.clone(),
+            anchor_client: AnchorClient::new_with_options(
+                Cluster::Localnet,
+                Rc::new(payer),
+                CommitmentConfig::confirmed(),
+            ),
+        }
+    }
 }
 
 impl Client {
