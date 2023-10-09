@@ -154,13 +154,9 @@ impl Commander {
     /// Runs fuzzer on the given target.
     #[throws]
     pub async fn run_fuzzer(&self, target: String) {
-        // get variables from Toml
-        let toml_fuzz_env = CONFIG.get_fuzz_env_variable();
-        // check if variables in CLI, and give them precedence
-        // TODO try to merge them or give precedence not just replace
-        let env_var = match std::env::var("HFUZZ_RUN_ARGS") {
-            Ok(var) => var,
-            Err(_) => toml_fuzz_env,
+        let fuzz_env = match std::env::var("HFUZZ_RUN_ARGS") {
+            Ok(var) => CONFIG.get_fuzz_env_variable(&var),
+            Err(_) => CONFIG.get_fuzz_env_variable(&String::new()),
         };
 
         let cur_dir = Path::new(&self.root.to_string()).join(TESTS_WORKSPACE);
@@ -168,7 +164,7 @@ impl Commander {
             throw!(Error::NotInitialized);
         }
         let mut child = Command::new("cargo")
-            .env("HFUZZ_RUN_ARGS", env_var)
+            .env("HFUZZ_RUN_ARGS", fuzz_env)
             .current_dir(cur_dir)
             .arg("hfuzz")
             .arg("run")

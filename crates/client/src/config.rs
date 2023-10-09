@@ -28,19 +28,9 @@ pub struct Test {
 }
 
 #[derive(Debug, Deserialize, Clone)]
-pub struct Fuzz {
-    /// Timeout in seconds (default: 10)
-    /// -t
-    pub timeout: (char, u16),
-    /// Number of fuzzing iterations (default: 0 [no limit])
-    /// -N
-    pub iterations: (char, u64),
-    /// Don't close children's stdin, stdout, stderr; can be noisy
-    /// -Q
-    pub keep_output: (char, bool),
-    /// Disable ANSI console; use simple log output
-    /// -v
-    pub verbose: (char, bool),
+pub struct HfuzzRunArgs {
+    // short option, long option, value
+    pub hfuzz_run_args: Vec<(String, String, String)>,
 }
 
 #[derive(Default, Debug, Deserialize, Clone)]
@@ -50,7 +40,7 @@ struct _Test {
 }
 
 #[derive(Default, Debug, Deserialize, Clone)]
-struct _Fuzz {
+struct _HfuzzRunArgs {
     #[serde(default)]
     /// Timeout in seconds (default: 10)
     /// -t
@@ -67,6 +57,10 @@ struct _Fuzz {
     /// Disable ANSI console; use simple log output
     /// -v
     pub verbose: Option<bool>,
+    #[serde(default)]
+    /// Exit upon seeing the first crash (default: false)
+    /// --exit_upon_crash
+    pub exit_upon_crash: Option<bool>,
 }
 
 impl From<_Test> for Test {
@@ -77,13 +71,41 @@ impl From<_Test> for Test {
     }
 }
 
-impl From<_Fuzz> for Fuzz {
-    fn from(_f: _Fuzz) -> Self {
+impl From<_HfuzzRunArgs> for HfuzzRunArgs {
+    fn from(_f: _HfuzzRunArgs) -> Self {
+        let timeout = _f.timeout.unwrap_or(10);
+        let iterations = _f.iterations.unwrap_or(0);
+        let keep_output = _f.keep_output.unwrap_or(false);
+        let verbose = _f.verbose.unwrap_or(false);
+        let exit_upon_crash = _f.exit_upon_crash.unwrap_or(false);
         Self {
-            timeout: ('t', _f.timeout.unwrap_or(10)),
-            iterations: ('N', _f.iterations.unwrap_or(0)),
-            keep_output: ('Q', _f.keep_output.unwrap_or(false)),
-            verbose: ('v', _f.verbose.unwrap_or(false)),
+            hfuzz_run_args: vec![
+                (
+                    "-t".to_string(),
+                    "--timeout".to_string(),
+                    timeout.to_string(),
+                ),
+                (
+                    "-N".to_string(),
+                    "--iterations".to_string(),
+                    iterations.to_string(),
+                ),
+                (
+                    "-Q".to_string(),
+                    "--keep_output".to_string(),
+                    keep_output.to_string(),
+                ),
+                (
+                    "-v".to_string(),
+                    "--verbose".to_string(),
+                    verbose.to_string(),
+                ),
+                (
+                    String::new(),
+                    "--exit_upon_crash".to_string(),
+                    exit_upon_crash.to_string(),
+                ),
+            ],
         }
     }
 }
@@ -91,7 +113,7 @@ impl From<_Fuzz> for Fuzz {
 #[derive(Debug, Deserialize, Clone)]
 pub struct Config {
     pub test: Test,
-    pub fuzz: Fuzz,
+    pub hfuzz_run_args: HfuzzRunArgs,
 }
 
 #[derive(Default, Debug, Deserialize, Clone)]
@@ -99,14 +121,14 @@ struct _Config {
     #[serde(default)]
     pub test: Option<_Test>,
     #[serde(default)]
-    pub fuzz: Option<_Fuzz>,
+    pub hfuzz_run_args: Option<_HfuzzRunArgs>,
 }
 
 impl From<_Config> for Config {
     fn from(_c: _Config) -> Self {
         Self {
             test: _c.test.unwrap_or_default().into(),
-            fuzz: _c.fuzz.unwrap_or_default().into(),
+            hfuzz_run_args: _c.hfuzz_run_args.unwrap_or_default().into(),
         }
     }
 }
@@ -145,31 +167,71 @@ impl Config {
         }
         throw!(Error::BadWorkspace)
     }
-    pub fn get_fuzz_env_variable(&self) -> String {
-        let iterations = &self.fuzz.iterations;
-        let timeout = &self.fuzz.timeout;
-        let verbose = &self.fuzz.verbose;
-        let keep_out = &self.fuzz.keep_output;
+    pub fn get_fuzz_env_variable(&self, cli_vars: &String) -> String {
+        let mut fuzz_args: Vec<(String, String, String)> =
+            self.hfuzz_run_args.hfuzz_run_args.clone();
 
-        let mut variable_string = format!(
-            "-{} {} -{} {}",
-            iterations.0, iterations.1, timeout.0, timeout.1,
-        );
+        if !cli_vars.is_empty() {
+            // FIXME: we split by whitespace without respecting escaping or quotes - same approach as honggfuzz-rs so there is no point to fix it here before the upstream is fixed
 
-        variable_string = match verbose.1 {
-            true => format!("{} -{}", variable_string, verbose.0),
-            false => variable_string,
-        };
+            for x in &mut fuzz_args {
+                let split_whitespaces = cli_vars.split_whitespace();
+                let mut args_iter = split_whitespaces;
 
-        variable_string = match keep_out.1 {
-            true => format!("{} -{}", variable_string, keep_out.0),
-            false => variable_string,
-        };
-
-        variable_string
+                let short_opt = format!("-{}", x.0.trim_start_matches('-'));
+                let long_opt = format!("--{}", x.1.trim_start_matches('-'));
+                while let Some(arg) = args_iter.next() {
+                    match arg.strip_prefix(&short_opt) {
+                        Some(val) if short_opt.len() > 1 => {
+                            if val.is_empty() && (x.2 == "true" || x.2 == "false") {
+                                // -v single bool options
+                                x.2 = "true".to_owned();
+                            } else if !val.is_empty() {
+                                // -ecrash for crash extension with no space
+                                x.2 = val.to_string();
+                            } else if let Some(next_arg) = args_iter.next() {
+                                // -e crash for crash extension with space
+                                // -t timeout
+                                x.2 = next_arg.to_string();
+                            }
+                        }
+                        _ => {
+                            if arg.starts_with(&long_opt) && long_opt.len() > 2 {
+                                if x.2 == "false" || x.2 == "true" {
+                                    // --exit_upon_crash
+                                    x.2 = "true".to_owned()
+                                } else if let Some(next_arg) = args_iter.next() {
+                                    // --iterations value
+                                    x.2 = next_arg.to_string();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        let mut toml_vars: String = String::new();
+        for x in &fuzz_args {
+            if x.2 == "true" {
+                // add only variable
+                if x.0.is_empty() {
+                    toml_vars = format!("{} {}", toml_vars, x.1);
+                } else {
+                    toml_vars = format!("{} {}", toml_vars, x.0);
+                }
+            } else if x.2 == "false" {
+                // do nothing
+            } else if x.0.is_empty() {
+                // add long form with value
+                toml_vars = format!("{} {} {}", toml_vars, x.1, x.2);
+            } else {
+                // add short form with value
+                toml_vars = format!("{} {} {}", toml_vars, x.0, x.2);
+            }
+        }
+        toml_vars
     }
 }
-
 lazy_static::lazy_static! {
     pub static ref CONFIG: Config = Config::new();
 }
