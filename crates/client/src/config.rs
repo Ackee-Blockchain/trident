@@ -31,6 +31,7 @@ pub struct Test {
 pub struct HfuzzRunArgs {
     // short option, long option, value
     pub hfuzz_run_args: Vec<(String, String, String)>,
+    pub remaining_cli_args: Option<String>,
 }
 
 #[derive(Default, Debug, Deserialize, Clone)]
@@ -106,6 +107,7 @@ impl From<_HfuzzRunArgs> for HfuzzRunArgs {
                     exit_upon_crash.to_string(),
                 ),
             ],
+            remaining_cli_args: None,
         }
     }
 }
@@ -167,51 +169,67 @@ impl Config {
         }
         throw!(Error::BadWorkspace)
     }
-    pub fn get_fuzz_env_variable(&self, cli_vars: &String) -> String {
-        let mut fuzz_args: Vec<(String, String, String)> =
-            self.hfuzz_run_args.hfuzz_run_args.clone();
-
-        if !cli_vars.is_empty() {
+    pub fn merge_with_cli(&mut self, cli_vars: &str) {
+        let mut splitted_in_vector: Vec<String> =
+            cli_vars.split_whitespace().map(str::to_string).collect();
+        for x in &mut self.hfuzz_run_args.hfuzz_run_args {
             // FIXME: we split by whitespace without respecting escaping or quotes - same approach as honggfuzz-rs so there is no point to fix it here before the upstream is fixed
 
-            for x in &mut fuzz_args {
-                let split_whitespaces = cli_vars.split_whitespace();
-                let mut args_iter = split_whitespaces;
+            let short_opt = &x.0;
+            let long_opt = &x.1;
+            // let short_opt = format!("-{}", x.0.trim_start_matches('-'));
+            // let long_opt = format!("--{}", x.1.trim_start_matches('-'));
 
-                let short_opt = format!("-{}", x.0.trim_start_matches('-'));
-                let long_opt = format!("--{}", x.1.trim_start_matches('-'));
-                while let Some(arg) = args_iter.next() {
-                    match arg.strip_prefix(&short_opt) {
-                        Some(val) if short_opt.len() > 1 => {
-                            if val.is_empty() && (x.2 == "true" || x.2 == "false") {
-                                // -v single bool options
+            let mut index = 0;
+            while let Some(arg) = splitted_in_vector.get(index) {
+                match arg.strip_prefix(short_opt) {
+                    Some(_val) if short_opt.len() > 1 => {
+                        // TODO: this expects only two possible inputs
+                        // -t timeout
+                        // -v <no next input because flag signals true>
+                        if x.2 == "true" || x.2 == "false" {
+                            // -v
+                            x.2 = "true".to_owned();
+                            splitted_in_vector.remove(index);
+                        } else if let Some(_next_arg) = splitted_in_vector.get(index + 1) {
+                            // -t timeout
+                            splitted_in_vector.remove(index);
+                            x.2 = splitted_in_vector.remove(index);
+                        } else {
+                            index += 1;
+                        }
+                    }
+                    _ => {
+                        // This part also expects only two possible inputs
+                        // --exit_upon_crash <signals true>
+                        // --iterations VALUE
+                        if arg.starts_with(long_opt) && long_opt.len() > 2 {
+                            if x.2 == "false" || x.2 == "true" {
+                                // --exit_upon_crash <signals true>
                                 x.2 = "true".to_owned();
-                            } else if !val.is_empty() {
-                                // -ecrash for crash extension with no space
-                                x.2 = val.to_string();
-                            } else if let Some(next_arg) = args_iter.next() {
-                                // -e crash for crash extension with space
-                                // -t timeout
+                                splitted_in_vector.remove(index);
+                                continue;
+                            } else if let Some(next_arg) = splitted_in_vector.get(index + 1) {
+                                // --iterations VALUE
                                 x.2 = next_arg.to_string();
+                                splitted_in_vector.remove(index);
+                                splitted_in_vector.remove(index);
+                                continue;
                             }
                         }
-                        _ => {
-                            if arg.starts_with(&long_opt) && long_opt.len() > 2 {
-                                if x.2 == "false" || x.2 == "true" {
-                                    // --exit_upon_crash
-                                    x.2 = "true".to_owned()
-                                } else if let Some(next_arg) = args_iter.next() {
-                                    // --iterations value
-                                    x.2 = next_arg.to_string();
-                                }
-                            }
-                        }
+                        index += 1;
                     }
                 }
             }
         }
+        if !splitted_in_vector.is_empty() {
+            let remaining_cli_args = splitted_in_vector.join(" ");
+            self.hfuzz_run_args.remaining_cli_args = Some(remaining_cli_args);
+        }
+    }
+    pub fn get_env_variables(&self) -> String {
         let mut toml_vars: String = String::new();
-        for x in &fuzz_args {
+        for x in &self.hfuzz_run_args.hfuzz_run_args {
             if x.2 == "true" {
                 // add only variable
                 if x.0.is_empty() {
@@ -229,9 +247,10 @@ impl Config {
                 toml_vars = format!("{} {} {}", toml_vars, x.0, x.2);
             }
         }
+
+        if let Some(remaining_cli_args) = &self.hfuzz_run_args.remaining_cli_args {
+            toml_vars = toml_vars + " " + remaining_cli_args;
+        }
         toml_vars
     }
-}
-lazy_static::lazy_static! {
-    pub static ref CONFIG: Config = Config::new();
 }

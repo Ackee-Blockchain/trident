@@ -1,4 +1,4 @@
-use crate::{config::CONFIG, Reader, TempClone};
+use crate::{config::Config, Reader, TempClone};
 use anchor_client::{
     anchor_lang::{
         prelude::System, solana_program::program_pack::Pack, AccountDeserialize, Id,
@@ -43,6 +43,7 @@ type Payer = Rc<Keypair>;
 pub struct Client {
     payer: Keypair,
     anchor_client: AnchorClient<Payer>,
+    config: Config,
 }
 
 impl Client {
@@ -55,6 +56,7 @@ impl Client {
                 Rc::new(payer),
                 CommitmentConfig::confirmed(),
             ),
+            config: Config::new(),
         }
     }
 
@@ -85,7 +87,7 @@ impl Client {
             .async_rpc();
 
         for _ in 0..(if retry {
-            CONFIG.test.validator_startup_timeout / RETRY_LOCALNET_EVERY_MILLIS
+            self.config.test.validator_startup_timeout / RETRY_LOCALNET_EVERY_MILLIS
         } else {
             1
         }) {
