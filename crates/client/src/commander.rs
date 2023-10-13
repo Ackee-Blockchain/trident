@@ -100,7 +100,6 @@ impl LocalnetHandle {
 /// run tests and do other useful operations.
 pub struct Commander {
     root: Cow<'static, str>,
-    config: Config,
 }
 
 impl Commander {
@@ -108,16 +107,12 @@ impl Commander {
     pub fn new() -> Self {
         Self {
             root: "../../".into(),
-            config: Config::new(),
         }
     }
 
     /// Creates a new `Commander` instance with the provided `root`.
     pub fn with_root(root: impl Into<Cow<'static, str>>) -> Self {
-        Self {
-            root: root.into(),
-            config: Config::new(),
-        }
+        Self { root: root.into() }
     }
 
     /// Builds programs (smart contracts).
@@ -159,18 +154,19 @@ impl Commander {
     /// Runs fuzzer on the given target.
     #[throws]
     pub async fn run_fuzzer(&mut self, target: String) {
+        let mut config = Config::new();
+
         if let Ok(var) = std::env::var("HFUZZ_RUN_ARGS") {
-            self.config.merge_with_cli(&var)
+            config.merge_with_cli(&var)
         }
 
-        let env_variables = self.config.get_env_variables();
+        let env_variables = config.get_env_variables();
 
         let cur_dir = Path::new(&self.root.to_string()).join(TESTS_WORKSPACE);
         if !cur_dir.try_exists()? {
             throw!(Error::NotInitialized);
         }
 
-        println!("{:?}", env_variables);
         let mut child = Command::new("cargo")
             .env("HFUZZ_RUN_ARGS", env_variables)
             .current_dir(cur_dir)
