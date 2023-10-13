@@ -43,7 +43,6 @@ type Payer = Rc<Keypair>;
 pub struct Client {
     payer: Keypair,
     anchor_client: AnchorClient<Payer>,
-    config: Config,
 }
 
 impl Client {
@@ -56,7 +55,6 @@ impl Client {
                 Rc::new(payer),
                 CommitmentConfig::confirmed(),
             ),
-            config: Config::new(),
         }
     }
 
@@ -80,6 +78,8 @@ impl Client {
     /// Set `retry` to `true` when you want to wait for up to 15 seconds until
     /// the localnet is running (until 30 retries with 500ms delays are performed).
     pub async fn is_localnet_running(&self, retry: bool) -> bool {
+        let config = Config::new();
+
         let rpc_client = self
             .anchor_client
             .program(System::id())
@@ -87,7 +87,7 @@ impl Client {
             .async_rpc();
 
         for _ in 0..(if retry {
-            self.config.test.validator_startup_timeout / RETRY_LOCALNET_EVERY_MILLIS
+            config.test.validator_startup_timeout / RETRY_LOCALNET_EVERY_MILLIS
         } else {
             1
         }) {
