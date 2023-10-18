@@ -47,7 +47,7 @@ pub async fn fuzz(root: Option<String>, subcmd: FuzzCommand) {
         }
     };
 
-    let mut commander = Commander::with_root(root.clone());
+    let commander = Commander::with_root(root.clone());
 
     match subcmd {
         FuzzCommand::Run {

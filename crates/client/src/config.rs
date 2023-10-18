@@ -217,14 +217,18 @@ impl Config {
             let mut index = 0;
             while let Some(arg) = splitted_in_vector.get(index) {
                 match arg.strip_prefix(short_opt) {
-                    Some(_val) if short_opt.len() > 1 => {
-                        // TODO: this expects only two possible inputs, but within the get_cmd_option_value
-                        // we check also for -ecrash
+                    Some(val) if short_opt.len() > 1 => {
                         // -t timeout
+                        // -t<timeout> also supported (without the space)
                         // -v <no next input because flag signals true>
                         if x.2 == "true" || x.2 == "false" {
                             // -v
                             x.2 = "true".to_owned();
+                            splitted_in_vector.remove(index);
+                        } else if !val.is_empty() {
+                            // -ecrash - a.k.a short options without the space
+                            // -t<timeout>
+                            x.2 = val.to_owned();
                             splitted_in_vector.remove(index);
                         } else if let Some(_next_arg) = splitted_in_vector.get(index + 1) {
                             // -t timeout
@@ -480,6 +484,43 @@ mod tests {
         assert_eq!(
             env_var_string,
             " -t 1 -N 1 -Q -v --exit_upon_crash -n 15 --mutations_per_run 8 --verifier -W random_dir --crashdir random_dir5 --run_time 666"
+        );
+    }
+    #[test]
+    fn test_merge_and_precedence7() {
+        let mut config = Config {
+            test: Test::default(),
+            hfuzz_run_args: HfuzzRunArgs {
+                hfuzz_run_args: vec![
+                    ("-t".to_string(), "--timeout".to_string(), 1.to_string()),
+                    ("-N".to_string(), "--iterations".to_string(), 1.to_string()),
+                    (
+                        "-Q".to_string(),
+                        "--keep_output".to_string(),
+                        "false".to_string(),
+                    ),
+                    (
+                        "-v".to_string(),
+                        "--verbose".to_string(),
+                        "false".to_string(),
+                    ),
+                    (
+                        String::new(),
+                        "--exit_upon_crash".to_string(),
+                        "false".to_string(),
+                    ),
+                ],
+                remaining_cli_args: None,
+            },
+        };
+
+        config.merge_with_cli(
+            "-t10 -N500 -Q -v --exit_upon_crash -n15 --mutations_per_run 8 --verifier -Wrandom_dir --crashdir random_dir5 --run_time 666",
+        );
+        let env_var_string = config.get_env_variables();
+        assert_eq!(
+            env_var_string,
+            " -t 10 -N 500 -Q -v --exit_upon_crash -n15 --mutations_per_run 8 --verifier -Wrandom_dir --crashdir random_dir5 --run_time 666"
         );
     }
 }

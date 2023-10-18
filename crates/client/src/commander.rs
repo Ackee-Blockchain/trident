@@ -153,7 +153,7 @@ impl Commander {
     }
     /// Runs fuzzer on the given target.
     #[throws]
-    pub async fn run_fuzzer(&mut self, target: String) {
+    pub async fn run_fuzzer(&self, target: String) {
         let mut config = Config::new();
 
         if let Ok(var) = std::env::var("HFUZZ_RUN_ARGS") {
