@@ -26,7 +26,11 @@ pub enum Error {
 pub struct Test {
     pub validator_startup_timeout: u64,
 }
-
+#[derive(Default, Debug, Deserialize, Clone)]
+struct _Test {
+    #[serde(default)]
+    pub validator_startup_timeout: Option<u64>,
+}
 impl Default for Test {
     fn default() -> Self {
         Self {
@@ -34,49 +38,25 @@ impl Default for Test {
         }
     }
 }
-
-#[derive(Debug, Deserialize, Clone)]
-pub struct HfuzzRunArgs {
-    // short option, long option, value
-    pub hfuzz_run_args: Vec<(String, String, String)>,
-    pub remaining_cli_args: Option<String>,
-}
-
-impl Default for HfuzzRunArgs {
-    fn default() -> Self {
+impl From<_Test> for Test {
+    fn from(_t: _Test) -> Self {
         Self {
-            hfuzz_run_args: vec![
-                ("-t".to_string(), "--timeout".to_string(), 10.to_string()),
-                ("-N".to_string(), "--iterations".to_string(), 0.to_string()),
-                (
-                    "-Q".to_string(),
-                    "--keep_output".to_string(),
-                    "false".to_string(),
-                ),
-                (
-                    "-v".to_string(),
-                    "--verbose".to_string(),
-                    "false".to_string(),
-                ),
-                (
-                    String::new(),
-                    "--exit_upon_crash".to_string(),
-                    "false".to_string(),
-                ),
-            ],
-            remaining_cli_args: None,
+            validator_startup_timeout: _t.validator_startup_timeout.unwrap_or(10_000),
         }
     }
 }
-
-#[derive(Default, Debug, Deserialize, Clone)]
-struct _Test {
-    #[serde(default)]
-    pub validator_startup_timeout: Option<u64>,
+#[derive(Debug, Deserialize, Clone)]
+pub struct FuzzArg {
+    pub short_opt: Option<String>,
+    pub long_opt: Option<String>,
+    pub val: Option<String>,
 }
-
+#[derive(Debug, Deserialize, Clone)]
+pub struct Fuzz {
+    pub fuzz_args: Vec<FuzzArg>,
+}
 #[derive(Default, Debug, Deserialize, Clone)]
-struct _HfuzzRunArgs {
+struct _Fuzz {
     #[serde(default)]
     /// Timeout in seconds (default: 10)
     /// -t
@@ -98,51 +78,78 @@ struct _HfuzzRunArgs {
     /// --exit_upon_crash
     pub exit_upon_crash: Option<bool>,
 }
-
-impl From<_Test> for Test {
-    fn from(_t: _Test) -> Self {
+impl Default for Fuzz {
+    fn default() -> Self {
         Self {
-            validator_startup_timeout: _t.validator_startup_timeout.unwrap_or(10_000),
+            fuzz_args: vec![
+                FuzzArg::new("-t", "--timeout", &10.to_string()),
+                FuzzArg::new("-N", "--iterations", &0.to_string()),
+            ],
         }
     }
 }
+impl From<_Fuzz> for Fuzz {
+    fn from(_f: _Fuzz) -> Self {
+        let mut _self = Self { fuzz_args: vec![] };
 
-impl From<_HfuzzRunArgs> for HfuzzRunArgs {
-    fn from(_f: _HfuzzRunArgs) -> Self {
+        // timeout
         let timeout = _f.timeout.unwrap_or(10);
+        _self
+            .fuzz_args
+            .push(FuzzArg::new("-t", "--timeout", &timeout.to_string()));
+
+        // iterations
         let iterations = _f.iterations.unwrap_or(0);
+        _self
+            .fuzz_args
+            .push(FuzzArg::new("-N", "--iterations", &iterations.to_string()));
+
+        // keep_output
         let keep_output = _f.keep_output.unwrap_or(false);
+        if keep_output {
+            _self
+                .fuzz_args
+                .push(FuzzArg::new("-Q", "--keep_output", ""));
+        }
+
+        // verbose
         let verbose = _f.verbose.unwrap_or(false);
+        if verbose {
+            _self.fuzz_args.push(FuzzArg::new("-v", "--verbose", ""));
+        }
+
+        // exit_upon_crash
         let exit_upon_crash = _f.exit_upon_crash.unwrap_or(false);
+        if exit_upon_crash {
+            _self
+                .fuzz_args
+                .push(FuzzArg::new("", "--exit_upon_crash", ""));
+        }
+        _self
+    }
+}
+
+impl FuzzArg {
+    fn new(short_opt: &str, long_opt: &str, val: &str) -> Self {
+        let short_opt = if short_opt.is_empty() {
+            None
+        } else {
+            Some(short_opt.to_owned())
+        };
+        let long_opt = if long_opt.is_empty() {
+            None
+        } else {
+            Some(long_opt.to_owned())
+        };
+        let val = if val.is_empty() {
+            None
+        } else {
+            Some(val.to_owned())
+        };
         Self {
-            hfuzz_run_args: vec![
-                (
-                    "-t".to_string(),
-                    "--timeout".to_string(),
-                    timeout.to_string(),
-                ),
-                (
-                    "-N".to_string(),
-                    "--iterations".to_string(),
-                    iterations.to_string(),
-                ),
-                (
-                    "-Q".to_string(),
-                    "--keep_output".to_string(),
-                    keep_output.to_string(),
-                ),
-                (
-                    "-v".to_string(),
-                    "--verbose".to_string(),
-                    verbose.to_string(),
-                ),
-                (
-                    String::new(),
-                    "--exit_upon_crash".to_string(),
-                    exit_upon_crash.to_string(),
-                ),
-            ],
-            remaining_cli_args: None,
+            short_opt,
+            long_opt,
+            val,
         }
     }
 }
@@ -150,7 +157,7 @@ impl From<_HfuzzRunArgs> for HfuzzRunArgs {
 #[derive(Debug, Deserialize, Clone)]
 pub struct Config {
     pub test: Test,
-    pub hfuzz_run_args: HfuzzRunArgs,
+    pub fuzz: Fuzz,
 }
 
 #[derive(Default, Debug, Deserialize, Clone)]
@@ -158,14 +165,14 @@ struct _Config {
     #[serde(default)]
     pub test: Option<_Test>,
     #[serde(default)]
-    pub hfuzz_run_args: Option<_HfuzzRunArgs>,
+    pub fuzz: Option<_Fuzz>,
 }
 
 impl From<_Config> for Config {
     fn from(_c: _Config) -> Self {
         Self {
             test: _c.test.unwrap_or_default().into(),
-            hfuzz_run_args: _c.hfuzz_run_args.unwrap_or_default().into(),
+            fuzz: _c.fuzz.unwrap_or_default().into(),
         }
     }
 }
@@ -204,92 +211,28 @@ impl Config {
         }
         throw!(Error::BadWorkspace)
     }
-    pub fn merge_with_cli(&mut self, cli_vars: &str) {
-        // FIXME: we split by whitespace without respecting escaping or quotes - same approach as honggfuzz-rs so there is no point to fix it here before the upstream is fixed
-        let mut splitted_in_vector: Vec<String> =
-            cli_vars.split_whitespace().map(str::to_string).collect();
+    pub fn get_env_variable(self, cli_input: String) -> String {
+        // Tested on a few examples, HFUZZ_RUN_ARGS give precedence to the later arguments.
+        // so if HFUZZ_RUN_ARGS="-t 10 -t 15" -> timeout 15s is applied.
+        // That means we do not need to parse the arguments from the CLI;
+        // thus, we can simply append them at the end, and the CLI will have precedence.
 
-        for x in &mut self.hfuzz_run_args.hfuzz_run_args {
-            // no need to re-format these as the long/short formats are predefined by us
-            let short_opt = &x.0;
-            let long_opt = &x.1;
-
-            let mut index = 0;
-            while let Some(arg) = splitted_in_vector.get(index) {
-                match arg.strip_prefix(short_opt) {
-                    Some(val) if short_opt.len() > 1 => {
-                        // -t timeout
-                        // -t<timeout> also supported (without the space)
-                        // -v <no next input because flag signals true>
-                        if x.2 == "true" || x.2 == "false" {
-                            // -v
-                            x.2 = "true".to_owned();
-                            splitted_in_vector.remove(index);
-                        } else if !val.is_empty() {
-                            // -ecrash - a.k.a short options without the space
-                            // -t<timeout>
-                            x.2 = val.to_owned();
-                            splitted_in_vector.remove(index);
-                        } else if let Some(_next_arg) = splitted_in_vector.get(index + 1) {
-                            // -t timeout
-                            splitted_in_vector.remove(index);
-                            x.2 = splitted_in_vector.remove(index);
-                        } else {
-                            index += 1;
-                        }
-                    }
-                    _ => {
-                        // This part also expects only two possible inputs
-                        // --exit_upon_crash <signals true>
-                        // --iterations VALUE
-                        if arg.starts_with(long_opt) && long_opt.len() > 2 {
-                            if x.2 == "false" || x.2 == "true" {
-                                // --exit_upon_crash <signals true>
-                                x.2 = "true".to_owned();
-                                splitted_in_vector.remove(index);
-                                continue;
-                            } else if let Some(_next_arg) = splitted_in_vector.get(index + 1) {
-                                // --iterations VALUE
-                                splitted_in_vector.remove(index);
-                                x.2 = splitted_in_vector.remove(index);
-                                continue;
-                            }
-                        }
-                        index += 1;
-                    }
-                }
-            }
-        }
-        if !splitted_in_vector.is_empty() {
-            let remaining_cli_args = splitted_in_vector.join(" ");
-            self.hfuzz_run_args.remaining_cli_args = Some(remaining_cli_args);
-        }
-    }
-    pub fn get_env_variables(&self) -> String {
         let mut toml_vars: String = String::new();
-        for x in &self.hfuzz_run_args.hfuzz_run_args {
-            if x.2 == "true" {
-                // add only flag
-                if x.0.is_empty() {
-                    toml_vars = format!("{} {}", toml_vars, x.1);
+        for x in self.fuzz.fuzz_args {
+            if x.short_opt.is_none() {
+                if x.val.is_none() {
+                    toml_vars = format!("{} {}", toml_vars, x.long_opt.unwrap());
                 } else {
-                    toml_vars = format!("{} {}", toml_vars, x.0);
+                    toml_vars =
+                        format!("{} {} {}", toml_vars, x.short_opt.unwrap(), x.val.unwrap());
                 }
-            } else if x.2 == "false" {
-                // do nothing
-            } else if x.0.is_empty() {
-                // add long form with value, this means short forms are filled first
-                // by default if they are present
-                toml_vars = format!("{} {} {}", toml_vars, x.1, x.2);
+            } else if x.val.is_none() {
+                toml_vars = format!("{} {}", toml_vars, x.short_opt.unwrap());
             } else {
-                // add short form with value
-                toml_vars = format!("{} {} {}", toml_vars, x.0, x.2);
+                toml_vars = format!("{} {} {}", toml_vars, x.short_opt.unwrap(), x.val.unwrap());
             }
         }
-
-        if let Some(remaining_cli_args) = &self.hfuzz_run_args.remaining_cli_args {
-            toml_vars = toml_vars + " " + remaining_cli_args;
-        }
+        toml_vars = toml_vars + " " + &cli_input;
         toml_vars
     }
 }
@@ -299,228 +242,49 @@ mod tests {
     use super::*;
     #[test]
     fn test_merge_and_precedence1() {
-        let mut config = Config {
+        let config = Config {
             test: Test::default(),
-            hfuzz_run_args: HfuzzRunArgs::default(),
+            fuzz: Fuzz::default(),
         };
 
-        config.merge_with_cli("");
-        let env_var_string = config.get_env_variables();
-        assert_eq!(env_var_string, " -t 10 -N 0");
+        let env_var_string = config.get_env_variable(String::default());
+        assert_eq!(env_var_string, " -t 10 -N 0 ");
     }
     #[test]
     fn test_merge_and_precedence2() {
-        let mut config = Config {
+        let config = Config {
             test: Test::default(),
-            hfuzz_run_args: HfuzzRunArgs {
-                hfuzz_run_args: vec![
-                    ("-t".to_string(), "--timeout".to_string(), 423.to_string()),
-                    (
-                        "-N".to_string(),
-                        "--iterations".to_string(),
-                        8943.to_string(),
-                    ),
-                    (
-                        "-Q".to_string(),
-                        "--keep_output".to_string(),
-                        "true".to_string(),
-                    ),
-                    (
-                        "-v".to_string(),
-                        "--verbose".to_string(),
-                        "false".to_string(),
-                    ),
-                    (
-                        String::new(),
-                        "--exit_upon_crash".to_string(),
-                        "true".to_string(),
-                    ),
-                ],
-                remaining_cli_args: None,
-            },
+            fuzz: Fuzz::default(),
         };
 
-        config.merge_with_cli("");
-        let env_var_string = config.get_env_variables();
-        assert_eq!(env_var_string, " -t 423 -N 8943 -Q --exit_upon_crash");
+        let env_var_string = config.get_env_variable("-t 0 -N10 --exit_upon_crash".to_string());
+
+        assert_eq!(env_var_string, " -t 10 -N 0 -t 0 -N10 --exit_upon_crash");
     }
     #[test]
     fn test_merge_and_precedence3() {
-        let mut config = Config {
+        let config = Config {
             test: Test::default(),
-            hfuzz_run_args: HfuzzRunArgs {
-                hfuzz_run_args: vec![
-                    ("-t".to_string(), "--timeout".to_string(), 423.to_string()),
-                    (
-                        "-N".to_string(),
-                        "--iterations".to_string(),
-                        8943.to_string(),
-                    ),
-                    (
-                        "-Q".to_string(),
-                        "--keep_output".to_string(),
-                        "false".to_string(),
-                    ),
-                    (
-                        "-v".to_string(),
-                        "--verbose".to_string(),
-                        "false".to_string(),
-                    ),
-                    (
-                        String::new(),
-                        "--exit_upon_crash".to_string(),
-                        "false".to_string(),
-                    ),
-                ],
-                remaining_cli_args: None,
-            },
+            fuzz: Fuzz::default(),
         };
-
-        config.merge_with_cli("--exit_upon_crash");
-        let env_var_string = config.get_env_variables();
-        assert_eq!(env_var_string, " -t 423 -N 8943 --exit_upon_crash");
+        let env_var_string =
+            config.get_env_variable("-t 100 -N 5000 -Q -v --exit_upon_crash".to_string());
+        assert_eq!(
+            env_var_string,
+            " -t 10 -N 0 -t 100 -N 5000 -Q -v --exit_upon_crash"
+        );
     }
     #[test]
     fn test_merge_and_precedence4() {
-        let mut config = Config {
+        let config = Config {
             test: Test::default(),
-            hfuzz_run_args: HfuzzRunArgs {
-                hfuzz_run_args: vec![
-                    ("-t".to_string(), "--timeout".to_string(), 1.to_string()),
-                    ("-N".to_string(), "--iterations".to_string(), 1.to_string()),
-                    (
-                        "-Q".to_string(),
-                        "--keep_output".to_string(),
-                        "false".to_string(),
-                    ),
-                    (
-                        "-v".to_string(),
-                        "--verbose".to_string(),
-                        "false".to_string(),
-                    ),
-                    (
-                        String::new(),
-                        "--exit_upon_crash".to_string(),
-                        "false".to_string(),
-                    ),
-                ],
-                remaining_cli_args: None,
-            },
+            fuzz: Fuzz::default(),
         };
 
-        config.merge_with_cli("-t 10 -N 500 -Q -v --exit_upon_crash");
-        let env_var_string = config.get_env_variables();
-        assert_eq!(env_var_string, " -t 10 -N 500 -Q -v --exit_upon_crash");
-    }
-    #[test]
-    fn test_merge_and_precedence5() {
-        let mut config = Config {
-            test: Test::default(),
-            hfuzz_run_args: HfuzzRunArgs {
-                hfuzz_run_args: vec![
-                    ("-t".to_string(), "--timeout".to_string(), 1.to_string()),
-                    ("-N".to_string(), "--iterations".to_string(), 1.to_string()),
-                    (
-                        "-Q".to_string(),
-                        "--keep_output".to_string(),
-                        "false".to_string(),
-                    ),
-                    (
-                        "-v".to_string(),
-                        "--verbose".to_string(),
-                        "false".to_string(),
-                    ),
-                    (
-                        String::new(),
-                        "--exit_upon_crash".to_string(),
-                        "false".to_string(),
-                    ),
-                ],
-                remaining_cli_args: None,
-            },
-        };
-
-        config.merge_with_cli(
-            "-t 10 -N 500 -Q -v --exit_upon_crash -n 15 --mutations_per_run 8 --verifier -W random_dir --crashdir random_dir5 --run_time 666",
-        );
-        let env_var_string = config.get_env_variables();
+        let env_var_string = config.get_env_variable("-t 10 -N 500 -Q -v --exit_upon_crash -n 15 --mutations_per_run 8 --verifier -W random_dir --crashdir random_dir5 --run_time 666".to_string());
         assert_eq!(
             env_var_string,
-            " -t 10 -N 500 -Q -v --exit_upon_crash -n 15 --mutations_per_run 8 --verifier -W random_dir --crashdir random_dir5 --run_time 666"
-        );
-    }
-    #[test]
-    fn test_merge_and_precedence6() {
-        let mut config = Config {
-            test: Test::default(),
-            hfuzz_run_args: HfuzzRunArgs {
-                hfuzz_run_args: vec![
-                    ("-t".to_string(), "--timeout".to_string(), 1.to_string()),
-                    ("-N".to_string(), "--iterations".to_string(), 1.to_string()),
-                    (
-                        "-Q".to_string(),
-                        "--keep_output".to_string(),
-                        "true".to_string(),
-                    ),
-                    (
-                        "-v".to_string(),
-                        "--verbose".to_string(),
-                        "true".to_string(),
-                    ),
-                    (
-                        String::new(),
-                        "--exit_upon_crash".to_string(),
-                        "true".to_string(),
-                    ),
-                ],
-                remaining_cli_args: None,
-            },
-        };
-
-        config.merge_with_cli(
-            "-n 15 --mutations_per_run 8 --verifier -W random_dir --crashdir random_dir5 --run_time 666",
-        );
-        let env_var_string = config.get_env_variables();
-        assert_eq!(
-            env_var_string,
-            " -t 1 -N 1 -Q -v --exit_upon_crash -n 15 --mutations_per_run 8 --verifier -W random_dir --crashdir random_dir5 --run_time 666"
-        );
-    }
-    #[test]
-    fn test_merge_and_precedence7() {
-        let mut config = Config {
-            test: Test::default(),
-            hfuzz_run_args: HfuzzRunArgs {
-                hfuzz_run_args: vec![
-                    ("-t".to_string(), "--timeout".to_string(), 1.to_string()),
-                    ("-N".to_string(), "--iterations".to_string(), 1.to_string()),
-                    (
-                        "-Q".to_string(),
-                        "--keep_output".to_string(),
-                        "false".to_string(),
-                    ),
-                    (
-                        "-v".to_string(),
-                        "--verbose".to_string(),
-                        "false".to_string(),
-                    ),
-                    (
-                        String::new(),
-                        "--exit_upon_crash".to_string(),
-                        "false".to_string(),
-                    ),
-                ],
-                remaining_cli_args: None,
-            },
-        };
-
-        config.merge_with_cli(
-            "-t10 -N500 -Q -v --exit_upon_crash -n15 --mutations_per_run 8 --verifier -Wrandom_dir --crashdir random_dir5 --run_time 666",
-        );
-        let env_var_string = config.get_env_variables();
-        assert_eq!(
-            env_var_string,
-            " -t 10 -N 500 -Q -v --exit_upon_crash -n15 --mutations_per_run 8 --verifier -Wrandom_dir --crashdir random_dir5 --run_time 666"
+            " -t 10 -N 0 -t 10 -N 500 -Q -v --exit_upon_crash -n 15 --mutations_per_run 8 --verifier -W random_dir --crashdir random_dir5 --run_time 666"
         );
     }
 }

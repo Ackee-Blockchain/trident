@@ -1,9 +1,9 @@
 [test]
 validator_startup_timeout = 15000
 
-[hfuzz_run_args]
+[fuzz]
 iterations = 500
 timeout = 25
 keep_output = false
 verbose = false
-exit_upon_crash = false # --exit_upon_crash
+exit_upon_crash = true

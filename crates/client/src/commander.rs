@@ -154,13 +154,10 @@ impl Commander {
     /// Runs fuzzer on the given target.
     #[throws]
     pub async fn run_fuzzer(&self, target: String) {
-        let mut config = Config::new();
+        let config = Config::new();
 
-        if let Ok(var) = std::env::var("HFUZZ_RUN_ARGS") {
-            config.merge_with_cli(&var)
-        }
-
-        let env_variables = config.get_env_variables();
+        let hfuzz_run_args = std::env::var("HFUZZ_RUN_ARGS").unwrap_or_default();
+        let env_variable = config.get_env_variable(hfuzz_run_args);
 
         let cur_dir = Path::new(&self.root.to_string()).join(TESTS_WORKSPACE);
         if !cur_dir.try_exists()? {
@@ -168,7 +165,7 @@ impl Commander {
         }
 
         let mut child = Command::new("cargo")
-            .env("HFUZZ_RUN_ARGS", env_variables)
+            .env("HFUZZ_RUN_ARGS", env_variable)
             .current_dir(cur_dir)
             .arg("hfuzz")
             .arg("run")
