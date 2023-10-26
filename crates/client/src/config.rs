@@ -1,5 +1,3 @@
-extern crate lazy_static;
-
 use anyhow::Context;
 use fehler::throw;
 use serde::Deserialize;
