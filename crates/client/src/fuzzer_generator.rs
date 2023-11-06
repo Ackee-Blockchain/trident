@@ -13,9 +13,9 @@ pub fn generate_source_code(idl: &Idl, use_modules: &[syn::ItemUse]) -> String {
         .iter()
         .map(|idl_program| {
             let program_name = idl_program.name.snake_case.replace('-', "_");
-            let instruction_module_name = format_ident!("{}_instruction", program_name);
+            let fuzz_instructions_module_name = format_ident!("{}_fuzz_instructions", program_name);
             let module_name: syn::Ident = parse_str(&program_name).unwrap();
-            let pubkey_bytes: syn::ExprArray = parse_str(&idl_program.id).unwrap();
+            // let pubkey_bytes: syn::ExprArray = parse_str(&idl_program.id).unwrap();
 
             let instructions = idl_program
                 .instruction_account_pairs
@@ -91,58 +91,63 @@ pub fn generate_source_code(idl: &Idl, use_modules: &[syn::ItemUse]) -> String {
                             })
                             .collect::<Vec<_>>();
 
-                        let instruction: syn::ItemFn = parse_quote! {
-                            pub async fn #instruction_fn_name(
-                                client: &Client,
-                                #(#parameters,)*
-                                #(#accounts,)*
-                                signers: impl IntoIterator<Item = Keypair> + Send + 'static,
-                            ) -> Result<EncodedConfirmedTransactionWithStatusMeta, ClientError> {
-                                client.send_instruction(
-                                    PROGRAM_ID,
-                                    #module_name::instruction::#instruction_struct_name {
-                                        #(#field_parameters,)*
-                                    },
-                                    #module_name::accounts::#account_struct_name {
-                                        #(#field_accounts,)*
-                                    },
-                                    signers,
-                                ).await
-                            }
-                        };
+                        // let instruction: syn::ItemFn = parse_quote! {
+                        //     pub async fn #instruction_fn_name(
+                        //         client: &Client,
+                        //         #(#parameters,)*
+                        //         #(#accounts,)*
+                        //         signers: impl IntoIterator<Item = Keypair> + Send + 'static,
+                        //     ) -> Result<EncodedConfirmedTransactionWithStatusMeta, ClientError> {
+                        //         client.send_instruction(
+                        //             PROGRAM_ID,
+                        //             #module_name::instruction::#instruction_struct_name {
+                        //                 #(#field_parameters,)*
+                        //             },
+                        //             #module_name::accounts::#account_struct_name {
+                        //                 #(#field_accounts,)*
+                        //             },
+                        //             signers,
+                        //         ).await
+                        //     }
+                        // };
 
-                        let instruction_raw: syn::ItemFn = parse_quote! {
-                            pub  fn #instruction_name(
-                                #(#parameters,)*
-                                #(#accounts,)*
-                            ) -> Instruction {
-                                Instruction{
-                                    program_id: PROGRAM_ID,
-                                    data: #module_name::instruction::#instruction_struct_name {
-                                        #(#field_parameters,)*
-                                    }.data(),
-                                    accounts: #module_name::accounts::#account_struct_name {
-                                        #(#field_accounts,)*
-                                    }.to_account_metas(None),
-                                }
-                            }
-                        };
+                        let instruction: syn::Ident = parse_quote! {#instruction_struct_name};
+
+                        // let instruction_raw: syn::ItemFn = parse_quote! {
+                        //     pub  fn #instruction_name(
+                        //         #(#parameters,)*
+                        //         #(#accounts,)*
+                        //     ) -> Instruction {
+                        //         Instruction{
+                        //             program_id: PROGRAM_ID,
+                        //             data: #module_name::instruction::#instruction_struct_name {
+                        //                 #(#field_parameters,)*
+                        //             }.data(),
+                        //             accounts: #module_name::accounts::#account_struct_name {
+                        //                 #(#field_accounts,)*
+                        //             }.to_account_metas(None),
+                        //         }
+                        //     }
+                        // };
 
                         instructions.push(instruction);
-                        instructions.push(instruction_raw);
+                        // instructions.push(instruction_raw);
                         instructions
                     },
                 )
                 .into_iter();
 
-            let program_module: syn::ItemMod = parse_quote! {
-                pub mod #instruction_module_name {
-                    #(#use_modules)*
-                    pub static PROGRAM_ID: Pubkey = Pubkey::new_from_array(#pubkey_bytes);
-                    #(#instructions)*
+            let fuzzer_module: syn::ItemMod = parse_quote! {
+                pub mod #fuzz_instructions_module_name {
+                    // #(#use_modules)*
+                    // pub static PROGRAM_ID: Pubkey = Pubkey::new_from_array(#pubkey_bytes);
+                    #[derive(Arbitrary, Clone)]
+                    pub enum FuzzInstruction {
+                        #(#instructions),*
+                    }
                 }
             };
-            program_module.into_token_stream().to_string()
+            fuzzer_module.into_token_stream().to_string()
         })
         .collect::<String>();
     output.push_str(&code);

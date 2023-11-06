@@ -1,7 +1,9 @@
 use crate::config::Config;
 use crate::{
+    fuzzer_generator,
     idl::{self, Idl},
     program_client_generator,
+    test_generator::FUZZ_INSTRUCTIONS_FILE_NAME,
     test_generator::TESTS_WORKSPACE,
     Client,
 };
@@ -347,13 +349,22 @@ impl Commander {
             programs: try_join_all(idl_programs).await?,
         };
         let use_tokens = self.parse_program_client_imports().await?;
-        let program_client = program_client_generator::generate_source_code(idl, &use_tokens);
+        let program_client = program_client_generator::generate_source_code(&idl, &use_tokens);
         let program_client = Self::format_program_code(&program_client).await?;
+
+        let program_fuzzer = fuzzer_generator::generate_source_code(&idl, &use_tokens);
+        let program_fuzzer = Self::format_program_code(&program_fuzzer).await?;
 
         let rust_file_path = Path::new(self.root.as_ref())
             .join(PROGRAM_CLIENT_DIRECTORY)
             .join("src/lib.rs");
         fs::write(rust_file_path, &program_client).await?;
+
+        let rust_file_path = Path::new(self.root.as_ref())
+            .join(TESTS_WORKSPACE)
+            .join("src/")
+            .join(FUZZ_INSTRUCTIONS_FILE_NAME);
+        fs::write(rust_file_path, &program_fuzzer).await?;
     }
 
     /// Formats program code.

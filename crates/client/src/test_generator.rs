@@ -22,6 +22,7 @@ const TESTS_DIRECTORY: &str = "tests";
 const FUZZ_DIRECTORY: &str = "src/bin";
 const TESTS_FILE_NAME: &str = "test.rs";
 const FUZZ_TEST_FILE_NAME: &str = "fuzz_target.rs";
+pub(crate) const FUZZ_INSTRUCTIONS_FILE_NAME: &str = "fuzz_instructions.rs";
 pub(crate) const HFUZZ_TARGET: &str = "hfuzz_target";
 
 #[derive(Error, Debug)]
@@ -98,12 +99,12 @@ impl TestGenerator {
         let commander = Commander::with_root(root_path);
         commander.create_program_client_crate().await?;
         self.generate_test_files(&root).await?;
-        self.update_workspace(&root).await?;
-        self.build_program_client(&commander).await?;
         if !skip_fuzzer {
             self.generate_fuzz_test_files(&root).await?;
             self.update_gitignore(&root, "hfuzz_target")?;
         }
+        self.update_workspace(&root).await?;
+        self.build_program_client(&commander).await?;
     }
 
     /// Builds and generates programs for `program_client` module
@@ -170,6 +171,7 @@ impl TestGenerator {
 
         let libs = self.get_program_lib_names(root).await?;
 
+        // create fuzz test template
         let fuzzer_test_path = fuzzer_path.join(FUZZ_TEST_FILE_NAME);
         let fuzz_test_content = include_str!(concat!(
             env!("CARGO_MANIFEST_DIR"),
@@ -188,6 +190,19 @@ impl TestGenerator {
 
         self.create_file(&fuzzer_test_path, FUZZ_TEST_FILE_NAME, &fuzz_test_content)
             .await?;
+
+        // create fuzz instructions file
+        let fuzz_instructions_path = root.join(TESTS_WORKSPACE).join("src");
+        let fuzz_instructions_content = include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/src/templates/trdelnik-tests/fuzz_instructions.rs"
+        ));
+        self.create_file(
+            &fuzz_instructions_path,
+            FUZZ_INSTRUCTIONS_FILE_NAME,
+            fuzz_instructions_content,
+        )
+        .await?;
 
         let workspace_path = root.join(TESTS_WORKSPACE);
         let cargo_toml_path = workspace_path.join(CARGO_TOML);

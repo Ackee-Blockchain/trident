@@ -61,6 +61,7 @@ pub use temp_clone::TempClone;
 mod keys;
 pub use keys::*;
 
+pub mod fuzzer_generator;
 pub mod idl;
 pub mod program_client_generator;
 
