@@ -30,7 +30,10 @@ pub mod fuzzing {
     pub use solana_program_test::{
         processor, tokio::runtime::Runtime, BanksClient, BanksClientError, ProgramTest,
     };
+
+    pub use super::fuzzer;
 }
+pub mod fuzzer;
 
 pub use futures::{self, FutureExt};
 pub use rstest::*;

@@ -27,6 +27,10 @@ pub fn generate_source_code(idl: &Idl, use_modules: &[syn::ItemUse]) -> String {
                             parse_str(&idl_instruction.name.snake_case).unwrap();
                         let instruction_struct_name: syn::Ident =
                             parse_str(&idl_instruction.name.upper_camel_case).unwrap();
+                        let instruction_data_name: syn::Ident =
+                            format_ident!("{}Data", &idl_instruction.name.upper_camel_case);
+                        let instruction_accounts_name: syn::Ident =
+                            format_ident!("{}Accounts", &idl_instruction.name.upper_camel_case);
                         let account_struct_name: syn::Ident =
                             parse_str(&idl_account_group.name.upper_camel_case).unwrap();
                         let instruction_name: syn::Ident =
@@ -87,64 +91,68 @@ pub fn generate_source_code(idl: &Idl, use_modules: &[syn::ItemUse]) -> String {
                                 let name: syn::Ident = parse_str(name).unwrap();
                                 let value = format_ident!("a_{name}");
                                 let account: syn::FieldValue = parse_quote!(#name: #value);
+
                                 account
                             })
                             .collect::<Vec<_>>();
 
-                        // let instruction: syn::ItemFn = parse_quote! {
-                        //     pub async fn #instruction_fn_name(
-                        //         client: &Client,
-                        //         #(#parameters,)*
-                        //         #(#accounts,)*
-                        //         signers: impl IntoIterator<Item = Keypair> + Send + 'static,
-                        //     ) -> Result<EncodedConfirmedTransactionWithStatusMeta, ClientError> {
-                        //         client.send_instruction(
-                        //             PROGRAM_ID,
-                        //             #module_name::instruction::#instruction_struct_name {
-                        //                 #(#field_parameters,)*
-                        //             },
-                        //             #module_name::accounts::#account_struct_name {
-                        //                 #(#field_accounts,)*
-                        //             },
-                        //             signers,
-                        //         ).await
-                        //     }
-                        // };
-
-                        let instruction: syn::Ident = parse_quote! {#instruction_struct_name};
-
-                        // let instruction_raw: syn::ItemFn = parse_quote! {
-                        //     pub  fn #instruction_name(
-                        //         #(#parameters,)*
-                        //         #(#accounts,)*
-                        //     ) -> Instruction {
-                        //         Instruction{
-                        //             program_id: PROGRAM_ID,
-                        //             data: #module_name::instruction::#instruction_struct_name {
-                        //                 #(#field_parameters,)*
-                        //             }.data(),
-                        //             accounts: #module_name::accounts::#account_struct_name {
-                        //                 #(#field_accounts,)*
-                        //             }.to_account_metas(None),
-                        //         }
-                        //     }
-                        // };
+                        let instruction: syn::Variant = parse_quote! {
+                            #instruction_struct_name {
+                                accounts: #instruction_accounts_name,
+                                data: #instruction_data_name
+                            }
+                        };
 
                         instructions.push(instruction);
-                        // instructions.push(instruction_raw);
                         instructions
+                    },
+                )
+                .into_iter();
+
+            let instructions_data = idl_program
+                .instruction_account_pairs
+                .iter()
+                .fold(
+                    Vec::new(),
+                    |mut instructions_data, (idl_instruction, _idl_account_group)| {
+                        let instruction_data_name: syn::Ident =
+                            format_ident!("{}Data", &idl_instruction.name.upper_camel_case);
+
+                        let parameters = idl_instruction
+                            .parameters
+                            .iter()
+                            .map(|(name, ty)| {
+                                let name = format_ident!("i_{name}");
+                                let ty: syn::Type = parse_str(ty).unwrap();
+                                let parameter: syn::FnArg = parse_quote!(#name: #ty);
+                                parameter
+                            })
+                            .collect::<Vec<_>>();
+
+                        let ix_data: syn::ItemStruct = parse_quote! {
+                            #[derive(Arbitrary, Clone)]
+                            pub struct #instruction_data_name {
+                                 #(pub #parameters),*
+                            }
+
+                        };
+
+                        instructions_data.push(ix_data);
+                        instructions_data
                     },
                 )
                 .into_iter();
 
             let fuzzer_module: syn::ItemMod = parse_quote! {
                 pub mod #fuzz_instructions_module_name {
-                    // #(#use_modules)*
-                    // pub static PROGRAM_ID: Pubkey = Pubkey::new_from_array(#pubkey_bytes);
+                    use trdelnik_client::fuzzing::*;
+
                     #[derive(Arbitrary, Clone)]
                     pub enum FuzzInstruction {
                         #(#instructions),*
                     }
+
+                    #(#instructions_data)*
                 }
             };
             fuzzer_module.into_token_stream().to_string()
