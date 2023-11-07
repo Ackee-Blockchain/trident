@@ -209,29 +209,29 @@ impl Config {
         }
         throw!(Error::BadWorkspace)
     }
-    pub fn get_env_variable(self, cli_input: String) -> String {
+    pub fn get_fuzz_args(self, cli_input: String) -> String {
         // Tested on a few examples, HFUZZ_RUN_ARGS give precedence to the later arguments.
         // so if HFUZZ_RUN_ARGS="-t 10 -t 15" -> timeout 15s is applied.
         // That means we do not need to parse the arguments from the CLI;
         // thus, we can simply append them at the end, and the CLI will have precedence.
 
-        let mut toml_vars: String = String::new();
-        for x in self.fuzz.fuzz_args {
-            if x.short_opt.is_none() {
-                if x.val.is_none() {
-                    toml_vars = format!("{} {}", toml_vars, x.long_opt.unwrap());
+        let mut args: Vec<String> = self
+            .fuzz
+            .fuzz_args
+            .iter()
+            .map(|a| {
+                let val = a.val.to_owned().unwrap_or("".to_string());
+                if let Some(o) = &a.short_opt {
+                    format!("{} {}", o, val)
+                } else if let Some(o) = &a.long_opt {
+                    format!("{} {}", o, val)
                 } else {
-                    toml_vars =
-                        format!("{} {} {}", toml_vars, x.short_opt.unwrap(), x.val.unwrap());
+                    "".to_string()
                 }
-            } else if x.val.is_none() {
-                toml_vars = format!("{} {}", toml_vars, x.short_opt.unwrap());
-            } else {
-                toml_vars = format!("{} {} {}", toml_vars, x.short_opt.unwrap(), x.val.unwrap());
-            }
-        }
-        toml_vars = toml_vars + " " + &cli_input;
-        toml_vars
+            })
+            .collect();
+        args.push(cli_input);
+        args.join(" ")
     }
 }
 
@@ -245,8 +245,8 @@ mod tests {
             fuzz: Fuzz::default(),
         };
 
-        let env_var_string = config.get_env_variable(String::default());
-        assert_eq!(env_var_string, " -t 10 -N 0 ");
+        let env_var_string = config.get_fuzz_args(String::default());
+        assert_eq!(env_var_string, "-t 10 -N 0 ");
     }
     #[test]
     fn test_merge_and_precedence2() {
@@ -255,9 +255,9 @@ mod tests {
             fuzz: Fuzz::default(),
         };
 
-        let env_var_string = config.get_env_variable("-t 0 -N10 --exit_upon_crash".to_string());
+        let env_var_string = config.get_fuzz_args("-t 0 -N10 --exit_upon_crash".to_string());
 
-        assert_eq!(env_var_string, " -t 10 -N 0 -t 0 -N10 --exit_upon_crash");
+        assert_eq!(env_var_string, "-t 10 -N 0 -t 0 -N10 --exit_upon_crash");
     }
     #[test]
     fn test_merge_and_precedence3() {
@@ -266,10 +266,10 @@ mod tests {
             fuzz: Fuzz::default(),
         };
         let env_var_string =
-            config.get_env_variable("-t 100 -N 5000 -Q -v --exit_upon_crash".to_string());
+            config.get_fuzz_args("-t 100 -N 5000 -Q -v --exit_upon_crash".to_string());
         assert_eq!(
             env_var_string,
-            " -t 10 -N 0 -t 100 -N 5000 -Q -v --exit_upon_crash"
+            "-t 10 -N 0 -t 100 -N 5000 -Q -v --exit_upon_crash"
         );
     }
     #[test]
@@ -279,10 +279,10 @@ mod tests {
             fuzz: Fuzz::default(),
         };
 
-        let env_var_string = config.get_env_variable("-t 10 -N 500 -Q -v --exit_upon_crash -n 15 --mutations_per_run 8 --verifier -W random_dir --crashdir random_dir5 --run_time 666".to_string());
+        let env_var_string = config.get_fuzz_args("-t 10 -N 500 -Q -v --exit_upon_crash -n 15 --mutations_per_run 8 --verifier -W random_dir --crashdir random_dir5 --run_time 666".to_string());
         assert_eq!(
             env_var_string,
-            " -t 10 -N 0 -t 10 -N 500 -Q -v --exit_upon_crash -n 15 --mutations_per_run 8 --verifier -W random_dir --crashdir random_dir5 --run_time 666"
+            "-t 10 -N 0 -t 10 -N 500 -Q -v --exit_upon_crash -n 15 --mutations_per_run 8 --verifier -W random_dir --crashdir random_dir5 --run_time 666"
         );
     }
 }

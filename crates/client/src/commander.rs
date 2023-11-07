@@ -157,7 +157,7 @@ impl Commander {
         let config = Config::new();
 
         let hfuzz_run_args = std::env::var("HFUZZ_RUN_ARGS").unwrap_or_default();
-        let env_variable = config.get_env_variable(hfuzz_run_args);
+        let fuzz_args = config.get_fuzz_args(hfuzz_run_args);
 
         let cur_dir = Path::new(&self.root.to_string()).join(TESTS_WORKSPACE);
         if !cur_dir.try_exists()? {
@@ -165,7 +165,7 @@ impl Commander {
         }
 
         let mut child = Command::new("cargo")
-            .env("HFUZZ_RUN_ARGS", env_variable)
+            .env("HFUZZ_RUN_ARGS", fuzz_args)
             .current_dir(cur_dir)
             .arg("hfuzz")
             .arg("run")
