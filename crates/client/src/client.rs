@@ -1,4 +1,4 @@
-use crate::{config::CONFIG, Reader, TempClone};
+use crate::{config::Config, Reader, TempClone};
 use anchor_client::{
     anchor_lang::{
         prelude::System, solana_program::program_pack::Pack, AccountDeserialize, Id,
@@ -96,6 +96,8 @@ impl Client {
     /// Set `retry` to `true` when you want to wait for up to 15 seconds until
     /// the localnet is running (until 30 retries with 500ms delays are performed).
     pub async fn is_localnet_running(&self, retry: bool) -> bool {
+        let config = Config::new();
+
         let rpc_client = self
             .anchor_client
             .program(System::id())
@@ -103,7 +105,7 @@ impl Client {
             .async_rpc();
 
         for _ in 0..(if retry {
-            CONFIG.test.validator_startup_timeout / RETRY_LOCALNET_EVERY_MILLIS
+            config.test.validator_startup_timeout / RETRY_LOCALNET_EVERY_MILLIS
         } else {
             1
         }) {

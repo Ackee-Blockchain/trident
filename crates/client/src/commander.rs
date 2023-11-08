@@ -1,3 +1,4 @@
+use crate::config::Config;
 use crate::{
     idl::{self, Idl},
     program_client_generator,
@@ -150,15 +151,21 @@ impl Commander {
             throw!(Error::TestingFailed);
         }
     }
-
     /// Runs fuzzer on the given target.
     #[throws]
     pub async fn run_fuzzer(&self, target: String) {
+        let config = Config::new();
+
+        let hfuzz_run_args = std::env::var("HFUZZ_RUN_ARGS").unwrap_or_default();
+        let fuzz_args = config.get_fuzz_args(hfuzz_run_args);
+
         let cur_dir = Path::new(&self.root.to_string()).join(TESTS_WORKSPACE);
         if !cur_dir.try_exists()? {
             throw!(Error::NotInitialized);
         }
+
         let mut child = Command::new("cargo")
+            .env("HFUZZ_RUN_ARGS", fuzz_args)
             .current_dir(cur_dir)
             .arg("hfuzz")
             .arg("run")

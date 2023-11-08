@@ -1,5 +1,3 @@
-extern crate lazy_static;
-
 use anyhow::Context;
 use fehler::throw;
 use serde::Deserialize;
@@ -26,13 +24,18 @@ pub enum Error {
 pub struct Test {
     pub validator_startup_timeout: u64,
 }
-
 #[derive(Default, Debug, Deserialize, Clone)]
 struct _Test {
     #[serde(default)]
     pub validator_startup_timeout: Option<u64>,
 }
-
+impl Default for Test {
+    fn default() -> Self {
+        Self {
+            validator_startup_timeout: 10_000,
+        }
+    }
+}
 impl From<_Test> for Test {
     fn from(_t: _Test) -> Self {
         Self {
@@ -40,22 +43,134 @@ impl From<_Test> for Test {
         }
     }
 }
+#[derive(Debug, Deserialize, Clone)]
+pub struct FuzzArg {
+    pub short_opt: Option<String>,
+    pub long_opt: Option<String>,
+    pub val: Option<String>,
+}
+#[derive(Debug, Deserialize, Clone)]
+pub struct Fuzz {
+    pub fuzz_args: Vec<FuzzArg>,
+}
+#[derive(Default, Debug, Deserialize, Clone)]
+struct _Fuzz {
+    #[serde(default)]
+    /// Timeout in seconds (default: 10)
+    /// -t
+    pub timeout: Option<u16>,
+    #[serde(default)]
+    /// Number of fuzzing iterations (default: 0 [no limit])
+    /// -N
+    pub iterations: Option<u64>,
+    #[serde(default)]
+    /// Don't close children's stdin, stdout, stderr; can be noisy
+    /// -Q
+    pub keep_output: Option<bool>,
+    #[serde(default)]
+    /// Disable ANSI console; use simple log output
+    /// -v
+    pub verbose: Option<bool>,
+    #[serde(default)]
+    /// Exit upon seeing the first crash (default: false)
+    /// --exit_upon_crash
+    pub exit_upon_crash: Option<bool>,
+}
+impl Default for Fuzz {
+    fn default() -> Self {
+        Self {
+            fuzz_args: vec![
+                FuzzArg::new("-t", "--timeout", &10.to_string()),
+                FuzzArg::new("-N", "--iterations", &0.to_string()),
+            ],
+        }
+    }
+}
+impl From<_Fuzz> for Fuzz {
+    fn from(_f: _Fuzz) -> Self {
+        let mut _self = Self { fuzz_args: vec![] };
+
+        // timeout
+        let timeout = _f.timeout.unwrap_or(10);
+        _self
+            .fuzz_args
+            .push(FuzzArg::new("-t", "--timeout", &timeout.to_string()));
+
+        // iterations
+        let iterations = _f.iterations.unwrap_or(0);
+        _self
+            .fuzz_args
+            .push(FuzzArg::new("-N", "--iterations", &iterations.to_string()));
+
+        // keep_output
+        let keep_output = _f.keep_output.unwrap_or(false);
+        if keep_output {
+            _self
+                .fuzz_args
+                .push(FuzzArg::new("-Q", "--keep_output", ""));
+        }
+
+        // verbose
+        let verbose = _f.verbose.unwrap_or(false);
+        if verbose {
+            _self.fuzz_args.push(FuzzArg::new("-v", "--verbose", ""));
+        }
+
+        // exit_upon_crash
+        let exit_upon_crash = _f.exit_upon_crash.unwrap_or(false);
+        if exit_upon_crash {
+            _self
+                .fuzz_args
+                .push(FuzzArg::new("", "--exit_upon_crash", ""));
+        }
+        _self
+    }
+}
+
+impl FuzzArg {
+    fn new(short_opt: &str, long_opt: &str, val: &str) -> Self {
+        let short_opt = if short_opt.is_empty() {
+            None
+        } else {
+            Some(short_opt.to_owned())
+        };
+        let long_opt = if long_opt.is_empty() {
+            None
+        } else {
+            Some(long_opt.to_owned())
+        };
+        let val = if val.is_empty() {
+            None
+        } else {
+            Some(val.to_owned())
+        };
+        Self {
+            short_opt,
+            long_opt,
+            val,
+        }
+    }
+}
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct Config {
     pub test: Test,
+    pub fuzz: Fuzz,
 }
 
 #[derive(Default, Debug, Deserialize, Clone)]
 struct _Config {
     #[serde(default)]
     pub test: Option<_Test>,
+    #[serde(default)]
+    pub fuzz: Option<_Fuzz>,
 }
 
 impl From<_Config> for Config {
     fn from(_c: _Config) -> Self {
         Self {
             test: _c.test.unwrap_or_default().into(),
+            fuzz: _c.fuzz.unwrap_or_default().into(),
         }
     }
 }
@@ -94,8 +209,80 @@ impl Config {
         }
         throw!(Error::BadWorkspace)
     }
+    pub fn get_fuzz_args(self, cli_input: String) -> String {
+        // Tested on a few examples, HFUZZ_RUN_ARGS give precedence to the later arguments.
+        // so if HFUZZ_RUN_ARGS="-t 10 -t 15" -> timeout 15s is applied.
+        // That means we do not need to parse the arguments from the CLI;
+        // thus, we can simply append them at the end, and the CLI will have precedence.
+
+        let mut args: Vec<String> = self
+            .fuzz
+            .fuzz_args
+            .iter()
+            .map(|a| {
+                let val = a.val.to_owned().unwrap_or("".to_string());
+                if let Some(o) = &a.short_opt {
+                    format!("{} {}", o, val)
+                } else if let Some(o) = &a.long_opt {
+                    format!("{} {}", o, val)
+                } else {
+                    "".to_string()
+                }
+            })
+            .collect();
+        args.push(cli_input);
+        args.join(" ")
+    }
 }
 
-lazy_static::lazy_static! {
-    pub static ref CONFIG: Config = Config::new();
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn test_merge_and_precedence1() {
+        let config = Config {
+            test: Test::default(),
+            fuzz: Fuzz::default(),
+        };
+
+        let env_var_string = config.get_fuzz_args(String::default());
+        assert_eq!(env_var_string, "-t 10 -N 0 ");
+    }
+    #[test]
+    fn test_merge_and_precedence2() {
+        let config = Config {
+            test: Test::default(),
+            fuzz: Fuzz::default(),
+        };
+
+        let env_var_string = config.get_fuzz_args("-t 0 -N10 --exit_upon_crash".to_string());
+
+        assert_eq!(env_var_string, "-t 10 -N 0 -t 0 -N10 --exit_upon_crash");
+    }
+    #[test]
+    fn test_merge_and_precedence3() {
+        let config = Config {
+            test: Test::default(),
+            fuzz: Fuzz::default(),
+        };
+        let env_var_string =
+            config.get_fuzz_args("-t 100 -N 5000 -Q -v --exit_upon_crash".to_string());
+        assert_eq!(
+            env_var_string,
+            "-t 10 -N 0 -t 100 -N 5000 -Q -v --exit_upon_crash"
+        );
+    }
+    #[test]
+    fn test_merge_and_precedence4() {
+        let config = Config {
+            test: Test::default(),
+            fuzz: Fuzz::default(),
+        };
+
+        let env_var_string = config.get_fuzz_args("-t 10 -N 500 -Q -v --exit_upon_crash -n 15 --mutations_per_run 8 --verifier -W random_dir --crashdir random_dir5 --run_time 666".to_string());
+        assert_eq!(
+            env_var_string,
+            "-t 10 -N 0 -t 10 -N 500 -Q -v --exit_upon_crash -n 15 --mutations_per_run 8 --verifier -W random_dir --crashdir random_dir5 --run_time 666"
+        );
+    }
 }
