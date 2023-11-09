@@ -17,7 +17,12 @@ pub trait FuzzDataBuilder<T: for<'a> Arbitrary<'a>> {
 
     /// The main instructions for fuzzing.
     fn ixs(u: &mut Unstructured) -> arbitrary::Result<Vec<T>> {
-        <Vec<T>>::arbitrary(u)
+        let v = <Vec<T>>::arbitrary(u)?;
+        // Return always a vector with at least one element, othewise return error.
+        if v.is_empty() {
+            return Err(arbitrary::Error::NotEnoughData);
+        }
+        Ok(v)
     }
 
     /// The instuction(s) executed as last.
