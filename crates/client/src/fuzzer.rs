@@ -31,6 +31,33 @@ pub trait FuzzDataBuilder<T: for<'a> Arbitrary<'a>> {
     }
 }
 
+pub struct FuzzDataIterator<'a, T> {
+    pre_ixs_iter: std::slice::Iter<'a, T>,
+    ixs_iter: std::slice::Iter<'a, T>,
+    post_ixs_iter: std::slice::Iter<'a, T>,
+}
+
+impl<T> FuzzData<T> {
+    pub fn iter(&self) -> FuzzDataIterator<'_, T> {
+        FuzzDataIterator {
+            pre_ixs_iter: self.pre_ixs.iter(),
+            ixs_iter: self.ixs.iter(),
+            post_ixs_iter: self.post_ixs.iter(),
+        }
+    }
+}
+
+impl<'a, T> Iterator for FuzzDataIterator<'a, T> {
+    type Item = &'a T;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.pre_ixs_iter
+            .next()
+            .or_else(|| self.ixs_iter.next())
+            .or_else(|| self.post_ixs_iter.next())
+    }
+}
+
 #[macro_export]
 macro_rules! fuzz_trd {
     ($ix:ident: $ix_dty:ident , |$buf:ident: $dty:ident| $body:block) => {
