@@ -29,9 +29,10 @@ pub mod fuzzing {
     pub use honggfuzz::fuzz;
     pub use solana_program_test::{
         processor, tokio::runtime::Runtime, BanksClient, BanksClientError, ProgramTest,
+        ProgramTestContext,
     };
 
-    pub use super::fuzzer;
+    pub use super::fuzzer::*;
 }
 pub mod fuzzer;
 

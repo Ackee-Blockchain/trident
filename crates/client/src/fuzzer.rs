@@ -1,4 +1,4 @@
-// use arbitrary::Arbitrary;
+use arbitrary::Arbitrary;
 use arbitrary::Unstructured;
 
 #[derive(Clone)]
@@ -8,23 +8,23 @@ pub struct FuzzData<T> {
     pub post_ixs: Vec<T>,
 }
 
-pub trait FuzzDataBuilder {
+#[allow(unused_variables)]
+pub trait FuzzDataBuilder<T: for<'a> Arbitrary<'a>> {
     /// The instruction(s) executed as first, can be used for initialization.
-    fn pre_ixs(u: &mut Unstructured) -> arbitrary::Result<Vec<FuzzInstruction>> {
+    fn pre_ixs(u: &mut Unstructured) -> arbitrary::Result<Vec<T>> {
         Ok(vec![])
     }
 
     /// The main instructions for fuzzing.
-    fn ixs(u: &mut Unstructured) -> arbitrary::Result<Vec<FuzzInstruction>> {
-        <Vec<FuzzInstruction>>::arbitrary(u)
+    fn ixs(u: &mut Unstructured) -> arbitrary::Result<Vec<T>> {
+        <Vec<T>>::arbitrary(u)
     }
 
     /// The instuction(s) executed as last.
-    fn post_ixs(u: &mut Unstructured) -> arbitrary::Result<Vec<FuzzInstruction>> {
+    fn post_ixs(u: &mut Unstructured) -> arbitrary::Result<Vec<T>> {
         Ok(vec![])
     }
 }
-
 
 #[macro_export]
 macro_rules! fuzz_trd {
@@ -34,7 +34,7 @@ macro_rules! fuzz_trd {
                 use arbitrary::Unstructured;
 
                 let mut buf = Unstructured::new($buf);
-                if let Ok(fuzz_data) = $crate::build_ix_fuzz_data($dty {}, &mut buf) {
+                if let Ok(fuzz_data) = build_ix_fuzz_data($dty {}, &mut buf) {
                     fuzz_data
                 } else {
                     return;
@@ -45,10 +45,10 @@ macro_rules! fuzz_trd {
     };
 }
 
-pub fn build_ix_fuzz_data<T: FuzzDataBuilder>(
+pub fn build_ix_fuzz_data<U: for<'a> Arbitrary<'a>, T: FuzzDataBuilder<U>>(
     _data_builder: T,
     u: &mut arbitrary::Unstructured,
-) -> arbitrary::Result<FuzzData<FuzzInstruction>> {
+) -> arbitrary::Result<FuzzData<U>> {
     Ok(FuzzData {
         pre_ixs: T::pre_ixs(u)?,
         ixs: T::ixs(u)?,
