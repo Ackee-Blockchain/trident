@@ -64,11 +64,34 @@ pub use keys::*;
 pub mod idl;
 pub mod program_client_generator;
 
-pub mod test_generator;
-pub use test_generator::TestGenerator;
+pub mod workspace_builder;
+pub use workspace_builder::WorkspaceBuilder;
 
 pub mod error_reporter;
 pub use error_reporter::*;
 
-pub mod cleaner;
-pub use cleaner::*;
+pub mod constants {
+    pub const PROGRAM_CLIENT_DIRECTORY: &str = ".program_client";
+    pub const CARGO: &str = "Cargo.toml";
+    pub const TRDELNIK: &str = "Trdelnik.toml";
+    pub const ANCHOR: &str = "Anchor.toml";
+
+    pub const LIB: &str = "lib.rs";
+    pub const SRC: &str = "src";
+
+    pub const TESTS_WORKSPACE_DIRECTORY: &str = "trdelnik-tests";
+    pub const TEST_DIRECTORY: &str = "tests";
+    pub const TEST: &str = "test.rs";
+
+    pub const FUZZ_DIRECTORY: &str = "src/bin";
+    pub const FUZZ: &str = "fuzz_target.rs";
+    pub const PROGRAM_STUBS: &str = "program_stubs.rs";
+
+    //pub const PROGRAM_STUBS_ENTRIES: &str = "// ### \"Entrypoints go above\" ###";
+    pub const HFUZZ_TARGET: &str = "hfuzz_target";
+    pub const HFUZZ_WORKSPACE: &str = "hfuzz_workspace";
+
+    pub const GIT_IGNORE: &str = ".gitignore";
+
+    pub const CLIENT_TOML_TEMPLATE: &str = "/src/templates/program_client/Cargo.toml.tmpl";
+}
