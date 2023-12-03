@@ -20,9 +20,14 @@ pub async fn generate_program_client() {
         "/tests/test_data/expected_client_code.rs"
     ));
 
-    let program_idl =
-        trdelnik_client::idl::parse_to_idl_program("escrow".to_owned(), expanded_anchor_program)
-            .await?;
+    let root = std::path::Path::new(".");
+
+    let program_idl = trdelnik_client::idl::parse_to_idl_program(
+        "escrow".to_owned(),
+        expanded_anchor_program,
+        root,
+    )
+    .await?;
 
     let idl = trdelnik_client::idl::Idl {
         programs: vec![program_idl],
@@ -30,7 +35,7 @@ pub async fn generate_program_client() {
 
     let use_modules: Vec<syn::ItemUse> = vec![syn::parse_quote! { use trdelnik_client::*; }];
     let client_code =
-        trdelnik_client::program_client_generator::generate_source_code(idl, &use_modules);
+        trdelnik_client::program_client_generator::generate_source_code(&idl, &use_modules);
     let client_code = trdelnik_client::Commander::format_program_code(&client_code).await?;
 
     assert_str_eq!(client_code, expected_client_code);
