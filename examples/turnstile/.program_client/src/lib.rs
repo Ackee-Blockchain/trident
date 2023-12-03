@@ -8,12 +8,12 @@ pub mod turnstile_instruction {
     ]);
     pub async fn initialize(
         client: &Client,
-        a_state: anchor_lang::solana_program::pubkey::Pubkey,
-        a_user: anchor_lang::solana_program::pubkey::Pubkey,
-        a_system_program: anchor_lang::solana_program::pubkey::Pubkey,
+        a_state: Pubkey,
+        a_user: Pubkey,
+        a_system_program: Pubkey,
         signers: impl IntoIterator<Item = Keypair> + Send + 'static,
     ) -> Result<EncodedConfirmedTransactionWithStatusMeta, ClientError> {
-        Ok(client
+        client
             .send_instruction(
                 PROGRAM_ID,
                 turnstile::instruction::Initialize {},
@@ -24,13 +24,9 @@ pub mod turnstile_instruction {
                 },
                 signers,
             )
-            .await?)
+            .await
     }
-    pub fn initialize_ix(
-        a_state: anchor_lang::solana_program::pubkey::Pubkey,
-        a_user: anchor_lang::solana_program::pubkey::Pubkey,
-        a_system_program: anchor_lang::solana_program::pubkey::Pubkey,
-    ) -> Instruction {
+    pub fn initialize_ix(a_state: Pubkey, a_user: Pubkey, a_system_program: Pubkey) -> Instruction {
         Instruction {
             program_id: PROGRAM_ID,
             data: turnstile::instruction::Initialize {}.data(),
@@ -45,10 +41,10 @@ pub mod turnstile_instruction {
     pub async fn coin(
         client: &Client,
         i_dummy_arg: String,
-        a_state: anchor_lang::solana_program::pubkey::Pubkey,
+        a_state: Pubkey,
         signers: impl IntoIterator<Item = Keypair> + Send + 'static,
     ) -> Result<EncodedConfirmedTransactionWithStatusMeta, ClientError> {
-        Ok(client
+        client
             .send_instruction(
                 PROGRAM_ID,
                 turnstile::instruction::Coin {
@@ -57,12 +53,9 @@ pub mod turnstile_instruction {
                 turnstile::accounts::UpdateState { state: a_state },
                 signers,
             )
-            .await?)
+            .await
     }
-    pub fn coin_ix(
-        i_dummy_arg: String,
-        a_state: anchor_lang::solana_program::pubkey::Pubkey,
-    ) -> Instruction {
+    pub fn coin_ix(i_dummy_arg: String, a_state: Pubkey) -> Instruction {
         Instruction {
             program_id: PROGRAM_ID,
             data: turnstile::instruction::Coin {
@@ -74,19 +67,19 @@ pub mod turnstile_instruction {
     }
     pub async fn push(
         client: &Client,
-        a_state: anchor_lang::solana_program::pubkey::Pubkey,
+        a_state: Pubkey,
         signers: impl IntoIterator<Item = Keypair> + Send + 'static,
     ) -> Result<EncodedConfirmedTransactionWithStatusMeta, ClientError> {
-        Ok(client
+        client
             .send_instruction(
                 PROGRAM_ID,
                 turnstile::instruction::Push {},
                 turnstile::accounts::UpdateState { state: a_state },
                 signers,
             )
-            .await?)
+            .await
     }
-    pub fn push_ix(a_state: anchor_lang::solana_program::pubkey::Pubkey) -> Instruction {
+    pub fn push_ix(a_state: Pubkey) -> Instruction {
         Instruction {
             program_id: PROGRAM_ID,
             data: turnstile::instruction::Push {}.data(),
