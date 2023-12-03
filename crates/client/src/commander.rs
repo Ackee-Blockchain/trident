@@ -1,8 +1,6 @@
 use crate::config::Config;
 use crate::{
     idl::{self, Idl},
-    program_client_generator,
-    test_generator::TESTS_WORKSPACE,
     Client,
 };
 use cargo_metadata::{MetadataCommand, Package};
@@ -10,10 +8,7 @@ use fehler::{throw, throws};
 use futures::future::try_join_all;
 use log::debug;
 use solana_sdk::signer::keypair::Keypair;
-use std::{
-    borrow::Cow, io, iter, os::unix::process::CommandExt, path::Path, process::Stdio,
-    string::FromUtf8Error,
-};
+use std::{io, os::unix::process::CommandExt, path::Path, process::Stdio, string::FromUtf8Error};
 use thiserror::Error;
 use tokio::{
     fs,
@@ -22,7 +17,8 @@ use tokio::{
     signal,
 };
 
-pub static PROGRAM_CLIENT_DIRECTORY: &str = ".program_client";
+// -----
+use crate::constants::*;
 
 #[derive(Error, Debug)]
 pub enum Error {
@@ -98,38 +94,137 @@ impl LocalnetHandle {
 
 /// `Commander` allows you to start localnet, build programs,
 /// run tests and do other useful operations.
-pub struct Commander {
-    root: Cow<'static, str>,
-}
+pub struct Commander {}
 
 impl Commander {
-    /// Creates a new `Commander` instance with the default root `"../../"`.
-    pub fn new() -> Self {
-        Self {
-            root: "../../".into(),
+    // TODO maybe remove unnecesarry async
+    #[throws]
+    pub async fn build_programs(arch: &str) {
+        let exit = std::process::Command::new("cargo")
+            .arg(arch)
+            .stdout(Stdio::inherit())
+            .stderr(Stdio::inherit())
+            .output()
+            .unwrap();
+
+        if !exit.status.success() {
+            std::process::exit(exit.status.code().unwrap_or(1));
+        }
+    }
+    /// Returns an [Iterator] of program [Package]s read from `Cargo.toml` files.
+    pub fn program_packages() -> impl Iterator<Item = Package> {
+        let cargo_toml_data = MetadataCommand::new()
+            .no_deps()
+            .exec()
+            .expect("Cargo.toml reading failed");
+
+        cargo_toml_data.packages.into_iter().filter(|package| {
+            // @TODO less error-prone test if the package is a _program_?
+            // This will only consider Packages where path:
+            // /home/xyz/xyz/trdelnik/trdelnik/examples/example_project/programs/package1
+            // NOTE we can obtain more important information here, only to remember
+            if let Some("programs") = package.manifest_path.iter().nth_back(2) {
+                return true;
+            }
+            false
+        })
+    }
+    #[throws]
+    pub async fn obtain_program_idl(root: &Path) -> Option<Idl> {
+        let idl_programs = Commander::program_packages().map(|package| async move {
+            let absolute_root = fs::canonicalize(root).await?;
+
+            let name = package.name;
+            let output = std::process::Command::new("cargo")
+                .arg("+nightly")
+                .arg("rustc")
+                .args(["--package", &name])
+                .arg("--profile=check")
+                .arg("--")
+                .arg("-Zunpretty=expanded")
+                .output()
+                .unwrap();
+            if output.status.success() {
+                let code = String::from_utf8(output.stdout)?;
+                let path = package
+                    .manifest_path
+                    .parent()
+                    .unwrap()
+                    .strip_prefix(&absolute_root)
+                    .unwrap()
+                    .as_std_path();
+                Ok(idl::parse_to_idl_program(name, &code, path).await?)
+            } else {
+                let error_text = String::from_utf8(output.stderr)?;
+                Err(Error::ReadProgramCodeFailed(error_text))
+            }
+        });
+        Some(Idl {
+            programs: try_join_all(idl_programs).await?,
+        })
+    }
+    #[throws]
+    pub async fn clean_anchor_target() {
+        Command::new("anchor").arg("clean").spawn()?.wait().await?;
+    }
+    #[throws]
+    pub async fn clean_hfuzz_target(root: &Path) {
+        let hfuzz_target_path = root.join(TESTS_WORKSPACE_DIRECTORY).join(HFUZZ_TARGET);
+        if hfuzz_target_path.exists() {
+            fs::remove_dir_all(hfuzz_target_path).await?;
+        } else {
+            println!(
+                "skipping {}/{} directory: not found",
+                TESTS_WORKSPACE_DIRECTORY, HFUZZ_TARGET
+            )
         }
     }
 
-    /// Creates a new `Commander` instance with the provided `root`.
-    pub fn with_root(root: impl Into<Cow<'static, str>>) -> Self {
-        Self { root: root.into() }
-    }
-
-    /// Builds programs (smart contracts).
+    /// Returns `use` modules / statements
+    /// The goal of this method is to find all `use` statements defined by the user in the `.program_client`
+    /// crate. It solves the problem with regenerating the program client and removing imports defined by
+    /// the user.
+    // TODO is this relevant when program_client should not be changed by user ?
     #[throws]
-    pub async fn build_programs(&self) {
-        let success = Command::new("cargo")
-            .arg("build-bpf")
+    pub async fn parse_program_client_imports() -> Option<Vec<syn::ItemUse>> {
+        let output = std::process::Command::new("cargo")
+            .arg("+nightly")
+            .arg("rustc")
+            .args(["--package", "program_client"])
+            .arg("--profile=check")
             .arg("--")
-            // prevent prevent dependency loop:
-            // program tests -> program_client -> program
-            .args(["-Z", "avoid-dev-deps"])
-            .spawn()?
-            .wait()
-            .await?
-            .success();
-        if !success {
-            throw!(Error::BuildProgramsFailed);
+            .arg("-Zunpretty=expanded")
+            .output()
+            .unwrap();
+
+        if output.status.success() {
+            let code = String::from_utf8(output.stdout)?;
+            let mut use_modules: Vec<syn::ItemUse> = vec![];
+            for item in syn::parse_file(code.as_str()).unwrap().items.into_iter() {
+                if let syn::Item::Mod(module) = item {
+                    let modules = module
+                        .content
+                        .ok_or("account mod: empty content")
+                        .unwrap()
+                        .1
+                        .into_iter();
+                    for module in modules {
+                        if let syn::Item::Use(u) = module {
+                            use_modules.push(u);
+                        }
+                    }
+                }
+            }
+            if use_modules.is_empty() {
+                use_modules.push(syn::parse_quote! { use trdelnik_client::*; })
+            }
+            Some(use_modules)
+        } else {
+            let mut use_modules: Vec<syn::ItemUse> = vec![];
+            if use_modules.is_empty() {
+                use_modules.push(syn::parse_quote! { use trdelnik_client::*; })
+            }
+            Some(use_modules)
         }
     }
 
@@ -138,7 +233,7 @@ impl Commander {
     /// _Note_: The [--nocapture](https://doc.rust-lang.org/cargo/commands/cargo-test.html#display-options) argument is used
     /// to allow you read `println` outputs in your terminal window.
     #[throws]
-    pub async fn run_tests(&self) {
+    pub async fn run_tests() {
         let success = Command::new("cargo")
             .arg("test")
             .arg("--")
@@ -151,15 +246,18 @@ impl Commander {
             throw!(Error::TestingFailed);
         }
     }
+
     /// Runs fuzzer on the given target.
     #[throws]
-    pub async fn run_fuzzer(&self, target: String) {
+    pub async fn run_fuzzer(target: String, root: String) {
+        let root = Path::new(&root);
+
         let config = Config::new();
 
         let hfuzz_run_args = std::env::var("HFUZZ_RUN_ARGS").unwrap_or_default();
         let fuzz_args = config.get_fuzz_args(hfuzz_run_args);
 
-        let cur_dir = Path::new(&self.root.to_string()).join(TESTS_WORKSPACE);
+        let cur_dir = root.join(TESTS_WORKSPACE_DIRECTORY);
         if !cur_dir.try_exists()? {
             throw!(Error::NotInitialized);
         }
@@ -185,11 +283,70 @@ impl Commander {
             },
         }
     }
+    #[throws]
+    pub async fn run_fuzzer_with_exit_code(target: String, root: String) {
+        let root = Path::new(&root);
+
+        // obtain config data
+        let config = Config::new();
+        // obtain hfuzz_run_args
+        let hfuzz_run_args = std::env::var("HFUZZ_RUN_ARGS").unwrap_or_default();
+        // obtain string from config and hfuzz_run_args
+        let fuzz_args = config.get_fuzz_args(hfuzz_run_args);
+        // Parse the fuzz_args arguments to find out if the crash folder and crash files extension was modified.
+        // This will give precedence to latter
+        let (crash_dir, ext) = get_crash_dir_and_ext(root, &target, &fuzz_args);
+
+        if let Ok(crash_files) = get_crash_files(&crash_dir, &ext) {
+            if !crash_files.is_empty() {
+                println!("Error: The crash directory {} already contains crash files from previous runs. \n\nTo run Trdelnik fuzzer with exit code, you must either (backup and) remove the old crash files or alternatively change the crash folder using for example the --crashdir option and the HFUZZ_RUN_ARGS env variable such as:\nHFUZZ_RUN_ARGS=\"--crashdir ./new_crash_dir\"", crash_dir.to_string_lossy());
+                std::process::exit(1);
+            }
+        }
+
+        let cur_dir = root.join(TESTS_WORKSPACE_DIRECTORY);
+        if !cur_dir.try_exists()? {
+            throw!(Error::NotInitialized);
+        }
+
+        let mut child = Command::new("cargo")
+            .env("HFUZZ_RUN_ARGS", fuzz_args)
+            .current_dir(cur_dir)
+            .arg("hfuzz")
+            .arg("run")
+            .arg(target)
+            .spawn()?;
+
+        tokio::select! {
+            res = child.wait() =>
+                match res {
+                    Ok(status) => if !status.success() {
+                        println!("Honggfuzz exited with an error!");
+                    },
+                    Err(_) => throw!(Error::FuzzingFailed),
+            },
+            _ = signal::ctrl_c() => {
+                tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
+            },
+        }
+
+        if let Ok(crash_files) = get_crash_files(&crash_dir, &ext) {
+            if !crash_files.is_empty() {
+                println!(
+                    "The crash directory {} contains new fuzz test crashes. Exiting!",
+                    crash_dir.to_string_lossy()
+                );
+                std::process::exit(1);
+            }
+        }
+    }
 
     /// Runs fuzzer on the given target.
     #[throws]
-    pub async fn run_fuzzer_debug(&self, target: String, crash_file_path: String) {
-        let cur_dir = Path::new(&self.root.to_string()).join(TESTS_WORKSPACE);
+    pub async fn run_fuzzer_debug(target: String, crash_file_path: String, root: String) {
+        let root = Path::new(&root);
+
+        let cur_dir = root.join(TESTS_WORKSPACE_DIRECTORY);
         let crash_file = std::env::current_dir()?.join(crash_file_path);
 
         if !cur_dir.try_exists()? {
@@ -213,147 +370,26 @@ impl Commander {
         eprintln!("cannot execute \"cargo hfuzz run-debug\" command");
     }
 
-    /// Creates the `program_client` crate.
-    ///
-    /// It's used internally by the [`#[trdelnik_test]`](trdelnik_test::trdelnik_test) macro.
+    /// Starts the localnet (Solana validator).
     #[throws]
-    pub async fn create_program_client_crate(&self) {
-        let crate_path = Path::new(self.root.as_ref()).join(PROGRAM_CLIENT_DIRECTORY);
-        if fs::metadata(&crate_path).await.is_ok() {
-            return;
+    pub async fn start_localnet(root: &String) -> LocalnetHandle {
+        let mut process = Command::new("solana-test-validator")
+            .arg("-C")
+            .arg([root, "config.yml"].concat())
+            .arg("-r")
+            .arg("-q")
+            .spawn()?;
+
+        if !Client::new(Keypair::new()).is_localnet_running(true).await {
+            // The validator might not be running, but the process might be still alive (very slow start, some bug, ...),
+            // therefore we want to kill it if it's still running so ports aren't held.
+            process.kill().await.ok();
+            throw!(Error::LocalnetIsNotRunning);
         }
-
-        // @TODO Would it be better to:
-        // zip the template folder -> embed the archive to the binary -> unzip to a given location?
-
-        fs::create_dir(&crate_path).await?;
-
-        let cargo_toml_content = include_str!(concat!(
-            env!("CARGO_MANIFEST_DIR"),
-            "/src/templates/program_client/Cargo.toml.tmpl"
-        ));
-        fs::write(crate_path.join("Cargo.toml"), &cargo_toml_content).await?;
-
-        let src_path = crate_path.join("src");
-        fs::create_dir(&src_path).await?;
-
-        let lib_rs_content = include_str!(concat!(
-            env!("CARGO_MANIFEST_DIR"),
-            "/src/templates/program_client/lib.rs"
-        ));
-        fs::write(src_path.join("lib.rs"), &lib_rs_content).await?;
-
-        debug!("program_client crate created")
-    }
-
-    /// Returns an [Iterator] of program [Package]s read from `Cargo.toml` files.
-    pub fn program_packages(&self) -> impl Iterator<Item = Package> {
-        let cargo_toml_data = MetadataCommand::new()
-            .no_deps()
-            .exec()
-            .expect("Cargo.toml reading failed");
-
-        cargo_toml_data.packages.into_iter().filter(|package| {
-            // @TODO less error-prone test if the package is a _program_?
-            if let Some("programs") = package.manifest_path.iter().nth_back(2) {
-                return true;
-            }
-            false
-        })
-    }
-
-    /// Updates the `program_client` dependencies.
-    ///
-    /// It's used internally by the [`#[trdelnik_test]`](trdelnik_test::trdelnik_test) macro.
-    #[throws]
-    pub async fn generate_program_client_deps(&self) {
-        let trdelnik_dep = r#"trdelnik-client = "0.5.0""#.parse().unwrap();
-        // @TODO replace the line above with the specific version or commit hash
-        // when Trdelnik is released or when its repo is published.
-        // Or use both variants - path for Trdelnik repo/dev and version/commit for users.
-        // Some related snippets:
-        //
-        // println!("Trdelnik Version: {}", std::env!("VERGEN_BUILD_SEMVER"));
-        // println!("Trdelnik Commit: {}", std::env!("VERGEN_GIT_SHA"));
-        // https://docs.rs/vergen/latest/vergen/#environment-variables
-        //
-        // `trdelnik = "0.1.0"`
-        // `trdelnik = { git = "https://github.com/Ackee-Blockchain/trdelnik.git", rev = "cf867aea87e67d7be029982baa39767f426e404d" }`
-
-        let absolute_root = fs::canonicalize(self.root.as_ref()).await?;
-
-        let program_deps = self.program_packages().map(|package| {
-            let name = package.name;
-            let path = package
-                .manifest_path
-                .parent()
-                .unwrap()
-                .strip_prefix(&absolute_root)
-                .unwrap();
-            format!(r#"{name} = {{ path = "../{path}", features = ["no-entrypoint"] }}"#)
-                .parse()
-                .unwrap()
-        });
-
-        let cargo_toml_path = Path::new(self.root.as_ref())
-            .join(PROGRAM_CLIENT_DIRECTORY)
-            .join("Cargo.toml");
-
-        let mut cargo_toml_content: toml::Value =
-            fs::read_to_string(&cargo_toml_path).await?.parse()?;
-
-        let cargo_toml_deps = cargo_toml_content
-            .get_mut("dependencies")
-            .and_then(toml::Value::as_table_mut)
-            .ok_or(Error::ParsingCargoTomlDependenciesFailed)?;
-
-        for dep in iter::once(trdelnik_dep).chain(program_deps) {
-            if let toml::Value::Table(table) = dep {
-                let (name, value) = table.into_iter().next().unwrap();
-                cargo_toml_deps.entry(name).or_insert(value);
-            }
+        debug!("localnet started");
+        LocalnetHandle {
+            solana_test_validator_process: process,
         }
-
-        // @TODO remove renamed or deleted programs from deps?
-
-        fs::write(cargo_toml_path, cargo_toml_content.to_string()).await?;
-    }
-
-    /// Updates the `program_client` `lib.rs`.
-    ///
-    /// It's used internally by the [`#[trdelnik_test]`](trdelnik_test::trdelnik_test) macro.
-    #[throws]
-    pub async fn generate_program_client_lib_rs(&self) {
-        let idl_programs = self.program_packages().map(|package| async move {
-            let name = package.name;
-            let output = Command::new("cargo")
-                .arg("+nightly")
-                .arg("rustc")
-                .args(["--package", &name])
-                .arg("--profile=check")
-                .arg("--")
-                .arg("-Zunpretty=expanded")
-                .output()
-                .await?;
-            if output.status.success() {
-                let code = String::from_utf8(output.stdout)?;
-                Ok(idl::parse_to_idl_program(name, &code).await?)
-            } else {
-                let error_text = String::from_utf8(output.stderr)?;
-                Err(Error::ReadProgramCodeFailed(error_text))
-            }
-        });
-        let idl = Idl {
-            programs: try_join_all(idl_programs).await?,
-        };
-        let use_tokens = self.parse_program_client_imports().await?;
-        let program_client = program_client_generator::generate_source_code(idl, &use_tokens);
-        let program_client = Self::format_program_code(&program_client).await?;
-
-        let rust_file_path = Path::new(self.root.as_ref())
-            .join(PROGRAM_CLIENT_DIRECTORY)
-            .join("src/lib.rs");
-        fs::write(rust_file_path, &program_client).await?;
     }
 
     /// Formats program code.
@@ -371,71 +407,234 @@ impl Commander {
         let output = rustfmt.wait_with_output().await?;
         String::from_utf8(output.stdout)?
     }
+}
 
-    /// Starts the localnet (Solana validator).
-    #[throws]
-    pub async fn start_localnet(&self) -> LocalnetHandle {
-        let mut process = Command::new("solana-test-validator")
-            .arg("-C")
-            .arg([&self.root, "config.yml"].concat())
-            .arg("-r")
-            .arg("-q")
-            .spawn()?;
+fn get_crash_dir_and_ext(
+    root: &Path,
+    target: &str,
+    hfuzz_run_args: &str,
+) -> (std::path::PathBuf, String) {
+    // FIXME: we split by whitespace without respecting escaping or quotes - same approach as honggfuzz-rs so there is no point to fix it here before the upstream is fixed
+    let hfuzz_run_args = hfuzz_run_args.split_whitespace();
 
-        if !Client::new(Keypair::new()).is_localnet_running(true).await {
-            // The validator might not be running, but the process might be still alive (very slow start, some bug, ...),
-            // therefore we want to kill it if it's still running so ports aren't held.
-            process.kill().await.ok();
-            throw!(Error::LocalnetIsNotRunning);
-        }
-        debug!("localnet started");
-        LocalnetHandle {
-            solana_test_validator_process: process,
-        }
-    }
+    let extension =
+        get_cmd_option_value(hfuzz_run_args.clone(), "-e", "--ext").unwrap_or("fuzz".to_string());
 
-    /// Returns `use` modules / statements
-    /// The goal of this method is to find all `use` statements defined by the user in the `.program_client`
-    /// crate. It solves the problem with regenerating the program client and removing imports defined by
-    /// the user.
-    #[throws]
-    pub async fn parse_program_client_imports(&self) -> Vec<syn::ItemUse> {
-        let output = Command::new("cargo")
-            .arg("+nightly")
-            .arg("rustc")
-            .args(["--package", "program_client"])
-            .arg("--profile=check")
-            .arg("--")
-            .arg("-Zunpretty=expanded")
-            .output()
-            .await?;
-        let code = String::from_utf8(output.stdout)?;
-        let mut use_modules: Vec<syn::ItemUse> = vec![];
-        for item in syn::parse_file(code.as_str()).unwrap().items.into_iter() {
-            if let syn::Item::Mod(module) = item {
-                let modules = module
-                    .content
-                    .ok_or("account mod: empty content")
-                    .unwrap()
-                    .1
-                    .into_iter();
-                for module in modules {
-                    if let syn::Item::Use(u) = module {
-                        use_modules.push(u);
-                    }
+    let crash_dir = get_cmd_option_value(hfuzz_run_args.clone(), "", "--cr")
+        .or_else(|| get_cmd_option_value(hfuzz_run_args.clone(), "-W", "--w"));
+
+    let crash_path = if let Some(dir) = crash_dir {
+        Path::new(root).join(TESTS_WORKSPACE_DIRECTORY).join(dir)
+    } else {
+        Path::new(root)
+            .join(TESTS_WORKSPACE_DIRECTORY)
+            .join(HFUZZ_WORKSPACE)
+            .join(target)
+    };
+
+    (crash_path, extension)
+}
+
+fn get_crash_files(
+    dir: &std::path::PathBuf,
+    extension: &str,
+) -> Result<Vec<std::path::PathBuf>, Box<dyn std::error::Error>> {
+    let paths = std::fs::read_dir(dir)?
+        // Filter out all those directory entries which couldn't be read
+        .filter_map(|res| res.ok())
+        // Map the directory entries to paths
+        .map(|dir_entry| dir_entry.path())
+        // Filter out all paths with extensions other than `extension`
+        .filter_map(|path| {
+            if path.extension().map_or(false, |ext| ext == extension) {
+                Some(path)
+            } else {
+                None
+            }
+        })
+        .collect::<Vec<_>>();
+    Ok(paths)
+}
+
+fn get_cmd_option_value<'a>(
+    hfuzz_run_args: impl Iterator<Item = &'a str>,
+    short_opt: &str,
+    long_opt: &str,
+) -> Option<String> {
+    let mut args_iter = hfuzz_run_args;
+    let mut value: Option<String> = None;
+
+    // ensure short option starts with one dash and long option with two dashes
+    let short_opt = format!("-{}", short_opt.trim_start_matches('-'));
+    let long_opt = format!("--{}", long_opt.trim_start_matches('-'));
+
+    while let Some(arg) = args_iter.next() {
+        match arg.strip_prefix(&short_opt) {
+            Some(val) if short_opt.len() > 1 => {
+                if !val.is_empty() {
+                    // -ecrash for crash extension with no space
+                    value = Some(val.to_string());
+                } else if let Some(next_arg) = args_iter.next() {
+                    // -e crash for crash extension with space
+                    value = Some(next_arg.to_string());
+                } else {
+                    value = None;
+                }
+            }
+            _ => {
+                if arg.starts_with(&long_opt) && long_opt.len() > 2 {
+                    value = args_iter.next().map(|a| a.to_string());
                 }
             }
         }
-        if use_modules.is_empty() {
-            use_modules.push(syn::parse_quote! { use trdelnik_client::*; })
-        }
-        use_modules
     }
+
+    value
 }
 
-impl Default for Commander {
-    /// Creates a new `Commander` instance with the default root `"../../"`.
-    fn default() -> Self {
-        Self::new()
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn test_cmd_options_parsing() {
+        let mut command = String::from("-Q -v --extension fuzz");
+        let args = command.split_whitespace();
+
+        let extension = get_cmd_option_value(args, "-e", "--ext");
+        assert_eq!(extension, Some("fuzz".to_string()));
+
+        command = String::from("-Q --extension fuzz -v");
+        let args = command.split_whitespace();
+
+        let extension = get_cmd_option_value(args, "-e", "--ext");
+        assert_eq!(extension, Some("fuzz".to_string()));
+
+        command = String::from("-Q -e fuzz -v");
+        let args = command.split_whitespace();
+
+        let extension = get_cmd_option_value(args, "-e", "--ext");
+        assert_eq!(extension, Some("fuzz".to_string()));
+
+        command = String::from("-Q --extension fuzz -v --extension ");
+        let args = command.split_whitespace();
+
+        let extension = get_cmd_option_value(args, "-e", "--ext");
+        assert_eq!(extension, None);
+
+        command = String::from("-Q --extension fuzz -v -e ");
+        let args = command.split_whitespace();
+
+        let extension = get_cmd_option_value(args, "-e", "--ext");
+        assert_eq!(extension, None);
+
+        let mut command = String::from("--extension buzz -e fuzz");
+        let args = command.split_whitespace();
+
+        let extension = get_cmd_option_value(args, "-e", "--ext");
+        assert_eq!(extension, Some("fuzz".to_string()));
+
+        command = String::from("-Q -v -e fuzz");
+        let args = command.split_whitespace();
+
+        let extension = get_cmd_option_value(args, "-e", "--ext");
+        assert_eq!(extension, Some("fuzz".to_string()));
+
+        command = String::from("-Q -v -efuzz");
+        let args = command.split_whitespace();
+
+        let extension = get_cmd_option_value(args, "-e", "--ext");
+        assert_eq!(extension, Some("fuzz".to_string()));
+
+        command = String::from("-Q -v --ext fuzz");
+        let args = command.split_whitespace();
+
+        let extension = get_cmd_option_value(args, "-e", "--ext");
+        assert_eq!(extension, Some("fuzz".to_string()));
+
+        command = String::from("-Q -v --extfuzz");
+        let args = command.split_whitespace();
+
+        let extension = get_cmd_option_value(args, "-e", "--ext");
+        assert_eq!(extension, None);
+
+        command = String::from("-Q -v --workspace");
+        let args = command.split_whitespace();
+
+        let extension = get_cmd_option_value(args, "-e", "--ext");
+        assert_eq!(extension, None);
+
+        command = String::from("-Q -v -e");
+        let args = command.split_whitespace();
+
+        let extension = get_cmd_option_value(args, "", "--ext");
+        assert_eq!(extension, None);
+
+        command = String::from("-Q -v --ext fuzz");
+        let args = command.split_whitespace();
+
+        let extension = get_cmd_option_value(args, "-e", "");
+        assert_eq!(extension, None);
+    }
+
+    #[test]
+    fn test_get_crash_dir_and_ext() {
+        let root = Path::new("/home/fuzz");
+        let target = "target";
+        let default_crash_path = Path::new(root)
+            .join(TESTS_WORKSPACE_DIRECTORY)
+            .join(HFUZZ_WORKSPACE)
+            .join(target);
+
+        let (crash_dir, ext) = get_crash_dir_and_ext(root, target, "");
+
+        assert_eq!(crash_dir, default_crash_path);
+        assert_eq!(&ext, "fuzz");
+
+        let (crash_dir, ext) = get_crash_dir_and_ext(root, target, "-Q -e");
+
+        assert_eq!(crash_dir, default_crash_path);
+        assert_eq!(&ext, "fuzz");
+
+        let (crash_dir, ext) = get_crash_dir_and_ext(root, target, "-Q -e crash");
+
+        assert_eq!(crash_dir, default_crash_path);
+        assert_eq!(&ext, "crash");
+
+        // test absolute path
+        let (crash_dir, ext) = get_crash_dir_and_ext(root, target, "-Q -W /home/crash -e crash");
+
+        let expected_crash_path = Path::new("/home/crash");
+        assert_eq!(crash_dir, expected_crash_path);
+        assert_eq!(&ext, "crash");
+
+        // test absolute path
+        let (crash_dir, ext) =
+            get_crash_dir_and_ext(root, target, "-Q --crash /home/crash -e crash");
+
+        let expected_crash_path = Path::new("/home/crash");
+        assert_eq!(crash_dir, expected_crash_path);
+        assert_eq!(&ext, "crash");
+
+        // test relative path
+        let (crash_dir, ext) = get_crash_dir_and_ext(root, target, "-Q -W ../crash -e crash");
+
+        let expected_crash_path = root.join(TESTS_WORKSPACE_DIRECTORY).join("../crash");
+        assert_eq!(crash_dir, expected_crash_path);
+        assert_eq!(&ext, "crash");
+
+        // test relative path
+        let (crash_dir, ext) = get_crash_dir_and_ext(root, target, "-Q --crash ../crash -e crash");
+
+        let expected_crash_path = root.join(TESTS_WORKSPACE_DIRECTORY).join("../crash");
+        assert_eq!(crash_dir, expected_crash_path);
+        assert_eq!(&ext, "crash");
+
+        // crash directory has precedence before workspace
+        let (crash_dir, ext) =
+            get_crash_dir_and_ext(root, target, "-Q --crash ../crash -W /workspace -e crash");
+
+        let expected_crash_path = root.join(TESTS_WORKSPACE_DIRECTORY).join("../crash");
+        assert_eq!(crash_dir, expected_crash_path);
+        assert_eq!(&ext, "crash");
     }
 }
