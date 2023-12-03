@@ -96,8 +96,8 @@
 
 use heck::{ToSnakeCase, ToUpperCamelCase};
 use quote::ToTokens;
+use std::path::{Path, PathBuf};
 use thiserror::Error;
-
 static ACCOUNT_MOD_PREFIX: &str = "__client_accounts_";
 
 #[derive(Error, Debug)]
@@ -123,6 +123,7 @@ pub struct IdlName {
 pub struct IdlProgram {
     pub name: IdlName,
     pub id: String,
+    pub path: PathBuf,
     pub instruction_account_pairs: Vec<(IdlInstruction, IdlAccountGroup)>,
 }
 
@@ -138,7 +139,11 @@ pub struct IdlAccountGroup {
     pub accounts: Vec<(String, String)>,
 }
 
-pub async fn parse_to_idl_program(name: String, code: &str) -> Result<IdlProgram, Error> {
+pub async fn parse_to_idl_program(
+    name: String,
+    code: &str,
+    path: &Path,
+) -> Result<IdlProgram, Error> {
     let mut static_program_id = None::<syn::ItemStatic>;
     let mut mod_private = None::<syn::ItemMod>;
     let mut mod_instruction = None::<syn::ItemMod>;
@@ -463,6 +468,7 @@ pub async fn parse_to_idl_program(name: String, code: &str) -> Result<IdlProgram
             upper_camel_case: name.to_upper_camel_case(),
             snake_case: name,
         },
+        path: path.to_path_buf(),
         id: program_id_bytes.into_token_stream().to_string(),
         instruction_account_pairs,
     })
