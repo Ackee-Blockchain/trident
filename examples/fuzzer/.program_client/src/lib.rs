@@ -8,12 +8,12 @@ pub mod fuzzer_instruction {
     ]);
     pub async fn initialize(
         client: &Client,
-        a_counter: anchor_lang::solana_program::pubkey::Pubkey,
-        a_user: anchor_lang::solana_program::pubkey::Pubkey,
-        a_system_program: anchor_lang::solana_program::pubkey::Pubkey,
+        a_counter: Pubkey,
+        a_user: Pubkey,
+        a_system_program: Pubkey,
         signers: impl IntoIterator<Item = Keypair> + Send + 'static,
     ) -> Result<EncodedConfirmedTransactionWithStatusMeta, ClientError> {
-        Ok(client
+        client
             .send_instruction(
                 PROGRAM_ID,
                 fuzzer::instruction::Initialize {},
@@ -24,12 +24,12 @@ pub mod fuzzer_instruction {
                 },
                 signers,
             )
-            .await?)
+            .await
     }
     pub fn initialize_ix(
-        a_counter: anchor_lang::solana_program::pubkey::Pubkey,
-        a_user: anchor_lang::solana_program::pubkey::Pubkey,
-        a_system_program: anchor_lang::solana_program::pubkey::Pubkey,
+        a_counter: Pubkey,
+        a_user: Pubkey,
+        a_system_program: Pubkey,
     ) -> Instruction {
         Instruction {
             program_id: PROGRAM_ID,
@@ -46,11 +46,11 @@ pub mod fuzzer_instruction {
         client: &Client,
         i_input1: u8,
         i_input2: u8,
-        a_counter: anchor_lang::solana_program::pubkey::Pubkey,
-        a_authority: anchor_lang::solana_program::pubkey::Pubkey,
+        a_counter: Pubkey,
+        a_authority: Pubkey,
         signers: impl IntoIterator<Item = Keypair> + Send + 'static,
     ) -> Result<EncodedConfirmedTransactionWithStatusMeta, ClientError> {
-        Ok(client
+        client
             .send_instruction(
                 PROGRAM_ID,
                 fuzzer::instruction::Update {
@@ -63,13 +63,13 @@ pub mod fuzzer_instruction {
                 },
                 signers,
             )
-            .await?)
+            .await
     }
     pub fn update_ix(
         i_input1: u8,
         i_input2: u8,
-        a_counter: anchor_lang::solana_program::pubkey::Pubkey,
-        a_authority: anchor_lang::solana_program::pubkey::Pubkey,
+        a_counter: Pubkey,
+        a_authority: Pubkey,
     ) -> Instruction {
         Instruction {
             program_id: PROGRAM_ID,
