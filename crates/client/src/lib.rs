@@ -83,7 +83,7 @@ pub mod constants {
     pub const TEST_DIRECTORY: &str = "tests";
     pub const TEST: &str = "test.rs";
 
-    pub const FUZZ_DIRECTORY: &str = "src/bin";
+    pub const FUZZ_DIRECTORY: &str = "fuzz_0";
     pub const FUZZ: &str = "fuzz_target.rs";
     pub const PROGRAM_STUBS: &str = "program_stubs.rs";
 

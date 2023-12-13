@@ -231,7 +231,6 @@ impl WorkspaceBuilder {
         self.create_file(&trdelnik_toml_path, trdelnik_toml_content)
             .await?;
     }
-    /// Adds `trdelnik-tests` workspace to the `root`'s `Cargo.toml` workspace members if needed.
     #[throws]
     async fn update_program_client(&self) {
         let lib_path = self.root.join(PROGRAM_CLIENT_DIRECTORY).join(SRC).join(LIB);

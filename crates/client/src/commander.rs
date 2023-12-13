@@ -251,23 +251,41 @@ impl Commander {
     #[throws]
     pub async fn run_fuzzer(target: String, root: String) {
         let root = Path::new(&root);
+        let cur_dir = root.join(TESTS_WORKSPACE_DIRECTORY).join(&target);
+        let cargo_toml = root.join(TESTS_WORKSPACE_DIRECTORY).join(CARGO);
 
-        let config = Config::new();
-
-        let hfuzz_run_args = std::env::var("HFUZZ_RUN_ARGS").unwrap_or_default();
-        let fuzz_args = config.get_fuzz_args(hfuzz_run_args);
-
-        let cur_dir = root.join(TESTS_WORKSPACE_DIRECTORY);
         if !cur_dir.try_exists()? {
             throw!(Error::NotInitialized);
         }
 
+        let command = format!("s|fuzz_[0-9]*/fuzz_target\\.rs|{}/fuzz_target.rs|", target);
+        let _status = Command::new("sed")
+            .arg("-i")
+            .arg(&command)
+            .arg(&cargo_toml)
+            .output()
+            .await?;
+
+        let config = Config::new();
+
+        let hfuzz_run_args = std::env::var("HFUZZ_RUN_ARGS").unwrap_or_default();
+
+        let mut hfuzz_workspace = target.to_owned();
+        hfuzz_workspace.push('/');
+        hfuzz_workspace.push_str(HFUZZ_WORKSPACE);
+
+        // TODO this allows to specify your own workspace dir
+        let honggfuzz_workspace = std::env::var("HFUZZ_WORKSPACE").unwrap_or(hfuzz_workspace);
+
+        let fuzz_args = config.get_fuzz_args(hfuzz_run_args);
+
         let mut child = Command::new("cargo")
             .env("HFUZZ_RUN_ARGS", fuzz_args)
+            .env("HFUZZ_WORKSPACE", honggfuzz_workspace)
             .current_dir(cur_dir)
             .arg("hfuzz")
             .arg("run")
-            .arg(target)
+            .arg("fuzz_target")
             .spawn()?;
 
         tokio::select! {
