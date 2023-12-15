@@ -80,11 +80,16 @@ pub mod constants {
     pub const SRC: &str = "src";
 
     pub const TESTS_WORKSPACE_DIRECTORY: &str = "trdelnik-tests";
-    pub const TEST_DIRECTORY: &str = "tests";
-    pub const TEST: &str = "test.rs";
+    pub const POC_TEST_DIRECTORY: &str = "poc_tests";
+    pub const TESTS: &str = "tests";
 
-    pub const FUZZ_DIRECTORY: &str = "fuzz_0";
-    pub const FUZZ: &str = "fuzz_target.rs";
+    pub const FUZZ_TEST_DIRECTORY: &str = "fuzz_tests";
+
+    pub const POC_TEST: &str = "test.rs";
+    pub const FUZZ_TEST: &str = "test_fuzz.rs";
+
+    // pub const FUZZ_DIRECTORY: &str = "fuzz_0";
+    // pub const FUZZ: &str = "fuzz_target.rs";
     pub const PROGRAM_STUBS: &str = "program_stubs.rs";
 
     //pub const PROGRAM_STUBS_ENTRIES: &str = "// ### \"Entrypoints go above\" ###";

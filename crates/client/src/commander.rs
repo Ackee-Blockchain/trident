@@ -48,6 +48,8 @@ pub enum Error {
     NotInitialized,
     #[error("the crash file does not exist")]
     CrashFileNotFound,
+    #[error("The Anchor project does not contain any programs")]
+    NoProgramsFound,
 }
 
 /// Localnet (the validator process) handle.
@@ -119,7 +121,7 @@ impl Commander {
             .expect("Cargo.toml reading failed");
 
         cargo_toml_data.packages.into_iter().filter(|package| {
-            // @TODO less error-prone test if the package is a _program_?
+            // TODO less error-prone test if the package is a _program_?
             // This will only consider Packages where path:
             // /home/xyz/xyz/trdelnik/trdelnik/examples/example_project/programs/package1
             // NOTE we can obtain more important information here, only to remember
@@ -130,15 +132,23 @@ impl Commander {
         })
     }
     #[throws]
-    pub async fn obtain_program_idl(root: &Path) -> Option<Idl> {
-        let idl_programs = Commander::program_packages().map(|package| async move {
-            let absolute_root = fs::canonicalize(root).await?;
+    pub async fn collect_packages() -> Option<Vec<Package>> {
+        let packages: Vec<Package> = Commander::program_packages().collect();
+        if packages.is_empty() {
+            throw!(Error::NoProgramsFound)
+        } else {
+            Some(packages)
+        }
+    }
 
-            let name = package.name;
+    #[throws]
+    pub async fn obtain_program_idl(packages: &[Package]) -> Option<Idl> {
+        let idl_programs = packages.iter().map(|package| async move {
+            let name = &package.name;
             let output = std::process::Command::new("cargo")
                 .arg("+nightly")
                 .arg("rustc")
-                .args(["--package", &name])
+                .args(["--package", name])
                 .arg("--profile=check")
                 .arg("--")
                 .arg("-Zunpretty=expanded")
@@ -146,14 +156,7 @@ impl Commander {
                 .unwrap();
             if output.status.success() {
                 let code = String::from_utf8(output.stdout)?;
-                let path = package
-                    .manifest_path
-                    .parent()
-                    .unwrap()
-                    .strip_prefix(&absolute_root)
-                    .unwrap()
-                    .as_std_path();
-                Ok(idl::parse_to_idl_program(name, &code, path).await?)
+                Ok(idl::parse_to_idl_program(name, &code).await?)
             } else {
                 let error_text = String::from_utf8(output.stderr)?;
                 Err(Error::ReadProgramCodeFailed(error_text))
@@ -165,18 +168,19 @@ impl Commander {
     }
     #[throws]
     pub async fn clean_anchor_target() {
+        // INFO perform anchor clean so no keys will be removed
         Command::new("anchor").arg("clean").spawn()?.wait().await?;
     }
     #[throws]
     pub async fn clean_hfuzz_target(root: &Path) {
-        let hfuzz_target_path = root.join(TESTS_WORKSPACE_DIRECTORY).join(HFUZZ_TARGET);
+        // INFO hfuzz target can be of course located somewhere else
+        // but as we leave it within the root, we also expect it within the root
+
+        let hfuzz_target_path = root.join(HFUZZ_TARGET);
         if hfuzz_target_path.exists() {
             fs::remove_dir_all(hfuzz_target_path).await?;
         } else {
-            println!(
-                "skipping {}/{} directory: not found",
-                TESTS_WORKSPACE_DIRECTORY, HFUZZ_TARGET
-            )
+            println!("skipping {} directory: not found", HFUZZ_TARGET)
         }
     }
 
@@ -234,8 +238,13 @@ impl Commander {
     /// to allow you read `println` outputs in your terminal window.
     #[throws]
     pub async fn run_tests() {
+        // INFO we have to specify --package poc_tests in order to build
+        // only poc_tests and not fuzz tests also
+        // FIXME "ok" within the output in terminal is not green
+        // as it should be
         let success = Command::new("cargo")
             .arg("test")
+            .args(["--package", "poc_tests"])
             .arg("--")
             .arg("--nocapture")
             .spawn()?
@@ -249,43 +258,20 @@ impl Commander {
 
     /// Runs fuzzer on the given target.
     #[throws]
-    pub async fn run_fuzzer(target: String, root: String) {
-        let root = Path::new(&root);
-        let cur_dir = root.join(TESTS_WORKSPACE_DIRECTORY).join(&target);
-        let cargo_toml = root.join(TESTS_WORKSPACE_DIRECTORY).join(CARGO);
-
-        if !cur_dir.try_exists()? {
-            throw!(Error::NotInitialized);
-        }
-
-        let command = format!("s|fuzz_[0-9]*/fuzz_target\\.rs|{}/fuzz_target.rs|", target);
-        let _status = Command::new("sed")
-            .arg("-i")
-            .arg(&command)
-            .arg(&cargo_toml)
-            .output()
-            .await?;
-
+    pub async fn run_fuzzer(target: String) {
+        // INFO we do not check anything here , as we leave it on honggfuzz , simply
+        // if the target does not exists, honggfuzz will throw an error
         let config = Config::new();
 
         let hfuzz_run_args = std::env::var("HFUZZ_RUN_ARGS").unwrap_or_default();
-
-        let mut hfuzz_workspace = target.to_owned();
-        hfuzz_workspace.push('/');
-        hfuzz_workspace.push_str(HFUZZ_WORKSPACE);
-
-        // TODO this allows to specify your own workspace dir
-        let honggfuzz_workspace = std::env::var("HFUZZ_WORKSPACE").unwrap_or(hfuzz_workspace);
 
         let fuzz_args = config.get_fuzz_args(hfuzz_run_args);
 
         let mut child = Command::new("cargo")
             .env("HFUZZ_RUN_ARGS", fuzz_args)
-            .env("HFUZZ_WORKSPACE", honggfuzz_workspace)
-            .current_dir(cur_dir)
             .arg("hfuzz")
             .arg("run")
-            .arg("fuzz_target")
+            .arg(target)
             .spawn()?;
 
         tokio::select! {

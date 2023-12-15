@@ -3,6 +3,7 @@ use anyhow::{bail, Error};
 use clap::Subcommand;
 use fehler::throws;
 use trdelnik_client::Commander;
+use trdelnik_client::WorkspaceBuilder;
 
 use crate::discover;
 
@@ -26,6 +27,8 @@ pub enum FuzzCommand {
         /// Path to the crash file
         crash_file_path: String,
     },
+    // TODO make optional parameter target name that will create new fuzz test with specified name
+    Add,
 }
 
 #[throws]
@@ -54,7 +57,7 @@ pub async fn fuzz(root: Option<String>, subcmd: FuzzCommand) {
             if with_exit_code {
                 Commander::run_fuzzer_with_exit_code(target, root).await?;
             } else {
-                Commander::run_fuzzer(target, root).await?;
+                Commander::run_fuzzer(target).await?;
             }
         }
         FuzzCommand::Run_Debug {
@@ -62,6 +65,10 @@ pub async fn fuzz(root: Option<String>, subcmd: FuzzCommand) {
             crash_file_path,
         } => {
             Commander::run_fuzzer_debug(target, crash_file_path, root).await?;
+        }
+        FuzzCommand::Add => {
+            let mut generator = WorkspaceBuilder::new_with_root(root);
+            generator.add_fuzz_test().await?;
         }
     };
 }

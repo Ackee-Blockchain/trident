@@ -28,7 +28,9 @@ pub struct Reader {
 impl Reader {
     /// Creates a new `Reader` instance with the default root `"../../"`.
     pub fn new() -> Self {
-        Self { root: "../".into() }
+        Self {
+            root: "../../".into(),
+        }
     }
 
     /// Creates a new `Reader` instance with the provided `root`.

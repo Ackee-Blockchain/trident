@@ -7,7 +7,7 @@ pub const TRDELNIK_TOML: &str = "Trdelnik.toml";
 
 #[throws]
 pub async fn build(root: String, arch: ProgramArch) {
-    // TODO root argument maybe not needed
+    // FIXME root argument maybe not needed
     let root = if let Some(r) = discover(TRDELNIK_TOML)? {
         r
     } else {
