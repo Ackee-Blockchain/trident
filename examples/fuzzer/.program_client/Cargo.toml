@@ -5,6 +5,7 @@ edition = "2018"
 [dependencies.trdelnik-client]
 path = "../../../crates/client"
 
+
 [dependencies.fuzzer]
 path = "../programs/fuzzer"
 features = ["no-entrypoint"]

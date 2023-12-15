@@ -7,4 +7,3 @@ path = "../../../crates/client"
 
 [dependencies.escrow]
 path = "../programs/escrow"
-features = ["no-entrypoint"]

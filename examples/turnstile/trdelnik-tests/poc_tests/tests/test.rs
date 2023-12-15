@@ -1,5 +1,5 @@
 use fehler::throws;
-use program_client::turnstile_instruction;
+use program_client::turnstile_instruction::*;
 use trdelnik_client::{anyhow::Result, *};
 
 #[throws]
@@ -31,7 +31,7 @@ async fn init_fixture() -> Fixture {
         .await?;
 
     // init instruction call
-    turnstile_instruction::initialize(
+    initialize(
         &fixture.client,
         fixture.state.pubkey(),
         fixture.user_initializer.pubkey(),
@@ -48,7 +48,7 @@ async fn test_happy_path(#[future] init_fixture: Result<Fixture>) {
     let fixture = init_fixture.await?;
 
     // coin instruction call
-    turnstile_instruction::coin(
+    coin(
         &fixture.client,
         "dummy_string".to_owned(),
         fixture.state.pubkey(),
@@ -56,7 +56,7 @@ async fn test_happy_path(#[future] init_fixture: Result<Fixture>) {
     )
     .await?;
     // push instruction call
-    turnstile_instruction::push(&fixture.client, fixture.state.pubkey(), None).await?;
+    push(&fixture.client, fixture.state.pubkey(), None).await?;
 
     // check the test result
     let state = fixture.get_state().await?;
@@ -72,7 +72,7 @@ async fn test_unhappy_path(#[future] init_fixture: Result<Fixture>) {
     let fixture = init_fixture.await?;
 
     // pushing without prior coin insertion
-    turnstile_instruction::push(&fixture.client, fixture.state.pubkey(), None).await?;
+    push(&fixture.client, fixture.state.pubkey(), None).await?;
 
     // check the test result
     let state = fixture.get_state().await?;

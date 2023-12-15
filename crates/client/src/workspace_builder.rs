@@ -74,7 +74,18 @@ impl WorkspaceBuilder {
         Commander::clean_hfuzz_target(&self.root).await?;
     }
     #[throws]
-    pub async fn initialize_without_fuzzer(&mut self, arch: &str) {
+    pub async fn initialize_fuzz(&mut self, arch: &str) {
+        self.build_and_parse(arch).await?;
+
+        self.create_program_client_crate().await?;
+        self.create_trdelnik_tests_crate().await?;
+        self.add_new_fuzz_test().await?;
+
+        self.create_trdelnik_manifest().await?;
+        self.update_gitignore("hfuzz_target")?;
+    }
+    #[throws]
+    pub async fn initialize_poc(&mut self, arch: &str) {
         self.build_and_parse(arch).await?;
 
         self.create_program_client_crate().await?;
@@ -83,7 +94,7 @@ impl WorkspaceBuilder {
         self.create_trdelnik_manifest().await?;
     }
     #[throws]
-    pub async fn initialize_with_fuzzer(&mut self, arch: &str) {
+    pub async fn initialize_both(&mut self, arch: &str) {
         self.build_and_parse(arch).await?;
 
         self.create_program_client_crate().await?;
@@ -128,7 +139,8 @@ impl WorkspaceBuilder {
         ));
         self.create_file(&cargo_path, cargo_toml_content).await?;
 
-        self.add_program_dependencies(&crate_path).await?;
+        self.add_program_dependencies(&crate_path, "dependencies")
+            .await?;
 
         let program_client = program_client_generator::generate_source_code(
             self.idl.as_ref().unwrap(),
@@ -247,7 +259,8 @@ impl WorkspaceBuilder {
         .await?;
 
         // add program dependencies
-        self.add_program_dependencies(&new_fuzz_test_dir).await?;
+        self.add_program_dependencies(&new_fuzz_test_dir, "dependencies")
+            .await?;
 
         // add fuzzing feature
         self.add_feature_to_dep("trdelnik-client", "fuzzing", &new_fuzz_test_dir)
@@ -311,6 +324,9 @@ impl WorkspaceBuilder {
         self.create_file(&poc_test_path, &template).await?;
 
         self.add_workspace_member(&format!("{TESTS_WORKSPACE_DIRECTORY}/{POC_TEST_DIRECTORY}",))
+            .await?;
+
+        self.add_program_dependencies(&poc_dir_path, "dev-dependencies")
             .await?;
     }
 
@@ -536,12 +552,12 @@ impl WorkspaceBuilder {
     }
 
     #[throws]
-    async fn add_program_dependencies(&self, cargo_dir: &PathBuf) {
+    async fn add_program_dependencies(&self, cargo_dir: &PathBuf, deps: &str) {
         let cargo_path = cargo_dir.join(CARGO);
         let mut cargo_toml_content: toml::Value = fs::read_to_string(&cargo_path).await?.parse()?;
 
         let client_toml_deps = cargo_toml_content
-            .get_mut("dependencies")
+            .get_mut(deps)
             .and_then(toml::Value::as_table_mut)
             .ok_or(Error::ParsingCargoTomlDependenciesFailed)?;
 
@@ -550,6 +566,7 @@ impl WorkspaceBuilder {
                 for package in packages.iter() {
                     let manifest_path = package.manifest_path.parent().unwrap().as_std_path();
                     // INFO this will obtain relative path
+                    // TODO fuzzer need no entry point feature here for program client cargo
                     let relative_path = pathdiff::diff_paths(manifest_path, cargo_dir).unwrap();
                     let dep: Value = format!(
                         r#"{} = {{ path = "{}" }}"#,

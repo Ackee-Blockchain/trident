@@ -1,8 +1,9 @@
+use assert_matches::*;
 use fuzzer::entry;
 use program_client::fuzzer_instruction::*;
-const PROGRAM_NAME: &str = "fuzzer";
-use assert_matches::*;
 use trdelnik_client::fuzzing::*;
+
+const PROGRAM_NAME: &str = "fuzzer";
 
 #[derive(Arbitrary)]
 pub struct FuzzData {

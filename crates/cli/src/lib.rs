@@ -7,6 +7,7 @@ mod command;
 // bring nested subcommand enums into scope
 use command::ExplorerCommand;
 use command::FuzzCommand;
+use command::InitCommand;
 use command::KeyPairCommand;
 
 #[derive(ValueEnum, Parser, Clone, PartialEq, Eq, Debug)]
@@ -69,9 +70,8 @@ enum Command {
     },
     /// Initialize test environment
     Init {
-        /// Flag to skip generating template for fuzzing and activating the fuzzing feature.
-        #[arg(short, long)]
-        skip_fuzzer: bool,
+        #[clap(value_enum, short, long, default_value = "both")]
+        template: InitCommand,
         #[clap(value_enum, short, long, default_value = "sbf")]
         arch: ProgramArch,
     },
@@ -90,7 +90,7 @@ pub async fn start() {
         Command::Fuzz { root, subcmd } => command::fuzz(root, subcmd).await?,
         Command::Localnet => command::localnet().await?,
         Command::Explorer { subcmd } => command::explorer(subcmd).await?,
-        Command::Init { skip_fuzzer, arch } => command::init(skip_fuzzer, arch).await?,
+        Command::Init { template, arch } => command::init(template, arch).await?,
         Command::Clean => command::clean().await?,
     }
 }

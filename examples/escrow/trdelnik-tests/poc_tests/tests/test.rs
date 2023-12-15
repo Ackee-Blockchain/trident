@@ -1,7 +1,6 @@
 use anchor_spl::token;
 use fehler::throws;
-use program_client::*;
-// use program_client::escrow_instruction;
+use program_client::escrow_instruction;
 use trdelnik_client::{anyhow::Result, *};
 
 #[throws]

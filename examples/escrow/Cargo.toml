@@ -1,2 +1,2 @@
 [workspace]
-members = ["programs/*", "trdelnik-tests"]
+members = ["programs/*", "trdelnik-tests/poc_tests"]

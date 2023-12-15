@@ -20,14 +20,9 @@ pub async fn generate_program_client() {
         "/tests/test_data/expected_client_code.rs"
     ));
 
-    let root = std::path::Path::new(".");
-
-    let program_idl = trdelnik_client::idl::parse_to_idl_program(
-        "escrow".to_owned(),
-        expanded_anchor_program,
-        root,
-    )
-    .await?;
+    let program_name = String::from("escrow");
+    let program_idl =
+        trdelnik_client::idl::parse_to_idl_program(&program_name, expanded_anchor_program).await?;
 
     let idl = trdelnik_client::idl::Idl {
         programs: vec![program_idl],
