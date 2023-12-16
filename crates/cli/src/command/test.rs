@@ -7,7 +7,7 @@ use crate::discover;
 pub const TRDELNIK_TOML: &str = "Trdelnik.toml";
 
 #[throws]
-pub async fn test(root: String) {
+pub async fn test(_root: String) {
     // TODO root argument maybe not needed
 
     match discover(TRDELNIK_TOML)? {
