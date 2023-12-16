@@ -309,7 +309,7 @@ impl Commander {
         }
 
         // TODO We already checked if the trdelnik init is initialized, furthermore
-        // we can leave this on honggfuzz side , so
+        // we can leave this on honggfuzz
         // let cur_dir = root.join(TESTS_WORKSPACE_DIRECTORY);
         // if !cur_dir.try_exists()? {
         //     throw!(Error::NotInitialized);

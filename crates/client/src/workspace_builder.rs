@@ -65,7 +65,6 @@ impl WorkspaceBuilder {
         // automatically generated so we should be ok with updating this
         self.update_program_client().await?;
         //self.update_program_stubs().await?;
-        //self.update_toml_dependencies().await?;
         //self.add_invoked_program_deps().await?;
     }
     #[throws]
@@ -73,6 +72,12 @@ impl WorkspaceBuilder {
         Commander::clean_anchor_target().await?;
         Commander::clean_hfuzz_target(&self.root).await?;
     }
+    /// Initializes template for FUZZ Tests
+    /// - builds current project
+    /// - generates program client
+    /// - generates fuzz template
+    /// - generates Trdelnik manifest file
+    /// - updates .gitignore with hfuzz_target folder
     #[throws]
     pub async fn initialize_fuzz(&mut self, arch: &str) {
         self.build_and_parse(arch).await?;
@@ -84,6 +89,11 @@ impl WorkspaceBuilder {
         self.create_trdelnik_manifest().await?;
         self.update_gitignore("hfuzz_target")?;
     }
+    /// Initializes template for PoC Tests
+    /// - builds current project
+    /// - generates program client
+    /// - generates PoC template
+    /// - generates Trdelnik manifest file
     #[throws]
     pub async fn initialize_poc(&mut self, arch: &str) {
         self.build_and_parse(arch).await?;
@@ -93,6 +103,13 @@ impl WorkspaceBuilder {
         self.add_new_poc_test().await?;
         self.create_trdelnik_manifest().await?;
     }
+    /// Initializes template for FUZZ and PoC Tests
+    /// - builds current project
+    /// - generates program client
+    /// - generates Fuzz template
+    /// - generates PoC template
+    /// - generates Trdelnik manifest file
+    /// - updates .gitignore with hfuzz_target folder
     #[throws]
     pub async fn initialize_both(&mut self, arch: &str) {
         self.build_and_parse(arch).await?;
@@ -105,6 +122,9 @@ impl WorkspaceBuilder {
         self.create_trdelnik_manifest().await?;
         self.update_gitignore("hfuzz_target")?;
     }
+    /// - builds current project
+    /// - obtains program names and paths
+    /// - obtains data for generating program client
     #[throws]
     async fn build_and_parse(&mut self, arch: &str) {
         // build first , so we now that the programs are ok
@@ -119,11 +139,14 @@ impl WorkspaceBuilder {
         self.use_tokens = Commander::parse_program_client_imports().await?;
         println!("\x1b[92mSuccesfully\x1b[0m obtained.");
     }
+    /// - adds new Fuzz test template to the trdelnik-tests folder
     #[throws]
     pub async fn add_fuzz_test(&mut self) {
         self.packages = Commander::collect_packages().await?;
         self.add_new_fuzz_test().await?;
     }
+    /// - creates program client folder
+    /// - generates program client soruce code
     #[throws]
     async fn create_program_client_crate(&self) {
         let crate_path = self.root.join(PROGRAM_CLIENT_DIRECTORY);
@@ -150,11 +173,13 @@ impl WorkspaceBuilder {
 
         self.create_file(&lib_path, &program_client).await?;
     }
+    /// - create trdelnik-test folder
     #[throws]
     async fn create_trdelnik_tests_crate(&self) {
         let workspace_path = self.root.join(TESTS_WORKSPACE_DIRECTORY);
         self.create_directory(&workspace_path).await?;
     }
+    /// - generates new folder and contents for new Fuzz test Template
     #[throws]
     async fn add_new_fuzz_test(&self) {
         // this check should be ensured within package collection , but
@@ -190,7 +215,7 @@ impl WorkspaceBuilder {
             // INFO this is kind of spaghetti, but esentially we are:
             // taking last element from the sorted list
             // splitting its name by '_' as this is expected delimeter
-            // for names such "poc_0", and then take the number and add 1, this should ensure
+            // for names such "fuzz_0", and then take the number and add 1, this should ensure
             // that the name will be unique
             String::from(
                 directories
@@ -266,10 +291,12 @@ impl WorkspaceBuilder {
         self.add_feature_to_dep("trdelnik-client", "fuzzing", &new_fuzz_test_dir)
             .await?;
     }
+
+    /// - generates new folder and contents for new PoC test Template
     #[throws]
     async fn add_new_poc_test(&self) {
         // INFO only one POC test file needed
-        // as we can implement multiple test paths so no need to create
+        // as we can implement multiple test paths within one file so no need to create
         // or add new test files, however can be added in the future
         let program_name = match &self.packages {
             Some(packages) => &packages.first().unwrap().name,
@@ -373,6 +400,7 @@ impl WorkspaceBuilder {
     //         .await?;
     // }
 
+    /// - creates Trdelnik manifest from template
     #[throws]
     async fn create_trdelnik_manifest(&self) {
         let trdelnik_toml_path = self.root.join(TRDELNIK);
@@ -383,6 +411,7 @@ impl WorkspaceBuilder {
         self.create_file(&trdelnik_toml_path, trdelnik_toml_content)
             .await?;
     }
+    /// - updates program client generated source code
     #[throws]
     async fn update_program_client(&self) {
         let lib_path = self.root.join(PROGRAM_CLIENT_DIRECTORY).join(SRC).join(LIB);
@@ -395,7 +424,7 @@ impl WorkspaceBuilder {
 
         self.update_file(&lib_path, &program_client).await?;
     }
-
+    /// - add workspace member to the project root Cargo.toml
     #[throws]
     async fn add_workspace_member(&self, member: &str) {
         let cargo = self.root.join(CARGO);
@@ -417,12 +446,12 @@ impl WorkspaceBuilder {
         match members.iter().find(|&x| x.eq(&new_member)) {
             Some(_) => {
                 println!(
-                    "\x1b[93m--> Skipping <--\x1b[0m \x1b[93m{member}\x1b[0m, already contains trdelnik-tests."
+                    "\x1b[93m--> Skipping <--\x1b[0m \x1b[93m{CARGO}\x1b[0m, already contains {member}."
                 )
             }
             None => {
                 members.push(new_member);
-                println!("\x1b[92mSuccesfully\x1b[0m updated: \x1b[93m{member}\x1b[0m.");
+                println!("\x1b[92mSuccesfully\x1b[0m updated: \x1b[93m{CARGO}\x1b[0m with \x1b[93m{member}\x1b[0m.");
             }
         };
         fs::write(cargo, content.to_string()).await?;
@@ -435,7 +464,7 @@ impl WorkspaceBuilder {
             let file = File::open(&file_path)?;
             for line in io::BufReader::new(file).lines().flatten() {
                 if line == ignored_path {
-                    // TODO do not add the ignored path again if it is already in the .gitignore file
+                    // INFO do not add the ignored path again if it is already in the .gitignore file
                     return;
                 }
             }
@@ -506,7 +535,6 @@ impl WorkspaceBuilder {
     #[throws]
     async fn add_feature_to_dep(&self, dependency: &str, feature: &str, cargo_dir: &Path) {
         let cargo_toml_path = cargo_dir.join(CARGO);
-        // let cargo_toml_path = self.root.join(TESTS_WORKSPACE_DIRECTORY).join(CARGO);
         let rel_path = &cargo_toml_path
             .strip_prefix(&self.root)
             .unwrap()
@@ -551,6 +579,8 @@ impl WorkspaceBuilder {
         }
     }
 
+    /// - adds program dependency to specified Cargo.toml
+    /// for example, we need to use program entry within the fuzzer
     #[throws]
     async fn add_program_dependencies(&self, cargo_dir: &PathBuf, deps: &str) {
         let cargo_path = cargo_dir.join(CARGO);
@@ -566,7 +596,7 @@ impl WorkspaceBuilder {
                 for package in packages.iter() {
                     let manifest_path = package.manifest_path.parent().unwrap().as_std_path();
                     // INFO this will obtain relative path
-                    // TODO fuzzer need no entry point feature here for program client cargo
+                    // TODO fuzzer need no entry point feature here for program client cargo.toml
                     let relative_path = pathdiff::diff_paths(manifest_path, cargo_dir).unwrap();
                     let dep: Value = format!(
                         r#"{} = {{ path = "{}" }}"#,

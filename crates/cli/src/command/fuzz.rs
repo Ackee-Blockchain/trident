@@ -33,10 +33,6 @@ pub enum FuzzCommand {
 
 #[throws]
 pub async fn fuzz(root: Option<String>, subcmd: FuzzCommand) {
-    // TODO also think about skip_fuzzer within the init option, because here
-    // we look for Trdelnik.toml but toml can exist but fuzzer is not initialized
-    // Moreover fuzzer should be main goal of framework, so would remove skip_fuzzer
-    // option
     // FIXME is the root option necessarry ?
     let root = match root {
         Some(r) => r,
