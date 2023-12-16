@@ -37,6 +37,7 @@ pub async fn fuzz(root: Option<String>, subcmd: FuzzCommand) {
     // we look for Trdelnik.toml but toml can exist but fuzzer is not initialized
     // Moreover fuzzer should be main goal of framework, so would remove skip_fuzzer
     // option
+    // FIXME is the root option necessarry ?
     let root = match root {
         Some(r) => r,
         _ => {

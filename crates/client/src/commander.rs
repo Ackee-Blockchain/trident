@@ -308,14 +308,14 @@ impl Commander {
             }
         }
 
-        let cur_dir = root.join(TESTS_WORKSPACE_DIRECTORY);
-        if !cur_dir.try_exists()? {
-            throw!(Error::NotInitialized);
-        }
-
+        // TODO We already checked if the trdelnik init is initialized, furthermore
+        // we can leave this on honggfuzz side , so
+        // let cur_dir = root.join(TESTS_WORKSPACE_DIRECTORY);
+        // if !cur_dir.try_exists()? {
+        //     throw!(Error::NotInitialized);
+        // }
         let mut child = Command::new("cargo")
             .env("HFUZZ_RUN_ARGS", fuzz_args)
-            .current_dir(cur_dir)
             .arg("hfuzz")
             .arg("run")
             .arg(target)
@@ -428,12 +428,14 @@ fn get_crash_dir_and_ext(
         .or_else(|| get_cmd_option_value(hfuzz_run_args.clone(), "-W", "--w"));
 
     let crash_path = if let Some(dir) = crash_dir {
-        Path::new(root).join(TESTS_WORKSPACE_DIRECTORY).join(dir)
+        Path::new(root).join(dir)
+        // Path::new(root).join(TESTS_WORKSPACE_DIRECTORY).join(dir)
     } else {
-        Path::new(root)
-            .join(TESTS_WORKSPACE_DIRECTORY)
-            .join(HFUZZ_WORKSPACE)
-            .join(target)
+        Path::new(root).join(HFUZZ_WORKSPACE).join(target)
+        // Path::new(root)
+        //     .join(TESTS_WORKSPACE_DIRECTORY)
+        //     .join(HFUZZ_WORKSPACE)
+        //     .join(target)
     };
 
     (crash_path, extension)
