@@ -586,10 +586,7 @@ mod tests {
     fn test_get_crash_dir_and_ext() {
         let root = Path::new("/home/fuzz");
         let target = "target";
-        let default_crash_path = Path::new(root)
-            .join(TESTS_WORKSPACE_DIRECTORY)
-            .join(HFUZZ_WORKSPACE)
-            .join(target);
+        let default_crash_path = Path::new(root).join(HFUZZ_WORKSPACE).join(target);
 
         let (crash_dir, ext) = get_crash_dir_and_ext(root, target, "");
 
@@ -624,14 +621,14 @@ mod tests {
         // test relative path
         let (crash_dir, ext) = get_crash_dir_and_ext(root, target, "-Q -W ../crash -e crash");
 
-        let expected_crash_path = root.join(TESTS_WORKSPACE_DIRECTORY).join("../crash");
+        let expected_crash_path = root.join("../crash");
         assert_eq!(crash_dir, expected_crash_path);
         assert_eq!(&ext, "crash");
 
         // test relative path
         let (crash_dir, ext) = get_crash_dir_and_ext(root, target, "-Q --crash ../crash -e crash");
 
-        let expected_crash_path = root.join(TESTS_WORKSPACE_DIRECTORY).join("../crash");
+        let expected_crash_path = root.join("../crash");
         assert_eq!(crash_dir, expected_crash_path);
         assert_eq!(&ext, "crash");
 
@@ -639,7 +636,7 @@ mod tests {
         let (crash_dir, ext) =
             get_crash_dir_and_ext(root, target, "-Q --crash ../crash -W /workspace -e crash");
 
-        let expected_crash_path = root.join(TESTS_WORKSPACE_DIRECTORY).join("../crash");
+        let expected_crash_path = root.join("../crash");
         assert_eq!(crash_dir, expected_crash_path);
         assert_eq!(&ext, "crash");
     }
