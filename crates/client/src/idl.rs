@@ -97,6 +97,7 @@
 use heck::{ToSnakeCase, ToUpperCamelCase};
 use quote::ToTokens;
 use thiserror::Error;
+
 static ACCOUNT_MOD_PREFIX: &str = "__client_accounts_";
 
 #[derive(Error, Debug)]
@@ -107,51 +108,53 @@ pub enum Error {
     MissingOrInvalidProgramItems(&'static str),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Default)]
 pub struct Idl {
     pub programs: Vec<IdlProgram>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct IdlName {
     pub snake_case: String,
     pub upper_camel_case: String,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct IdlProgram {
     pub name: IdlName,
     pub id: String,
     pub instruction_account_pairs: Vec<(IdlInstruction, IdlAccountGroup)>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct IdlInstruction {
     pub name: IdlName,
     pub parameters: Vec<(String, String)>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct IdlAccountGroup {
     pub name: IdlName,
     pub accounts: Vec<(String, String)>,
 }
 
-pub async fn parse_to_idl_program(name: &String, code: &str) -> Result<IdlProgram, Error> {
+pub fn parse_to_idl_program(name: &String, code: &str) -> Result<IdlProgram, Error> {
     let mut static_program_id = None::<syn::ItemStatic>;
     let mut mod_private = None::<syn::ItemMod>;
     let mut mod_instruction = None::<syn::ItemMod>;
     let mut account_mods = Vec::<syn::ItemMod>::new();
 
-    for item in syn::parse_file(code)?.items.into_iter() {
+    let items = syn::parse_file(code)?.items;
+
+    for item in items.iter() {
         match item {
             syn::Item::Static(item_static) if item_static.ident == "ID" => {
-                static_program_id = Some(item_static);
+                static_program_id = Some(item_static.clone());
             }
             syn::Item::Mod(item_mod) => match item_mod.ident.to_string().as_str() {
-                "__private" => mod_private = Some(item_mod),
-                "instruction" => mod_instruction = Some(item_mod),
-                _ => set_account_modules(&mut account_mods, item_mod),
+                "__private" => mod_private = Some(item_mod.clone()),
+                "instruction" => mod_instruction = Some(item_mod.clone()),
+                _ => set_account_modules(&mut account_mods, item_mod.clone()),
             },
             _ => (),
         }

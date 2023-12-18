@@ -22,7 +22,7 @@ pub async fn generate_program_client() {
 
     let program_name = String::from("escrow");
     let program_idl =
-        trdelnik_client::idl::parse_to_idl_program(&program_name, expanded_anchor_program).await?;
+        trdelnik_client::idl::parse_to_idl_program(&program_name, expanded_anchor_program)?;
 
     let idl = trdelnik_client::idl::Idl {
         programs: vec![program_idl],

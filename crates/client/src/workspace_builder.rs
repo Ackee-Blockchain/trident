@@ -40,9 +40,9 @@ pub enum Error {
 
 pub struct WorkspaceBuilder {
     root: PathBuf,
-    idl: Option<Idl>,
-    use_tokens: Option<Vec<ItemUse>>,
-    packages: Option<Vec<Package>>,
+    idl: Idl,
+    use_tokens: Vec<ItemUse>,
+    packages: Vec<Package>,
 }
 impl Default for WorkspaceBuilder {
     fn default() -> Self {
@@ -53,15 +53,18 @@ impl WorkspaceBuilder {
     pub fn new_with_root(root: String) -> Self {
         Self {
             root: Path::new(&root).to_path_buf(),
-            idl: None,
-            use_tokens: None,
-            packages: None,
+            idl: Idl::default(),
+            use_tokens: vec![],
+            packages: vec![],
         }
     }
     #[throws]
     pub async fn build(&mut self, arch: &str) {
-        self.build_and_parse(arch).await?;
+        self.extract_data(arch).await?;
 
+        // FIXME have to think about this because if we have structure
+        // with multiple cargo manifests we probably cannot update
+        // here every cargo.
         // automatically generated so we should be ok with updating this
         self.update_program_client().await?;
         //self.update_program_stubs().await?;
@@ -80,7 +83,7 @@ impl WorkspaceBuilder {
     /// - updates .gitignore with hfuzz_target folder
     #[throws]
     pub async fn initialize_fuzz(&mut self, arch: &str) {
-        self.build_and_parse(arch).await?;
+        self.extract_data(arch).await?;
 
         self.create_program_client_crate().await?;
         self.create_trdelnik_tests_crate().await?;
@@ -96,7 +99,7 @@ impl WorkspaceBuilder {
     /// - generates Trdelnik manifest file
     #[throws]
     pub async fn initialize_poc(&mut self, arch: &str) {
-        self.build_and_parse(arch).await?;
+        self.extract_data(arch).await?;
 
         self.create_program_client_crate().await?;
         self.create_trdelnik_tests_crate().await?;
@@ -112,7 +115,7 @@ impl WorkspaceBuilder {
     /// - updates .gitignore with hfuzz_target folder
     #[throws]
     pub async fn initialize_both(&mut self, arch: &str) {
-        self.build_and_parse(arch).await?;
+        self.extract_data(arch).await?;
 
         self.create_program_client_crate().await?;
         self.create_trdelnik_tests_crate().await?;
@@ -126,18 +129,16 @@ impl WorkspaceBuilder {
     /// - obtains program names and paths
     /// - obtains data for generating program client
     #[throws]
-    async fn build_and_parse(&mut self, arch: &str) {
-        // build first , so we now that the programs are ok
-        Commander::build_programs(arch).await?;
+    async fn extract_data(&mut self, _arch: &str) {
+        // FIXME we do not need to build
+        // however maybe consider using anchor build ?
+        // it is required for PoC tests
+        // Commander::build_programs(arch).await?;
         // this will already throws an error if no packages are found
         self.packages = Commander::collect_packages().await?;
-
-        println!("--> Generating source codes ... <--");
-        // FIXME try to be more creative with the terminal info
-        let packages = self.packages.as_ref().unwrap();
-        self.idl = Commander::obtain_program_idl(packages).await?;
-        self.use_tokens = Commander::parse_program_client_imports().await?;
-        println!("\x1b[92mSuccesfully\x1b[0m obtained.");
+        self.idl = Commander::obtain_program_idl(&self.packages).await?;
+        // FIXME do we actually need this ?
+        //self.use_tokens = Commander::parse_program_client_imports().await?;
     }
     /// - adds new Fuzz test template to the trdelnik-tests folder
     #[throws]
@@ -165,10 +166,8 @@ impl WorkspaceBuilder {
         self.add_program_dependencies(&crate_path, "dependencies")
             .await?;
 
-        let program_client = program_client_generator::generate_source_code(
-            self.idl.as_ref().unwrap(),
-            self.use_tokens.as_ref().unwrap(),
-        );
+        let program_client =
+            program_client_generator::generate_source_code(&self.idl, &self.use_tokens);
         let program_client = Commander::format_program_code(&program_client).await?;
 
         self.create_file(&lib_path, &program_client).await?;
@@ -184,11 +183,10 @@ impl WorkspaceBuilder {
     async fn add_new_fuzz_test(&self) {
         // this check should be ensured within package collection , but
         // we anyway have to unwrap option and doeble check wont hurt
-        let program_name = match &self.packages {
-            Some(packages) => &packages.first().unwrap().name,
-            None => {
-                throw!(Error::NoProgramsFound)
-            }
+        let program_name = if !&self.packages.is_empty() {
+            &self.packages.first().unwrap().name
+        } else {
+            throw!(Error::NoProgramsFound)
         };
 
         let fuzz_dir_path = self
@@ -298,11 +296,10 @@ impl WorkspaceBuilder {
         // INFO only one POC test file needed
         // as we can implement multiple test paths within one file so no need to create
         // or add new test files, however can be added in the future
-        let program_name = match &self.packages {
-            Some(packages) => &packages.first().unwrap().name,
-            None => {
-                throw!(Error::NoProgramsFound)
-            }
+        let program_name = if !&self.packages.is_empty() {
+            &self.packages.first().unwrap().name
+        } else {
+            throw!(Error::NoProgramsFound)
         };
 
         let poc_dir_path = self
@@ -414,12 +411,14 @@ impl WorkspaceBuilder {
     /// - updates program client generated source code
     #[throws]
     async fn update_program_client(&self) {
+        let crate_path = self.root.join(PROGRAM_CLIENT_DIRECTORY);
         let lib_path = self.root.join(PROGRAM_CLIENT_DIRECTORY).join(SRC).join(LIB);
 
-        let program_client = program_client_generator::generate_source_code(
-            self.idl.as_ref().unwrap(),
-            self.use_tokens.as_ref().unwrap(),
-        );
+        self.add_program_dependencies(&crate_path, "dependencies")
+            .await?;
+
+        let program_client =
+            program_client_generator::generate_source_code(&self.idl, &self.use_tokens);
         let program_client = Commander::format_program_code(&program_client).await?;
 
         self.update_file(&lib_path, &program_client).await?;
@@ -451,7 +450,7 @@ impl WorkspaceBuilder {
             }
             None => {
                 members.push(new_member);
-                println!("\x1b[92mSuccesfully\x1b[0m updated: \x1b[93m{CARGO}\x1b[0m with \x1b[93m{member}\x1b[0m.");
+                println!("\x1b[92mSuccesfully\x1b[0m updated: \x1b[93m{CARGO}\x1b[0m with \x1b[93m{member}\x1b[0m member.");
             }
         };
         fs::write(cargo, content.to_string()).await?;
@@ -591,30 +590,27 @@ impl WorkspaceBuilder {
             .and_then(toml::Value::as_table_mut)
             .ok_or(Error::ParsingCargoTomlDependenciesFailed)?;
 
-        match &self.packages {
-            Some(packages) => {
-                for package in packages.iter() {
-                    let manifest_path = package.manifest_path.parent().unwrap().as_std_path();
-                    // INFO this will obtain relative path
-                    // TODO fuzzer need no entry point feature here for program client cargo.toml
-                    let relative_path = pathdiff::diff_paths(manifest_path, cargo_dir).unwrap();
-                    let dep: Value = format!(
-                        r#"{} = {{ path = "{}" }}"#,
-                        package.name,
-                        relative_path.to_str().unwrap()
-                    )
-                    .parse()
-                    .unwrap();
-                    if let toml::Value::Table(table) = dep {
-                        let (name, value) = table.into_iter().next().unwrap();
-                        client_toml_deps.entry(name).or_insert(value.clone());
-                    }
+        if !&self.packages.is_empty() {
+            for package in self.packages.iter() {
+                let manifest_path = package.manifest_path.parent().unwrap().as_std_path();
+                // INFO this will obtain relative path
+                // TODO fuzzer need no entry point feature here for program client cargo.toml
+                let relative_path = pathdiff::diff_paths(manifest_path, cargo_dir).unwrap();
+                let dep: Value = format!(
+                    r#"{} = {{ path = "{}" }}"#,
+                    package.name,
+                    relative_path.to_str().unwrap()
+                )
+                .parse()
+                .unwrap();
+                if let toml::Value::Table(table) = dep {
+                    let (name, value) = table.into_iter().next().unwrap();
+                    client_toml_deps.entry(name).or_insert(value.clone());
                 }
-                fs::write(cargo_path, cargo_toml_content.to_string()).await?;
             }
-            None => {
-                throw!(Error::NoProgramsFound)
-            }
+            fs::write(cargo_path, cargo_toml_content.to_string()).await?;
+        } else {
+            throw!(Error::NoProgramsFound)
         }
     }
 

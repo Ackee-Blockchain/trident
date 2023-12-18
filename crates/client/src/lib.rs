@@ -88,11 +88,8 @@ pub mod constants {
     pub const POC_TEST: &str = "test.rs";
     pub const FUZZ_TEST: &str = "test_fuzz.rs";
 
-    // pub const FUZZ_DIRECTORY: &str = "fuzz_0";
-    // pub const FUZZ: &str = "fuzz_target.rs";
     pub const PROGRAM_STUBS: &str = "program_stubs.rs";
 
-    //pub const PROGRAM_STUBS_ENTRIES: &str = "// ### \"Entrypoints go above\" ###";
     pub const HFUZZ_TARGET: &str = "hfuzz_target";
     pub const HFUZZ_WORKSPACE: &str = "hfuzz_workspace";
 

@@ -5,7 +5,6 @@ use crate::{
 };
 use cargo_metadata::{MetadataCommand, Package};
 use fehler::{throw, throws};
-use futures::future::try_join_all;
 use log::debug;
 use solana_sdk::signer::keypair::Keypair;
 use std::{io, os::unix::process::CommandExt, path::Path, process::Stdio, string::FromUtf8Error};
@@ -19,7 +18,7 @@ use tokio::{
 
 // -----
 use crate::constants::*;
-
+use indicatif::{ProgressBar, ProgressStyle};
 #[derive(Error, Debug)]
 pub enum Error {
     #[error("{0:?}")]
@@ -132,39 +131,76 @@ impl Commander {
         })
     }
     #[throws]
-    pub async fn collect_packages() -> Option<Vec<Package>> {
+    pub async fn collect_packages() -> Vec<Package> {
         let packages: Vec<Package> = Commander::program_packages().collect();
         if packages.is_empty() {
             throw!(Error::NoProgramsFound)
         } else {
-            Some(packages)
+            packages
         }
     }
 
     #[throws]
-    pub async fn obtain_program_idl(packages: &[Package]) -> Option<Idl> {
-        let idl_programs = packages.iter().map(|package| async move {
+    pub async fn obtain_program_idl(packages: &[Package]) -> Idl {
+        let connections = std::sync::Arc::new(std::sync::Mutex::new(Vec::new()));
+        for package in packages.iter() {
+            let is_running = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(true));
+            let is_running_for_thread = std::sync::Arc::clone(&is_running);
+
+            let name = package.name.clone();
+            let conn = connections.clone();
+            let cargo_thread = std::thread::spawn(move || -> Result<(), Error> {
+                let output = std::process::Command::new("cargo")
+                    .arg("+nightly")
+                    .arg("rustc")
+                    .args(["--package", &name])
+                    .arg("--profile=check")
+                    .arg("--")
+                    .arg("-Zunpretty=expanded")
+                    .output()
+                    .unwrap();
+
+                if output.status.success() {
+                    let code = String::from_utf8(output.stdout).unwrap();
+                    let idl_program = idl::parse_to_idl_program(&name, &code).unwrap();
+                    let mut vec = conn.lock().unwrap();
+                    vec.push(idl_program);
+                    is_running_for_thread.store(false, std::sync::atomic::Ordering::SeqCst);
+                    Ok(())
+                } else {
+                    let error_text = String::from_utf8(output.stderr).unwrap();
+                    is_running_for_thread.store(false, std::sync::atomic::Ordering::SeqCst);
+                    Err(Error::ReadProgramCodeFailed(error_text))
+                }
+            });
+
+            let progress_bar = ProgressBar::new_spinner();
+            progress_bar.set_style(
+                ProgressStyle::default_spinner()
+                    .template("{spinner} {wide_msg}")
+                    .unwrap(),
+            );
+
             let name = &package.name;
-            let output = std::process::Command::new("cargo")
-                .arg("+nightly")
-                .arg("rustc")
-                .args(["--package", name])
-                .arg("--profile=check")
-                .arg("--")
-                .arg("-Zunpretty=expanded")
-                .output()
-                .unwrap();
-            if output.status.success() {
-                let code = String::from_utf8(output.stdout)?;
-                Ok(idl::parse_to_idl_program(name, &code).await?)
-            } else {
-                let error_text = String::from_utf8(output.stderr)?;
-                Err(Error::ReadProgramCodeFailed(error_text))
+            let msg = format!("Expanding macros for {name}...");
+            progress_bar.set_message(msg);
+            while is_running.load(std::sync::atomic::Ordering::SeqCst) {
+                progress_bar.inc(1);
+                std::thread::sleep(std::time::Duration::from_millis(100));
             }
-        });
-        Some(Idl {
-            programs: try_join_all(idl_programs).await?,
-        })
+
+            progress_bar.finish_and_clear();
+            cargo_thread.join().unwrap()?;
+        }
+        let idl_programs = connections.lock().unwrap().to_vec();
+
+        if idl_programs.is_empty() {
+            throw!(Error::NoProgramsFound);
+        } else {
+            Idl {
+                programs: idl_programs,
+            }
+        }
     }
     #[throws]
     pub async fn clean_anchor_target() {
@@ -190,7 +226,7 @@ impl Commander {
     /// the user.
     // TODO is this relevant when program_client should not be changed by user ?
     #[throws]
-    pub async fn parse_program_client_imports() -> Option<Vec<syn::ItemUse>> {
+    pub async fn parse_program_client_imports() -> Vec<syn::ItemUse> {
         let output = std::process::Command::new("cargo")
             .arg("+nightly")
             .arg("rustc")
@@ -222,13 +258,13 @@ impl Commander {
             if use_modules.is_empty() {
                 use_modules.push(syn::parse_quote! { use trdelnik_client::*; })
             }
-            Some(use_modules)
+            use_modules
         } else {
             let mut use_modules: Vec<syn::ItemUse> = vec![];
             if use_modules.is_empty() {
                 use_modules.push(syn::parse_quote! { use trdelnik_client::*; })
             }
-            Some(use_modules)
+            use_modules
         }
     }
 
