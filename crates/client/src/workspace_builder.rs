@@ -17,7 +17,6 @@ use toml::{
     Value,
 };
 
-//----
 use crate::constants::*;
 use crate::idl::Idl;
 use crate::program_client_generator;
@@ -131,6 +130,7 @@ impl WorkspaceBuilder {
     #[throws]
     async fn extract_data(&mut self, _arch: &str) {
         // FIXME we do not need to build
+        // if we do not build , arch maybe unnecessary
         // however maybe consider using anchor build ?
         // it is required for PoC tests
         // Commander::build_programs(arch).await?;
@@ -138,7 +138,7 @@ impl WorkspaceBuilder {
         self.packages = Commander::collect_packages().await?;
         self.idl = Commander::obtain_program_idl(&self.packages).await?;
         // FIXME do we actually need this ?
-        //self.use_tokens = Commander::parse_program_client_imports().await?;
+        self.use_tokens = Commander::parse_program_client_imports().await?;
     }
     /// - adds new Fuzz test template to the trdelnik-tests folder
     #[throws]
@@ -594,7 +594,7 @@ impl WorkspaceBuilder {
             for package in self.packages.iter() {
                 let manifest_path = package.manifest_path.parent().unwrap().as_std_path();
                 // INFO this will obtain relative path
-                // TODO fuzzer need no entry point feature here for program client cargo.toml
+                // TODO fuzzer needs no entry point feature here for program client cargo.toml
                 let relative_path = pathdiff::diff_paths(manifest_path, cargo_dir).unwrap();
                 let dep: Value = format!(
                     r#"{} = {{ path = "{}" }}"#,
