@@ -163,8 +163,9 @@ impl Idl {
 
         let static_program_id =
             static_program_id.ok_or(IdlError::MissingOrInvalidProgramItems("missing static ID"))?;
-        let mod_private =
-            mod_private.ok_or(IdlError::MissingOrInvalidProgramItems("missing mod private"))?;
+        let mod_private = mod_private.ok_or(IdlError::MissingOrInvalidProgramItems(
+            "missing mod private",
+        ))?;
         let mod_instruction = mod_instruction.ok_or(IdlError::MissingOrInvalidProgramItems(
             "missing mod instruction",
         ))?;

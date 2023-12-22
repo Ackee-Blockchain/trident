@@ -5,14 +5,14 @@ use crate::Client;
 use crate::Config;
 use crate::{Idl, IdlError};
 use fehler::{throw, throws};
-use log;
+// use log;
 use thiserror::Error;
 // TODO maybe unused
-use tokio;
+// use tokio;
 
 // -----
 use crate::constants::*;
-use indicatif;
+// use indicatif;
 #[derive(Error, Debug)]
 pub enum Error {
     #[error("{0:?}")]

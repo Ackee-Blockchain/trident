@@ -55,7 +55,7 @@ pub fn generate_source_code(idl: &Idl, use_modules: &[syn::ItemUse]) -> String {
                                         let last_type =
                                             &tp.path.segments.last().unwrap().ident.to_string();
                                         if last_type == "Pubkey" {
-                                            let reference = format!("&solana_sdk::pubkey::Pubkey");
+                                            let reference = "&solana_sdk::pubkey::Pubkey".to_string();
                                             let t: syn::Type = parse_str(&reference).unwrap();
                                             t
                                         } else {

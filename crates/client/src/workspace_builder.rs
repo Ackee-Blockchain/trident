@@ -1,7 +1,7 @@
 use crate::commander::{Commander, Error as CommanderError};
 use cargo_metadata::Package;
 use fehler::{throw, throws};
-use pathdiff;
+// use pathdiff;
 use std::{
     env,
     fs::OpenOptions,
@@ -12,10 +12,7 @@ use std::{fs::File, io::prelude::*};
 use syn::ItemUse;
 use thiserror::Error;
 use tokio::fs;
-use toml::{
-    value::{Map, Table},
-    Value,
-};
+use toml::{value::Table, Value};
 
 use crate::constants::*;
 use crate::generate_source_code;
@@ -533,52 +530,52 @@ impl WorkspaceBuilder {
         };
     }
 
-    #[throws]
-    async fn add_feature_to_dep(&self, dependency: &str, feature: &str, cargo_dir: &Path) {
-        let cargo_toml_path = cargo_dir.join(CARGO);
-        let rel_path = &cargo_toml_path
-            .strip_prefix(&self.root)
-            .unwrap()
-            .to_str()
-            .unwrap();
-        let mut content: Value = fs::read_to_string(&cargo_toml_path).await?.parse()?;
-        let deps = content
-            .get_mut("dependencies")
-            .and_then(Value::as_table_mut)
-            .ok_or(Error::CannotParseCargoToml)?;
+    // #[throws]
+    // async fn add_feature_to_dep(&self, dependency: &str, feature: &str, cargo_dir: &Path) {
+    //     let cargo_toml_path = cargo_dir.join(CARGO);
+    //     let rel_path = &cargo_toml_path
+    //         .strip_prefix(&self.root)
+    //         .unwrap()
+    //         .to_str()
+    //         .unwrap();
+    //     let mut content: Value = fs::read_to_string(&cargo_toml_path).await?.parse()?;
+    //     let deps = content
+    //         .get_mut("dependencies")
+    //         .and_then(Value::as_table_mut)
+    //         .ok_or(Error::CannotParseCargoToml)?;
 
-        let values = deps
-            .get_mut(dependency)
-            .and_then(|f| {
-                if f.is_table() {
-                    f.as_table_mut()
-                } else if f.is_str() {
-                    // if the value is only a string with version such as dependency = 0.0, create a new table with that version
-                    let version = f.as_str().unwrap();
-                    let mut map = Map::new();
-                    let _ = map.insert("version".to_string(), Value::String(version.to_string()));
-                    let t = Value::Table(map);
-                    *f = t.to_owned();
-                    f.as_table_mut()
-                } else {
-                    None
-                }
-            })
-            .ok_or(Error::CannotParseCargoToml)?;
+    //     let values = deps
+    //         .get_mut(dependency)
+    //         .and_then(|f| {
+    //             if f.is_table() {
+    //                 f.as_table_mut()
+    //             } else if f.is_str() {
+    //                 // if the value is only a string with version such as dependency = 0.0, create a new table with that version
+    //                 let version = f.as_str().unwrap();
+    //                 let mut map = Map::new();
+    //                 let _ = map.insert("version".to_string(), Value::String(version.to_string()));
+    //                 let t = Value::Table(map);
+    //                 *f = t.to_owned();
+    //                 f.as_table_mut()
+    //             } else {
+    //                 None
+    //             }
+    //         })
+    //         .ok_or(Error::CannotParseCargoToml)?;
 
-        let fuzzing = Value::String(feature.to_string());
-        let value = Value::Array(vec![]);
-        let features = values.entry("features").or_insert(value);
-        if let Some(features) = features.as_array_mut() {
-            if !features.iter().any(|f| *f == fuzzing) {
-                features.push(fuzzing);
-                fs::write(&cargo_toml_path, content.to_string()).await?;
-                println!("\x1b[92mSuccesfully\x1b[0m updated: \x1b[93m{rel_path}\x1b[0m {feature} feature added.");
-            } else {
-                println!("\x1b[93m--> Skipping <--\x1b[0m \x1b[93m{rel_path}\x1b[0m, already contains {feature} feature.")
-            }
-        }
-    }
+    //     let fuzzing = Value::String(feature.to_string());
+    //     let value = Value::Array(vec![]);
+    //     let features = values.entry("features").or_insert(value);
+    //     if let Some(features) = features.as_array_mut() {
+    //         if !features.iter().any(|f| *f == fuzzing) {
+    //             features.push(fuzzing);
+    //             fs::write(&cargo_toml_path, content.to_string()).await?;
+    //             println!("\x1b[92mSuccesfully\x1b[0m updated: \x1b[93m{rel_path}\x1b[0m {feature} feature added.");
+    //         } else {
+    //             println!("\x1b[93m--> Skipping <--\x1b[0m \x1b[93m{rel_path}\x1b[0m, already contains {feature} feature.")
+    //         }
+    //     }
+    // }
 
     /// - adds program dependency to specified Cargo.toml
     /// for example, we need to use program entry within the fuzzer

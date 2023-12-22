@@ -244,7 +244,7 @@ pub struct Config {
     pub fuzz: Fuzz,
 }
 
-#[derive(Default, Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Clone)]
 struct _Config {
     #[serde(default)]
     pub test: Option<_Test>,
@@ -258,6 +258,12 @@ impl From<_Config> for Config {
             test: _c.test.unwrap_or_default().into(),
             fuzz: _c.fuzz.unwrap_or_default().into(),
         }
+    }
+}
+
+impl Default for Config {
+    fn default() -> Self {
+        Config::new()
     }
 }
 

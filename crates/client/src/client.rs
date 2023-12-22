@@ -1,23 +1,19 @@
 use crate::{constants::*, Config, Reader, TempClone};
 
-use anchor_client;
 use anchor_client::ClientError as Error;
 // TODO maybe can deleted
-use borsh;
+// use borsh;
 use fehler::{throw, throws};
 use solana_sdk::program_pack::Pack;
 use solana_sdk::signer::Signer;
 // TODO maybe can deleted
 use futures::{self, StreamExt};
-use log;
 // TODO maybe can deleted
-use serde;
+// use serde;
 // TODO maybe can deleted
-use solana_account_decoder;
+// use solana_account_decoder;
 // TODO maybe can deleted
-use solana_cli_output;
-use solana_transaction_status;
-use spl_associated_token_account;
+// use solana_cli_output;
 
 // @TODO: Make compatible with the latest Anchor deps.
 // https://github.com/project-serum/anchor/pull/1307#issuecomment-1022592683
@@ -187,7 +183,7 @@ impl Client {
             .program(solana_sdk::system_program::ID)?
             .async_rpc();
         rpc_client
-            .get_account_with_commitment(&account, rpc_client.commitment())
+            .get_account_with_commitment(account, rpc_client.commitment())
             .await
             .unwrap()
             .value
@@ -326,10 +322,7 @@ impl Client {
             .unwrap()
             .async_rpc();
 
-        let signature = rpc_client
-            .request_airdrop(&address, lamports)
-            .await
-            .unwrap();
+        let signature = rpc_client.request_airdrop(address, lamports).await.unwrap();
 
         let (airdrop_result, error) = loop {
             match rpc_client.get_signature_status(&signature).await.unwrap() {
@@ -708,14 +701,14 @@ impl Client {
                 spl_associated_token_account::instruction::create_associated_token_account(
                     &self.payer().pubkey(),
                     &owner.pubkey(),
-                    &mint,
+                    mint,
                     &spl_token::ID,
                 ),
             ],
             &[],
         )
         .await?;
-        spl_associated_token_account::get_associated_token_address(&owner.pubkey(), &mint)
+        spl_associated_token_account::get_associated_token_address(&owner.pubkey(), mint)
     }
 
     /// Executes a transaction creating and filling the given account with the given data.

@@ -74,7 +74,7 @@ mod test {
             &convert_pubkey(funder),
             &convert_pubkey(wallet_address),
             &convert_pubkey(mint),
-            &&spl_token::id(),
+            &spl_token::id(),
         );
         let message = Message::new(&[create_ix], None);
         let compiled_instruction = convert_compiled_instruction(&message.instructions[0]);
