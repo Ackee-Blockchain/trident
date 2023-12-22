@@ -1,30 +1,24 @@
-use crate::config::Config;
-use crate::{
-    idl::{self, Idl},
-    Client,
-};
-use cargo_metadata::{MetadataCommand, Package};
+use std::io::Write;
+use std::os::unix::process::CommandExt;
+
+use crate::Client;
+use crate::Config;
+use crate::{Idl, IdlError};
 use fehler::{throw, throws};
-use log::debug;
-use solana_sdk::signer::keypair::Keypair;
-use std::{io, os::unix::process::CommandExt, path::Path, process::Stdio, string::FromUtf8Error};
+use log;
 use thiserror::Error;
-use tokio::{
-    fs,
-    io::AsyncWriteExt,
-    process::{Child, Command},
-    signal,
-};
+// TODO maybe unused
+use tokio;
 
 // -----
 use crate::constants::*;
-use indicatif::{ProgressBar, ProgressStyle};
+use indicatif;
 #[derive(Error, Debug)]
 pub enum Error {
     #[error("{0:?}")]
-    Io(#[from] io::Error),
+    Io(#[from] std::io::Error),
     #[error("{0:?}")]
-    Utf8(#[from] FromUtf8Error),
+    Utf8(#[from] std::string::FromUtf8Error),
     #[error("localnet is not running")]
     LocalnetIsNotRunning,
     #[error("localnet is still running")]
@@ -36,7 +30,7 @@ pub enum Error {
     #[error("read program code failed: '{0}'")]
     ReadProgramCodeFailed(String),
     #[error("{0:?}")]
-    Idl(#[from] idl::Error),
+    Idl(#[from] IdlError),
     #[error("{0:?}")]
     TomlDeserialize(#[from] toml::de::Error),
     #[error("parsing Cargo.toml dependencies failed")]
@@ -53,7 +47,7 @@ pub enum Error {
 
 /// Localnet (the validator process) handle.
 pub struct LocalnetHandle {
-    solana_test_validator_process: Child,
+    solana_test_validator_process: tokio::process::Child,
 }
 
 impl LocalnetHandle {
@@ -69,10 +63,13 @@ impl LocalnetHandle {
     #[throws]
     pub async fn stop(mut self) {
         self.solana_test_validator_process.kill().await?;
-        if Client::new(Keypair::new()).is_localnet_running(false).await {
+        if Client::new(solana_sdk::signature::Keypair::new())
+            .is_localnet_running(false)
+            .await
+        {
             throw!(Error::LocalnetIsStillRunning);
         }
-        debug!("localnet stopped");
+        log::debug!("localnet stopped");
     }
 
     /// Stops the localnet and removes the ledger.
@@ -88,8 +85,8 @@ impl LocalnetHandle {
     #[throws]
     pub async fn stop_and_remove_ledger(self) {
         self.stop().await?;
-        fs::remove_dir_all("test-ledger").await?;
-        debug!("ledger removed");
+        tokio::fs::remove_dir_all("test-ledger").await?;
+        log::debug!("ledger removed");
     }
 }
 
@@ -103,8 +100,8 @@ impl Commander {
     pub async fn build_programs(arch: &str) {
         let exit = std::process::Command::new("cargo")
             .arg(arch)
-            .stdout(Stdio::inherit())
-            .stderr(Stdio::inherit())
+            .stdout(std::process::Stdio::inherit())
+            .stderr(std::process::Stdio::inherit())
             .output()
             .unwrap();
 
@@ -113,8 +110,8 @@ impl Commander {
         }
     }
     /// Returns an [Iterator] of program [Package]s read from `Cargo.toml` files.
-    pub fn program_packages() -> impl Iterator<Item = Package> {
-        let cargo_toml_data = MetadataCommand::new()
+    pub fn program_packages() -> impl Iterator<Item = cargo_metadata::Package> {
+        let cargo_toml_data = cargo_metadata::MetadataCommand::new()
             .no_deps()
             .exec()
             .expect("Cargo.toml reading failed");
@@ -131,8 +128,8 @@ impl Commander {
         })
     }
     #[throws]
-    pub async fn collect_packages() -> Vec<Package> {
-        let packages: Vec<Package> = Commander::program_packages().collect();
+    pub async fn collect_packages() -> Vec<cargo_metadata::Package> {
+        let packages: Vec<cargo_metadata::Package> = Commander::program_packages().collect();
         if packages.is_empty() {
             throw!(Error::NoProgramsFound)
         } else {
@@ -141,7 +138,7 @@ impl Commander {
     }
 
     #[throws]
-    pub async fn obtain_program_idl(packages: &[Package]) -> Idl {
+    pub async fn obtain_program_idl(packages: &[cargo_metadata::Package]) -> Idl {
         let connections = std::sync::Arc::new(std::sync::Mutex::new(Vec::new()));
         for package in packages.iter() {
             let is_running = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(true));
@@ -162,7 +159,7 @@ impl Commander {
 
                 if output.status.success() {
                     let code = String::from_utf8(output.stdout).unwrap();
-                    let idl_program = idl::parse_to_idl_program(&name, &code).unwrap();
+                    let idl_program = Idl::parse_to_idl_program(&name, &code).unwrap();
                     let mut vec = conn.lock().unwrap();
                     vec.push(idl_program);
                     is_running_for_thread.store(false, std::sync::atomic::Ordering::SeqCst);
@@ -174,9 +171,9 @@ impl Commander {
                 }
             });
 
-            let progress_bar = ProgressBar::new_spinner();
+            let progress_bar = indicatif::ProgressBar::new_spinner();
             progress_bar.set_style(
-                ProgressStyle::default_spinner()
+                indicatif::ProgressStyle::default_spinner()
                     .template("{spinner} {wide_msg}")
                     .unwrap(),
             );
@@ -205,16 +202,20 @@ impl Commander {
     #[throws]
     pub async fn clean_anchor_target() {
         // INFO perform anchor clean so no keys will be removed
-        Command::new("anchor").arg("clean").spawn()?.wait().await?;
+        tokio::process::Command::new("anchor")
+            .arg("clean")
+            .spawn()?
+            .wait()
+            .await?;
     }
     #[throws]
-    pub async fn clean_hfuzz_target(root: &Path) {
+    pub async fn clean_hfuzz_target(root: &std::path::Path) {
         // INFO hfuzz target can be of course located somewhere else
         // but as we leave it within the root, we also expect it within the root
 
         let hfuzz_target_path = root.join(HFUZZ_TARGET);
         if hfuzz_target_path.exists() {
-            fs::remove_dir_all(hfuzz_target_path).await?;
+            tokio::fs::remove_dir_all(hfuzz_target_path).await?;
         } else {
             println!("skipping {} directory: not found", HFUZZ_TARGET)
         }
@@ -224,48 +225,57 @@ impl Commander {
     /// The goal of this method is to find all `use` statements defined by the user in the `.program_client`
     /// crate. It solves the problem with regenerating the program client and removing imports defined by
     /// the user.
-    // TODO is this relevant when program_client should not be changed by user ?
     #[throws]
     pub async fn parse_program_client_imports() -> Vec<syn::ItemUse> {
-        let output = std::process::Command::new("cargo")
-            .arg("+nightly")
-            .arg("rustc")
-            .args(["--package", "program_client"])
-            .arg("--profile=check")
-            .arg("--")
-            .arg("-Zunpretty=expanded")
-            .output()
-            .unwrap();
+        // TODO
+        // We have two options here, write that this file is fully generated so
+        // aditional changes will be rewritten by trdelnik build, or we can
+        // actually parse the use statements
+        // let output = std::process::Command::new("cargo")
+        //     .arg("+nightly")
+        //     .arg("rustc")
+        //     .args(["--package", "program_client"])
+        //     .arg("--profile=check")
+        //     .arg("--")
+        //     .arg("-Zunpretty=expanded")
+        //     .output()
+        //     .unwrap();
 
-        if output.status.success() {
-            let code = String::from_utf8(output.stdout)?;
-            let mut use_modules: Vec<syn::ItemUse> = vec![];
-            for item in syn::parse_file(code.as_str()).unwrap().items.into_iter() {
-                if let syn::Item::Mod(module) = item {
-                    let modules = module
-                        .content
-                        .ok_or("account mod: empty content")
-                        .unwrap()
-                        .1
-                        .into_iter();
-                    for module in modules {
-                        if let syn::Item::Use(u) = module {
-                            use_modules.push(u);
-                        }
-                    }
-                }
-            }
-            if use_modules.is_empty() {
-                use_modules.push(syn::parse_quote! { use trdelnik_client::*; })
-            }
-            use_modules
-        } else {
-            let mut use_modules: Vec<syn::ItemUse> = vec![];
-            if use_modules.is_empty() {
-                use_modules.push(syn::parse_quote! { use trdelnik_client::*; })
-            }
-            use_modules
+        // if output.status.success() {
+        //     let code = String::from_utf8(output.stdout)?;
+        //     let mut use_modules: Vec<syn::ItemUse> = vec![];
+        //     for item in syn::parse_file(code.as_str()).unwrap().items.into_iter() {
+        //         if let syn::Item::Mod(module) = item {
+        //             let modules = module
+        //                 .content
+        //                 .ok_or("account mod: empty content")
+        //                 .unwrap()
+        //                 .1
+        //                 .into_iter();
+        //             for module in modules {
+        //                 if let syn::Item::Use(u) = module {
+        //                     use_modules.push(u);
+        //                 }
+        //             }
+        //         }
+        //     }
+        //     if use_modules.is_empty() {
+        //         use_modules.push(syn::parse_quote! { use trdelnik_client::program_client::*; })
+        //     }
+        //     use_modules
+        // } else {
+        //     let mut use_modules: Vec<syn::ItemUse> = vec![];
+        //     if use_modules.is_empty() {
+        //         use_modules.push(syn::parse_quote! { use trdelnik_client::program_client::*; })
+        //     }
+        //     use_modules
+        // }
+
+        let mut use_modules: Vec<syn::ItemUse> = vec![];
+        if use_modules.is_empty() {
+            use_modules.push(syn::parse_quote! { use trdelnik_client::program_client::*; })
         }
+        use_modules
     }
 
     /// Runs standard Rust tests.
@@ -278,7 +288,7 @@ impl Commander {
         // only poc_tests and not fuzz tests also
         // FIXME "ok" within the output in terminal is not green
         // as it should be
-        let success = Command::new("cargo")
+        let success = tokio::process::Command::new("cargo")
             .arg("test")
             .args(["--package", "poc_tests"])
             .arg("--")
@@ -303,7 +313,7 @@ impl Commander {
 
         let fuzz_args = config.get_fuzz_args(hfuzz_run_args);
 
-        let mut child = Command::new("cargo")
+        let mut child = tokio::process::Command::new("cargo")
             .env("HFUZZ_RUN_ARGS", fuzz_args)
             .arg("hfuzz")
             .arg("run")
@@ -318,14 +328,14 @@ impl Commander {
                     },
                     Err(_) => throw!(Error::FuzzingFailed),
             },
-            _ = signal::ctrl_c() => {
+            _ = tokio::signal::ctrl_c() => {
                 tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
             },
         }
     }
     #[throws]
     pub async fn run_fuzzer_with_exit_code(target: String, root: String) {
-        let root = Path::new(&root);
+        let root = std::path::Path::new(&root);
 
         // obtain config data
         let config = Config::new();
@@ -350,7 +360,7 @@ impl Commander {
         // if !cur_dir.try_exists()? {
         //     throw!(Error::NotInitialized);
         // }
-        let mut child = Command::new("cargo")
+        let mut child = tokio::process::Command::new("cargo")
             .env("HFUZZ_RUN_ARGS", fuzz_args)
             .arg("hfuzz")
             .arg("run")
@@ -365,7 +375,7 @@ impl Commander {
                     },
                     Err(_) => throw!(Error::FuzzingFailed),
             },
-            _ = signal::ctrl_c() => {
+            _ = tokio::signal::ctrl_c() => {
                 tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
             },
         }
@@ -384,7 +394,7 @@ impl Commander {
     /// Runs fuzzer on the given target.
     #[throws]
     pub async fn run_fuzzer_debug(target: String, crash_file_path: String, root: String) {
-        let root = Path::new(&root);
+        let root = std::path::Path::new(&root);
 
         let cur_dir = root.join(TESTS_WORKSPACE_DIRECTORY);
         let crash_file = std::env::current_dir()?.join(crash_file_path);
@@ -413,20 +423,23 @@ impl Commander {
     /// Starts the localnet (Solana validator).
     #[throws]
     pub async fn start_localnet(root: &String) -> LocalnetHandle {
-        let mut process = Command::new("solana-test-validator")
+        let mut process = tokio::process::Command::new("solana-test-validator")
             .arg("-C")
             .arg([root, "config.yml"].concat())
             .arg("-r")
             .arg("-q")
             .spawn()?;
 
-        if !Client::new(Keypair::new()).is_localnet_running(true).await {
+        if !Client::new(solana_sdk::signature::Keypair::new())
+            .is_localnet_running(true)
+            .await
+        {
             // The validator might not be running, but the process might be still alive (very slow start, some bug, ...),
             // therefore we want to kill it if it's still running so ports aren't held.
             process.kill().await.ok();
             throw!(Error::LocalnetIsNotRunning);
         }
-        debug!("localnet started");
+        log::debug!("localnet started");
         LocalnetHandle {
             solana_test_validator_process: process,
         }
@@ -435,22 +448,21 @@ impl Commander {
     /// Formats program code.
     #[throws]
     pub async fn format_program_code(code: &str) -> String {
-        let mut rustfmt = Command::new("rustfmt")
+        let mut rustfmt = std::process::Command::new("rustfmt")
             .args(["--edition", "2018"])
-            .kill_on_drop(true)
-            .stdin(Stdio::piped())
-            .stdout(Stdio::piped())
+            .stdin(std::process::Stdio::piped())
+            .stdout(std::process::Stdio::piped())
             .spawn()?;
         if let Some(stdio) = &mut rustfmt.stdin {
-            stdio.write_all(code.as_bytes()).await?;
+            stdio.write_all(code.as_bytes())?;
         }
-        let output = rustfmt.wait_with_output().await?;
+        let output = rustfmt.wait_with_output()?;
         String::from_utf8(output.stdout)?
     }
 }
 
 fn get_crash_dir_and_ext(
-    root: &Path,
+    root: &std::path::Path,
     target: &str,
     hfuzz_run_args: &str,
 ) -> (std::path::PathBuf, String) {
@@ -464,10 +476,12 @@ fn get_crash_dir_and_ext(
         .or_else(|| get_cmd_option_value(hfuzz_run_args.clone(), "-W", "--w"));
 
     let crash_path = if let Some(dir) = crash_dir {
-        Path::new(root).join(dir)
+        std::path::Path::new(root).join(dir)
         // Path::new(root).join(TESTS_WORKSPACE_DIRECTORY).join(dir)
     } else {
-        Path::new(root).join(HFUZZ_WORKSPACE).join(target)
+        std::path::Path::new(root)
+            .join(HFUZZ_WORKSPACE)
+            .join(target)
         // Path::new(root)
         //     .join(TESTS_WORKSPACE_DIRECTORY)
         //     .join(HFUZZ_WORKSPACE)
@@ -620,9 +634,11 @@ mod tests {
 
     #[test]
     fn test_get_crash_dir_and_ext() {
-        let root = Path::new("/home/fuzz");
+        let root = std::path::Path::new("/home/fuzz");
         let target = "target";
-        let default_crash_path = Path::new(root).join(HFUZZ_WORKSPACE).join(target);
+        let default_crash_path = std::path::Path::new(root)
+            .join(HFUZZ_WORKSPACE)
+            .join(target);
 
         let (crash_dir, ext) = get_crash_dir_and_ext(root, target, "");
 
@@ -642,7 +658,7 @@ mod tests {
         // test absolute path
         let (crash_dir, ext) = get_crash_dir_and_ext(root, target, "-Q -W /home/crash -e crash");
 
-        let expected_crash_path = Path::new("/home/crash");
+        let expected_crash_path = std::path::Path::new("/home/crash");
         assert_eq!(crash_dir, expected_crash_path);
         assert_eq!(&ext, "crash");
 
@@ -650,7 +666,7 @@ mod tests {
         let (crash_dir, ext) =
             get_crash_dir_and_ext(root, target, "-Q --crash /home/crash -e crash");
 
-        let expected_crash_path = Path::new("/home/crash");
+        let expected_crash_path = std::path::Path::new("/home/crash");
         assert_eq!(crash_dir, expected_crash_path);
         assert_eq!(&ext, "crash");
 

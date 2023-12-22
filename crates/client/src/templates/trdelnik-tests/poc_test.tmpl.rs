@@ -1,5 +1,4 @@
-use fehler::throws;
-use trdelnik_client::{anyhow::Result, *};
+use trdelnik_client::poctesting::*;
 
 // @todo: create and deploy your fixture
 #[throws]
@@ -22,8 +21,8 @@ async fn test_happy_path(#[future] init_fixture: Result<Fixture>) {
 // @todo: design and implement all the logic you need for your fixture(s)
 struct Fixture {
     client: Client,
-    program: Keypair,
-    state: Keypair,
+    program: solana_sdk::signer::keypair::Keypair,
+    state: solana_sdk::signer::keypair::Keypair,
 }
 impl Fixture {
     fn new() -> Self {
@@ -37,10 +36,10 @@ impl Fixture {
     #[throws]
     async fn deploy(&mut self) {
         self.client
-            .airdrop(self.client.payer().pubkey(), 5_000_000_000)
+            .airdrop(&self.client.payer().pubkey(), 5_000_000_000)
             .await?;
         self.client
-            .deploy_by_name(&self.program.clone(), "###PROGRAM_NAME###")
+            .deploy_by_name(&self.program, "###PROGRAM_NAME###")
             .await?;
     }
 }

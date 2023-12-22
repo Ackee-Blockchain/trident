@@ -18,8 +18,8 @@ use toml::{
 };
 
 use crate::constants::*;
-use crate::idl::Idl;
-use crate::program_client_generator;
+use crate::generate_source_code;
+use crate::Idl;
 
 #[derive(Error, Debug)]
 pub enum Error {
@@ -166,8 +166,7 @@ impl WorkspaceBuilder {
         self.add_program_dependencies(&crate_path, "dependencies")
             .await?;
 
-        let program_client =
-            program_client_generator::generate_source_code(&self.idl, &self.use_tokens);
+        let program_client = generate_source_code(&self.idl, &self.use_tokens);
         let program_client = Commander::format_program_code(&program_client).await?;
 
         self.create_file(&lib_path, &program_client).await?;
@@ -265,7 +264,7 @@ impl WorkspaceBuilder {
 
         let fuzz_test_content = include_str!(concat!(
             env!("CARGO_MANIFEST_DIR"),
-            "/src/templates/trdelnik-tests/fuzz_target.rs"
+            "/src/templates/trdelnik-tests/fuzz_test.tmpl.rs"
         ));
 
         let use_entry = format!("use {}::entry;\n", program_name);
@@ -286,8 +285,8 @@ impl WorkspaceBuilder {
             .await?;
 
         // add fuzzing feature
-        self.add_feature_to_dep("trdelnik-client", "fuzzing", &new_fuzz_test_dir)
-            .await?;
+        // self.add_feature_to_dep("trdelnik-client", "fuzzing", &new_fuzz_test_dir)
+        //     .await?;
     }
 
     /// - generates new folder and contents for new PoC test Template
@@ -339,7 +338,7 @@ impl WorkspaceBuilder {
 
         let poc_test_content = include_str!(concat!(
             env!("CARGO_MANIFEST_DIR"),
-            "/src/templates/trdelnik-tests/test.rs"
+            "/src/templates/trdelnik-tests/poc_test.tmpl.rs"
         ));
         let test_content = poc_test_content.replace("###PROGRAM_NAME###", program_name);
         let use_instructions = format!("use program_client::{}_instruction::*;\n", program_name);
@@ -417,8 +416,7 @@ impl WorkspaceBuilder {
         self.add_program_dependencies(&crate_path, "dependencies")
             .await?;
 
-        let program_client =
-            program_client_generator::generate_source_code(&self.idl, &self.use_tokens);
+        let program_client = generate_source_code(&self.idl, &self.use_tokens);
         let program_client = Commander::format_program_code(&program_client).await?;
 
         self.update_file(&lib_path, &program_client).await?;
@@ -464,6 +462,10 @@ impl WorkspaceBuilder {
             for line in io::BufReader::new(file).lines().flatten() {
                 if line == ignored_path {
                     // INFO do not add the ignored path again if it is already in the .gitignore file
+                    println!(
+                        "\x1b[93m--> Skipping <--\x1b[0m \x1b[93m{GIT_IGNORE}\x1b[0m, already contains \x1b[93m{ignored_path}\x1b[0m."
+                    );
+
                     return;
                 }
             }
@@ -471,7 +473,7 @@ impl WorkspaceBuilder {
 
             if let Ok(mut file) = file {
                 writeln!(file, "{}", ignored_path)?;
-                println!("\x1b[92mSuccesfully\x1b[0m updated: \x1b[93m{GIT_IGNORE}\x1b[0m.");
+                println!("\x1b[92mSuccesfully\x1b[0m updated: \x1b[93m{GIT_IGNORE}\x1b[0m with \x1b[93m{ignored_path}\x1b[0m.");
             }
         } else {
             println!("\x1b[93m--> Skipping <--\x1b[0m \x1b[93m{GIT_IGNORE}\x1b[0m, not found.")

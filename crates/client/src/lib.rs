@@ -3,48 +3,59 @@
 //!
 //! Trdelnik could be useful for writing Rust dApps, too.
 
-pub use anchor_client::{
-    self,
-    anchor_lang::{self, prelude::System, Id, InstructionData, ToAccountMetas},
-    solana_sdk::{
-        self,
-        instruction::Instruction,
-        pubkey::Pubkey,
-        signature::Signature,
-        signer::{keypair::Keypair, Signer},
-    },
-    ClientError,
-};
-pub use anyhow::{self, Error};
-
 #[cfg(feature = "fuzzing")]
 pub mod fuzzing {
-    pub use super::{
-        anchor_lang, anchor_lang::system_program::ID as SYSTEM_PROGRAM_ID,
-        solana_sdk::transaction::Transaction, Instruction, Keypair, Pubkey, Signer,
-    };
-    pub use anchor_client::anchor_lang::solana_program::hash::Hash;
+    pub use anchor_lang;
     pub use arbitrary;
     pub use arbitrary::Arbitrary;
     pub use honggfuzz::fuzz;
-    pub use solana_program_test::{
-        processor, tokio::runtime::Runtime, BanksClient, BanksClientError, ProgramTest,
-    };
+    pub use solana_program_test;
+    pub use solana_sdk;
+    pub use solana_sdk::signer::Signer;
 }
 
-pub use futures::{self, FutureExt};
-pub use rstest::*;
-pub use serial_test;
-pub use solana_transaction_status::EncodedConfirmedTransactionWithStatusMeta;
-pub use tokio;
+pub mod program_client {
+    pub use crate::client::Client;
+    pub use anchor_client;
+    pub use anchor_lang::{InstructionData, ToAccountMetas};
+    pub use solana_sdk;
+    pub use solana_transaction_status;
+}
 
-pub use trdelnik_test::trdelnik_test;
+#[cfg(feature = "poctesting")]
+pub mod poctesting {
+    pub use crate::client::Client;
+    pub use crate::error_reporter::*;
+    pub use crate::TempClone;
+    pub use anchor_lang;
+    pub use anyhow::{Error, Result};
+
+    pub use fehler::throws;
+
+    pub use futures::FutureExt;
+    pub use rstest::*;
+    pub use serial_test;
+    pub use solana_sdk;
+    pub use solana_sdk::signer::Signer;
+    pub use tokio;
+    pub use trdelnik_test::trdelnik_test;
+
+    pub use crate::keys::*;
+}
+
+// pub use futures::{self, FutureExt};
+// pub use client::PrintableTransaction;
+// pub use trdelnik_test::trdelnik_test;
+
+// pub use rstest::*;
+// pub use serial_test;
+// pub use tokio;
 
 mod config;
+pub use config::Config;
 
 mod client;
 pub use client::Client;
-pub use client::PrintableTransaction;
 
 mod reader;
 pub use reader::Reader;
@@ -61,10 +72,13 @@ pub use temp_clone::TempClone;
 mod keys;
 pub use keys::*;
 
-pub mod idl;
-pub mod program_client_generator;
+mod idl;
+pub use idl::{Idl, IdlError};
 
-pub mod workspace_builder;
+mod program_client_generator;
+pub use program_client_generator::generate_source_code;
+
+mod workspace_builder;
 pub use workspace_builder::WorkspaceBuilder;
 
 pub mod error_reporter;
@@ -96,4 +110,7 @@ pub mod constants {
     pub const GIT_IGNORE: &str = ".gitignore";
 
     pub const CLIENT_TOML_TEMPLATE: &str = "/src/templates/program_client/Cargo.toml.tmpl";
+
+    pub const RETRY_LOCALNET_EVERY_MILLIS: u64 = 500;
+    pub const DEFAULT_KEYPAIR_PATH: &str = "~/.config/solana/id.json";
 }

@@ -6,12 +6,12 @@ edition = "2018"
 # Dependencies specific to PoC test
 # Dev-dependencies are used for compiling tests,
 [dev-dependencies]
-assert_matches = "1.4.0"
 fehler = "1.0.0"
-rstest = "0.12.0"
 
 [dev-dependencies.trdelnik-client]
 version = "0.5.0"
+features=["poctesting"]
+
 
 [dev-dependencies.program_client]
 path = "../../.program_client"

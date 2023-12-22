@@ -1,7 +1,7 @@
-#[trdelnik_client::rstest]
-#[trdelnik_client::tokio::test(flavor = "multi_thread")]
-#[trdelnik_client::serial_test::serial]
-async fn test_turnstile() -> trdelnik_client::anyhow::Result<()> {
+#[trdelnik_client::poctesting::rstest]
+#[trdelnik_client::poctesting::tokio::test(flavor = "multi_thread")]
+#[trdelnik_client::poctesting::serial_test::serial]
+async fn test_turnstile() -> Result<()> {
     let mut tester = trdelnik_client::Tester::with_root("../../");
     let localnet_handle = tester.before().await?;
     let test = async {
@@ -14,7 +14,7 @@ async fn test_turnstile() -> trdelnik_client::anyhow::Result<()> {
             turnstile.push_unlocked().await?;
             turnstile.push_locked().await?;
         }
-        Ok::<(), trdelnik_client::anyhow::Error>(())
+        Ok::<(), Error>(())
     };
     let result = std::panic::AssertUnwindSafe(test).catch_unwind().await;
     tester.after(localnet_handle).await?;

@@ -1,7 +1,7 @@
-use fehler::throws;
 use program_client::turnstile_instruction::*;
-use trdelnik_client::{anyhow::Result, *};
+use trdelnik_client::poctesting::*;
 
+// @todo: create and deploy your fixture
 #[throws]
 #[fixture]
 async fn init_fixture() -> Fixture {
@@ -22,7 +22,7 @@ async fn init_fixture() -> Fixture {
     };
     fixture
         .client
-        .airdrop(fixture.user_initializer.pubkey(), 5_000_000_000)
+        .airdrop(&fixture.user_initializer.pubkey(), 5_000_000_000)
         .await?;
     // deploy a tested program
     fixture
@@ -33,10 +33,10 @@ async fn init_fixture() -> Fixture {
     // init instruction call
     initialize(
         &fixture.client,
-        fixture.state.pubkey(),
-        fixture.user_initializer.pubkey(),
-        System::id(),
-        [fixture.state.clone(), fixture.user_initializer.clone()],
+        &fixture.state.pubkey(),
+        &fixture.user_initializer.pubkey(),
+        &solana_sdk::system_program::id(),
+        [&fixture.state, &fixture.user_initializer],
     )
     .await?;
 
@@ -51,12 +51,12 @@ async fn test_happy_path(#[future] init_fixture: Result<Fixture>) {
     coin(
         &fixture.client,
         "dummy_string".to_owned(),
-        fixture.state.pubkey(),
+        &fixture.state.pubkey(),
         None,
     )
     .await?;
     // push instruction call
-    push(&fixture.client, fixture.state.pubkey(), None).await?;
+    push(&fixture.client, &fixture.state.pubkey(), None).await?;
 
     // check the test result
     let state = fixture.get_state().await?;
@@ -72,7 +72,7 @@ async fn test_unhappy_path(#[future] init_fixture: Result<Fixture>) {
     let fixture = init_fixture.await?;
 
     // pushing without prior coin insertion
-    push(&fixture.client, fixture.state.pubkey(), None).await?;
+    push(&fixture.client, &fixture.state.pubkey(), None).await?;
 
     // check the test result
     let state = fixture.get_state().await?;
@@ -85,14 +85,14 @@ async fn test_unhappy_path(#[future] init_fixture: Result<Fixture>) {
 
 struct Fixture {
     client: Client,
-    program: Keypair,
-    state: Keypair,
-    user_initializer: Keypair,
+    program: solana_sdk::signer::keypair::Keypair,
+    state: solana_sdk::signer::keypair::Keypair,
+    user_initializer: solana_sdk::signer::keypair::Keypair,
 }
 
 impl Fixture {
     #[throws]
     async fn get_state(&self) -> turnstile::State {
-        self.client.account_data(self.state.pubkey()).await?
+        self.client.account_data(&self.state.pubkey()).await?
     }
 }

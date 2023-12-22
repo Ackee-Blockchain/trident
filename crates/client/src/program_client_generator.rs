@@ -55,7 +55,8 @@ pub fn generate_source_code(idl: &Idl, use_modules: &[syn::ItemUse]) -> String {
                                         let last_type =
                                             &tp.path.segments.last().unwrap().ident.to_string();
                                         if last_type == "Pubkey" {
-                                            let t: syn::Type = parse_str(last_type).unwrap();
+                                            let reference = format!("&solana_sdk::pubkey::Pubkey");
+                                            let t: syn::Type = parse_str(&reference).unwrap();
                                             t
                                         } else {
                                             // we expect only Pubkey, but if it is something different, than return fully qualified type
@@ -85,19 +86,21 @@ pub fn generate_source_code(idl: &Idl, use_modules: &[syn::ItemUse]) -> String {
                             .iter()
                             .map(|(name, _)| {
                                 let name: syn::Ident = parse_str(name).unwrap();
-                                let value = format_ident!("a_{name}");
+                                let value_s = format!("*a_{}", name);
+                                let value: syn::Expr = parse_str(&value_s).unwrap();
                                 let account: syn::FieldValue = parse_quote!(#name: #value);
                                 account
                             })
                             .collect::<Vec<_>>();
 
                         let instruction: syn::ItemFn = parse_quote! {
+                            #[allow(clippy::too_many_arguments)]
                             pub async fn #instruction_fn_name(
                                 client: &Client,
                                 #(#parameters,)*
                                 #(#accounts,)*
-                                signers: impl IntoIterator<Item = Keypair> + Send + 'static,
-                            ) -> Result<EncodedConfirmedTransactionWithStatusMeta, ClientError> {
+                                signers: impl IntoIterator<Item = &solana_sdk::signer::keypair::Keypair> + Send,
+                            ) -> Result<solana_transaction_status::EncodedConfirmedTransactionWithStatusMeta, anchor_client::ClientError> {
                                 client.send_instruction(
                                     PROGRAM_ID,
                                     #module_name::instruction::#instruction_struct_name {
@@ -112,11 +115,12 @@ pub fn generate_source_code(idl: &Idl, use_modules: &[syn::ItemUse]) -> String {
                         };
 
                         let instruction_raw: syn::ItemFn = parse_quote! {
+                            #[allow(clippy::too_many_arguments)]
                             pub  fn #instruction_name(
                                 #(#parameters,)*
                                 #(#accounts,)*
-                            ) -> Instruction {
-                                Instruction{
+                            ) -> solana_sdk::instruction::Instruction {
+                                solana_sdk::instruction::Instruction{
                                     program_id: PROGRAM_ID,
                                     data: #module_name::instruction::#instruction_struct_name {
                                         #(#field_parameters,)*
@@ -138,7 +142,7 @@ pub fn generate_source_code(idl: &Idl, use_modules: &[syn::ItemUse]) -> String {
             let program_module: syn::ItemMod = parse_quote! {
                 pub mod #instruction_module_name {
                     #(#use_modules)*
-                    pub static PROGRAM_ID: Pubkey = Pubkey::new_from_array(#pubkey_bytes);
+                    pub static PROGRAM_ID: solana_sdk::pubkey::Pubkey = solana_sdk::pubkey::Pubkey::new_from_array(#pubkey_bytes);
                     #(#instructions)*
                 }
             };

@@ -1,8 +1,9 @@
-use anchor_spl::token;
-use fehler::throws;
-use program_client::escrow_instruction;
-use trdelnik_client::{anyhow::Result, *};
+use program_client::escrow_instruction::*;
+use trdelnik_client::poctesting::*;
 
+use anchor_spl::token;
+
+// @todo: create and deploy your fixture
 #[throws]
 #[fixture]
 async fn init_fixture() -> Fixture {
@@ -10,52 +11,52 @@ async fn init_fixture() -> Fixture {
     // Deploy
     fixture.deploy().await?;
     // Create a PDA authority
-    fixture.pda = Pubkey::find_program_address(&[b"escrow"], &escrow::id()).0;
+    fixture.pda = solana_sdk::pubkey::Pubkey::find_program_address(&[b"escrow"], &escrow::id()).0;
     // Creation of token mint A
     fixture
         .client
-        .create_token_mint(&fixture.mint_a, fixture.mint_authority.pubkey(), None, 0)
+        .create_token_mint(&fixture.mint_a, &fixture.mint_authority.pubkey(), None, 0)
         .await?;
     // Creation of token mint B
     fixture
         .client
-        .create_token_mint(&fixture.mint_b, fixture.mint_authority.pubkey(), None, 0)
+        .create_token_mint(&fixture.mint_b, &fixture.mint_authority.pubkey(), None, 0)
         .await?;
     // Creation of alice's and bob's ATAs for token A
     fixture.alice_token_a_account = fixture
         .client
-        .create_associated_token_account(&fixture.alice_wallet, fixture.mint_a.pubkey())
+        .create_associated_token_account(&fixture.alice_wallet, &fixture.mint_a.pubkey())
         .await?;
     fixture.bob_token_a_account = fixture
         .client
-        .create_associated_token_account(&fixture.bob_wallet, fixture.mint_a.pubkey())
+        .create_associated_token_account(&fixture.bob_wallet, &fixture.mint_a.pubkey())
         .await?;
     // Creation of alice's and bob's ATAs for token B
     fixture.alice_token_b_account = fixture
         .client
-        .create_associated_token_account(&fixture.alice_wallet, fixture.mint_b.pubkey())
+        .create_associated_token_account(&fixture.alice_wallet, &fixture.mint_b.pubkey())
         .await?;
     fixture.bob_token_b_account = fixture
         .client
-        .create_associated_token_account(&fixture.bob_wallet, fixture.mint_b.pubkey())
+        .create_associated_token_account(&fixture.bob_wallet, &fixture.mint_b.pubkey())
         .await?;
 
     // Mint some tokens
     fixture
         .client
         .mint_tokens(
-            fixture.mint_a.pubkey(),
+            &fixture.mint_a.pubkey(),
             &fixture.mint_authority,
-            fixture.alice_token_a_account,
+            &fixture.alice_token_a_account,
             500,
         )
         .await?;
     fixture
         .client
         .mint_tokens(
-            fixture.mint_b.pubkey(),
+            &fixture.mint_b.pubkey(),
             &fixture.mint_authority,
-            fixture.bob_token_b_account,
+            &fixture.bob_token_b_account,
             1000,
         )
         .await?;
@@ -68,17 +69,17 @@ async fn test_happy_path1(#[future] init_fixture: Result<Fixture>) {
     let fixture = init_fixture.await?;
 
     // Initialize escrow
-    escrow_instruction::initialize_escrow(
+    initialize_escrow(
         &fixture.client,
         500,
         1000,
-        fixture.alice_wallet.pubkey(),
-        fixture.alice_token_a_account,
-        fixture.alice_token_b_account,
-        fixture.escrow_account.pubkey(),
-        System::id(),
-        token::ID,
-        [fixture.alice_wallet.clone(), fixture.escrow_account.clone()],
+        &fixture.alice_wallet.pubkey(),
+        &fixture.alice_token_a_account,
+        &fixture.alice_token_b_account,
+        &fixture.escrow_account.pubkey(),
+        &solana_sdk::system_program::id(),
+        &token::ID,
+        [&fixture.alice_wallet, &fixture.escrow_account],
     )
     .await?;
 
@@ -101,18 +102,18 @@ async fn test_happy_path1(#[future] init_fixture: Result<Fixture>) {
     );
 
     // Exchange
-    escrow_instruction::exchange(
+    exchange(
         &fixture.client,
-        fixture.bob_wallet.pubkey(),
-        fixture.bob_token_b_account,
-        fixture.bob_token_a_account,
-        fixture.alice_token_a_account,
-        fixture.alice_token_b_account,
-        fixture.alice_wallet.pubkey(),
-        fixture.escrow_account.pubkey(),
-        fixture.pda,
-        token::ID,
-        [fixture.bob_wallet.clone()],
+        &fixture.bob_wallet.pubkey(),
+        &fixture.bob_token_b_account,
+        &fixture.bob_token_a_account,
+        &fixture.alice_token_a_account,
+        &fixture.alice_token_b_account,
+        &fixture.alice_wallet.pubkey(),
+        &fixture.escrow_account.pubkey(),
+        &fixture.pda,
+        &token::ID,
+        [&fixture.bob_wallet],
     )
     .await?;
 
@@ -141,29 +142,29 @@ async fn test_happy_path2(#[future] init_fixture: Result<Fixture>) {
     let fixture = init_fixture.await?;
 
     // Initialize escrow
-    escrow_instruction::initialize_escrow(
+    initialize_escrow(
         &fixture.client,
         500,
         1000,
-        fixture.alice_wallet.pubkey(),
-        fixture.alice_token_a_account,
-        fixture.alice_token_b_account,
-        fixture.escrow_account.pubkey(),
-        System::id(),
-        token::ID,
-        [fixture.alice_wallet.clone(), fixture.escrow_account.clone()],
+        &fixture.alice_wallet.pubkey(),
+        &fixture.alice_token_a_account,
+        &fixture.alice_token_b_account,
+        &fixture.escrow_account.pubkey(),
+        &solana_sdk::system_program::id(),
+        &token::ID,
+        [&fixture.alice_wallet, &fixture.escrow_account],
     )
     .await?;
 
     // Cancel
-    escrow_instruction::cancel_escrow(
+    cancel_escrow(
         &fixture.client,
-        fixture.alice_wallet.pubkey(),
-        fixture.alice_token_a_account,
-        fixture.pda,
-        fixture.escrow_account.pubkey(),
-        token::ID,
-        [],
+        &fixture.alice_wallet.pubkey(),
+        &fixture.alice_token_a_account,
+        &fixture.pda,
+        &fixture.escrow_account.pubkey(),
+        &token::ID,
+        &[],
     )
     .await?;
 
@@ -177,23 +178,23 @@ async fn test_happy_path2(#[future] init_fixture: Result<Fixture>) {
 
 struct Fixture {
     client: Client,
-    program: Keypair,
+    program: solana_sdk::signer::keypair::Keypair,
     // Mint stuff
-    mint_a: Keypair,
-    mint_b: Keypair,
-    mint_authority: Keypair,
+    mint_a: solana_sdk::signer::keypair::Keypair,
+    mint_b: solana_sdk::signer::keypair::Keypair,
+    mint_authority: solana_sdk::signer::keypair::Keypair,
     // Escrow
-    escrow_account: Keypair,
+    escrow_account: solana_sdk::signer::keypair::Keypair,
     // Participants
-    alice_wallet: Keypair,
-    bob_wallet: Keypair,
+    alice_wallet: solana_sdk::signer::keypair::Keypair,
+    bob_wallet: solana_sdk::signer::keypair::Keypair,
     // Token accounts
-    alice_token_a_account: Pubkey,
-    alice_token_b_account: Pubkey,
-    bob_token_a_account: Pubkey,
-    bob_token_b_account: Pubkey,
+    alice_token_a_account: solana_sdk::pubkey::Pubkey,
+    alice_token_b_account: solana_sdk::pubkey::Pubkey,
+    bob_token_a_account: solana_sdk::pubkey::Pubkey,
+    bob_token_b_account: solana_sdk::pubkey::Pubkey,
     // PDA authority of escrow
-    pda: Pubkey,
+    pda: solana_sdk::pubkey::Pubkey,
 }
 impl Fixture {
     fn new() -> Self {
@@ -217,34 +218,34 @@ impl Fixture {
             alice_wallet: keypair(21),
             bob_wallet: keypair(22),
 
-            alice_token_a_account: Pubkey::default(),
-            alice_token_b_account: Pubkey::default(),
-            bob_token_a_account: Pubkey::default(),
-            bob_token_b_account: Pubkey::default(),
+            alice_token_a_account: solana_sdk::pubkey::Pubkey::default(),
+            alice_token_b_account: solana_sdk::pubkey::Pubkey::default(),
+            bob_token_a_account: solana_sdk::pubkey::Pubkey::default(),
+            bob_token_b_account: solana_sdk::pubkey::Pubkey::default(),
 
-            pda: Pubkey::default(),
+            pda: solana_sdk::pubkey::Pubkey::default(),
         }
     }
 
     #[throws]
     async fn deploy(&mut self) {
         self.client
-            .airdrop(self.alice_wallet.pubkey(), 5_000_000_000)
+            .airdrop(&self.alice_wallet.pubkey(), 5_000_000_000)
             .await?;
-        self.client
-            .deploy_by_name(&self.program.clone(), "escrow")
-            .await?;
+        self.client.deploy_by_name(&self.program, "escrow").await?;
     }
 
     #[throws]
     async fn get_escrow(&self) -> escrow::EscrowAccount {
         self.client
-            .account_data::<escrow::EscrowAccount>(self.escrow_account.pubkey())
+            .account_data::<escrow::EscrowAccount>(&self.escrow_account.pubkey())
             .await?
     }
 
     #[throws]
-    async fn get_token_account(&self, key: Pubkey) -> token::TokenAccount {
-        self.client.account_data::<token::TokenAccount>(key).await?
+    async fn get_token_account(&self, key: solana_sdk::pubkey::Pubkey) -> token::TokenAccount {
+        self.client
+            .account_data::<token::TokenAccount>(&key)
+            .await?
     }
 }

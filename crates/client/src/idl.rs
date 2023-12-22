@@ -101,7 +101,7 @@ use thiserror::Error;
 static ACCOUNT_MOD_PREFIX: &str = "__client_accounts_";
 
 #[derive(Error, Debug)]
-pub enum Error {
+pub enum IdlError {
     #[error("{0:?}")]
     RustParsingError(#[from] syn::Error),
     #[error("missing or invalid program item: '{0}'")]
@@ -138,149 +138,150 @@ pub struct IdlAccountGroup {
     pub accounts: Vec<(String, String)>,
 }
 
-pub fn parse_to_idl_program(name: &String, code: &str) -> Result<IdlProgram, Error> {
-    let mut static_program_id = None::<syn::ItemStatic>;
-    let mut mod_private = None::<syn::ItemMod>;
-    let mut mod_instruction = None::<syn::ItemMod>;
-    let mut account_mods = Vec::<syn::ItemMod>::new();
+impl Idl {
+    pub fn parse_to_idl_program(name: &String, code: &str) -> Result<IdlProgram, IdlError> {
+        let mut static_program_id = None::<syn::ItemStatic>;
+        let mut mod_private = None::<syn::ItemMod>;
+        let mut mod_instruction = None::<syn::ItemMod>;
+        let mut account_mods = Vec::<syn::ItemMod>::new();
 
-    let items = syn::parse_file(code)?.items;
+        let items = syn::parse_file(code)?.items;
 
-    for item in items.iter() {
-        match item {
-            syn::Item::Static(item_static) if item_static.ident == "ID" => {
-                static_program_id = Some(item_static.clone());
+        for item in items.iter() {
+            match item {
+                syn::Item::Static(item_static) if item_static.ident == "ID" => {
+                    static_program_id = Some(item_static.clone());
+                }
+                syn::Item::Mod(item_mod) => match item_mod.ident.to_string().as_str() {
+                    "__private" => mod_private = Some(item_mod.clone()),
+                    "instruction" => mod_instruction = Some(item_mod.clone()),
+                    _ => set_account_modules(&mut account_mods, item_mod.clone()),
+                },
+                _ => (),
             }
-            syn::Item::Mod(item_mod) => match item_mod.ident.to_string().as_str() {
-                "__private" => mod_private = Some(item_mod.clone()),
-                "instruction" => mod_instruction = Some(item_mod.clone()),
-                _ => set_account_modules(&mut account_mods, item_mod.clone()),
-            },
-            _ => (),
         }
-    }
 
-    let static_program_id =
-        static_program_id.ok_or(Error::MissingOrInvalidProgramItems("missing static ID"))?;
-    let mod_private =
-        mod_private.ok_or(Error::MissingOrInvalidProgramItems("missing mod private"))?;
-    let mod_instruction = mod_instruction.ok_or(Error::MissingOrInvalidProgramItems(
-        "missing mod instruction",
-    ))?;
+        let static_program_id =
+            static_program_id.ok_or(IdlError::MissingOrInvalidProgramItems("missing static ID"))?;
+        let mod_private =
+            mod_private.ok_or(IdlError::MissingOrInvalidProgramItems("missing mod private"))?;
+        let mod_instruction = mod_instruction.ok_or(IdlError::MissingOrInvalidProgramItems(
+            "missing mod instruction",
+        ))?;
 
-    // ------ get program id ------
+        // ------ get program id ------
 
-    // input example:
-    // ```
-    // pub static ID: anchor_lang::solana_program::pubkey::Pubkey =
-    //     anchor_lang::solana_program::pubkey::Pubkey::new_from_array([216u8, 55u8,
-    //                                                                  200u8, 93u8,
-    //                                                                  189u8, 81u8,
-    //                                                                  94u8, 109u8,
-    //                                                                  14u8, 249u8,
-    //                                                                  244u8, 106u8,
-    //                                                                  68u8, 214u8,
-    //                                                                  222u8, 190u8,
-    //                                                                  9u8, 25u8,
-    //                                                                  199u8, 75u8,
-    //                                                                  79u8, 230u8,
-    //                                                                  94u8, 137u8,
-    //                                                                  51u8, 187u8,
-    //                                                                  193u8, 48u8,
-    //                                                                  87u8, 222u8,
-    //                                                                  175u8,
-    //                                                                  163u8]);
-    // ```
+        // input example:
+        // ```
+        // pub static ID: anchor_lang::solana_program::pubkey::Pubkey =
+        //     anchor_lang::solana_program::pubkey::Pubkey::new_from_array([216u8, 55u8,
+        //                                                                  200u8, 93u8,
+        //                                                                  189u8, 81u8,
+        //                                                                  94u8, 109u8,
+        //                                                                  14u8, 249u8,
+        //                                                                  244u8, 106u8,
+        //                                                                  68u8, 214u8,
+        //                                                                  222u8, 190u8,
+        //                                                                  9u8, 25u8,
+        //                                                                  199u8, 75u8,
+        //                                                                  79u8, 230u8,
+        //                                                                  94u8, 137u8,
+        //                                                                  51u8, 187u8,
+        //                                                                  193u8, 48u8,
+        //                                                                  87u8, 222u8,
+        //                                                                  175u8,
+        //                                                                  163u8]);
+        // ```
 
-    let program_id_bytes = {
-        let new_pubkey_call = match *static_program_id.expr {
-            syn::Expr::Call(new_pubkey_call) => new_pubkey_call,
-            _ => {
-                return Err(Error::MissingOrInvalidProgramItems(
-                    "static ID: new pubkey call not found",
-                ))
+        let program_id_bytes = {
+            let new_pubkey_call = match *static_program_id.expr {
+                syn::Expr::Call(new_pubkey_call) => new_pubkey_call,
+                _ => {
+                    return Err(IdlError::MissingOrInvalidProgramItems(
+                        "static ID: new pubkey call not found",
+                    ))
+                }
+            };
+            match new_pubkey_call.args.into_iter().next() {
+                Some(syn::Expr::Array(pubkey_bytes)) => pubkey_bytes,
+                _ => {
+                    return Err(IdlError::MissingOrInvalidProgramItems(
+                        "static ID: pubkey bytes not found",
+                    ))
+                }
             }
         };
-        match new_pubkey_call.args.into_iter().next() {
-            Some(syn::Expr::Array(pubkey_bytes)) => pubkey_bytes,
-            _ => {
-                return Err(Error::MissingOrInvalidProgramItems(
-                    "static ID: pubkey bytes not found",
-                ))
-            }
-        }
-    };
 
-    // ------ get instruction_item_fns ------
+        // ------ get instruction_item_fns ------
 
-    // input example:
-    // ```
-    // mod __private {
-    //     pub mod __global {
-    //         use super::*;
-    //         #[inline(never)]
-    //         pub fn initialize(program_id: &Pubkey, accounts: &[AccountInfo],
-    //                           ix_data: &[u8]) -> ProgramResult {
-    //             let ix =
-    //                 instruction::Initialize::deserialize(&mut &ix_data[..]).map_err(|_|
-    //                                                                                     anchor_lang::__private::ErrorCode::InstructionDidNotDeserialize)?;
-    //             let instruction::Initialize = ix;
-    //             let mut remaining_accounts: &[AccountInfo] = accounts;
-    //             let mut accounts =
-    //                 Initialize::try_accounts(program_id, &mut remaining_accounts,
-    //                                          ix_data)?;
-    //             turnstile::initialize(Context::new(program_id, &mut accounts,
-    //                                                remaining_accounts))?;
-    //             accounts.exit(program_id)
-    //         }
-    // ```
+        // input example:
+        // ```
+        // mod __private {
+        //     pub mod __global {
+        //         use super::*;
+        //         #[inline(never)]
+        //         pub fn initialize(program_id: &Pubkey, accounts: &[AccountInfo],
+        //                           ix_data: &[u8]) -> ProgramResult {
+        //             let ix =
+        //                 instruction::Initialize::deserialize(&mut &ix_data[..]).map_err(|_|
+        //                                                                                     anchor_lang::__private::ErrorCode::InstructionDidNotDeserialize)?;
+        //             let instruction::Initialize = ix;
+        //             let mut remaining_accounts: &[AccountInfo] = accounts;
+        //             let mut accounts =
+        //                 Initialize::try_accounts(program_id, &mut remaining_accounts,
+        //                                          ix_data)?;
+        //             turnstile::initialize(Context::new(program_id, &mut accounts,
+        //                                                remaining_accounts))?;
+        //             accounts.exit(program_id)
+        //         }
+        // ```
 
-    let instruction_item_fns = {
-        let items = mod_private
-            .content
-            .map(|(_, items)| items)
-            .unwrap_or_default();
-        let item_mod_global = items
-            .into_iter()
-            .find_map(|item| match item {
-                syn::Item::Mod(item_mod) if item_mod.ident == "__global" => Some(item_mod),
-                _ => None?,
+        let instruction_item_fns = {
+            let items = mod_private
+                .content
+                .map(|(_, items)| items)
+                .unwrap_or_default();
+            let item_mod_global = items
+                .into_iter()
+                .find_map(|item| match item {
+                    syn::Item::Mod(item_mod) if item_mod.ident == "__global" => Some(item_mod),
+                    _ => None?,
+                })
+                .ok_or(IdlError::MissingOrInvalidProgramItems(
+                    "mod private: mod global not found",
+                ))?;
+            let items = item_mod_global
+                .content
+                .map(|(_, items)| items)
+                .unwrap_or_default();
+            items.into_iter().filter_map(|item| match item {
+                syn::Item::Fn(item_fn) => Some(item_fn),
+                _ => None,
             })
-            .ok_or(Error::MissingOrInvalidProgramItems(
-                "mod private: mod global not found",
-            ))?;
-        let items = item_mod_global
-            .content
-            .map(|(_, items)| items)
-            .unwrap_or_default();
-        items.into_iter().filter_map(|item| match item {
-            syn::Item::Fn(item_fn) => Some(item_fn),
-            _ => None,
-        })
-    };
+        };
 
-    // ------ get instruction + account group names ------
+        // ------ get instruction + account group names ------
 
-    // input example:
-    // ```
-    //         pub fn initialize(program_id: &Pubkey, accounts: &[AccountInfo],
-    //                           ix_data: &[u8]) -> ProgramResult {
-    //             let ix =
-    //                 instruction::Initialize::deserialize(&mut &ix_data[..]).map_err(|_|
-    //                                                                                     anchor_lang::__private::ErrorCode::InstructionDidNotDeserialize)?;
-    //             let instruction::Initialize = ix;
-    //             let mut remaining_accounts: &[AccountInfo] = accounts;
-    //             let mut accounts =
-    //                 Initialize::try_accounts(program_id, &mut remaining_accounts,
-    //                                          ix_data)?;
-    //             turnstile::initialize(Context::new(program_id, &mut accounts,
-    //                                                remaining_accounts))?;
-    //             accounts.exit(program_id)
-    //         }
-    // ```
+        // input example:
+        // ```
+        //         pub fn initialize(program_id: &Pubkey, accounts: &[AccountInfo],
+        //                           ix_data: &[u8]) -> ProgramResult {
+        //             let ix =
+        //                 instruction::Initialize::deserialize(&mut &ix_data[..]).map_err(|_|
+        //                                                                                     anchor_lang::__private::ErrorCode::InstructionDidNotDeserialize)?;
+        //             let instruction::Initialize = ix;
+        //             let mut remaining_accounts: &[AccountInfo] = accounts;
+        //             let mut accounts =
+        //                 Initialize::try_accounts(program_id, &mut remaining_accounts,
+        //                                          ix_data)?;
+        //             turnstile::initialize(Context::new(program_id, &mut accounts,
+        //                                                remaining_accounts))?;
+        //             accounts.exit(program_id)
+        //         }
+        // ```
 
-    let mut instruction_account_pairs = Vec::new();
-    instruction_item_fns
+        let mut instruction_account_pairs = Vec::new();
+        instruction_item_fns
         .into_iter()
         .map(|item_fn| {
             // stmt example: `let mut accounts = UpdateState::try_accounts(program_id, &mut remaining_accounts, ix_data)?;`
@@ -331,143 +332,144 @@ pub fn parse_to_idl_program(name: &String, code: &str) -> Result<IdlProgram, Err
                 instruction_account_pairs.push(pair);
                 Ok(())
             } else {
-                Err(Error::MissingOrInvalidProgramItems(
+                Err(IdlError::MissingOrInvalidProgramItems(
                     "statement with `accounts` not found",
                 ))
             }
         })?;
 
-    // ------ get instruction parameters ------
+        // ------ get instruction parameters ------
 
-    // input example:
-    // ```
-    // pub mod instruction {
-    //     use super::*;
-    //     pub mod state {
-    //         use super::*;
-    //     }
-    // // **
-    //     pub struct Initialize;
-    // // **
-    //     pub struct Coin {
-    //         pub dummy_arg: String,
-    //     }
-    // ```
+        // input example:
+        // ```
+        // pub mod instruction {
+        //     use super::*;
+        //     pub mod state {
+        //         use super::*;
+        //     }
+        // // **
+        //     pub struct Initialize;
+        // // **
+        //     pub struct Coin {
+        //         pub dummy_arg: String,
+        //     }
+        // ```
 
-    let mut instruction_mod_items = mod_instruction
-        .content
-        .ok_or(Error::MissingOrInvalidProgramItems(
-            "instruction mod: empty content",
-        ))?
-        .1
-        .into_iter();
-
-    for (idl_instruction, _) in &mut instruction_account_pairs {
-        let instruction_struct_name = &idl_instruction.name.upper_camel_case;
-
-        let instruction_item_struct_fields = instruction_mod_items
-            .find_map(|item| {
-                let instruction_item_struct = match item {
-                    syn::Item::Struct(item_struct)
-                        if item_struct.ident == instruction_struct_name =>
-                    {
-                        item_struct
-                    }
-                    _ => None?,
-                };
-                let fields = match instruction_item_struct.fields {
-                    syn::Fields::Named(fields_named) => fields_named.named,
-                    syn::Fields::Unit => syn::punctuated::Punctuated::new(),
-                    syn::Fields::Unnamed(_) => None?,
-                };
-                Some(fields.into_iter())
-            })
-            .ok_or(Error::MissingOrInvalidProgramItems("instruction struct"))?;
-
-        idl_instruction.parameters = instruction_item_struct_fields
-            .map(|field| {
-                let parameter_name = field.ident.unwrap().to_string();
-                let parameter_id_type = field.ty.into_token_stream().to_string();
-                (parameter_name, parameter_id_type)
-            })
-            .collect();
-    }
-
-    // ------ get accounts ------
-
-    // input example:
-    // ```
-    // pub(crate) mod __client_accounts_initialize {
-    //     use super::*;
-    //     use anchor_lang::prelude::borsh;
-    //     pub struct Initialize {
-    //         pub state: anchor_lang::solana_program::pubkey::Pubkey,
-    //         pub user: anchor_lang::solana_program::pubkey::Pubkey,
-    //         pub system_program: anchor_lang::solana_program::pubkey::Pubkey,
-    //     }
-    // ```
-
-    for account_mod_item in account_mods {
-        let account_struct_name = account_mod_item
-            .ident
-            .to_string()
-            .strip_prefix(ACCOUNT_MOD_PREFIX)
-            .unwrap()
-            .to_upper_camel_case();
-
-        let account_item_struct = account_mod_item
+        let mut instruction_mod_items = mod_instruction
             .content
-            .ok_or(Error::MissingOrInvalidProgramItems(
-                "account mod: empty content",
+            .ok_or(IdlError::MissingOrInvalidProgramItems(
+                "instruction mod: empty content",
             ))?
             .1
-            .into_iter()
-            .find_map(|item| match item {
-                syn::Item::Struct(item_struct) if item_struct.ident == account_struct_name => {
-                    Some(item_struct)
+            .into_iter();
+
+        for (idl_instruction, _) in &mut instruction_account_pairs {
+            let instruction_struct_name = &idl_instruction.name.upper_camel_case;
+
+            let instruction_item_struct_fields = instruction_mod_items
+                .find_map(|item| {
+                    let instruction_item_struct = match item {
+                        syn::Item::Struct(item_struct)
+                            if item_struct.ident == instruction_struct_name =>
+                        {
+                            item_struct
+                        }
+                        _ => None?,
+                    };
+                    let fields = match instruction_item_struct.fields {
+                        syn::Fields::Named(fields_named) => fields_named.named,
+                        syn::Fields::Unit => syn::punctuated::Punctuated::new(),
+                        syn::Fields::Unnamed(_) => None?,
+                    };
+                    Some(fields.into_iter())
+                })
+                .ok_or(IdlError::MissingOrInvalidProgramItems("instruction struct"))?;
+
+            idl_instruction.parameters = instruction_item_struct_fields
+                .map(|field| {
+                    let parameter_name = field.ident.unwrap().to_string();
+                    let parameter_id_type = field.ty.into_token_stream().to_string();
+                    (parameter_name, parameter_id_type)
+                })
+                .collect();
+        }
+
+        // ------ get accounts ------
+
+        // input example:
+        // ```
+        // pub(crate) mod __client_accounts_initialize {
+        //     use super::*;
+        //     use anchor_lang::prelude::borsh;
+        //     pub struct Initialize {
+        //         pub state: anchor_lang::solana_program::pubkey::Pubkey,
+        //         pub user: anchor_lang::solana_program::pubkey::Pubkey,
+        //         pub system_program: anchor_lang::solana_program::pubkey::Pubkey,
+        //     }
+        // ```
+
+        for account_mod_item in account_mods {
+            let account_struct_name = account_mod_item
+                .ident
+                .to_string()
+                .strip_prefix(ACCOUNT_MOD_PREFIX)
+                .unwrap()
+                .to_upper_camel_case();
+
+            let account_item_struct = account_mod_item
+                .content
+                .ok_or(IdlError::MissingOrInvalidProgramItems(
+                    "account mod: empty content",
+                ))?
+                .1
+                .into_iter()
+                .find_map(|item| match item {
+                    syn::Item::Struct(item_struct) if item_struct.ident == account_struct_name => {
+                        Some(item_struct)
+                    }
+                    _ => None?,
+                })
+                .ok_or(IdlError::MissingOrInvalidProgramItems(
+                    "account mod: struct not found",
+                ))?;
+
+            let account_item_struct_fields = match account_item_struct.fields {
+                syn::Fields::Named(fields_named) => fields_named.named,
+                syn::Fields::Unit => syn::punctuated::Punctuated::new(),
+                syn::Fields::Unnamed(_) => {
+                    return Err(IdlError::MissingOrInvalidProgramItems(
+                        "account struct: unnamed fields not allowed",
+                    ))
                 }
-                _ => None?,
-            })
-            .ok_or(Error::MissingOrInvalidProgramItems(
-                "account mod: struct not found",
-            ))?;
+            };
 
-        let account_item_struct_fields = match account_item_struct.fields {
-            syn::Fields::Named(fields_named) => fields_named.named,
-            syn::Fields::Unit => syn::punctuated::Punctuated::new(),
-            syn::Fields::Unnamed(_) => {
-                return Err(Error::MissingOrInvalidProgramItems(
-                    "account struct: unnamed fields not allowed",
-                ))
-            }
-        };
+            let accounts = account_item_struct_fields
+                .into_iter()
+                .map(|field| {
+                    let account_name = field.ident.unwrap().to_string();
+                    let account_id_type = field.ty.into_token_stream().to_string();
+                    (account_name, account_id_type)
+                })
+                .collect::<Vec<_>>();
 
-        let accounts = account_item_struct_fields
-            .into_iter()
-            .map(|field| {
-                let account_name = field.ident.unwrap().to_string();
-                let account_id_type = field.ty.into_token_stream().to_string();
-                (account_name, account_id_type)
-            })
-            .collect::<Vec<_>>();
-
-        for (_, idl_account_group) in &mut instruction_account_pairs {
-            if idl_account_group.name.upper_camel_case == account_struct_name {
-                idl_account_group.accounts = accounts.clone();
+            for (_, idl_account_group) in &mut instruction_account_pairs {
+                if idl_account_group.name.upper_camel_case == account_struct_name {
+                    idl_account_group.accounts = accounts.clone();
+                }
             }
         }
+
+        // ------ // ------
+
+        Ok(IdlProgram {
+            name: IdlName {
+                upper_camel_case: name.to_upper_camel_case(),
+                snake_case: name.to_string(),
+            },
+            id: program_id_bytes.into_token_stream().to_string(),
+            instruction_account_pairs,
+        })
     }
-
-    // ------ // ------
-
-    Ok(IdlProgram {
-        name: IdlName {
-            upper_camel_case: name.to_upper_camel_case(),
-            snake_case: name.to_string(),
-        },
-        id: program_id_bytes.into_token_stream().to_string(),
-        instruction_account_pairs,
-    })
 }
 
 fn set_account_modules(account_modules: &mut Vec<syn::ItemMod>, item_module: syn::ItemMod) {
@@ -481,7 +483,7 @@ fn set_account_modules(account_modules: &mut Vec<syn::ItemMod>, item_module: syn
     }
     let modules = item_module
         .content
-        .ok_or(Error::MissingOrInvalidProgramItems(
+        .ok_or(IdlError::MissingOrInvalidProgramItems(
             "account mod: empty content",
         ))
         .unwrap()

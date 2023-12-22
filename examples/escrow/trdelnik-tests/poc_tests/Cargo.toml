@@ -4,13 +4,11 @@ version = "0.1.0"
 edition = "2018"
 
 [dev-dependencies]
-assert_matches = "1.4.0"
 fehler = "1.0.0"
 anchor-spl = "0.28.0"
-rstest = "0.12.0"
-
 [dev-dependencies.trdelnik-client]
 path = "../../../../crates/client"
+features = ["poctesting"]
 
 [dev-dependencies.program_client]
 path = "../../.program_client"
