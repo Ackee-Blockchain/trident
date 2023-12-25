@@ -1,7 +1,7 @@
 use anyhow::{bail, Error};
 use fehler::throws;
 use tokio::signal;
-use trdelnik_client::*;
+use trdelnik_client::__private::Commander;
 
 use crate::discover;
 pub const TRDELNIK_TOML: &str = "Trdelnik.toml";

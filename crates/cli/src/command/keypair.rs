@@ -2,7 +2,7 @@ use anyhow::Error;
 use clap::Subcommand;
 use fehler::throws;
 use solana_sdk::signer::Signer;
-use trdelnik_client::{keypair as other_keypair, program_keypair, system_keypair};
+use trdelnik_client::keys::{keypair as other_keypair, program_keypair, system_keypair};
 
 #[derive(Subcommand)]
 pub enum KeyPairCommand {

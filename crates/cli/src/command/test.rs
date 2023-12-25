@@ -1,6 +1,6 @@
 use anyhow::{bail, Error};
 use fehler::throws;
-use trdelnik_client::*;
+use trdelnik_client::__private::Commander;
 
 use crate::discover;
 

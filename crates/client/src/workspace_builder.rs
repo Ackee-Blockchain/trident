@@ -1,4 +1,5 @@
-use crate::commander::{Commander, Error as CommanderError};
+// use crate::commander::{Commander, Error as CommanderError};
+
 use cargo_metadata::Package;
 use fehler::{throw, throws};
 // use pathdiff;
@@ -14,8 +15,10 @@ use thiserror::Error;
 use tokio::fs;
 use toml::{value::Table, Value};
 
+use crate::commander::Error as CommanderError;
 use crate::constants::*;
-use crate::generate_source_code;
+use crate::program_client_generator::ProgramCLientGenerator;
+use crate::Commander;
 use crate::Idl;
 
 #[derive(Error, Debug)]
@@ -163,7 +166,8 @@ impl WorkspaceBuilder {
         self.add_program_dependencies(&crate_path, "dependencies")
             .await?;
 
-        let program_client = generate_source_code(&self.idl, &self.use_tokens);
+        let program_client =
+            ProgramCLientGenerator::generate_source_code(&self.idl, &self.use_tokens);
         let program_client = Commander::format_program_code(&program_client).await?;
 
         self.create_file(&lib_path, &program_client).await?;
@@ -413,7 +417,8 @@ impl WorkspaceBuilder {
         self.add_program_dependencies(&crate_path, "dependencies")
             .await?;
 
-        let program_client = generate_source_code(&self.idl, &self.use_tokens);
+        let program_client =
+            ProgramCLientGenerator::generate_source_code(&self.idl, &self.use_tokens);
         let program_client = Commander::format_program_code(&program_client).await?;
 
         self.update_file(&lib_path, &program_client).await?;

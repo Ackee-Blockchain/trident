@@ -21,17 +21,23 @@ pub async fn generate_program_client() {
     ));
 
     let program_name = String::from("escrow");
-    let program_idl =
-        trdelnik_client::Idl::parse_to_idl_program(&program_name, expanded_anchor_program)?;
+    let program_idl = trdelnik_client::__private::Idl::parse_to_idl_program(
+        &program_name,
+        expanded_anchor_program,
+    )?;
 
-    let idl = trdelnik_client::Idl {
+    let idl = trdelnik_client::__private::Idl {
         programs: vec![program_idl],
     };
 
     let use_modules: Vec<syn::ItemUse> =
-        vec![syn::parse_quote! { use trdelnik_client::program_client::*; }];
-    let client_code = trdelnik_client::generate_source_code(&idl, &use_modules);
-    let client_code = trdelnik_client::Commander::format_program_code(&client_code).await?;
+        vec![syn::parse_quote! { use trdelnik_client::prelude::*; }];
+    let client_code = trdelnik_client::__private::ProgramCLientGenerator::generate_source_code(
+        &idl,
+        &use_modules,
+    );
+    let client_code =
+        trdelnik_client::__private::Commander::format_program_code(&client_code).await?;
 
     assert_str_eq!(client_code, expected_client_code);
 }

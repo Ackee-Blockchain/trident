@@ -2,22 +2,24 @@ use crate::idl::Idl;
 use quote::{format_ident, ToTokens};
 use syn::{parse_quote, parse_str};
 
+pub struct ProgramCLientGenerator {}
 /// Generates `program_client`'s `lib.rs` from [Idl] created from Anchor programs.
 /// Disable regenerating the `use` statements with a used imports `use_modules`
 ///
 /// _Note_: See the crate's tests for output example.
-pub fn generate_source_code(idl: &Idl, use_modules: &[syn::ItemUse]) -> String {
-    let mut output = "// DO NOT EDIT - automatically generated file (except `use` statements inside the `*_instruction` module\n".to_owned();
-    let code = idl
-        .programs
-        .iter()
-        .map(|idl_program| {
-            let program_name = idl_program.name.snake_case.replace('-', "_");
-            let instruction_module_name = format_ident!("{}_instruction", program_name);
-            let module_name: syn::Ident = parse_str(&program_name).unwrap();
-            let pubkey_bytes: syn::ExprArray = parse_str(&idl_program.id).unwrap();
+impl ProgramCLientGenerator {
+    pub fn generate_source_code(idl: &Idl, use_modules: &[syn::ItemUse]) -> String {
+        let mut output = "// DO NOT EDIT - automatically generated file (except `use` statements inside the `*_instruction` module\n".to_owned();
+        let code = idl
+            .programs
+            .iter()
+            .map(|idl_program| {
+                let program_name = idl_program.name.snake_case.replace('-', "_");
+                let instruction_module_name = format_ident!("{}_instruction", program_name);
+                let module_name: syn::Ident = parse_str(&program_name).unwrap();
+                let pubkey_bytes: syn::ExprArray = parse_str(&idl_program.id).unwrap();
 
-            let instructions = idl_program
+                let instructions = idl_program
                 .instruction_account_pairs
                 .iter()
                 .fold(
@@ -55,7 +57,7 @@ pub fn generate_source_code(idl: &Idl, use_modules: &[syn::ItemUse]) -> String {
                                         let last_type =
                                             &tp.path.segments.last().unwrap().ident.to_string();
                                         if last_type == "Pubkey" {
-                                            let reference = "&solana_sdk::pubkey::Pubkey".to_string();
+                                            let reference = "&Pubkey".to_string();
                                             let t: syn::Type = parse_str(&reference).unwrap();
                                             t
                                         } else {
@@ -99,8 +101,8 @@ pub fn generate_source_code(idl: &Idl, use_modules: &[syn::ItemUse]) -> String {
                                 client: &Client,
                                 #(#parameters,)*
                                 #(#accounts,)*
-                                signers: impl IntoIterator<Item = &solana_sdk::signer::keypair::Keypair> + Send,
-                            ) -> Result<solana_transaction_status::EncodedConfirmedTransactionWithStatusMeta, anchor_client::ClientError> {
+                                signers: impl IntoIterator<Item = &Keypair> + Send,
+                            ) -> Result<EncodedConfirmedTransactionWithStatusMeta, ClientError> {
                                 client.send_instruction(
                                     PROGRAM_ID,
                                     #module_name::instruction::#instruction_struct_name {
@@ -119,8 +121,8 @@ pub fn generate_source_code(idl: &Idl, use_modules: &[syn::ItemUse]) -> String {
                             pub  fn #instruction_name(
                                 #(#parameters,)*
                                 #(#accounts,)*
-                            ) -> solana_sdk::instruction::Instruction {
-                                solana_sdk::instruction::Instruction{
+                            ) -> Instruction {
+                                Instruction{
                                     program_id: PROGRAM_ID,
                                     data: #module_name::instruction::#instruction_struct_name {
                                         #(#field_parameters,)*
@@ -139,16 +141,17 @@ pub fn generate_source_code(idl: &Idl, use_modules: &[syn::ItemUse]) -> String {
                 )
                 .into_iter();
 
-            let program_module: syn::ItemMod = parse_quote! {
-                pub mod #instruction_module_name {
-                    #(#use_modules)*
-                    pub static PROGRAM_ID: solana_sdk::pubkey::Pubkey = solana_sdk::pubkey::Pubkey::new_from_array(#pubkey_bytes);
-                    #(#instructions)*
-                }
-            };
-            program_module.into_token_stream().to_string()
-        })
-        .collect::<String>();
-    output.push_str(&code);
-    output
+                let program_module: syn::ItemMod = parse_quote! {
+                    pub mod #instruction_module_name {
+                        #(#use_modules)*
+                        pub static PROGRAM_ID: Pubkey = Pubkey::new_from_array(#pubkey_bytes);
+                        #(#instructions)*
+                    }
+                };
+                program_module.into_token_stream().to_string()
+            })
+            .collect::<String>();
+        output.push_str(&code);
+        output
+    }
 }

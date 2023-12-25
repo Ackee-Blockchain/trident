@@ -2,8 +2,8 @@ use anyhow::{bail, Error};
 
 use clap::Subcommand;
 use fehler::throws;
-use trdelnik_client::Commander;
-use trdelnik_client::WorkspaceBuilder;
+use trdelnik_client::__private::Commander;
+use trdelnik_client::__private::WorkspaceBuilder;
 
 use crate::discover;
 

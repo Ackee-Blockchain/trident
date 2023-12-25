@@ -1,7 +1,7 @@
 use crate::{discover, ProgramArch};
 use anyhow::{bail, Error};
 use fehler::throws;
-use trdelnik_client::*;
+use trdelnik_client::__private::WorkspaceBuilder;
 
 pub const TRDELNIK_TOML: &str = "Trdelnik.toml";
 

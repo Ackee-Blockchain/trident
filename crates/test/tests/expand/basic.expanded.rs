@@ -2,7 +2,7 @@
 #[trdelnik_client::poctesting::tokio::test(flavor = "multi_thread")]
 #[trdelnik_client::poctesting::serial_test::serial]
 async fn test_turnstile() -> Result<()> {
-    let mut tester = trdelnik_client::Tester::with_root("../../");
+    let mut tester = trdelnik_client::poctesting::Tester::with_root("../../");
     let localnet_handle = tester.before().await?;
     let test = async {
         {
@@ -23,7 +23,7 @@ async fn test_turnstile() -> Result<()> {
     }
     let final_result = result.unwrap();
     if let Err(error) = final_result {
-        trdelnik_client::error_reporter::report_error(&error);
+        trdelnik_client::poctesting::error_reporter::report_error(&error);
         return Err(error);
     }
     Ok(())

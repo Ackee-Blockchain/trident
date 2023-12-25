@@ -14,8 +14,7 @@ fuzzing = [
     "arbitrary/derive",
     "quinn-proto/arbitrary",
 ]
-poctesting = ["dep:rstest", "dep:serial_test","dep:trdelnik-test"]
-
+poctesting = ["dep:rstest", "dep:serial_test", "dep:trdelnik-test"]
 [build-dependencies]
 anyhow = { version = "1.0.45", features = ["std"], default-features = false }
 
@@ -28,7 +27,7 @@ solana-cli-output = { workspace = true }
 solana-transaction-status = { workspace = true }
 solana-account-decoder = { workspace = true }
 anchor-client = { workspace = true }
-anchor-lang = {version = "0.28.0"}
+anchor-lang = { version = "0.28.0" }
 spl-token = { workspace = true }
 spl-associated-token-account = { workspace = true }
 tokio = { workspace = true }
@@ -48,7 +47,7 @@ heck = { workspace = true }
 toml = { workspace = true }
 log = { workspace = true }
 
-trdelnik-test = { workspace = true,optional = true }
+trdelnik-test = { workspace = true, optional = true }
 serial_test = { version = "2.0.0", optional = true }
 rstest = { version = "0.18.2", optional = true }
 honggfuzz = { version = "0.5.55", optional = true }

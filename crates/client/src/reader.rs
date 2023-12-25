@@ -34,7 +34,7 @@ impl Reader {
     }
 
     /// Creates a new `Reader` instance with the provided `root`.
-    pub fn with_root(root: impl Into<Cow<'static, str>>) -> Self {
+    pub fn _with_root(root: impl Into<Cow<'static, str>>) -> Self {
         Self { root: root.into() }
     }
 
@@ -46,7 +46,7 @@ impl Reader {
     /// - the requested file does not exist or it is not readable.
     /// - [Pubkey] cannot be parsed from the file content.
     #[throws]
-    pub async fn pubkey(&self, name: &str) -> Pubkey {
+    pub async fn _pubkey(&self, name: &str) -> Pubkey {
         let path = format!("{}keys/{}_pub.json", self.root, name);
         let key: String = serde_json::from_str(&fs::read_to_string(path).await?)?;
         Pubkey::from_str(&key)?
@@ -60,7 +60,7 @@ impl Reader {
     /// - the requested file does not exist or it is not readable.
     /// - [Keypair] cannot be parsed from the file content.
     #[throws]
-    pub async fn keypair(&self, name: &str) -> Keypair {
+    pub async fn _keypair(&self, name: &str) -> Keypair {
         let path = format!("{}keys/{}.json", self.root, name);
         let bytes: Vec<u8> = serde_json::from_str(&fs::read_to_string(path).await?)?;
         Keypair::from_bytes(&bytes)?

@@ -69,7 +69,7 @@ pub fn trdelnik_test(args: TokenStream, input: TokenStream) -> TokenStream {
         #[trdelnik_client::poctesting::tokio::test(flavor = "multi_thread")]
         #[trdelnik_client::poctesting::serial_test::serial]
         async fn #input_fn_name(#input_fn_inputs) -> Result<()> {
-            let mut tester = trdelnik_client::Tester::with_root(#root);
+            let mut tester = trdelnik_client::poctesting::Tester::with_root(#root);
             let localnet_handle = tester.before().await?;
             let test = async {
                 #input_fn_body
@@ -80,7 +80,7 @@ pub fn trdelnik_test(args: TokenStream, input: TokenStream) -> TokenStream {
             assert!(result.is_ok());
             let final_result = result.unwrap();
             if let Err(error) = final_result {
-                trdelnik_client::error_reporter::report_error(&error);
+                trdelnik_client::poctesting::error_reporter::report_error(&error);
                 return Err(error);
             }
             Ok(())

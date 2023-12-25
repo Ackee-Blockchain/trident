@@ -273,7 +273,7 @@ impl Commander {
 
         let mut use_modules: Vec<syn::ItemUse> = vec![];
         if use_modules.is_empty() {
-            use_modules.push(syn::parse_quote! { use trdelnik_client::program_client::*; })
+            use_modules.push(syn::parse_quote! { use trdelnik_client::prelude::*; })
         }
         use_modules
     }

@@ -1,12 +1,13 @@
 use anyhow::{bail, Error};
 use clap::{Parser, ValueEnum};
 use fehler::throws;
-use trdelnik_client::WorkspaceBuilder;
+use trdelnik_client::__private::WorkspaceBuilder;
 
 use crate::{discover, ProgramArch};
 
 pub const ANCHOR_TOML: &str = "Anchor.toml";
 pub const CARGO_TOML: &str = "Cargo.toml";
+pub const TRDELNIK_TOML: &str = "Trdelnik.toml";
 
 #[derive(ValueEnum, Parser, Clone, PartialEq, Eq, Debug)]
 pub enum InitCommand {
@@ -17,6 +18,9 @@ pub enum InitCommand {
 
 #[throws]
 pub async fn init(template: InitCommand, arch: ProgramArch) {
+    if let Some(_trdelnik_toml) = discover(TRDELNIK_TOML)? {
+        bail!("It seems that Trdelnik Workspace is already initialized because the Trdelnik.toml file was found in parent directory!");
+    }
     match template {
         InitCommand::Fuzz => {
             let root = if let Some(r) = discover(ANCHOR_TOML)? {
