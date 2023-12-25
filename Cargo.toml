@@ -42,7 +42,7 @@ ed25519-dalek                   = "1.0.1"
 serial_test                     = "2.0.0"
 anyhow                          = { version = "1.0.45", features = ["std"], default-features = false }
 cargo_metadata                  = "0.17.0"
-syn                             = { version = "1.0.109", features = ["full"] }
+syn                             = { version = "1.0.109", features = ["full","visit"] }
 quote                           = "1.0.14"
 heck                            = { version = "0.4.0", default-features = false }
 toml                            = { version = "0.5.8", features = ["preserve_order"] }

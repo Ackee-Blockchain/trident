@@ -96,9 +96,59 @@
 
 use heck::{ToSnakeCase, ToUpperCamelCase};
 use quote::ToTokens;
+use syn::visit::Visit;
 use thiserror::Error;
 
 static ACCOUNT_MOD_PREFIX: &str = "__client_accounts_";
+
+struct FullPathFinder {
+    target_item_name: String,
+    current_module: String,
+    found_path: Option<String>,
+}
+
+fn find_item_path(code: &str, target_item_name: &str) -> Option<String> {
+    let syn_file = syn::parse_file(code).ok()?;
+    let mut finder = FullPathFinder {
+        target_item_name: target_item_name.to_string(),
+        current_module: "".to_string(),
+        found_path: None,
+    };
+    finder.visit_file(&syn_file);
+    finder.found_path
+}
+
+impl<'ast> syn::visit::Visit<'ast> for FullPathFinder {
+    fn visit_item(&mut self, item: &'ast syn::Item) {
+        if let Some(_found_path) = &self.found_path {
+            return;
+        }
+
+        // TODO this will only look for enum orf struct
+        match item {
+            syn::Item::Enum(syn::ItemEnum { ident, .. })
+            | syn::Item::Struct(syn::ItemStruct { ident, .. }) => {
+                if *ident == self.target_item_name {
+                    // Found the target item, construct the full path.
+                    self.found_path = Some(format!("{}::{}", self.current_module, ident));
+                }
+            }
+
+            _ => {}
+        }
+
+        syn::visit::visit_item(self, item);
+    }
+
+    fn visit_item_mod(&mut self, module: &'ast syn::ItemMod) {
+        let old_module = self.current_module.clone();
+        self.current_module = format!("{}::{}", self.current_module, module.ident);
+
+        syn::visit::visit_item_mod(self, module);
+
+        self.current_module = old_module;
+    }
+}
 
 #[derive(Error, Debug)]
 pub enum IdlError {
@@ -390,7 +440,13 @@ impl Idl {
                 .map(|field| {
                     let parameter_name = field.ident.unwrap().to_string();
                     let parameter_id_type = field.ty.into_token_stream().to_string();
-                    (parameter_name, parameter_id_type)
+
+                    if let Some(path) = find_item_path(code, &parameter_id_type) {
+                        let tmp_final_path = format!("{name}{path}");
+                        (parameter_name, tmp_final_path)
+                    } else {
+                        (parameter_name, parameter_id_type)
+                    }
                 })
                 .collect();
         }
