@@ -128,7 +128,7 @@ impl Commander {
         })
     }
     #[throws]
-    pub async fn collect_packages() -> Vec<cargo_metadata::Package> {
+    pub async fn collect_program_packages() -> Vec<cargo_metadata::Package> {
         let packages: Vec<cargo_metadata::Package> = Commander::program_packages().collect();
         if packages.is_empty() {
             throw!(Error::NoProgramsFound)
@@ -137,59 +137,70 @@ impl Commander {
         }
     }
 
+    fn build_package(package_name: &str) -> std::process::Output {
+        std::process::Command::new("cargo")
+            .arg("+nightly")
+            .arg("rustc")
+            .args(["--package", package_name])
+            .arg("--profile=check")
+            .arg("--")
+            .arg("-Zunpretty=expanded")
+            .output()
+            .unwrap()
+    }
+
+    fn build_progress_bar(
+        package_name: &str,
+        mutex: &std::sync::Arc<std::sync::atomic::AtomicBool>,
+    ) {
+        let progress_bar = indicatif::ProgressBar::new_spinner();
+        progress_bar.set_style(
+            indicatif::ProgressStyle::default_spinner()
+                .template("{spinner} {wide_msg}")
+                .unwrap(),
+        );
+
+        let msg = format!("Building: {package_name}...");
+        progress_bar.set_message(msg);
+        while mutex.load(std::sync::atomic::Ordering::SeqCst) {
+            progress_bar.inc(1);
+            std::thread::sleep(std::time::Duration::from_millis(100));
+        }
+
+        progress_bar.finish_and_clear();
+    }
+
     #[throws]
-    pub async fn obtain_program_idl(packages: &[cargo_metadata::Package]) -> Idl {
-        let connections = std::sync::Arc::new(std::sync::Mutex::new(Vec::new()));
+    pub async fn build_program_packages(packages: &[cargo_metadata::Package]) -> Idl {
+        let shared_mutex = std::sync::Arc::new(std::sync::Mutex::new(Vec::new()));
         for package in packages.iter() {
-            let is_running = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(true));
-            let is_running_for_thread = std::sync::Arc::clone(&is_running);
+            let mutex = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(true));
+            let c_mutex = std::sync::Arc::clone(&mutex);
 
             let name = package.name.clone();
-            let conn = connections.clone();
+            let c_shared_mutex = std::sync::Arc::clone(&shared_mutex);
             let cargo_thread = std::thread::spawn(move || -> Result<(), Error> {
-                let output = std::process::Command::new("cargo")
-                    .arg("+nightly")
-                    .arg("rustc")
-                    .args(["--package", &name])
-                    .arg("--profile=check")
-                    .arg("--")
-                    .arg("-Zunpretty=expanded")
-                    .output()
-                    .unwrap();
+                let output = Self::build_package(&name);
 
                 if output.status.success() {
                     let code = String::from_utf8(output.stdout).unwrap();
                     let idl_program = Idl::parse_to_idl_program(&name, &code).unwrap();
-                    let mut vec = conn.lock().unwrap();
+                    let mut vec = c_shared_mutex.lock().unwrap();
                     vec.push(idl_program);
-                    is_running_for_thread.store(false, std::sync::atomic::Ordering::SeqCst);
+
+                    c_mutex.store(false, std::sync::atomic::Ordering::SeqCst);
                     Ok(())
                 } else {
                     let error_text = String::from_utf8(output.stderr).unwrap();
-                    is_running_for_thread.store(false, std::sync::atomic::Ordering::SeqCst);
+                    c_mutex.store(false, std::sync::atomic::Ordering::SeqCst);
                     Err(Error::ReadProgramCodeFailed(error_text))
                 }
             });
 
-            let progress_bar = indicatif::ProgressBar::new_spinner();
-            progress_bar.set_style(
-                indicatif::ProgressStyle::default_spinner()
-                    .template("{spinner} {wide_msg}")
-                    .unwrap(),
-            );
-
-            let name = &package.name;
-            let msg = format!("Expanding macros for {name}...");
-            progress_bar.set_message(msg);
-            while is_running.load(std::sync::atomic::Ordering::SeqCst) {
-                progress_bar.inc(1);
-                std::thread::sleep(std::time::Duration::from_millis(100));
-            }
-
-            progress_bar.finish_and_clear();
+            Self::build_progress_bar(&package.name, &mutex);
             cargo_thread.join().unwrap()?;
         }
-        let idl_programs = connections.lock().unwrap().to_vec();
+        let idl_programs = shared_mutex.lock().unwrap().to_vec();
 
         if idl_programs.is_empty() {
             throw!(Error::NoProgramsFound);
@@ -226,52 +237,52 @@ impl Commander {
     /// crate. It solves the problem with regenerating the program client and removing imports defined by
     /// the user.
     #[throws]
-    pub async fn parse_program_client_imports() -> Vec<syn::ItemUse> {
-        // TODO
-        // We have two options here, write that this file is fully generated so
-        // aditional changes will be rewritten by trdelnik build, or we can
-        // actually parse the use statements
-        // let output = std::process::Command::new("cargo")
-        //     .arg("+nightly")
-        //     .arg("rustc")
-        //     .args(["--package", "program_client"])
-        //     .arg("--profile=check")
-        //     .arg("--")
-        //     .arg("-Zunpretty=expanded")
-        //     .output()
-        //     .unwrap();
+    pub async fn build_program_client() -> Vec<syn::ItemUse> {
+        let shared_mutex = std::sync::Arc::new(std::sync::Mutex::new(String::new()));
 
-        // if output.status.success() {
-        //     let code = String::from_utf8(output.stdout)?;
-        //     let mut use_modules: Vec<syn::ItemUse> = vec![];
-        //     for item in syn::parse_file(code.as_str()).unwrap().items.into_iter() {
-        //         if let syn::Item::Mod(module) = item {
-        //             let modules = module
-        //                 .content
-        //                 .ok_or("account mod: empty content")
-        //                 .unwrap()
-        //                 .1
-        //                 .into_iter();
-        //             for module in modules {
-        //                 if let syn::Item::Use(u) = module {
-        //                     use_modules.push(u);
-        //                 }
-        //             }
-        //         }
-        //     }
-        //     if use_modules.is_empty() {
-        //         use_modules.push(syn::parse_quote! { use trdelnik_client::program_client::*; })
-        //     }
-        //     use_modules
-        // } else {
-        //     let mut use_modules: Vec<syn::ItemUse> = vec![];
-        //     if use_modules.is_empty() {
-        //         use_modules.push(syn::parse_quote! { use trdelnik_client::program_client::*; })
-        //     }
-        //     use_modules
-        // }
+        let mutex = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(true));
+        let c_mutex = std::sync::Arc::clone(&mutex);
 
+        let c_shared_mutex = std::sync::Arc::clone(&shared_mutex);
+
+        let cargo_thread = std::thread::spawn(move || -> Result<(), Error> {
+            let output = Self::build_package("program_client");
+
+            if output.status.success() {
+                let mut code = c_shared_mutex.lock().unwrap();
+                code.push_str(&String::from_utf8(output.stdout)?);
+
+                c_mutex.store(false, std::sync::atomic::Ordering::SeqCst);
+                Ok(())
+            } else {
+                // command failed leave unmodified
+                c_mutex.store(false, std::sync::atomic::Ordering::SeqCst);
+                Ok(())
+            }
+        });
+
+        Self::build_progress_bar("program_client", &mutex);
+
+        cargo_thread.join().unwrap()?;
+
+        let code = shared_mutex.lock().unwrap();
+        let code = code.as_str();
         let mut use_modules: Vec<syn::ItemUse> = vec![];
+        for item in syn::parse_file(code).unwrap().items.into_iter() {
+            if let syn::Item::Mod(module) = item {
+                let modules = module
+                    .content
+                    .ok_or("account mod: empty content")
+                    .unwrap()
+                    .1
+                    .into_iter();
+                for module in modules {
+                    if let syn::Item::Use(u) = module {
+                        use_modules.push(u);
+                    }
+                }
+            }
+        }
         if use_modules.is_empty() {
             use_modules.push(syn::parse_quote! { use trdelnik_client::prelude::*; })
         }
@@ -284,10 +295,9 @@ impl Commander {
     /// to allow you read `println` outputs in your terminal window.
     #[throws]
     pub async fn run_tests() {
-        // INFO we have to specify --package poc_tests in order to build
-        // only poc_tests and not fuzz tests also
-        // FIXME "ok" within the output in terminal is not green
-        // as it should be
+        // no capture is blocking color format of the command,
+        // I do not see difference in functionality without it
+        // however without nocapture , debugging with println! is not possible
         let success = tokio::process::Command::new("cargo")
             .arg("test")
             .args(["--package", "poc_tests"])

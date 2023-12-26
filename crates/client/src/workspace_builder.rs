@@ -49,32 +49,37 @@ impl Default for WorkspaceBuilder {
     }
 }
 impl WorkspaceBuilder {
+    /// ## Initializes WorkspaceBuilder with specified root
+    /// - 'use_tokens' is set to default use statement
+    ///     - trdelnik_client::prelude::*;
     pub fn new_with_root(root: String) -> Self {
         Self {
             root: Path::new(&root).to_path_buf(),
             idl: Idl::default(),
-            use_tokens: vec![],
+            use_tokens: vec![syn::parse_quote! { use trdelnik_client::prelude::*; }],
             packages: vec![],
         }
     }
+    /// ## Build program packages, accordingly updates program client
+    /// - builds program packages
+    /// - builds program client and obtains custom use statements
+    /// - accordingly updates program client
     #[throws]
-    pub async fn build(&mut self, arch: &str) {
-        self.extract_data(arch).await?;
-
-        // FIXME have to think about this because if we have structure
-        // with multiple cargo manifests we probably cannot update
-        // here every cargo.
-        // automatically generated so we should be ok with updating this
+    pub async fn build(&mut self, _arch: &str) {
+        self.packages = Commander::collect_program_packages().await?;
+        self.idl = Commander::build_program_packages(&self.packages).await?;
+        self.use_tokens = Commander::build_program_client().await?;
         self.update_program_client().await?;
         //self.update_program_stubs().await?;
         //self.add_invoked_program_deps().await?;
     }
+    /// ## Calls anchor clean and cleans corresponding hfuzz-target if exists
     #[throws]
     pub async fn clean(&self) {
         Commander::clean_anchor_target().await?;
         Commander::clean_hfuzz_target(&self.root).await?;
     }
-    /// Initializes template for FUZZ Tests
+    /// ## Initializes template for FUZZ Tests
     /// - builds current project
     /// - generates program client
     /// - generates fuzz template
@@ -82,41 +87,36 @@ impl WorkspaceBuilder {
     /// - updates .gitignore with hfuzz_target folder
     #[throws]
     pub async fn initialize_fuzz(&mut self, arch: &str) {
-        self.extract_data(arch).await?;
-
-        self.create_program_client_crate().await?;
+        self.generate_program_client(arch).await?;
         self.create_trdelnik_tests_crate().await?;
         self.add_new_fuzz_test().await?;
-
         self.create_trdelnik_manifest().await?;
         self.update_gitignore("hfuzz_target")?;
     }
-    /// Initializes template for PoC Tests
+    /// ## Initializes template for PoC Tests
     /// - builds current project
     /// - generates program client
+    /// - build program client
     /// - generates PoC template
     /// - generates Trdelnik manifest file
     #[throws]
     pub async fn initialize_poc(&mut self, arch: &str) {
-        self.extract_data(arch).await?;
-
-        self.create_program_client_crate().await?;
+        self.generate_program_client(arch).await?;
         self.create_trdelnik_tests_crate().await?;
         self.add_new_poc_test().await?;
         self.create_trdelnik_manifest().await?;
     }
-    /// Initializes template for FUZZ and PoC Tests
+    /// ## Initializes template for FUZZ and PoC Tests
     /// - builds current project
     /// - generates program client
+    /// - build program client
     /// - generates Fuzz template
     /// - generates PoC template
     /// - generates Trdelnik manifest file
     /// - updates .gitignore with hfuzz_target folder
     #[throws]
     pub async fn initialize_both(&mut self, arch: &str) {
-        self.extract_data(arch).await?;
-
-        self.create_program_client_crate().await?;
+        self.generate_program_client(arch).await?;
         self.create_trdelnik_tests_crate().await?;
         self.add_new_poc_test().await?;
         self.add_new_fuzz_test().await?;
@@ -124,30 +124,31 @@ impl WorkspaceBuilder {
         self.create_trdelnik_manifest().await?;
         self.update_gitignore("hfuzz_target")?;
     }
-    /// - builds current project
-    /// - obtains program names and paths
+    /// ## Builds program packages, generates source code for program client and builds program client
+    /// - obtains program packages names and paths
     /// - obtains data for generating program client
+    /// - generates program client
+    /// - builds program client
+    ///
+    /// Building program client at the end will ensure that during 'trdelnik build'
+    /// command we will not need to wait long time
     #[throws]
-    async fn extract_data(&mut self, _arch: &str) {
-        // FIXME we do not need to build
-        // if we do not build , arch maybe unnecessary
-        // however maybe consider using anchor build ?
-        // it is required for PoC tests
-        // Commander::build_programs(arch).await?;
-        // this will already throws an error if no packages are found
-        self.packages = Commander::collect_packages().await?;
-        self.idl = Commander::obtain_program_idl(&self.packages).await?;
-        // FIXME do we actually need this ?
-        self.use_tokens = Commander::parse_program_client_imports().await?;
+    async fn generate_program_client(&mut self, _arch: &str) {
+        self.packages = Commander::collect_program_packages().await?;
+        self.idl = Commander::build_program_packages(&self.packages).await?;
+        // INFO even though this is ok , currently default cargo toml status is that
+        // it will have trdelnik_client version set to 0.5.0 that means it will not actually
+        // build, but once updated it should be ok
+        self.create_program_client_crate().await?;
+        self.use_tokens = Commander::build_program_client().await?;
     }
-    /// - adds new Fuzz test template to the trdelnik-tests folder
+    /// ## Adds new Fuzz test template to the trdelnik-tests folder
     #[throws]
     pub async fn add_fuzz_test(&mut self) {
-        self.packages = Commander::collect_packages().await?;
+        self.packages = Commander::collect_program_packages().await?;
         self.add_new_fuzz_test().await?;
     }
-    /// - creates program client folder
-    /// - generates program client soruce code
+    /// ## Creates program client folder and generates source code
     #[throws]
     async fn create_program_client_crate(&self) {
         let crate_path = self.root.join(PROGRAM_CLIENT_DIRECTORY);
@@ -172,17 +173,17 @@ impl WorkspaceBuilder {
 
         self.create_file(&lib_path, &program_client).await?;
     }
-    /// - create trdelnik-test folder
+    /// ## Create trdelnik-test folder
     #[throws]
     async fn create_trdelnik_tests_crate(&self) {
         let workspace_path = self.root.join(TESTS_WORKSPACE_DIRECTORY);
         self.create_directory(&workspace_path).await?;
     }
-    /// - generates new folder and contents for new Fuzz test Template
+    /// ## Generates new folder and contents for new Fuzz test Template
     #[throws]
     async fn add_new_fuzz_test(&self) {
         // this check should be ensured within package collection , but
-        // we anyway have to unwrap option and doeble check wont hurt
+        // double check wont hurt
         let program_name = if !&self.packages.is_empty() {
             &self.packages.first().unwrap().name
         } else {
@@ -286,11 +287,12 @@ impl WorkspaceBuilder {
             .await?;
 
         // add fuzzing feature
+        // this should be not necessary as we have fuzzing feature already within the template
         // self.add_feature_to_dep("trdelnik-client", "fuzzing", &new_fuzz_test_dir)
         //     .await?;
     }
 
-    /// - generates new folder and contents for new PoC test Template
+    /// ## Generates new folder and contents for new PoC test Template
     #[throws]
     async fn add_new_poc_test(&self) {
         // INFO only one POC test file needed
@@ -397,7 +399,7 @@ impl WorkspaceBuilder {
     //         .await?;
     // }
 
-    /// - creates Trdelnik manifest from template
+    /// ## Creates Trdelnik manifest from template
     #[throws]
     async fn create_trdelnik_manifest(&self) {
         let trdelnik_toml_path = self.root.join(TRDELNIK);
@@ -408,7 +410,7 @@ impl WorkspaceBuilder {
         self.create_file(&trdelnik_toml_path, trdelnik_toml_content)
             .await?;
     }
-    /// - updates program client generated source code
+    /// ## Updates program client generated source code
     #[throws]
     async fn update_program_client(&self) {
         let crate_path = self.root.join(PROGRAM_CLIENT_DIRECTORY);
@@ -423,7 +425,7 @@ impl WorkspaceBuilder {
 
         self.update_file(&lib_path, &program_client).await?;
     }
-    /// - add workspace member to the project root Cargo.toml
+    /// ## Add workspace member to the project root Cargo.toml
     #[throws]
     async fn add_workspace_member(&self, member: &str) {
         let cargo = self.root.join(CARGO);
@@ -455,7 +457,7 @@ impl WorkspaceBuilder {
         };
         fs::write(cargo, content.to_string()).await?;
     }
-    /// Updates .gitignore file in the `root` directory and appends `ignored_path` to the end of the file
+    /// ## Updates .gitignore file in the `root` directory and appends `ignored_path` to the end of the file
     #[throws]
     fn update_gitignore(&self, ignored_path: &str) {
         let file_path = self.root.join(GIT_IGNORE);
@@ -482,7 +484,7 @@ impl WorkspaceBuilder {
         }
     }
 
-    /// Creates a new directory and all missing parent directories on the specified path
+    /// ## Creates a new directory and all missing parent directories on the specified path
     #[throws]
     async fn create_directory_all<'a>(&self, path: &'a PathBuf) {
         match path.exists() {
@@ -492,7 +494,7 @@ impl WorkspaceBuilder {
             }
         };
     }
-    /// Creates directory with specified path
+    /// ## Creates directory with specified path
     #[throws]
     async fn create_directory<'a>(&self, path: &'a Path) {
         match path.exists() {
@@ -502,8 +504,8 @@ impl WorkspaceBuilder {
             }
         };
     }
-    /// Creates a new file with a given content on the specified path
-    /// Skip if file already exists
+    /// ##  Creates a new file with a given content on the specified path
+    /// - Skip if file already exists
     #[throws]
     async fn create_file<'a>(&self, path: &'a Path, content: &str) {
         let file = path.strip_prefix(&self.root).unwrap().to_str().unwrap();
@@ -519,10 +521,11 @@ impl WorkspaceBuilder {
         };
     }
 
-    /// Updates a file with a given content on the specified path
-    /// Skip if file does not exists
+    /// ## Updates a file with a given content on the specified path
+    /// - Skip if file does not exists
     #[throws]
     async fn update_file<'a>(&self, path: &'a Path, content: &str) {
+        // TODO maybe create file if it does not exists
         let file = path.strip_prefix(&self.root).unwrap().to_str().unwrap();
         match path.exists() {
             true => {
@@ -582,8 +585,8 @@ impl WorkspaceBuilder {
     //     }
     // }
 
-    /// - adds program dependency to specified Cargo.toml
-    /// for example, we need to use program entry within the fuzzer
+    /// ## Adds program dependency to specified Cargo.toml
+    /// - for example, we need to use program entry within the fuzzer
     #[throws]
     async fn add_program_dependencies(&self, cargo_dir: &PathBuf, deps: &str) {
         let cargo_path = cargo_dir.join(CARGO);
