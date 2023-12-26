@@ -3,13 +3,12 @@
 use cargo_metadata::Package;
 use fehler::{throw, throws};
 // use pathdiff;
+use std::{fs::File, io::prelude::*};
 use std::{
-    env,
     fs::OpenOptions,
     io,
     path::{Path, PathBuf},
 };
-use std::{fs::File, io::prelude::*};
 use syn::ItemUse;
 use thiserror::Error;
 use tokio::fs;
@@ -69,7 +68,9 @@ impl WorkspaceBuilder {
         self.packages = Commander::collect_program_packages().await?;
         self.idl = Commander::build_program_packages(&self.packages).await?;
         self.use_tokens = Commander::build_program_client().await?;
-        self.update_program_client().await?;
+        self.update_program_client_crate().await?;
+
+        // self.update_program_client().await?;
         //self.update_program_stubs().await?;
         //self.add_invoked_program_deps().await?;
     }
@@ -158,11 +159,9 @@ impl WorkspaceBuilder {
 
         self.create_directory_all(&src_path).await?;
 
-        let cargo_toml_content = include_str!(concat!(
-            env!("CARGO_MANIFEST_DIR"),
-            "/src/templates/program_client/Cargo.toml.tmpl"
-        ));
-        self.create_file(&cargo_path, cargo_toml_content).await?;
+        let cargo_toml_content = load_template("/src/templates/program_client/Cargo.toml.tmpl")?;
+
+        self.create_file(&cargo_path, &cargo_toml_content).await?;
 
         self.add_program_dependencies(&crate_path, "dependencies")
             .await?;
@@ -249,10 +248,8 @@ impl WorkspaceBuilder {
             .join(&new_fuzz_test)
             .join(CARGO);
 
-        let cargo_toml_content = include_str!(concat!(
-            env!("CARGO_MANIFEST_DIR"),
-            "/src/templates/trdelnik-tests/Cargo_fuzz.toml.tmpl"
-        ));
+        let cargo_toml_content =
+            load_template("/src/templates/trdelnik-tests/Cargo_fuzz.toml.tmpl")?;
         let cargo_content = cargo_toml_content.replace("###FUZZ_ID###", &fuzz_id.to_string());
 
         self.create_file(&cargo_path, &cargo_content).await?;
@@ -264,10 +261,7 @@ impl WorkspaceBuilder {
             .join(&new_fuzz_test)
             .join(FUZZ_TEST);
 
-        let fuzz_test_content = include_str!(concat!(
-            env!("CARGO_MANIFEST_DIR"),
-            "/src/templates/trdelnik-tests/fuzz_test.tmpl.rs"
-        ));
+        let fuzz_test_content = load_template("/src/templates/trdelnik-tests/fuzz_test.tmpl.rs")?;
 
         let use_entry = format!("use {}::entry;\n", program_name);
         let use_instructions = format!("use program_client::{}_instruction::*;\n", program_name);
@@ -325,12 +319,10 @@ impl WorkspaceBuilder {
             .join(POC_TEST_DIRECTORY)
             .join(CARGO);
 
-        let cargo_toml_content = include_str!(concat!(
-            env!("CARGO_MANIFEST_DIR"),
-            "/src/templates/trdelnik-tests/Cargo_poc.toml.tmpl"
-        ));
+        let cargo_toml_content =
+            load_template("/src/templates/trdelnik-tests/Cargo_poc.toml.tmpl")?;
 
-        self.create_file(&cargo_path, cargo_toml_content).await?;
+        self.create_file(&cargo_path, &cargo_toml_content).await?;
 
         let poc_test_path = self
             .root
@@ -339,10 +331,8 @@ impl WorkspaceBuilder {
             .join(TESTS)
             .join(POC_TEST);
 
-        let poc_test_content = include_str!(concat!(
-            env!("CARGO_MANIFEST_DIR"),
-            "/src/templates/trdelnik-tests/poc_test.tmpl.rs"
-        ));
+        let poc_test_content = load_template("/src/templates/trdelnik-tests/poc_test.tmpl.rs")?;
+
         let test_content = poc_test_content.replace("###PROGRAM_NAME###", program_name);
         let use_instructions = format!("use program_client::{}_instruction::*;\n", program_name);
         let template = format!("{use_instructions}{test_content}");
@@ -403,18 +393,23 @@ impl WorkspaceBuilder {
     #[throws]
     async fn create_trdelnik_manifest(&self) {
         let trdelnik_toml_path = self.root.join(TRDELNIK);
-        let trdelnik_toml_content = include_str!(concat!(
-            env!("CARGO_MANIFEST_DIR"),
-            "/src/templates/Trdelnik.toml.tmpl"
-        ));
-        self.create_file(&trdelnik_toml_path, trdelnik_toml_content)
+        let trdelnik_toml_content = load_template("/src/templates/Trdelnik.toml.tmpl")?;
+        self.create_file(&trdelnik_toml_path, &trdelnik_toml_content)
             .await?;
     }
     /// ## Updates program client generated source code
     #[throws]
-    async fn update_program_client(&self) {
+    async fn update_program_client_crate(&self) {
         let crate_path = self.root.join(PROGRAM_CLIENT_DIRECTORY);
-        let lib_path = self.root.join(PROGRAM_CLIENT_DIRECTORY).join(SRC).join(LIB);
+        let cargo_path = crate_path.join(CARGO);
+        let src_path = crate_path.join(SRC);
+        let lib_path = src_path.join(LIB);
+
+        self.create_directory_all(&src_path).await?;
+
+        let cargo_toml_content = load_template("/src/templates/program_client/Cargo.toml.tmpl")?;
+
+        self.create_file(&cargo_path, &cargo_toml_content).await?;
 
         self.add_program_dependencies(&crate_path, "dependencies")
             .await?;
@@ -525,7 +520,6 @@ impl WorkspaceBuilder {
     /// - Skip if file does not exists
     #[throws]
     async fn update_file<'a>(&self, path: &'a Path, content: &str) {
-        // TODO maybe create file if it does not exists
         let file = path.strip_prefix(&self.root).unwrap().to_str().unwrap();
         match path.exists() {
             true => {
@@ -533,7 +527,8 @@ impl WorkspaceBuilder {
                 println!("\x1b[92mSuccesfully\x1b[0m updated: \x1b[93m{file}\x1b[0m.");
             }
             false => {
-                println!("\x1b[93m--> Skipping <--\x1b[0m \x1b[93m{file}\x1b[0m, does not exists.");
+                fs::write(path, content).await?;
+                println!("\x1b[92mSuccesfully\x1b[0m created: \x1b[93m{file}\x1b[0m.");
             }
         };
     }
@@ -682,4 +677,12 @@ impl WorkspaceBuilder {
     //         }
     //     }
     // }
+}
+
+pub fn load_template(file_path: &str) -> Result<String, std::io::Error> {
+    let mut _path = String::from(MANIFEST_PATH);
+    _path.push_str(file_path);
+    let full_path = Path::new(&_path);
+
+    std::fs::read_to_string(full_path)
 }
