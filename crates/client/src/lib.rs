@@ -34,7 +34,6 @@ pub mod fuzzing {
 
     pub use super::fuzzer::*;
 }
-pub mod fuzzer;
 
 pub use futures::{self, FutureExt};
 pub use rstest::*;
@@ -65,7 +64,8 @@ pub use temp_clone::TempClone;
 mod keys;
 pub use keys::*;
 
-pub mod fuzzer_generator;
+mod fuzzer;
+pub use fuzzer::*;
 pub mod idl;
 pub mod program_client_generator;
 
