@@ -3,7 +3,7 @@ use clap::{Parser, ValueEnum};
 use fehler::throws;
 use trdelnik_client::__private::WorkspaceBuilder;
 
-use crate::{discover, ProgramArch};
+use crate::discover;
 
 pub const ANCHOR_TOML: &str = "Anchor.toml";
 pub const CARGO_TOML: &str = "Cargo.toml";
@@ -17,7 +17,7 @@ pub enum InitCommand {
 }
 
 #[throws]
-pub async fn init(template: InitCommand, arch: ProgramArch) {
+pub async fn init(template: InitCommand) {
     if let Some(_trdelnik_toml) = discover(TRDELNIK_TOML)? {
         bail!("It seems that Trdelnik Workspace is already initialized because the Trdelnik.toml file was found in parent directory!");
     }
@@ -29,8 +29,7 @@ pub async fn init(template: InitCommand, arch: ProgramArch) {
                 bail!("It does not seem that Anchor is initialized because the Anchor.toml file was not found in any parent directory!");
             };
             let mut generator = WorkspaceBuilder::new_with_root(root);
-            let arch = arch.build_subcommand();
-            generator.initialize_fuzz(arch).await?;
+            generator.initialize_fuzz().await?;
         }
         InitCommand::Poc => {
             let root = if let Some(r) = discover(CARGO_TOML)? {
@@ -39,8 +38,7 @@ pub async fn init(template: InitCommand, arch: ProgramArch) {
                 bail!("It does not seem that project is initialized because the Cargo.toml file was not found in any parent directory!");
             };
             let mut generator = WorkspaceBuilder::new_with_root(root);
-            let arch = arch.build_subcommand();
-            generator.initialize_poc(arch).await?;
+            generator.initialize_poc().await?;
         }
         InitCommand::Both => {
             // INFO for both we need Anchor as it is stronger condition of fuzzer
@@ -50,8 +48,7 @@ pub async fn init(template: InitCommand, arch: ProgramArch) {
                 bail!("It does not seem that Anchor is initialized because the Anchor.toml file was not found in any parent directory!");
             };
             let mut generator = WorkspaceBuilder::new_with_root(root);
-            let arch = arch.build_subcommand();
-            generator.initialize_both(arch).await?;
+            generator.initialize_both().await?;
         }
     };
 }

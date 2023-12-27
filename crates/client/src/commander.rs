@@ -1,18 +1,12 @@
 use std::io::Write;
 use std::os::unix::process::CommandExt;
 
+use crate::constants::*;
 use crate::Client;
 use crate::Config;
 use crate::{Idl, IdlError};
 use fehler::{throw, throws};
-// use log;
 use thiserror::Error;
-// TODO maybe unused
-// use tokio;
-
-// -----
-use crate::constants::*;
-// use indicatif;
 #[derive(Error, Debug)]
 pub enum Error {
     #[error("{0:?}")]
@@ -97,9 +91,9 @@ pub struct Commander {}
 impl Commander {
     // TODO maybe remove unnecesarry async
     #[throws]
-    pub async fn build_programs(arch: &str) {
+    pub async fn build_programs() {
         let exit = std::process::Command::new("cargo")
-            .arg(arch)
+            .arg("build-sbf")
             .stdout(std::process::Stdio::inherit())
             .stderr(std::process::Stdio::inherit())
             .output()
@@ -364,12 +358,6 @@ impl Commander {
             }
         }
 
-        // TODO We already checked if the trdelnik init is initialized, furthermore
-        // we can leave this on honggfuzz
-        // let cur_dir = root.join(TESTS_WORKSPACE_DIRECTORY);
-        // if !cur_dir.try_exists()? {
-        //     throw!(Error::NotInitialized);
-        // }
         let mut child = tokio::process::Command::new("cargo")
             .env("HFUZZ_RUN_ARGS", fuzz_args)
             .arg("hfuzz")

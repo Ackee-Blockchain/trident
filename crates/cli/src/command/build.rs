@@ -1,4 +1,4 @@
-use crate::{discover, ProgramArch};
+use crate::discover;
 use anyhow::{bail, Error};
 use fehler::throws;
 use trdelnik_client::__private::WorkspaceBuilder;
@@ -6,7 +6,7 @@ use trdelnik_client::__private::WorkspaceBuilder;
 pub const TRDELNIK_TOML: &str = "Trdelnik.toml";
 
 #[throws]
-pub async fn build(_root: String, arch: ProgramArch) {
+pub async fn build(_root: String) {
     // FIXME root argument maybe not needed
     let root = if let Some(r) = discover(TRDELNIK_TOML)? {
         r
@@ -14,6 +14,5 @@ pub async fn build(_root: String, arch: ProgramArch) {
         bail!("It does not seem that Trdelnik is initialized because the Trdelnik.toml file was not found in any parent directory!");
     };
     let mut builder = WorkspaceBuilder::new_with_root(root);
-    let arch = arch.build_subcommand();
-    builder.build(arch).await?;
+    builder.build().await?;
 }

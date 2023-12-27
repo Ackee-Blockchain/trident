@@ -1,5 +1,5 @@
 use anyhow::{Context, Error, Result};
-use clap::{Parser, Subcommand, ValueEnum};
+use clap::{Parser, Subcommand};
 use fehler::throws;
 
 // subcommand functions to call and nested subcommands
@@ -9,21 +9,6 @@ use command::ExplorerCommand;
 use command::FuzzCommand;
 use command::InitCommand;
 use command::KeyPairCommand;
-
-#[derive(ValueEnum, Parser, Clone, PartialEq, Eq, Debug)]
-pub enum ProgramArch {
-    Bpf,
-    Sbf,
-}
-
-impl ProgramArch {
-    pub fn build_subcommand(&self) -> &str {
-        match self {
-            Self::Bpf => "build-bpf",
-            Self::Sbf => "build-sbf",
-        }
-    }
-}
 
 #[derive(Parser)]
 #[clap(version, propagate_version = true)]
@@ -39,8 +24,6 @@ enum Command {
         /// Anchor project root
         #[clap(short, long, default_value = "./")]
         root: String,
-        #[clap(value_enum, short, long, default_value = "sbf")]
-        arch: ProgramArch,
     },
     /// Get information about a keypair
     KeyPair {
@@ -72,8 +55,6 @@ enum Command {
     Init {
         #[clap(value_enum, short, long, default_value = "both")]
         template: InitCommand,
-        #[clap(value_enum, short, long, default_value = "sbf")]
-        arch: ProgramArch,
     },
     /// Removes target contents except for KeyPair and removes hfuzz_target folder
     Clean,
@@ -84,13 +65,13 @@ pub async fn start() {
     let cli = Cli::parse();
 
     match cli.command {
-        Command::Build { root, arch } => command::build(root, arch).await?,
+        Command::Build { root } => command::build(root).await?,
         Command::KeyPair { subcmd } => command::keypair(subcmd)?,
         Command::Test { root } => command::test(root).await?,
         Command::Fuzz { root, subcmd } => command::fuzz(root, subcmd).await?,
         Command::Localnet => command::localnet().await?,
         Command::Explorer { subcmd } => command::explorer(subcmd).await?,
-        Command::Init { template, arch } => command::init(template, arch).await?,
+        Command::Init { template } => command::init(template).await?,
         Command::Clean => command::clean().await?,
     }
 }
