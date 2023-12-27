@@ -43,3 +43,16 @@ jobs:
       - name: Test Turnstile
         working-directory: examples/turnstile
         run: cargo run --manifest-path ../../Cargo.toml test
+  test_fuzzer:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/setup-rust/
+      - uses: ./.github/actions/setup-solana/
+      - uses: ./.github/actions/setup-honggfuzz/
+        id: rust-setup
+      - uses: Swatinem/rust-cache@v2
+        name: Cache Rust and it's packages
+      - name: Test Fuzzer
+        working-directory: examples/fuzzer
+        run: cargo run --manifest-path ../../Cargo.toml fuzz run fuzz_1
