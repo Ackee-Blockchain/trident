@@ -136,7 +136,8 @@ pub fn generate_source_code(idl: &Idl) -> String {
                         let ix_impl: syn::ItemImpl = parse_quote! {
                             impl<'info> IxOps<'info> for #instruction_name {
                                 type IxData = #module_name::instruction::#instruction_name;
-                                type IxAccCheck = #ix_snapshot<'info>;
+                                type IxAccounts = FuzzAccounts;
+                                type IxSnapshot = #ix_snapshot<'info>;
 
                                 fn get_data(
                                     &self,
