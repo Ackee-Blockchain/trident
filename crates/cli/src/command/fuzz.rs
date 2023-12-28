@@ -8,10 +8,12 @@ use anyhow::{bail, Context, Error, Result};
 
 use clap::Subcommand;
 use fehler::throws;
-use trdelnik_client::Commander;
+use trdelnik_client::{Commander, TestGenerator};
 
 pub const TESTS_WORKSPACE: &str = "trdelnik-tests";
 pub const HFUZZ_WORKSPACE: &str = "hfuzz_workspace";
+pub const FUZZ_TESTS_DIR: &str = "fuzz_tests";
+pub const FUZZING: &str = "fuzzing";
 
 #[derive(Subcommand)]
 #[allow(non_camel_case_types)]
@@ -31,6 +33,7 @@ pub enum FuzzCommand {
         /// Path to the crash file
         crash_file_path: String,
     },
+    Add,
 }
 
 #[throws]
@@ -85,6 +88,11 @@ pub async fn fuzz(root: Option<String>, subcmd: FuzzCommand) {
         } => {
             commander.run_fuzzer_debug(target, crash_file_path).await?;
         }
+
+        FuzzCommand::Add => {
+            let generator = TestGenerator::new();
+            generator.add_new_fuzz_test().await?;
+        }
     };
 }
 
@@ -126,10 +134,17 @@ fn get_crash_dir_and_ext(root: &str, target: &str, hfuzz_run_args: &str) -> (Pat
         .or_else(|| get_cmd_option_value(hfuzz_run_args.clone(), "-W", "--w"));
 
     let crash_path = if let Some(dir) = crash_dir {
-        Path::new(root).join(TESTS_WORKSPACE).join(dir)
+        // FIXME This would need to be fixed probably,
+        Path::new(root)
+            .join(TESTS_WORKSPACE)
+            .join(FUZZ_TESTS_DIR)
+            .join(FUZZING)
+            .join(dir)
     } else {
         Path::new(root)
             .join(TESTS_WORKSPACE)
+            .join(FUZZ_TESTS_DIR)
+            .join(FUZZING)
             .join(HFUZZ_WORKSPACE)
             .join(target)
     };
@@ -284,6 +299,8 @@ mod tests {
         let target = "target";
         let default_crash_path = Path::new(root)
             .join(TESTS_WORKSPACE)
+            .join(FUZZ_TESTS_DIR)
+            .join(FUZZING)
             .join(HFUZZ_WORKSPACE)
             .join(target);
 
@@ -320,14 +337,22 @@ mod tests {
         // test relative path
         let (crash_dir, ext) = get_crash_dir_and_ext(root, target, "-Q -W ../crash -e crash");
 
-        let expected_crash_path = Path::new(root).join(TESTS_WORKSPACE).join("../crash");
+        let expected_crash_path = Path::new(root)
+            .join(TESTS_WORKSPACE)
+            .join(FUZZ_TESTS_DIR)
+            .join(FUZZING)
+            .join("../crash");
         assert_eq!(crash_dir, expected_crash_path);
         assert_eq!(&ext, "crash");
 
         // test relative path
         let (crash_dir, ext) = get_crash_dir_and_ext(root, target, "-Q --crash ../crash -e crash");
 
-        let expected_crash_path = Path::new(root).join(TESTS_WORKSPACE).join("../crash");
+        let expected_crash_path = Path::new(root)
+            .join(TESTS_WORKSPACE)
+            .join(FUZZ_TESTS_DIR)
+            .join(FUZZING)
+            .join("../crash");
         assert_eq!(crash_dir, expected_crash_path);
         assert_eq!(&ext, "crash");
 
@@ -335,7 +360,11 @@ mod tests {
         let (crash_dir, ext) =
             get_crash_dir_and_ext(root, target, "-Q --crash ../crash -W /workspace -e crash");
 
-        let expected_crash_path = Path::new(root).join(TESTS_WORKSPACE).join("../crash");
+        let expected_crash_path = Path::new(root)
+            .join(TESTS_WORKSPACE)
+            .join(FUZZ_TESTS_DIR)
+            .join(FUZZING)
+            .join("../crash");
         assert_eq!(crash_dir, expected_crash_path);
         assert_eq!(&ext, "crash");
     }
