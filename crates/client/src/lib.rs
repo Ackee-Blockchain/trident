@@ -37,6 +37,7 @@ pub mod fuzzing {
     pub use super::fuzzer::*;
     pub use super::fuzzer::program_test_client_blocking::ProgramTestClientBlocking;
     pub use super::fuzzer::snapshot::Snapshot;
+    pub use super::fuzzer::accounts_storage::*;
 }
 
 pub use futures::{self, FutureExt};
