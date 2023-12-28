@@ -4894,7 +4894,17 @@ dependencies = [
  "thiserror",
  "tokio",
  "toml",
+ "trdelnik-derive-displayix",
  "trdelnik-test",
+]
+
+[[package]]
+name = "trdelnik-derive-displayix"
+version = "0.0.1"
+dependencies = [
+ "proc-macro2 1.0.66",
+ "quote 1.0.32",
+ "syn 1.0.109",
 ]
 
 [[package]]

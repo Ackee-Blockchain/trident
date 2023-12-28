@@ -27,6 +27,7 @@ pub mod fuzzing {
     pub use arbitrary;
     pub use arbitrary::Arbitrary;
     pub use honggfuzz::fuzz;
+    // TODO add optional feature gated dependency
     pub use solana_program_test::{
         processor, tokio::runtime::Runtime, BanksClient, BanksClientError, ProgramTest,
         ProgramTestContext,
@@ -38,6 +39,7 @@ pub mod fuzzing {
     pub use super::fuzzer::program_test_client_blocking::ProgramTestClientBlocking;
     pub use super::fuzzer::snapshot::Snapshot;
     pub use super::fuzzer::accounts_storage::*;
+    pub use trdelnik_derive_displayix::DisplayIx;
 }
 
 pub use futures::{self, FutureExt};
