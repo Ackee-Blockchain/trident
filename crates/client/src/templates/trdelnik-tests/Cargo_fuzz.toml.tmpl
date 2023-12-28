@@ -1,0 +1,24 @@
+[package]
+name = "fuzz_###FUZZ_ID###"
+version = "0.1.0"
+edition = "2018"
+
+# Dependencies specific to Fuzz test
+[dependencies]
+# ... your dependencies here
+honggfuzz = "0.5.55"
+arbitrary = "1.3.0"
+assert_matches = "1.4.0"
+
+
+[dependencies.trdelnik-client]
+version = "0.5.0"
+features=["fuzzing"]
+
+[dependencies.program_client]
+path = "../../../.program_client"
+
+
+[[bin]]
+name = "fuzz_###FUZZ_ID###"
+path = "test_fuzz.rs"
