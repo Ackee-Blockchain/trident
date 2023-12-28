@@ -58,3 +58,4 @@ solana-program-runtime = { version = "1.16.17", optional = true }
 shellexpand = { workspace = true }
 trdelnik-derive-displayix = { path = "./derive/display_ix" }
 trdelnik-derive-fuzz-deserialize = { path = "./derive/fuzz_deserialize" }
+trdelnik-derive-fuzz-test-executor = { path = "./derive/fuzz_test_executor" }

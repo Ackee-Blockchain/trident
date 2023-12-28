@@ -4896,6 +4896,7 @@ dependencies = [
  "toml",
  "trdelnik-derive-displayix",
  "trdelnik-derive-fuzz-deserialize",
+ "trdelnik-derive-fuzz-test-executor",
  "trdelnik-test",
 ]
 
@@ -4910,6 +4911,15 @@ dependencies = [
 
 [[package]]
 name = "trdelnik-derive-fuzz-deserialize"
+version = "0.0.1"
+dependencies = [
+ "proc-macro2 1.0.66",
+ "quote 1.0.32",
+ "syn 1.0.109",
+]
+
+[[package]]
+name = "trdelnik-derive-fuzz-test-executor"
 version = "0.0.1"
 dependencies = [
  "proc-macro2 1.0.66",
