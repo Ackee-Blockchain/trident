@@ -17,7 +17,7 @@ pub use anchor_client::{
 };
 pub use anyhow::{self, Error};
 
-#[cfg(feature = "fuzzing")]
+// #[cfg(feature = "fuzzing")]
 pub mod fuzzing {
     pub use super::{
         anchor_lang, anchor_lang::system_program::ID as SYSTEM_PROGRAM_ID,
@@ -32,6 +32,8 @@ pub mod fuzzing {
         ProgramTestContext,
     };
 
+    pub use super::fuzzer::data_builder::build_ix_fuzz_data;
+    pub use super::fuzzer::data_builder::*;
     pub use super::fuzzer::*;
 }
 
