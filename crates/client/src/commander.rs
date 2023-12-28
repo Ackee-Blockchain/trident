@@ -27,6 +27,8 @@ use tokio::{
 };
 
 pub static PROGRAM_CLIENT_DIRECTORY: &str = ".program_client";
+pub static CARGO_TARGET_DIR_DEFAULT: &str = "trdelnik-tests/fuzz_tests/fuzzing/hfuzz_target";
+pub static HFUZZ_WORKSPACE_DEFAULT: &str = "trdelnik-tests/fuzz_tests/fuzzing/hfuzz_workspace";
 
 #[derive(Error, Debug)]
 pub enum Error {
@@ -145,6 +147,7 @@ impl Commander {
     pub async fn run_tests(&self) {
         let success = Command::new("cargo")
             .arg("test")
+            .args(["--package", "poc_tests"])
             .arg("--")
             .arg("--nocapture")
             .spawn()?
@@ -161,6 +164,11 @@ impl Commander {
         let config = Config::new();
 
         let hfuzz_run_args = std::env::var("HFUZZ_RUN_ARGS").unwrap_or_default();
+        let cargo_target_dir =
+            std::env::var("CARGO_TARGET_DIR").unwrap_or(CARGO_TARGET_DIR_DEFAULT.to_string());
+        let hfuzz_workspace =
+            std::env::var("HFUZZ_WORKSPACE").unwrap_or(HFUZZ_WORKSPACE_DEFAULT.to_string());
+
         let fuzz_args = config.get_fuzz_args(hfuzz_run_args);
 
         let cur_dir = Path::new(&self.root.to_string()).join(TESTS_WORKSPACE);
@@ -170,6 +178,8 @@ impl Commander {
 
         let mut child = Command::new("cargo")
             .env("HFUZZ_RUN_ARGS", fuzz_args)
+            .env("CARGO_TARGET_DIR", cargo_target_dir)
+            .env("HFUZZ_WORKSPACE", hfuzz_workspace)
             .current_dir(cur_dir)
             .arg("hfuzz")
             .arg("run")
@@ -205,9 +215,13 @@ impl Commander {
             throw!(Error::CrashFileNotFound);
         }
 
+        let cargo_target_dir =
+            std::env::var("CARGO_TARGET_DIR").unwrap_or(CARGO_TARGET_DIR_DEFAULT.to_string());
+
         // using exec rather than spawn and replacing current process to avoid unflushed terminal output after ctrl+c signal
         std::process::Command::new("cargo")
             .current_dir(cur_dir)
+            .env("CARGO_TARGET_DIR", cargo_target_dir)
             .arg("hfuzz")
             .arg("run-debug")
             .arg(target)
