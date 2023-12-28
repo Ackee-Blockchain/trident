@@ -57,3 +57,4 @@ quinn-proto = { version = "0.9.4", optional = true }
 solana-program-runtime = { version = "1.16.17", optional = true }
 shellexpand = { workspace = true }
 trdelnik-derive-displayix = { path = "./derive/display_ix" }
+trdelnik-derive-fuzz-deserialize = { path = "./derive/fuzz_deserialize" }

@@ -40,6 +40,7 @@ pub mod fuzzing {
     pub use super::fuzzer::snapshot::Snapshot;
     pub use super::fuzzer::accounts_storage::*;
     pub use trdelnik_derive_displayix::DisplayIx;
+    pub use trdelnik_derive_fuzz_deserialize::FuzzDeserialize;
 }
 
 pub use futures::{self, FutureExt};
