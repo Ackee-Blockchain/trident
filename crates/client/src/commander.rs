@@ -353,7 +353,7 @@ impl Commander {
         let program_client = program_client_generator::generate_source_code(&idl, &use_tokens);
         let program_client = Self::format_program_code(&program_client).await?;
 
-        let program_fuzzer = fuzzer::fuzzer_generator::generate_source_code(&idl, &use_tokens);
+        let program_fuzzer = fuzzer::fuzzer_generator::generate_source_code(&idl);
         let program_fuzzer = Self::format_program_code(&program_fuzzer).await?;
 
         let rust_file_path = Path::new(self.root.as_ref())
