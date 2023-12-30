@@ -1,0 +1,11 @@
+[package]
+name = "program_client"
+version = "0.1.0"
+edition = "2018"
+
+[dependencies]
+trdelnik-client = "0.5.0"
+
+[dependencies.fuzz_example1]
+path = "../programs/fuzz_example1"
+features = ["no-entrypoint"]
