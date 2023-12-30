@@ -1,17 +1,17 @@
 use core::fmt;
 use std::cell::RefCell;
-use std::fmt::Display;
 use std::error::Error;
+use std::fmt::Display;
 
+use anchor_client::anchor_lang::solana_program::account_info::{Account as Acc, AccountInfo};
+use anchor_client::anchor_lang::solana_program::hash::Hash;
 use arbitrary::Arbitrary;
 use arbitrary::Unstructured;
 use solana_sdk::account::Account;
-use anchor_client::anchor_lang::solana_program::account_info::{Account as Acc, AccountInfo};
 use solana_sdk::instruction::AccountMeta;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
 use solana_sdk::transaction::VersionedTransaction;
-use anchor_client::anchor_lang::solana_program::hash::Hash;
 
 pub struct FuzzData<T, U> {
     pub pre_ixs: Vec<T>,
@@ -47,7 +47,10 @@ impl<'a, T> Iterator for FuzzDataIterator<'a, T> {
     }
 }
 
-impl<T,U> FuzzData<T,U> where  T: FuzzTestExecutor<U> + Display {
+impl<T, U> FuzzData<T, U>
+where
+    T: FuzzTestExecutor<U> + Display,
+{
     pub fn run_with_runtime(
         &self,
         program_id: Pubkey,
@@ -130,6 +133,7 @@ pub trait IxOps<'info> {
         fuzz_accounts: &mut Self::IxAccounts,
     ) -> Result<(Vec<Keypair>, Vec<AccountMeta>), FuzzingError>;
 
+    // TODO implement better error with source and description
     #[allow(unused_variables)]
     fn check(
         &self,
@@ -137,7 +141,6 @@ pub trait IxOps<'info> {
         post_ix: Self::IxSnapshot,
         ix_data: Self::IxData,
     ) -> Result<(), &'static str> {
-        // TODO implement better error with source and description
         Ok(())
     }
 }

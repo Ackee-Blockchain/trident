@@ -136,7 +136,7 @@ fn wrap_fields_in_option(orig_struct: &ItemStruct) -> Result<TokenStream, Box<dy
                 let field_name = &field.ident;
                 let field_type = &field.ty;
                 quote! {
-                    #field_name: Option<#field_type>,
+                    pub #field_name: Option<#field_type>,
                 }
             });
 
