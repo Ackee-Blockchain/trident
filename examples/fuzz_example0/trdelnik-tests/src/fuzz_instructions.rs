@@ -1,6 +1,6 @@
 pub mod fuzzer_fuzz_instructions {
     use crate::accounts_snapshots::*;
-    use trdelnik_client::fuzzing::*;
+    use trdelnik_client::{fuzzing::*, solana_sdk::native_token::LAMPORTS_PER_SOL};
     #[derive(Arbitrary, Clone, DisplayIx, FuzzTestExecutor, FuzzDeserialize)]
     pub enum FuzzInstruction {
         Initialize(Initialize),
@@ -51,14 +51,24 @@ pub mod fuzzer_fuzz_instructions {
             client: &mut impl FuzzClient,
             fuzz_accounts: &mut FuzzAccounts,
         ) -> Result<(Vec<Keypair>, Vec<AccountMeta>), FuzzingError> {
-            let signers = vec![todo!()];
+            let user = fuzz_accounts.user.get_or_create_account(
+                self.accounts.user,
+                client,
+                5 * LAMPORTS_PER_SOL,
+            );
+            let counter = fuzz_accounts.counter.get_or_create_account(
+                self.accounts.counter,
+                client,
+                5 * LAMPORTS_PER_SOL,
+            );
+
             let acc_meta = fuzzer::accounts::Initialize {
-                counter: todo!(),
-                user: todo!(),
-                system_program: todo!(),
+                counter: counter.pubkey(),
+                user: user.pubkey(),
+                system_program: SYSTEM_PROGRAM_ID,
             }
             .to_account_metas(None);
-            Ok((signers, acc_meta))
+            Ok((vec![user, counter], acc_meta))
         }
     }
     impl<'info> IxOps<'info> for Update {
@@ -71,8 +81,8 @@ pub mod fuzzer_fuzz_instructions {
             _fuzz_accounts: &mut FuzzAccounts,
         ) -> Result<Self::IxData, FuzzingError> {
             let data = fuzzer::instruction::Update {
-                input1: todo!(),
-                input2: todo!(),
+                input1: 15,
+                input2: 254,
             };
             Ok(data)
         }
@@ -81,13 +91,23 @@ pub mod fuzzer_fuzz_instructions {
             client: &mut impl FuzzClient,
             fuzz_accounts: &mut FuzzAccounts,
         ) -> Result<(Vec<Keypair>, Vec<AccountMeta>), FuzzingError> {
-            let signers = vec![todo!()];
+            let user = fuzz_accounts.user.get_or_create_account(
+                self.accounts.authority,
+                client,
+                15 * LAMPORTS_PER_SOL,
+            );
+            let counter = fuzz_accounts.counter.get_or_create_account(
+                self.accounts.counter,
+                client,
+                5 * LAMPORTS_PER_SOL,
+            );
+
             let acc_meta = fuzzer::accounts::Update {
-                counter: todo!(),
-                authority: todo!(),
+                counter: counter.pubkey(),
+                authority: user.pubkey(),
             }
             .to_account_metas(None);
-            Ok((signers, acc_meta))
+            Ok((vec![user], acc_meta))
         }
     }
     #[doc = r" Use AccountsStorage<T> where T can be one of:"]
