@@ -23,6 +23,7 @@ const FUZZ_DIRECTORY: &str = "src/bin";
 const TESTS_FILE_NAME: &str = "test.rs";
 const FUZZ_TEST_FILE_NAME: &str = "fuzz_target.rs";
 pub(crate) const FUZZ_INSTRUCTIONS_FILE_NAME: &str = "fuzz_instructions.rs";
+pub(crate) const ACCOUNTS_SNAPSHOTS_FILE_NAME: &str = "accounts_snapshots.rs";
 pub(crate) const HFUZZ_TARGET: &str = "hfuzz_target";
 
 #[derive(Error, Debug)]
@@ -192,7 +193,10 @@ impl TestGenerator {
             .await?;
 
         // create fuzz instructions file
-        let fuzz_instructions_path = root.join(TESTS_WORKSPACE).join("src");
+        let fuzz_instructions_path = root
+            .join(TESTS_WORKSPACE)
+            .join("src")
+            .join(FUZZ_INSTRUCTIONS_FILE_NAME);
         let fuzz_instructions_content = include_str!(concat!(
             env!("CARGO_MANIFEST_DIR"),
             "/src/templates/trdelnik-tests/fuzz_instructions.rs"
@@ -201,6 +205,22 @@ impl TestGenerator {
             &fuzz_instructions_path,
             FUZZ_INSTRUCTIONS_FILE_NAME,
             fuzz_instructions_content,
+        )
+        .await?;
+
+        // create accounts_snapshots file
+        let accounts_snapshots_path = root
+            .join(TESTS_WORKSPACE)
+            .join("src")
+            .join(ACCOUNTS_SNAPSHOTS_FILE_NAME);
+        let accounts_snapshots_content = include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/src/templates/trdelnik-tests/accounts_snapshots.rs"
+        ));
+        self.create_file(
+            &accounts_snapshots_path,
+            ACCOUNTS_SNAPSHOTS_FILE_NAME,
+            accounts_snapshots_content,
         )
         .await?;
 

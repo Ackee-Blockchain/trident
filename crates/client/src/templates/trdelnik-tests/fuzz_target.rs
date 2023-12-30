@@ -1,4 +1,3 @@
-use assert_matches::*;
 use trdelnik_client::{fuzz_trd, fuzzing::*};
 
 const PROGRAM_NAME: &str = "###PROGRAM_NAME###";

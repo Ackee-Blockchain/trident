@@ -4877,6 +4877,7 @@ dependencies = [
  "heck 0.4.0",
  "lazy_static",
  "log",
+ "proc-macro2 1.0.66",
  "quote 1.0.32",
  "rand 0.8.5",
  "rstest 0.18.1",

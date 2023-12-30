@@ -5724,6 +5724,7 @@ dependencies = [
  "lazy_static",
  "log",
  "pretty_assertions",
+ "proc-macro2 1.0.66",
  "quinn-proto",
  "quote 1.0.32",
  "rand 0.8.5",
