@@ -2975,7 +2975,7 @@ name = "program_client"
 version = "0.1.0"
 dependencies = [
  "fuzz_example1",
- "trdelnik-client 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "trdelnik-client",
 ]
 
 [[package]]
@@ -5641,43 +5641,7 @@ dependencies = [
  "trdelnik-derive-displayix",
  "trdelnik-derive-fuzz-deserialize",
  "trdelnik-derive-fuzz-test-executor",
- "trdelnik-test 0.3.1",
-]
-
-[[package]]
-name = "trdelnik-client"
-version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9e97071217e6965ef4a289ab54ff92f8ea7af91e2628344298679e6d35d5a8db"
-dependencies = [
- "anchor-client",
- "anyhow",
- "bincode",
- "borsh 0.10.3",
- "cargo_metadata",
- "ed25519-dalek",
- "fehler",
- "futures",
- "heck 0.4.1",
- "lazy_static",
- "log",
- "quote 1.0.33",
- "rand 0.8.5",
- "rstest 0.18.2",
- "serde",
- "serde_json",
- "serial_test",
- "solana-account-decoder",
- "solana-cli-output",
- "solana-sdk",
- "solana-transaction-status",
- "spl-associated-token-account",
- "spl-token",
- "syn 1.0.109",
- "thiserror",
- "tokio",
- "toml",
- "trdelnik-test 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "trdelnik-test",
 ]
 
 [[package]]
@@ -5718,18 +5682,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "trdelnik-test"
-version = "0.3.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0495a3ecb0264986796c53138a9268a2ecc4f2cb5bb70ceaefff92132e882a24"
-dependencies = [
- "darling 0.13.4",
- "proc-macro2 1.0.71",
- "quote 1.0.33",
- "syn 1.0.109",
-]
-
-[[package]]
 name = "trdelnik-tests"
 version = "0.1.0"
 dependencies = [
@@ -5737,7 +5689,7 @@ dependencies = [
  "fuzz_example1",
  "program_client",
  "rstest 0.12.0",
- "trdelnik-client 0.5.0",
+ "trdelnik-client",
 ]
 
 [[package]]

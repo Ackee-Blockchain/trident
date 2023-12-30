@@ -9,12 +9,15 @@ const PROGRAM_NAME: &str = "fuzz_example1";
 
 struct MyFuzzData;
 
-impl FuzzDataBuilder<FuzzInstruction> for MyFuzzData {
-    fn pre_ixs(u: &mut arbitrary::Unstructured) -> arbitrary::Result<Vec<FuzzInstruction>> {
-        let init_ix = FuzzInstruction::Initialize(Initialize::arbitrary(u)?);
-        Ok(vec![init_ix])
-    }
-}
+impl FuzzDataBuilder<FuzzInstruction> for MyFuzzData {}
+
+// impl FuzzDataBuilder<FuzzInstruction> for MyFuzzData {
+//     fn pre_ixs(u: &mut arbitrary::Unstructured) -> arbitrary::Result<Vec<FuzzInstruction>> {
+//         let init = FuzzInstruction::Initialize(Initialize::arbitrary(u)?);
+
+//         Ok(vec![init])
+//     }
+// }
 
 fn main() {
     loop {
