@@ -374,6 +374,7 @@ impl Commander {
             generate_snapshots_code(codes_libs_pairs).map_err(Error::ReadProgramCodeFailed)?;
         let fuzzer_snapshots = Self::format_program_code(&fuzzer_snapshots).await?;
 
+        // TODO do not overwrite files if they already exist to keep user changes
         let rust_file_path = Path::new(self.root.as_ref())
             .join(PROGRAM_CLIENT_DIRECTORY)
             .join("src/lib.rs");

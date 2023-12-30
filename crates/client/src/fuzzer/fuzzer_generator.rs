@@ -173,7 +173,6 @@ pub fn generate_source_code(idl: &Idl) -> String {
                 )
                 .into_iter();
 
-            // let mut fuzz_acc = ;
             let fuzz_accounts = idl_program
                 .instruction_account_pairs
                 .iter()
@@ -203,6 +202,7 @@ pub fn generate_source_code(idl: &Idl) -> String {
             let fuzzer_module: syn::ItemMod = parse_quote! {
                 pub mod #fuzz_instructions_module_name {
                     use trdelnik_client::fuzzing::*;
+                    use crate::accounts_snapshots::*;
 
                     #[derive(Arbitrary, Clone, DisplayIx, FuzzTestExecutor, FuzzDeserialize)]
                     pub enum FuzzInstruction {
@@ -218,7 +218,7 @@ pub fn generate_source_code(idl: &Idl) -> String {
                     /// Keypair, PdaStore, TokenStore, MintStore, ProgramStore
                     #[derive(Default)]
                     pub struct FuzzAccounts {
-                        #(#fuzz_accounts: todo!()),*
+                        #(#fuzz_accounts: AccountsStorage<todo!()>),*
                     }
 
                     impl FuzzAccounts {

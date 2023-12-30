@@ -73,13 +73,10 @@ pub fn generate_snapshots_code(code_path: Vec<(String, Utf8PathBuf)>) -> Result<
             let mut ty = None;
             if let GenericArgument::Type(syn::Type::Path(tp)) = &pair.1 {
                 ty = tp.path.get_ident().cloned();
-                // TODO add support for types with path such as ix::Initialize
-                // if ty.is_none() {
-                //     ty = tp.path.segments.iter().next().map(|f| f.ident.clone());
-                // }
+                // TODO add support for types with fully qualified path such as ix::Initialize
             }
             let ty = ty.ok_or(format!("malformed parameters of {} instruction", pair.0))?;
-            println!("{} - {}", pair.0, ty);
+            // println!("{} - {}", pair.0, ty);
 
             // recursively find the context struct and create a new version with wrapped field into Option
             if let Some(ctx) = get_ctx_struct(&parse_result.items, &ty) {
@@ -93,7 +90,13 @@ pub fn generate_snapshots_code(code_path: Vec<(String, Utf8PathBuf)>) -> Result<
                 return Err(format!("The Context struct {} was not found", ty));
             }
         }
-        Ok(format!("{}{}", structs, desers))
+        let use_statements = quote! {
+            use trdelnik_client::anchor_lang::{prelude::*, self};
+            use trdelnik_client::anchor_lang::solana_program::instruction::AccountMeta;
+            use trdelnik_client::fuzzing::{get_account_infos_option, FuzzingError};
+        }
+        .into_token_stream();
+        Ok(format!("{}{}{}", use_statements, structs, desers))
     });
 
     code.into_iter().collect()
@@ -126,7 +129,7 @@ fn get_ctx_struct<'a>(items: &'a Vec<syn::Item>, name: &'a syn::Ident) -> Option
 }
 
 fn wrap_fields_in_option(orig_struct: &ItemStruct) -> Result<TokenStream, Box<dyn Error>> {
-    let struct_name = format_ident!("{}FuzzCheck", orig_struct.ident);
+    let struct_name = format_ident!("{}Snapshot", orig_struct.ident);
     let wrapped_fields = match orig_struct.fields.clone() {
         Fields::Named(named) => {
             let field_wrappers = named.named.iter().map(|field| {
@@ -147,7 +150,7 @@ fn wrap_fields_in_option(orig_struct: &ItemStruct) -> Result<TokenStream, Box<dy
 
     // Generate the new struct with Option-wrapped fields
     let generated_struct: syn::ItemStruct = parse_quote! {
-        pub struct #struct_name #wrapped_fields
+        pub struct #struct_name<'info> #wrapped_fields
     };
 
     Ok(generated_struct.to_token_stream())
@@ -214,8 +217,8 @@ fn deserialize_ctx_struct(orig_struct: &ItemStruct) -> Result<TokenStream, Box<d
         impl<'info> #impl_name<'info> {
             pub fn deserialize_option(
                 metas: &'info [AccountMeta],
-                accounts: &'info mut [Option<Account>],
-            ) -> Result<Self, FuzzingError> {
+                accounts: &'info mut [Option<trdelnik_client::solana_sdk::account::Account>],
+            ) -> core::result::Result<Self, FuzzingError> {
                 let accounts = get_account_infos_option(accounts, metas)
                     .map_err(|_| FuzzingError::CannotGetAccounts)?;
 
@@ -246,7 +249,7 @@ impl AnchorType {
         let (return_type, deser_method) = match self {
             AnchorType::AccountInfo => return None,
             AnchorType::Signer => (
-                quote! { Signer<_>},
+                quote! { Signer<'_>},
                 quote!(anchor_lang::accounts::signer::Signer::try_from(&acc)),
             ),
             AnchorType::Account(acc) => {
