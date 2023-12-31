@@ -1,9 +1,6 @@
 pub mod fuzz_example2_fuzz_instructions {
     use crate::accounts_snapshots::*;
-    use fuzz_example2::state::ESCROW_SEED;
-    use trdelnik_client::{
-        anchor_lang::Key, fuzzing::*, solana_sdk::native_token::LAMPORTS_PER_SOL,
-    };
+    use trdelnik_client::fuzzing::*;
     #[derive(Arbitrary, Clone, DisplayIx, FuzzTestExecutor, FuzzDeserialize)]
     pub enum FuzzInstruction {
         Initialize(Initialize),
@@ -16,16 +13,13 @@ pub mod fuzz_example2_fuzz_instructions {
     }
     #[derive(Arbitrary, Clone)]
     pub struct InitializeAccounts {
-        #[arbitrary(with = |u: &mut arbitrary::Unstructured| u.int_in_range(0..=2))]
         pub author: AccountId,
-        #[arbitrary(with = |u: &mut arbitrary::Unstructured| u.int_in_range(0..=2))]
         pub escrow: AccountId,
         pub system_program: AccountId,
     }
     #[derive(Arbitrary, Clone)]
     pub struct InitializeData {
-        #[arbitrary(with = |u: &mut arbitrary::Unstructured| u.int_in_range(0..=2))]
-        pub receiver: AccountId,
+        pub receiver: Pubkey,
         pub amount: u64,
     }
     #[derive(Arbitrary, Clone)]
@@ -35,9 +29,7 @@ pub mod fuzz_example2_fuzz_instructions {
     }
     #[derive(Arbitrary, Clone)]
     pub struct WithdrawAccounts {
-        #[arbitrary(with = |u: &mut arbitrary::Unstructured| u.int_in_range(0..=2))]
         pub receiver: AccountId,
-        #[arbitrary(with = |u: &mut arbitrary::Unstructured| u.int_in_range(0..=2))]
         pub escrow: AccountId,
         pub system_program: AccountId,
     }
@@ -49,17 +41,12 @@ pub mod fuzz_example2_fuzz_instructions {
         type IxSnapshot = InitializeSnapshot<'info>;
         fn get_data(
             &self,
-            client: &mut impl FuzzClient,
-            fuzz_accounts: &mut FuzzAccounts,
+            _client: &mut impl FuzzClient,
+            _fuzz_accounts: &mut FuzzAccounts,
         ) -> Result<Self::IxData, FuzzingError> {
-            let receiver = fuzz_accounts.receiver.get_or_create_account(
-                self.data.receiver,
-                client,
-                10 * LAMPORTS_PER_SOL,
-            );
             let data = fuzz_example2::instruction::Initialize {
-                receiver: receiver.pubkey(),
-                amount: 100,
+                receiver: todo!(),
+                amount: todo!(),
             };
             Ok(data)
         }
@@ -68,37 +55,14 @@ pub mod fuzz_example2_fuzz_instructions {
             client: &mut impl FuzzClient,
             fuzz_accounts: &mut FuzzAccounts,
         ) -> Result<(Vec<Keypair>, Vec<AccountMeta>), FuzzingError> {
-            let author = fuzz_accounts.author.get_or_create_account(
-                self.accounts.author,
-                client,
-                10 * LAMPORTS_PER_SOL,
-            );
-
-            let receiver = fuzz_accounts.receiver.get_or_create_account(
-                self.data.receiver,
-                client,
-                10 * LAMPORTS_PER_SOL,
-            );
-
-            let escrow = fuzz_accounts
-                .escrow
-                .get_or_create_account(
-                    self.accounts.escrow,
-                    &[
-                        author.pubkey().as_ref(),
-                        receiver.pubkey().as_ref(),
-                        ESCROW_SEED.as_ref(),
-                    ],
-                    &fuzz_example2::ID,
-                )
-                .unwrap();
+            let signers = vec![todo!()];
             let acc_meta = fuzz_example2::accounts::Initialize {
-                author: author.pubkey(),
-                escrow: escrow.pubkey(),
-                system_program: SYSTEM_PROGRAM_ID,
+                author: todo!(),
+                escrow: todo!(),
+                system_program: todo!(),
             }
             .to_account_metas(None);
-            Ok((vec![author], acc_meta))
+            Ok((signers, acc_meta))
         }
     }
     impl<'info> IxOps<'info> for Withdraw {
@@ -118,54 +82,14 @@ pub mod fuzz_example2_fuzz_instructions {
             client: &mut impl FuzzClient,
             fuzz_accounts: &mut FuzzAccounts,
         ) -> Result<(Vec<Keypair>, Vec<AccountMeta>), FuzzingError> {
-            let receiver = fuzz_accounts.receiver.get_or_create_account(
-                self.accounts.receiver,
-                client,
-                10 * LAMPORTS_PER_SOL,
-            );
-
-            let escrow = fuzz_accounts
-                .escrow
-                .get_or_create_account(
-                    self.accounts.escrow,
-                    &[
-                        receiver.pubkey().as_ref(),
-                        receiver.pubkey().as_ref(),
-                        ESCROW_SEED.as_ref(),
-                    ],
-                    &fuzz_example2::ID,
-                )
-                .unwrap();
-
+            let signers = vec![todo!()];
             let acc_meta = fuzz_example2::accounts::Withdraw {
-                receiver: receiver.pubkey(),
-                escrow: escrow.pubkey(),
-                system_program: SYSTEM_PROGRAM_ID,
+                receiver: todo!(),
+                escrow: todo!(),
+                system_program: todo!(),
             }
             .to_account_metas(None);
-            Ok((vec![receiver], acc_meta))
-        }
-        fn check(
-            &self,
-            pre_ix: Self::IxSnapshot,
-            post_ix: Self::IxSnapshot,
-            _ix_data: Self::IxData,
-        ) -> Result<(), &'static str> {
-            if let Some(escrow_pre) = pre_ix.escrow {
-                // we can unwrap the receiver account because it has to be initialized before the instruction
-                // execution and it is not supposed to be closed after the instruction execution either
-                let receiver = pre_ix.receiver.unwrap();
-                let receiver_lamports_before = receiver.lamports();
-                let receiver_lamports_after = post_ix.receiver.unwrap().lamports();
-
-                if receiver.key() != escrow_pre.receiver.key()
-                    && receiver_lamports_before < receiver_lamports_after
-                {
-                    return Err("Un-authorized withdrawal");
-                }
-            }
-
-            Ok(())
+            Ok((signers, acc_meta))
         }
     }
     #[doc = r" Use AccountsStorage<T> where T can be one of:"]
@@ -173,6 +97,7 @@ pub mod fuzz_example2_fuzz_instructions {
     #[derive(Default)]
     pub struct FuzzAccounts {
         receiver: AccountsStorage<Keypair>,
+        system_program: AccountsStorage<ProgramStore>,
         author: AccountsStorage<Keypair>,
         escrow: AccountsStorage<PdaStore>,
     }
