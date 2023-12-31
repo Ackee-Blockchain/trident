@@ -2,26 +2,28 @@ use fuzz_example1::state::{Project, State};
 use trdelnik_client::anchor_lang::solana_program::instruction::AccountMeta;
 use trdelnik_client::anchor_lang::{self, prelude::*};
 use trdelnik_client::fuzzing::{get_account_infos_option, FuzzingError};
+
+// FIXME pubs infront of each struct field were not there after init
 pub struct InitializeSnapshot<'info> {
-    author: Option<Signer<'info>>,
-    state: Option<Account<'info, State>>,
-    system_program: Option<Program<'info, System>>,
+    pub author: Option<Signer<'info>>,
+    pub state: Option<Account<'info, State>>,
+    pub system_program: Option<Program<'info, System>>,
 }
 pub struct RegisterSnapshot<'info> {
-    project_author: Option<Signer<'info>>,
-    project: Option<Account<'info, Project>>,
-    state: Option<Account<'info, State>>,
-    system_program: Option<Program<'info, System>>,
+    pub project_author: Option<Signer<'info>>,
+    pub project: Option<Account<'info, Project>>,
+    pub state: Option<Account<'info, State>>,
+    pub system_program: Option<Program<'info, System>>,
 }
 pub struct EndRegistrationsSnapshot<'info> {
-    author: Option<Signer<'info>>,
-    state: Option<Account<'info, State>>,
+    pub author: Option<Signer<'info>>,
+    pub state: Option<Account<'info, State>>,
 }
 pub struct InvestSnapshot<'info> {
-    investor: Option<Signer<'info>>,
-    project: Option<Account<'info, Project>>,
-    state: Option<Account<'info, State>>,
-    system_program: Option<Program<'info, System>>,
+    pub investor: Option<Signer<'info>>,
+    pub project: Option<Account<'info, Project>>,
+    pub state: Option<Account<'info, State>>,
+    pub system_program: Option<Program<'info, System>>,
 }
 impl<'info> InitializeSnapshot<'info> {
     pub fn deserialize_option(
