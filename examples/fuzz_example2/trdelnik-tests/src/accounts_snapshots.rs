@@ -3,14 +3,14 @@ use trdelnik_client::anchor_lang::solana_program::instruction::AccountMeta;
 use trdelnik_client::anchor_lang::{self, prelude::*};
 use trdelnik_client::fuzzing::{get_account_infos_option, FuzzingError};
 pub struct InitializeSnapshot<'info> {
-    author: Option<Signer<'info>>,
-    escrow: Option<Account<'info, Escrow>>,
-    system_program: Option<Program<'info, System>>,
+    pub author: Option<Signer<'info>>,
+    pub escrow: Option<Account<'info, Escrow>>,
+    pub system_program: Option<Program<'info, System>>,
 }
 pub struct WithdrawSnapshot<'info> {
-    receiver: Option<Signer<'info>>,
-    escrow: Option<Account<'info, Escrow>>,
-    system_program: Option<Program<'info, System>>,
+    pub receiver: Option<Signer<'info>>,
+    pub escrow: Option<Account<'info, Escrow>>,
+    pub system_program: Option<Program<'info, System>>,
 }
 impl<'info> InitializeSnapshot<'info> {
     pub fn deserialize_option(
