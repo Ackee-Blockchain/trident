@@ -1,6 +1,9 @@
 pub mod fuzz_example2_fuzz_instructions {
     use crate::accounts_snapshots::*;
-    use trdelnik_client::fuzzing::*;
+    use fuzz_example2::state::ESCROW_SEED;
+    use trdelnik_client::{
+        anchor_lang::Key, fuzzing::*, solana_sdk::native_token::LAMPORTS_PER_SOL,
+    };
     #[derive(Arbitrary, Clone, DisplayIx, FuzzTestExecutor, FuzzDeserialize)]
     pub enum FuzzInstruction {
         Initialize(Initialize),
@@ -19,7 +22,7 @@ pub mod fuzz_example2_fuzz_instructions {
     }
     #[derive(Arbitrary, Clone)]
     pub struct InitializeData {
-        pub receiver: Pubkey,
+        pub receiver: [u8; 32],
         pub amount: u64,
     }
     #[derive(Arbitrary, Clone)]
@@ -45,8 +48,8 @@ pub mod fuzz_example2_fuzz_instructions {
             _fuzz_accounts: &mut FuzzAccounts,
         ) -> Result<Self::IxData, FuzzingError> {
             let data = fuzz_example2::instruction::Initialize {
-                receiver: todo!(),
-                amount: todo!(),
+                receiver: Pubkey::new_from_array(self.data.receiver),
+                amount: 100,
             };
             Ok(data)
         }
@@ -55,14 +58,31 @@ pub mod fuzz_example2_fuzz_instructions {
             client: &mut impl FuzzClient,
             fuzz_accounts: &mut FuzzAccounts,
         ) -> Result<(Vec<Keypair>, Vec<AccountMeta>), FuzzingError> {
-            let signers = vec![todo!()];
+            let author = fuzz_accounts.author.get_or_create_account(
+                self.accounts.author,
+                client,
+                10 * LAMPORTS_PER_SOL,
+            );
+
+            let escrow = fuzz_accounts
+                .escrow
+                .get_or_create_account(
+                    self.accounts.escrow,
+                    &[
+                        author.pubkey().as_ref(),
+                        self.data.receiver.as_ref(),
+                        ESCROW_SEED.as_ref(),
+                    ],
+                    &fuzz_example2::ID,
+                )
+                .unwrap();
             let acc_meta = fuzz_example2::accounts::Initialize {
-                author: todo!(),
-                escrow: todo!(),
-                system_program: todo!(),
+                author: author.pubkey(),
+                escrow: escrow.pubkey(),
+                system_program: SYSTEM_PROGRAM_ID,
             }
             .to_account_metas(None);
-            Ok((signers, acc_meta))
+            Ok((vec![author], acc_meta))
         }
     }
     impl<'info> IxOps<'info> for Withdraw {
@@ -82,14 +102,51 @@ pub mod fuzz_example2_fuzz_instructions {
             client: &mut impl FuzzClient,
             fuzz_accounts: &mut FuzzAccounts,
         ) -> Result<(Vec<Keypair>, Vec<AccountMeta>), FuzzingError> {
-            let signers = vec![todo!()];
+            let receiver = fuzz_accounts.receiver.get_or_create_account(
+                self.accounts.receiver,
+                client,
+                10 * LAMPORTS_PER_SOL,
+            );
+
+            let escrow = fuzz_accounts
+                .escrow
+                .get_or_create_account(
+                    self.accounts.escrow,
+                    &[
+                        receiver.pubkey().as_ref(),
+                        receiver.pubkey().as_ref(),
+                        ESCROW_SEED.as_ref(),
+                    ],
+                    &fuzz_example2::ID,
+                )
+                .unwrap();
+
             let acc_meta = fuzz_example2::accounts::Withdraw {
-                receiver: todo!(),
-                escrow: todo!(),
-                system_program: todo!(),
+                receiver: receiver.pubkey(),
+                escrow: escrow.pubkey(),
+                system_program: SYSTEM_PROGRAM_ID,
             }
             .to_account_metas(None);
-            Ok((signers, acc_meta))
+            Ok((vec![receiver], acc_meta))
+        }
+        fn check(
+            &self,
+            pre_ix: Self::IxSnapshot,
+            post_ix: Self::IxSnapshot,
+            ix_data: Self::IxData,
+        ) -> Result<(), &'static str> {
+            if let Some(escrow_pre) = pre_ix.escrow {
+                if let Some(escrow_post) = post_ix.escrow {
+                    let receiver = pre_ix.receiver.unwrap();
+                    if *receiver.key != escrow_pre.receiver.key()
+                        && escrow_pre.amount - 100 == escrow_post.amount
+                    {
+                        return Err("Un-authorized withdrawal");
+                    }
+                }
+            }
+
+            Ok(())
         }
     }
     #[doc = r" Use AccountsStorage<T> where T can be one of:"]
