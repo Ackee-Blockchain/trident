@@ -4,6 +4,7 @@ version = "0.1.0"
 description = "Created with Trdelnik"
 edition = "2021"
 [dependencies.trdelnik-client]
+version = "0.5.0"
 path = "../../../crates/client"
 features = ["fuzzing"]
 

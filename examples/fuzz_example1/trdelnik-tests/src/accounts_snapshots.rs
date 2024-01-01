@@ -1,9 +1,7 @@
-use fuzz_example1::state::{Project, State};
+use fuzz_example1::state::{State, Project};
 use trdelnik_client::anchor_lang::solana_program::instruction::AccountMeta;
 use trdelnik_client::anchor_lang::{self, prelude::*};
 use trdelnik_client::fuzzing::{get_account_infos_option, FuzzingError};
-
-// FIXME pubs infront of each struct field were not there after init
 pub struct InitializeSnapshot<'info> {
     pub author: Option<Signer<'info>>,
     pub state: Option<Account<'info, State>>,
