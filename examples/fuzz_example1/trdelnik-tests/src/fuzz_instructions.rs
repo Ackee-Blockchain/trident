@@ -1,7 +1,7 @@
 pub mod fuzz_example1_fuzz_instructions {
     use crate::accounts_snapshots::*;
     use fuzz_example1::state::{PROJECT_SEED, STATE_SEED};
-    use trdelnik_client::{fuzzing::*, solana_sdk::native_token::LAMPORTS_PER_SOL};
+    use trdelnik_client::fuzzing::*;
     #[derive(Arbitrary, Clone, DisplayIx, FuzzTestExecutor, FuzzDeserialize)]
     pub enum FuzzInstruction {
         Initialize(Initialize),
@@ -16,7 +16,9 @@ pub mod fuzz_example1_fuzz_instructions {
     }
     #[derive(Arbitrary, Clone)]
     pub struct InitializeAccounts {
+        #[arbitrary(with = |u: &mut arbitrary::Unstructured| u.int_in_range(0..=2))]
         pub author: AccountId,
+        #[arbitrary(with = |u: &mut arbitrary::Unstructured| u.int_in_range(0..=2))]
         pub state: AccountId,
         pub system_program: AccountId,
     }
@@ -29,8 +31,11 @@ pub mod fuzz_example1_fuzz_instructions {
     }
     #[derive(Arbitrary, Clone)]
     pub struct RegisterAccounts {
+        #[arbitrary(with = |u: &mut arbitrary::Unstructured| u.int_in_range(0..=2))]
         pub project_author: AccountId,
+        #[arbitrary(with = |u: &mut arbitrary::Unstructured| u.int_in_range(0..=2))]
         pub project: AccountId,
+        #[arbitrary(with = |u: &mut arbitrary::Unstructured| u.int_in_range(0..=2))]
         pub state: AccountId,
         pub system_program: AccountId,
     }
@@ -43,7 +48,9 @@ pub mod fuzz_example1_fuzz_instructions {
     }
     #[derive(Arbitrary, Clone)]
     pub struct EndRegistrationsAccounts {
+        #[arbitrary(with = |u: &mut arbitrary::Unstructured| u.int_in_range(0..=2))]
         pub author: AccountId,
+        #[arbitrary(with = |u: &mut arbitrary::Unstructured| u.int_in_range(0..=2))]
         pub state: AccountId,
     }
     #[derive(Arbitrary, Clone)]
@@ -55,8 +62,11 @@ pub mod fuzz_example1_fuzz_instructions {
     }
     #[derive(Arbitrary, Clone)]
     pub struct InvestAccounts {
+        #[arbitrary(with = |u: &mut arbitrary::Unstructured| u.int_in_range(0..=2))]
         pub investor: AccountId,
+        #[arbitrary(with = |u: &mut arbitrary::Unstructured| u.int_in_range(0..=2))]
         pub project: AccountId,
+        #[arbitrary(with = |u: &mut arbitrary::Unstructured| u.int_in_range(0..=2))]
         pub state: AccountId,
         pub system_program: AccountId,
     }
@@ -84,9 +94,9 @@ pub mod fuzz_example1_fuzz_instructions {
             let author = fuzz_accounts.author.get_or_create_account(
                 self.accounts.author,
                 client,
-                10 * LAMPORTS_PER_SOL,
+                5000000000000,
             );
-
+            let signers = vec![author.clone()];
             let state = fuzz_accounts
                 .state
                 .get_or_create_account(
@@ -94,15 +104,16 @@ pub mod fuzz_example1_fuzz_instructions {
                     &[author.pubkey().as_ref(), STATE_SEED.as_ref()],
                     &fuzz_example1::ID,
                 )
-                .unwrap();
+                .ok_or(FuzzingError::CannotGetAccounts)?
+                .pubkey();
 
             let acc_meta = fuzz_example1::accounts::Initialize {
                 author: author.pubkey(),
-                state: state.pubkey(),
+                state,
                 system_program: SYSTEM_PROGRAM_ID,
             }
             .to_account_metas(None);
-            Ok((vec![author], acc_meta))
+            Ok((signers, acc_meta))
         }
     }
     impl<'info> IxOps<'info> for Register {
@@ -125,10 +136,9 @@ pub mod fuzz_example1_fuzz_instructions {
             let project_author = fuzz_accounts.project_author.get_or_create_account(
                 self.accounts.project_author,
                 client,
-                10 * LAMPORTS_PER_SOL,
+                5000000000000,
             );
-
-            // FIXME why can we have project author as seed here
+            let signers = vec![project_author.clone()];
             let state = fuzz_accounts
                 .state
                 .get_or_create_account(
@@ -136,7 +146,8 @@ pub mod fuzz_example1_fuzz_instructions {
                     &[project_author.pubkey().as_ref(), STATE_SEED.as_ref()],
                     &fuzz_example1::ID,
                 )
-                .unwrap();
+                .ok_or(FuzzingError::CannotGetAccounts)?
+                .pubkey();
 
             let project = fuzz_accounts
                 .project
@@ -144,21 +155,22 @@ pub mod fuzz_example1_fuzz_instructions {
                     self.accounts.project,
                     &[
                         project_author.pubkey().as_ref(),
-                        state.pubkey().as_ref(),
+                        state.as_ref(),
                         PROJECT_SEED.as_ref(),
                     ],
                     &fuzz_example1::ID,
                 )
-                .unwrap();
+                .ok_or(FuzzingError::CannotGetAccounts)?
+                .pubkey();
 
             let acc_meta = fuzz_example1::accounts::Register {
                 project_author: project_author.pubkey(),
-                project: project.pubkey(),
-                state: state.pubkey(),
+                project,
+                state,
                 system_program: SYSTEM_PROGRAM_ID,
             }
             .to_account_metas(None);
-            Ok((vec![project_author], acc_meta))
+            Ok((signers, acc_meta))
         }
     }
     impl<'info> IxOps<'info> for EndRegistrations {
@@ -181,9 +193,9 @@ pub mod fuzz_example1_fuzz_instructions {
             let author = fuzz_accounts.author.get_or_create_account(
                 self.accounts.author,
                 client,
-                5 * LAMPORTS_PER_SOL,
+                5000000000000,
             );
-
+            let signers = vec![author.clone()];
             let state = fuzz_accounts
                 .state
                 .get_or_create_account(
@@ -191,14 +203,14 @@ pub mod fuzz_example1_fuzz_instructions {
                     &[author.pubkey().as_ref(), STATE_SEED.as_ref()],
                     &fuzz_example1::ID,
                 )
-                .unwrap();
-
+                .ok_or(FuzzingError::CannotGetAccounts)?
+                .pubkey();
             let acc_meta = fuzz_example1::accounts::EndRegistration {
                 author: author.pubkey(),
-                state: state.pubkey(),
+                state,
             }
             .to_account_metas(None);
-            Ok((vec![author], acc_meta))
+            Ok((signers, acc_meta))
         }
     }
     impl<'info> IxOps<'info> for Invest {
@@ -223,13 +235,14 @@ pub mod fuzz_example1_fuzz_instructions {
             let investor = fuzz_accounts.investor.get_or_create_account(
                 self.accounts.investor,
                 client,
-                10 * LAMPORTS_PER_SOL,
+                5000000000000,
             );
+            let signers = vec![investor.clone()];
 
             let project_author = fuzz_accounts.project_author.get_or_create_account(
                 self.accounts.project,
                 client,
-                10 * LAMPORTS_PER_SOL,
+                50000000000,
             );
             let state = fuzz_accounts
                 .state
@@ -261,25 +274,29 @@ pub mod fuzz_example1_fuzz_instructions {
                 system_program: SYSTEM_PROGRAM_ID,
             }
             .to_account_metas(None);
-            Ok((vec![investor], acc_meta))
+            Ok((signers, acc_meta))
         }
+
         fn check(
             &self,
             pre_ix: Self::IxSnapshot,
             post_ix: Self::IxSnapshot,
-            _ix_data: Self::IxData,
+            ix_data: Self::IxData,
         ) -> Result<(), &'static str> {
-            if let Some(state) = pre_ix.state {
-                if !state.registrations_round {
-                    return Err("Registration instruction passed before registration activation!");
+            if let Some(project_pre) = pre_ix.project {
+                let project_post = post_ix.project.unwrap();
+
+                if let Some(state) = pre_ix.state {
+                    if !state.registrations_round
+                        && project_pre.invested_amount + ix_data.amount
+                            == project_post.invested_amount
+                    {
+                        return Err(
+                            "Registration round was not terminated, therefor investor was able to invest inside registration window",
+                        );
+                    }
                 }
             }
-
-            // if let Some(project) = post_ix.project {
-            //     if project.invested_amount != 0 {
-            //         return Err("Investor invested into project before registration were closed");
-            //     }
-            // }
             Ok(())
         }
     }
@@ -289,10 +306,10 @@ pub mod fuzz_example1_fuzz_instructions {
     pub struct FuzzAccounts {
         project_author: AccountsStorage<Keypair>,
         author: AccountsStorage<Keypair>,
-        system_program: AccountsStorage<ProgramStore>,
-        state: AccountsStorage<PdaStore>,
-        investor: AccountsStorage<Keypair>,
         project: AccountsStorage<PdaStore>,
+        // system_program: AccountsStorage<ProgramStore>,
+        investor: AccountsStorage<Keypair>,
+        state: AccountsStorage<PdaStore>,
     }
     impl FuzzAccounts {
         pub fn new() -> Self {
