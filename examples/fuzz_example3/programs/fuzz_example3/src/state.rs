@@ -22,7 +22,9 @@ impl Escrow {
 
         // end_at - start_at, difference of timestamps in second
         let duration = self.end_time.checked_sub(self.start_time)?;
-
+        msg!("duration {}", duration);
+        msg!("amount {}", self.amount);
+        msg!("interval {}", self.interval);
         // amount * interval / duration
         let interval_amount = self
             .amount

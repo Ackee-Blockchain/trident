@@ -13,24 +13,26 @@ pub mod fuzz_example3_fuzz_instructions {
     }
     #[derive(Arbitrary, Clone)]
     pub struct InitVestingAccounts {
-        #[arbitrary(with = |u: &mut arbitrary::Unstructured| u.int_in_range(0..=1))]
+        // #[arbitrary(with = |u: &mut arbitrary::Unstructured| u.int_in_range(0..=1))]
         pub sender: AccountId,
-        #[arbitrary(with = |u: &mut arbitrary::Unstructured| u.int_in_range(0..=1))]
+        // #[arbitrary(with = |u: &mut arbitrary::Unstructured| u.int_in_range(0..=1))]
         pub sender_token_account: AccountId,
-        #[arbitrary(with = |u: &mut arbitrary::Unstructured| u.int_in_range(0..=1))]
+        // #[arbitrary(with = |u: &mut arbitrary::Unstructured| u.int_in_range(0..=1))]
         pub escrow: AccountId,
-        #[arbitrary(with = |u: &mut arbitrary::Unstructured| u.int_in_range(0..=1))]
+        // #[arbitrary(with = |u: &mut arbitrary::Unstructured| u.int_in_range(0..=1))]
         pub escrow_token_account: AccountId,
-        #[arbitrary(with = |u: &mut arbitrary::Unstructured| u.int_in_range(0..=1))]
+        // #[arbitrary(with = |u: &mut arbitrary::Unstructured| u.int_in_range(0..=1))]
         pub mint: AccountId,
         pub token_program: AccountId,
         pub system_program: AccountId,
     }
     #[derive(Arbitrary, Clone)]
     pub struct InitVestingData {
-        pub recipient: [u8; 32],
-        #[arbitrary(with = |u: &mut arbitrary::Unstructured| u.int_in_range(1..=58743))]
+        pub recipient: AccountId,
+        // the range is selected randomly
+        #[arbitrary(with = |u: &mut arbitrary::Unstructured| u.int_in_range(13581..=580743))]
         pub amount: u64,
+        // we want start_at smaller than end_at
         #[arbitrary(with = |u: &mut arbitrary::Unstructured| u.int_in_range(0..=1_000_000))]
         pub start_at: u64,
         #[arbitrary(with = |u: &mut arbitrary::Unstructured| u.int_in_range(1_001_001..=1_050_000))]
@@ -45,17 +47,17 @@ pub mod fuzz_example3_fuzz_instructions {
     }
     #[derive(Arbitrary, Clone)]
     pub struct WithdrawUnlockedAccounts {
-        #[arbitrary(with = |u: &mut arbitrary::Unstructured| u.int_in_range(0..=1))]
+        // #[arbitrary(with = |u: &mut arbitrary::Unstructured| u.int_in_range(0..=1))]
         pub recipient: AccountId,
-        #[arbitrary(with = |u: &mut arbitrary::Unstructured| u.int_in_range(0..=1))]
+        // #[arbitrary(with = |u: &mut arbitrary::Unstructured| u.int_in_range(0..=1))]
         pub recipient_token_account: AccountId,
-        #[arbitrary(with = |u: &mut arbitrary::Unstructured| u.int_in_range(0..=1))]
+        // #[arbitrary(with = |u: &mut arbitrary::Unstructured| u.int_in_range(0..=1))]
         pub escrow: AccountId,
-        #[arbitrary(with = |u: &mut arbitrary::Unstructured| u.int_in_range(0..=1))]
+        // #[arbitrary(with = |u: &mut arbitrary::Unstructured| u.int_in_range(0..=1))]
         pub escrow_token_account: AccountId,
-        #[arbitrary(with = |u: &mut arbitrary::Unstructured| u.int_in_range(0..=1))]
+        // #[arbitrary(with = |u: &mut arbitrary::Unstructured| u.int_in_range(0..=1))]
         pub escrow_pda_authority: AccountId,
-        #[arbitrary(with = |u: &mut arbitrary::Unstructured| u.int_in_range(0..=1))]
+        // #[arbitrary(with = |u: &mut arbitrary::Unstructured| u.int_in_range(0..=1))]
         pub mint: AccountId,
         pub token_program: AccountId,
         pub system_program: AccountId,
@@ -68,23 +70,28 @@ pub mod fuzz_example3_fuzz_instructions {
         type IxSnapshot = InitVestingSnapshot<'info>;
         fn get_data(
             &self,
-            _client: &mut impl FuzzClient,
-            _fuzz_accounts: &mut FuzzAccounts,
+            client: &mut impl FuzzClient,
+            fuzz_accounts: &mut FuzzAccounts,
         ) -> Result<Self::IxData, FuzzingError> {
-            // let data = fuzz_example3::instruction::InitVesting {
-            //     recipient: Pubkey::new_from_array(self.data.recipient),
-            //     amount: self.data.amount,
-            //     start_at: self.data.start_at,
-            //     end_at: self.data.end_at,
-            //     interval: self.data.interval,
-            // };
+            let recipient = fuzz_accounts.recipient.get_or_create_account(
+                self.data.recipient,
+                client,
+                10 * LAMPORTS_PER_SOL,
+            );
             let data = fuzz_example3::instruction::InitVesting {
-                recipient: Pubkey::new_from_array(self.data.recipient),
-                amount: 11_111_111,
-                start_at: 1_000_000 - 200_000,
-                end_at: 1_000_000,
-                interval: 10,
+                recipient: recipient.pubkey(),
+                amount: self.data.amount,
+                start_at: self.data.start_at,
+                end_at: self.data.end_at,
+                interval: self.data.interval,
             };
+            // let data = fuzz_example3::instruction::InitVesting {
+            //     recipient: recipient.pubkey(),
+            //     amount: 11_111_111,
+            //     start_at: 1_000_000 - 200_000,
+            //     end_at: 1_000_000,
+            //     interval: 10,
+            // };
             // whole amount cannot be withdrawn
             // const amount = new BN(11111111);
             // const start = now.subn(200000);
@@ -117,7 +124,7 @@ pub mod fuzz_example3_fuzz_instructions {
 
             let mint = fuzz_accounts
                 .mint
-                .get_or_create_account(self.accounts.mint, client, 6, &sender.pubkey(), None)
+                .get_or_create_account(0, client, 6, &sender.pubkey(), None)
                 .unwrap();
 
             let sender_token_account = fuzz_accounts
@@ -135,11 +142,16 @@ pub mod fuzz_example3_fuzz_instructions {
                 )
                 .unwrap();
 
+            let recipient = fuzz_accounts.recipient.get_or_create_account(
+                self.data.recipient,
+                client,
+                10 * LAMPORTS_PER_SOL,
+            );
             let escrow = fuzz_accounts
                 .escrow
                 .get_or_create_account(
                     self.accounts.escrow,
-                    &[self.data.recipient.as_ref(), b"ESCROW_SEED"],
+                    &[recipient.pubkey().as_ref(), b"ESCROW_SEED"],
                     &fuzz_example3::ID,
                 )
                 .unwrap();
@@ -171,32 +183,6 @@ pub mod fuzz_example3_fuzz_instructions {
             .to_account_metas(None);
             Ok((vec![sender], acc_meta))
         }
-        // fn check(
-        //     &self,
-        //     pre_ix: Self::IxSnapshot,
-        //     post_ix: Self::IxSnapshot,
-        //     ix_data: Self::IxData,
-        // ) -> Result<(), &'static str> {
-        //     if let Some(escrow_post) = post_ix.escrow {
-        //         if escrow_post.amount != ix_data.amount
-        //             || escrow_post.end_time != ix_data.end_at
-        //             || escrow_post.start_time != ix_data.start_at
-        //             || escrow_post.interval != ix_data.interval
-        //             || escrow_post.recipient != ix_data.recipient
-        //         {
-        //             return Err("Data mismatch");
-        //         }
-        //         let escrow_token_account_pre = pre_ix.escrow_token_account.unwrap();
-        //         let escrow_token_account_post = post_ix.escrow_token_account.unwrap();
-
-        //         if escrow_token_account_pre.amount + ix_data.amount
-        //             != escrow_token_account_post.amount
-        //         {
-        //             return Err("Escrow Token Account balance mismatch");
-        //         }
-        //     }
-        //     Ok(())
-        // }
     }
     impl<'info> IxOps<'info> for WithdrawUnlocked {
         type IxData = fuzz_example3::instruction::WithdrawUnlocked;
@@ -223,7 +209,7 @@ pub mod fuzz_example3_fuzz_instructions {
 
             let mint = fuzz_accounts
                 .mint
-                .get_or_create_account(self.accounts.mint, client, 6, &recipient.pubkey(), None)
+                .get_or_create_account(0, client, 6, &recipient.pubkey(), None)
                 .unwrap();
 
             let recipient_token_account = fuzz_accounts
@@ -302,6 +288,34 @@ pub mod fuzz_example3_fuzz_instructions {
                         if recepient_token_account_pre.amount + escrow.amount
                             != recepient_token_account_post.amount
                         {
+                            if recepient_token_account_pre.amount + escrow.amount
+                                >= recepient_token_account_post.amount
+                            {
+                                eprintln!(
+                                    "Amount Mismatch: {}",
+                                    (recepient_token_account_pre.amount + escrow.amount)
+                                        - recepient_token_account_post.amount
+                                );
+                                eprintln!("Before: {}", recepient_token_account_pre.amount);
+                                eprintln!("After: {}", recepient_token_account_post.amount);
+                                eprintln!(
+                                    "Expected: {}",
+                                    recepient_token_account_pre.amount + escrow.amount
+                                );
+                            } else {
+                                eprintln!(
+                                    "Amount Mismatch: {}",
+                                    recepient_token_account_post.amount
+                                        - (recepient_token_account_pre.amount + escrow.amount)
+                                );
+                                eprintln!("Before: {}", recepient_token_account_pre.amount);
+                                eprintln!("After: {}", recepient_token_account_post.amount);
+                                eprintln!(
+                                    "Expected: {}",
+                                    recepient_token_account_pre.amount + escrow.amount
+                                );
+                            }
+
                             return Err("Transfered amount mismatch");
                         }
                     }
