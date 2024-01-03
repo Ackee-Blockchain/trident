@@ -15,9 +15,7 @@ pub struct Withdraw<'info> {
     pub receiver: Signer<'info>,
     #[account(
         mut,
-        // do not close for, so we can do snapshot pre and post within fuzzer
-        // close = receiver,
-        // seed is derived from saved receiver not from context receiver
+        close = receiver,
         seeds = [escrow.author.key().as_ref(),escrow.receiver.as_ref(),ESCROW_SEED.as_ref()],
         bump = escrow.bump,
     )]
