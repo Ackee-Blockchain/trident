@@ -10,6 +10,16 @@ const PROGRAM_NAME: &str = "fuzz_example1";
 struct MyFuzzData;
 
 impl FuzzDataBuilder<FuzzInstruction> for MyFuzzData {
+    // TODO would it be possible to explicitly exclude some instructions ?.
+    // In this example registrations_round is not set within initialize, so
+    // it is set by default to false.
+    // However that is what invest expects:
+    // require!(
+    //     !state.registrations_round,
+    //     CustomError::RegistrationRoundOpen
+    // );
+    // so we actually want to fuzz sequence where:
+    // end registrations is not called but invest will pass
     fn pre_ixs(u: &mut arbitrary::Unstructured) -> arbitrary::Result<Vec<FuzzInstruction>> {
         let init_ix = FuzzInstruction::Initialize(Initialize::arbitrary(u)?);
         Ok(vec![init_ix])
