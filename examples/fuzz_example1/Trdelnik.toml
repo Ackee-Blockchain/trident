@@ -8,4 +8,4 @@ timeout = 10
 iterations = 0
 keep_output = false
 verbose = false
-exit_upon_crash = true
+exit_upon_crash = false

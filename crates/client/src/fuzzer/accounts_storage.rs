@@ -4,7 +4,6 @@ use solana_sdk::{pubkey::Pubkey, signature::Keypair};
 
 use crate::{data_builder::FuzzClient, AccountId};
 
-
 pub struct PdaStore {
     pubkey: Pubkey,
     pub seeds: Vec<Vec<u8>>,
@@ -51,7 +50,7 @@ impl<T> Default for AccountsStorage<T> {
         Self::new(2)
     }
 }
-
+// TODO Add an easy way to limit the number of created accounts
 impl AccountsStorage<Keypair> {
     pub fn get_or_create_account(
         &mut self,
@@ -81,7 +80,15 @@ impl AccountsStorage<TokenStore> {
         close_authority: Option<Pubkey>,
     ) -> Option<Pubkey> {
         let key = self.accounts.entry(account_id).or_insert_with(|| {
-            let key = client.set_token_account(mint, owner, amount, delegate, is_native, delegated_amount, close_authority);
+            let key = client.set_token_account(
+                mint,
+                owner,
+                amount,
+                delegate,
+                is_native,
+                delegated_amount,
+                close_authority,
+            );
             TokenStore { pubkey: key }
         });
         Some(key.pubkey)
