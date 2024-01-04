@@ -172,6 +172,27 @@ pub mod fuzz_example1_fuzz_instructions {
             .to_account_metas(None);
             Ok((signers, acc_meta))
         }
+        fn check(
+            &self,
+            _pre_ix: Self::IxSnapshot,
+            _post_ix: Self::IxSnapshot,
+            _ix_data: Self::IxData,
+        ) -> Result<(), &'static str> {
+            // INFO
+            // This fuzz check will reveal that registrations can be performed
+            // even though registration windows is not open.
+            // if let Some(state) = pre_ix.state {
+            //     if let Some(_project) = post_ix.project {
+            //         let registrations_round = state.registrations_round;
+            //         if !registrations_round {
+            //             return Err(
+            //                 "We succesfully registered new project even though registrations are not open",
+            //             );
+            //         }
+            //     }
+            // }
+            Ok(())
+        }
     }
     impl<'info> IxOps<'info> for EndRegistrations {
         type IxData = fuzz_example1::instruction::EndRegistrations;
@@ -283,6 +304,9 @@ pub mod fuzz_example1_fuzz_instructions {
             post_ix: Self::IxSnapshot,
             ix_data: Self::IxData,
         ) -> Result<(), &'static str> {
+            // INFO
+            // This fuzz check will reveal that invest can be performed
+            // even though registration windows was not closed.
             if let Some(project_pre) = pre_ix.project {
                 let project_post = post_ix.project.unwrap();
 
@@ -292,7 +316,7 @@ pub mod fuzz_example1_fuzz_instructions {
                             == project_post.invested_amount
                     {
                         return Err(
-                            "Registration round was not terminated, therefor investor was able to invest inside registration window",
+                            "Registration round was not terminated, however investor was able to invest inside registration window",
                         );
                     }
                 }
