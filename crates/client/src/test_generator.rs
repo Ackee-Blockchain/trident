@@ -431,7 +431,6 @@ impl TestGenerator {
 
     #[throws]
     async fn add_bin_target(&self, cargo_path: &PathBuf, name: &str, path: &str) {
-
         // Read the existing Cargo.toml file
         let cargo_toml_content = fs::read_to_string(cargo_path).await?;
         let mut cargo_toml: Value = cargo_toml_content.parse()?;
