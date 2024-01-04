@@ -13,15 +13,10 @@ pub mod fuzz_example3_fuzz_instructions {
     }
     #[derive(Arbitrary, Clone)]
     pub struct InitVestingAccounts {
-        // #[arbitrary(with = |u: &mut arbitrary::Unstructured| u.int_in_range(0..=1))]
         pub sender: AccountId,
-        // #[arbitrary(with = |u: &mut arbitrary::Unstructured| u.int_in_range(0..=1))]
         pub sender_token_account: AccountId,
-        // #[arbitrary(with = |u: &mut arbitrary::Unstructured| u.int_in_range(0..=1))]
         pub escrow: AccountId,
-        // #[arbitrary(with = |u: &mut arbitrary::Unstructured| u.int_in_range(0..=1))]
         pub escrow_token_account: AccountId,
-        // #[arbitrary(with = |u: &mut arbitrary::Unstructured| u.int_in_range(0..=1))]
         pub mint: AccountId,
         pub token_program: AccountId,
         pub system_program: AccountId,
@@ -33,6 +28,7 @@ pub mod fuzz_example3_fuzz_instructions {
         #[arbitrary(with = |u: &mut arbitrary::Unstructured| u.int_in_range(13581..=580743))]
         pub amount: u64,
         // we want start_at smaller than end_at
+        // and for testing purposes we can run tests with times from the past
         #[arbitrary(with = |u: &mut arbitrary::Unstructured| u.int_in_range(0..=1_000_000))]
         pub start_at: u64,
         #[arbitrary(with = |u: &mut arbitrary::Unstructured| u.int_in_range(1_001_001..=1_050_000))]
@@ -47,17 +43,11 @@ pub mod fuzz_example3_fuzz_instructions {
     }
     #[derive(Arbitrary, Clone)]
     pub struct WithdrawUnlockedAccounts {
-        // #[arbitrary(with = |u: &mut arbitrary::Unstructured| u.int_in_range(0..=1))]
         pub recipient: AccountId,
-        // #[arbitrary(with = |u: &mut arbitrary::Unstructured| u.int_in_range(0..=1))]
         pub recipient_token_account: AccountId,
-        // #[arbitrary(with = |u: &mut arbitrary::Unstructured| u.int_in_range(0..=1))]
         pub escrow: AccountId,
-        // #[arbitrary(with = |u: &mut arbitrary::Unstructured| u.int_in_range(0..=1))]
         pub escrow_token_account: AccountId,
-        // #[arbitrary(with = |u: &mut arbitrary::Unstructured| u.int_in_range(0..=1))]
         pub escrow_pda_authority: AccountId,
-        // #[arbitrary(with = |u: &mut arbitrary::Unstructured| u.int_in_range(0..=1))]
         pub mint: AccountId,
         pub token_program: AccountId,
         pub system_program: AccountId,
@@ -85,30 +75,6 @@ pub mod fuzz_example3_fuzz_instructions {
                 end_at: self.data.end_at,
                 interval: self.data.interval,
             };
-            // let data = fuzz_example3::instruction::InitVesting {
-            //     recipient: recipient.pubkey(),
-            //     amount: 11_111_111,
-            //     start_at: 1_000_000 - 200_000,
-            //     end_at: 1_000_000,
-            //     interval: 10,
-            // };
-            // whole amount cannot be withdrawn
-            // const amount = new BN(11111111);
-            // const start = now.subn(200000);
-            // const end = now;
-            // const interval = new BN(10);
-
-            // // Bug to be found
-            // const amount = new BN(200);
-            // const start = now.subn(10);
-            // const end = now;
-            // const interval = new BN(5);
-
-            // works
-            // const amount = new BN(2001000); // amount to vest
-            // const start = now.subn(10000); // start vesting in the past so that we do not need to wait
-            // const end = now; // end now so that we do not need to wait to withdraw whole vested amount
-            // const interval = new BN(5); // unlock new amount every X seconds
             Ok(data)
         }
         fn get_accounts(
@@ -121,7 +87,8 @@ pub mod fuzz_example3_fuzz_instructions {
                 client,
                 1000 * LAMPORTS_PER_SOL,
             );
-
+            // use constant Account ID, so we will not generate multiple mints,
+            // and also we can easily link to Withdraw
             let mint = fuzz_accounts
                 .mint
                 .get_or_create_account(0, client, 6, &sender.pubkey(), None)
@@ -207,6 +174,8 @@ pub mod fuzz_example3_fuzz_instructions {
                 1000 * LAMPORTS_PER_SOL,
             );
 
+            // use constant Account ID, so we will not generate multiple mints,
+            // and also we can easily link to Initialize
             let mint = fuzz_accounts
                 .mint
                 .get_or_create_account(0, client, 6, &recipient.pubkey(), None)
@@ -273,6 +242,11 @@ pub mod fuzz_example3_fuzz_instructions {
             .to_account_metas(None);
             Ok((vec![recipient], acc_meta))
         }
+        // INFO this check checks for Withdrawal Amount mismatch
+        // Because Escrow Token Account is shared between multiple Escrow Transfers
+        // We can Actually withdraw more supported with uncorrect math operations
+        // Second option is that we will withdraw less also supported with
+        // uncorrect math operations.
         fn check(
             &self,
             pre_ix: Self::IxSnapshot,
@@ -303,6 +277,11 @@ pub mod fuzz_example3_fuzz_instructions {
                                     recepient_token_account_pre.amount + escrow.amount
                                 );
                             } else {
+                                // INFO this option is possible because the program uses one token accout with corresponding mint
+                                // across multiple Escrow Transactions, this means that we can actually withdraw more
+                                // if prior to Withdraw call, was sufficient amount transfered to the escrow token account.
+                                // This option is supported with the fact that within get_accounts we use constan = 0, for
+                                // the Mint account Account ID
                                 eprintln!(
                                     "Amount Mismatch: {}",
                                     recepient_token_account_post.amount
@@ -323,6 +302,35 @@ pub mod fuzz_example3_fuzz_instructions {
             }
             Ok(())
         }
+        // INFO within this check we can discover Error that we will not be able
+        // to withdraw because of uncorrect math operations i.e. withdrawal amount
+        // is incorrectly computed, for example
+        // let nr_intervals = time
+        //     .checked_sub(self.start_time)?
+        //     .checked_div(self.interval)?
+        //     .checked_add(1)?;
+        // .checked_add(1)?; = can add excessive interval
+        // fn check(
+        //     &self,
+        //     pre_ix: Self::IxSnapshot,
+        //     post_ix: Self::IxSnapshot,
+        //     _ix_data: Self::IxData,
+        // ) -> Result<(), &'static str> {
+        //     if let Some(escrow) = pre_ix.escrow {
+        //         let recipient = pre_ix.recipient.unwrap();
+        //         if escrow.recipient != *recipient.key {
+        //             return Ok(());
+        //         } else if let Some(recepient_token_account_pre) = pre_ix.recipient_token_account {
+        //             if let Some(recepient_token_account_post) = post_ix.recipient_token_account {
+        //                 if recepient_token_account_pre.amount == recepient_token_account_post.amount
+        //                 {
+        //                     return Err("Transfered amount mismatch");
+        //                 }
+        //             }
+        //         }
+        //     }
+        //     Ok(())
+        // }
     }
     #[doc = r" Use AccountsStorage<T> where T can be one of:"]
     #[doc = r" Keypair, PdaStore, TokenStore, MintStore, ProgramStore"]
