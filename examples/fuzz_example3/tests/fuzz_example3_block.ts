@@ -51,16 +51,16 @@ describe("Exploit Blocking", async () => {
     // const interval = new BN(5); // unlock new amount every X seconds
 
     // // whole amount cannot be withdrawn
-    const amount = new BN(11_111_111);
-    const start = now.subn(200_000);
-    const end = now;
-    const interval = new BN(10);
+    // const amount = new BN(11_111_111);
+    // const start = now.subn(200_000);
+    // const end = now;
+    // const interval = new BN(10);
 
     // // Bug to be found
-    // const amount = new BN(200);
-    // const start = now.subn(10);
-    // const end = now;
-    // const interval = new BN(5);
+    const amount = new BN(200);
+    const start = now.subn(10);
+    const end = now;
+    const interval = new BN(5);
 
     // ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^ ^
     // | | | | | | | | | | | | | | | | | | | | |

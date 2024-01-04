@@ -15,7 +15,10 @@ pub fn _withdraw_unlocked(ctx: Context<WithdrawUnlocked>) -> Result<()> {
         b"ESCROW_PDA_AUTHORITY".as_ref(),
         &[*ctx.bumps.get("escrow_pda_authority").unwrap()],
     ];
+    let token_acc_amount = ctx.accounts.escrow_token_account.amount;
+    msg!("withdrawal {}", escrow.withdrawal);
     msg!("unlocked_amount {}", unlocked_amount);
+    msg!("token_acc_amount {}", token_acc_amount);
 
     transfer(
         CpiContext::new(
@@ -49,6 +52,7 @@ pub struct WithdrawUnlocked<'info> {
     #[account(
         mut,
         has_one = recipient,
+        close = recipient,
         seeds = [escrow.recipient.key().as_ref(),b"ESCROW_SEED"],
         bump = escrow.bump
     )]
