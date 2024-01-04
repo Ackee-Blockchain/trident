@@ -22,9 +22,9 @@ pub mod fuzzer {
         msg!("input1 = {}, input2 = {}", input1, input2);
 
         // comment this to fix the black magic panic
-        if input1 == MAGIC_NUMBER {
-            panic!("Black magic not supported!");
-        }
+        // if input1 == MAGIC_NUMBER {
+        //     panic!("Black magic not supported!");
+        // }
 
         counter.count = buggy_math_function(input1, input2).into();
         Ok(())
@@ -33,9 +33,9 @@ pub mod fuzzer {
 
 pub fn buggy_math_function(input1: u8, input2: u8) -> u8 {
     // comment the if statement to cause div-by-zero and subtract with overflow panic
-    if input2 >= MAGIC_NUMBER {
-        return 0;
-    }
+    // if input2 >= MAGIC_NUMBER {
+    //     return 0;
+    // }
     let divisor = MAGIC_NUMBER - input2;
     input1 / divisor
 }
