@@ -136,13 +136,18 @@ pub mod fuzz_example2_fuzz_instructions {
             ix_data: Self::IxData,
         ) -> Result<(), &'static str> {
             if let Some(escrow_pre) = pre_ix.escrow {
-                if let Some(escrow_post) = post_ix.escrow {
-                    let receiver = pre_ix.receiver.unwrap();
-                    if *receiver.key != escrow_pre.receiver.key()
-                        && escrow_pre.amount - 100 == escrow_post.amount
-                    {
-                        return Err("Un-authorized withdrawal");
-                    }
+                // we can unwrap the receiver account because it has to be initialized before the instruction
+                // execution and it is not supposed to be closed after the instruction execution either
+                let receiver = pre_ix.receiver.unwrap();
+                let receiver_lamports_before = receiver.lamports();
+                let receiver_lamports_after = post_ix.receiver.unwrap().lamports();
+
+                // If the Receiver (i.e. Signer in the Context) and stored Receiver inside Escrow Account,
+                // do not match, however his balance increased, we found an Error
+                if receiver.key() != escrow_pre.receiver.key()
+                    && receiver_lamports_before < receiver_lamports_after
+                {
+                    return Err("Un-authorized withdrawal");
                 }
             }
 
