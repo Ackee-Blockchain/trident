@@ -192,6 +192,10 @@ impl TestGenerator {
     #[throws]
     async fn generate_fuzz_test_files(&self, root: &Path) {
         let fuzz_dir_path = root.join(TESTS_WORKSPACE).join(FUZZ_TEST_DIRECTORY);
+        let fuzz_tests_manifest_path = root
+            .join(TESTS_WORKSPACE)
+            .join(FUZZ_TEST_DIRECTORY)
+            .join(CARGO_TOML);
 
         self.create_directory_all(&fuzz_dir_path, FUZZ_TEST_DIRECTORY)
             .await?;
@@ -232,6 +236,7 @@ impl TestGenerator {
         };
 
         let new_fuzz_test = format!("fuzz_{fuzz_id}");
+        let new_fuzz_test_path = format!("{new_fuzz_test}/test_fuzz.rs");
 
         let new_fuzz_test_dir = fuzz_dir_path.join(&new_fuzz_test);
 
@@ -304,12 +309,15 @@ impl TestGenerator {
         )
         .await?;
 
-        let cargo_dir = new_fuzz_test_dir;
-        self.add_program_deps(root, &cargo_dir).await?;
+        self.add_bin_target(
+            &fuzz_tests_manifest_path,
+            &new_fuzz_test,
+            &new_fuzz_test_path,
+        )
+        .await?;
+        self.add_program_deps(root, &fuzz_dir_path).await?;
 
-        let new_member = format!("trdelnik-tests/fuzz_tests/{new_fuzz_test}");
-
-        self.update_workspace(&root.to_path_buf(), &new_member)
+        self.update_workspace(&root.to_path_buf(), "trdelnik-tests/fuzz_tests")
             .await?;
     }
 
@@ -413,6 +421,36 @@ impl TestGenerator {
         } else {
             println!("Skipping updating .gitignore file");
         }
+    }
+
+    #[throws]
+    async fn add_bin_target(&self, cargo_path: &PathBuf, name: &str, path: &str) {
+
+        // Read the existing Cargo.toml file
+        let cargo_toml_content = fs::read_to_string(cargo_path).await?;
+        let mut cargo_toml: Value = cargo_toml_content.parse()?;
+
+        // Create a new bin table
+        let mut bin_table = Table::new();
+        bin_table.insert("name".to_string(), Value::String(name.to_string()));
+        bin_table.insert("path".to_string(), Value::String(path.to_string()));
+
+        // Add the new [[bin]] section to the [[bin]] array
+        if let Some(bin_array) = cargo_toml.as_table_mut().and_then(|t| t.get_mut("bin")) {
+            if let Value::Array(bin_array) = bin_array {
+                bin_array.push(Value::Table(bin_table));
+            }
+        } else {
+            // If there is no existing [[bin]] array, create one
+            let bin_array = Value::Array(vec![Value::Table(bin_table)]);
+            cargo_toml
+                .as_table_mut()
+                .unwrap()
+                .insert("bin".to_string(), bin_array);
+        }
+
+        // Write the updated Cargo.toml file
+        fs::write(cargo_path, cargo_toml.to_string()).await?;
     }
 
     /// Adds programs to Cargo.toml as a dependencies to be able to be used in tests and fuzz targets
