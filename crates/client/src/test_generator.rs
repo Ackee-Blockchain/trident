@@ -107,7 +107,10 @@ impl TestGenerator {
         self.build_program_client(&commander).await?;
         if !skip_fuzzer {
             self.generate_fuzz_test_files(&root).await?;
-            self.update_gitignore(&root, "hfuzz_target")?;
+            self.update_gitignore(
+                &root,
+                &format!("{TESTS_WORKSPACE}/{FUZZ_TEST_DIRECTORY}/{FUZZING}/{HFUZZ_TARGET}"),
+            )?;
         }
     }
 
@@ -118,7 +121,10 @@ impl TestGenerator {
             Err(_) => throw!(Error::BadWorkspace),
         };
         self.generate_fuzz_test_files(&root).await?;
-        self.update_gitignore(&root, "hfuzz_target")?;
+        self.update_gitignore(
+            &root,
+            &format!("{TESTS_WORKSPACE}/{FUZZ_TEST_DIRECTORY}/{FUZZING}/{HFUZZ_TARGET}"),
+        )?;
     }
 
     /// Builds and generates programs for `program_client` module
