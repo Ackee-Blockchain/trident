@@ -81,8 +81,8 @@ pub mod fuzzer_fuzz_instructions {
             _fuzz_accounts: &mut FuzzAccounts,
         ) -> Result<Self::IxData, FuzzingError> {
             let data = fuzzer::instruction::Update {
-                input1: 15,
-                input2: 254,
+                input1: self.data.input1,
+                input2: self.data.input2,
             };
             Ok(data)
         }
@@ -116,8 +116,8 @@ pub mod fuzzer_fuzz_instructions {
     pub struct FuzzAccounts {
         user: AccountsStorage<Keypair>,
         counter: AccountsStorage<Keypair>,
-        authority: AccountsStorage<Keypair>,
-        system_program: AccountsStorage<ProgramStore>,
+        _authority: AccountsStorage<Keypair>,
+        _system_program: AccountsStorage<ProgramStore>,
     }
     impl FuzzAccounts {
         pub fn new() -> Self {
