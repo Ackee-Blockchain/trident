@@ -13,7 +13,6 @@ struct MyFuzzData;
 impl FuzzDataBuilder<FuzzInstruction> for MyFuzzData {
     fn pre_ixs(u: &mut arbitrary::Unstructured) -> arbitrary::Result<Vec<FuzzInstruction>> {
         let init_ix = FuzzInstruction::InitVesting(InitVesting::arbitrary(u)?);
-        // let withdraw_ix = FuzzInstruction::WithdrawUnlocked(WithdrawUnlocked::arbitrary(u)?);
 
         Ok(vec![init_ix])
     }
