@@ -21,9 +21,9 @@
 Trdelník is Rust based testing framework providing several convenient developer tools for testing Solana programs written in [Anchor](https://github.com/project-serum/anchor).
 
 - **Trdelnik fuzz** - property-based and stateful testing;
-- Trdelnik client - build and deploy an Anchor program to a local cluster and run a test suite against it;
-- Trdelnik console - built-in console to give developers a command prompt for quick program interaction;
-- Trdelnik explorer - exploring a ledger changes.
+- Trdelnik client - build and deploy your Anchor program to a local cluster;
+- Trdelnik test - run your integration tests on a local validator;
+- Trdelnik explorer - exploring ledger changes.
 
 ## Dependencies
 
@@ -74,7 +74,7 @@ trdelnik fuzz run-debug <TARGET_NAME> <CRASH_FILE_PATH>
 HFUZZ_RUN_ARGS="-t 10 -n 1 -N 10000 -Q" trdelnik fuzz run <TARGET_NAME>
 ```
 
-> NOTE: If you will use the `solana-program-test` crate for fuzzing, creating a new test program using `ProgramTest::new()` will create temporary folders in your `/tmp` directory that will not be cleared in case your program panics. You might want to clear these folders manually.
+**For detailed fuzzing howto refer to the [Fuzzing page](Fuzzing.md).**
 
 ### How to write tests?
 Trdelnik also supports writing integration tests in Rust.
