@@ -42,11 +42,11 @@ We first check if the State is initialized before the Register instruction call
 ```rust
 if !registrations_round
 ```
-If so, we found the Error
+If so, we found the 🚨Error🚨
 ```rust
 return Err("We succesfully registered new project even though registrations are not open");
 ```
-Final Check
+<u> Final Check </u>
 ```rust
 if let Some(state) = pre_ix.state {
     if let Some(_project) = post_ix.project {
@@ -73,11 +73,11 @@ Lastly, we check if the **invested amount before and after the instruction call 
 ```rust
 if !state.registrations_round && project_pre.invested_amount + ix_data.amount == project_post.invested_amount
 ```
-If so, we found the Error
+If so, we found the 🚨Error🚨
 ```rust
 return Err("Registration round was not terminated, however investor was able to invest inside registration window");
 ```
-Final Check
+<u> Final Check </u>
 ```rust
 if let Some(project_pre) = pre_ix.project {
     let project_post = post_ix.project.unwrap();
