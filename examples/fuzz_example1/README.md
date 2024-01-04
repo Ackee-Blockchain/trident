@@ -6,17 +6,16 @@
 
 - ### Initialize
     - Within this function we initialize a new common State, under which we can later register new Subjects, let's say Projects.
-    - Important variables inside the State account are:
-
+    - Important variable inside the State account is:
         - registrations_round: this option tells us if the Registration round is still open.
-        - **NOTE:** However it is not correctly set inside the Initialization, so it is implicitly set as **FALSE**.
+        - ❗ **NOTE:** 🐛 It is not correctly set inside the Initialization, so it is implicitly set as **FALSE**.
 
 - ### Register
     - Register Project under specified State.
-    - **NOTE:** It is important to notice here that we are not correctly checking if the registration window is still open.
+    - ❗ **NOTE:** 🐛 It is important to notice that we do not correctly check if the registration window is open.
 
 - ### End Registrations
-    - Halts Project Registrations, meaning, flips **registrations_round** to false.
+    - Halts Project Registrations for a given State, meaning, flips **registrations_round** to false.
 
 - ### Invest
     - Participants can Invest in a Project of their choice. Even though we performed a check if registration_round is still open:
@@ -26,11 +25,11 @@
         CustomError::RegistrationRoundOpen
     );
     ```
-    - **NOTE:** Fuzz Test can discover the instruction sequence where **Invest** was successfully performed even though **End Registration** was not called before.
+    - ❗**NOTE:** 🐛 Fuzz Test can discover the instruction sequence where **Invest** was successfully performed even though **End Registration** was not called before - this is a result of the problem mentioned above where **registrations_round** was not correctly set i.e. implicitly set to **FALSE**.
 
 
 ## Fuzz Test Checks
-- ### Register Instruction check
+- ### ✔️Register Instruction check
 We first check if the State is initialized before the Register instruction call
  ```rust
  if let Some(state) = pre_ix.state
@@ -61,7 +60,7 @@ if let Some(state) = pre_ix.state {
 
 ---
 
-- ### Invest Instruction check
+- ### ✔️Invest Instruction check
 We first check if the Project was already registered before the Invest instruction call
 ```rust
 if let Some(project_pre) = pre_ix.project
