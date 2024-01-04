@@ -2,9 +2,6 @@ use crate::state::{Escrow, ESCROW_SEED};
 use anchor_lang::prelude::*;
 
 pub fn _withdraw(ctx: Context<Withdraw>) -> Result<()> {
-    let escrow = &mut ctx.accounts.escrow;
-
-    escrow.amount = 0;
     // close will transfer everything to the receiver
     Ok(())
 }
@@ -16,6 +13,9 @@ pub struct Withdraw<'info> {
     #[account(
         mut,
         close = receiver,
+        // INFO we have missing check here that receiver is actually receiver from
+        // the Escrow, same goes for receiver PKey seed which is taken from the Escrow
+        // Account not from the Signer
         seeds = [escrow.author.key().as_ref(),escrow.receiver.as_ref(),ESCROW_SEED.as_ref()],
         bump = escrow.bump,
     )]

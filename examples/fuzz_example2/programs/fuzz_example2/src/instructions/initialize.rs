@@ -39,10 +39,3 @@ pub struct Initialize<'info> {
     pub escrow: Account<'info, Escrow>,
     pub system_program: Program<'info, System>,
 }
-
-#[derive(AnchorDeserialize, AnchorSerialize, Clone)]
-pub enum AnotherOptions {
-    Option1,
-    Option2,
-    Option3,
-}
