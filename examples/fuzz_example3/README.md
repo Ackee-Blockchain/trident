@@ -77,24 +77,25 @@ return Err("Transfered amount mismatch");
 <u> Final Check </u>
 ```rust
 if let Some(escrow) = pre_ix.escrow {
-
     let recipient = pre_ix.recipient.unwrap();
-
     if let Some(recepient_token_account_pre) = pre_ix.recipient_token_account {
-
         if let Some(recepient_token_account_post) = post_ix.recipient_token_account {
-
             if escrow.recipient == *recipient.key {
-
                 if recepient_token_account_pre.amount == recepient_token_account_post.amount{
-
                     return Err("Recipient was not able to withdraw any funds");
-
                 } else if recepient_token_account_pre.amount + escrow.amount != recepient_token_account_post.amount{
                     if recepient_token_account_pre.amount + escrow.amount > recepient_token_account_post.amount{
-
                         eprintln!("Amount Mismatch (Recipient withdrawn LESS) by: {}",(recepient_token_account_pre.amount + escrow.amount) - recepient_token_account_post.amount);
-
                     } else {
-
-                        eprintln!("Amount Mismatch (Recipient withdrawn MORE) by: {}",recepient_token_account_post.amount - (recepient_token_account_pre.amount + esc
+                        eprintln!("Amount Mismatch (Recipient withdrawn MORE) by: {}",recepient_token_account_post.amount - (recepient_token_account_pre.amount + escrow.amount));
+                    }
+                    eprintln!("Before: {}", recepient_token_account_pre.amount);
+                    eprintln!("After: {}", recepient_token_account_post.amount);
+                    eprintln!("Expected: {}",recepient_token_account_pre.amount + escrow.amount);
+                    return Err("Transfered amount mismatch");
+                }
+            }
+        }
+    }
+}
+```
