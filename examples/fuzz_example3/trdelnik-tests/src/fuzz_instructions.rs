@@ -262,12 +262,12 @@ pub mod fuzz_example3_fuzz_instructions {
                                 != recepient_token_account_post.amount
                             {
                                 if recepient_token_account_pre.amount + escrow.amount
-                                    >= recepient_token_account_post.amount
+                                    > recepient_token_account_post.amount
                                 {
                                     // INFO The recipient was able to withdraw,
                                     // but not as much as was initially intended.
                                     eprintln!(
-                                        "Amount Mismatch (Recipient withdrawn LESS) by: {}",
+                                        "Amount Mismatch (Recipient withdrew LESS) by: {}",
                                         (recepient_token_account_pre.amount + escrow.amount)
                                             - recepient_token_account_post.amount
                                     );
@@ -279,7 +279,7 @@ pub mod fuzz_example3_fuzz_instructions {
                                     // if prior to Withdraw call, was sufficient amount transfered to the escrow token account.
                                     // (e.g. due to prior Initialization of different Escrow Transactions)
                                     eprintln!(
-                                        "Amount Mismatch (Recipient withdrawn MORE) by: {}",
+                                        "Amount Mismatch (Recipient withdrew MORE) by: {}",
                                         recepient_token_account_post.amount
                                             - (recepient_token_account_pre.amount + escrow.amount)
                                     );
