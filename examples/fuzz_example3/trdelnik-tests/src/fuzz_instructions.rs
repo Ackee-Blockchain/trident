@@ -87,7 +87,7 @@ pub mod fuzz_example3_fuzz_instructions {
                 client,
                 1000 * LAMPORTS_PER_SOL,
             );
-            // use constant Account ID, so we will not generate multiple mints,
+            // INFO use constant Account ID, so we will not generate multiple mints,
             // and also we can easily link to Withdraw
             let mint = fuzz_accounts
                 .mint
@@ -174,7 +174,7 @@ pub mod fuzz_example3_fuzz_instructions {
                 1000 * LAMPORTS_PER_SOL,
             );
 
-            // use constant Account ID, so we will not generate multiple mints,
+            // INFO use constant Account ID, so we will not generate multiple mints,
             // and also we can easily link to Initialize
             let mint = fuzz_accounts
                 .mint
@@ -242,11 +242,6 @@ pub mod fuzz_example3_fuzz_instructions {
             .to_account_metas(None);
             Ok((vec![recipient], acc_meta))
         }
-        // INFO this check checks for Withdrawal Amount mismatch
-        // Because Escrow Token Account is shared between multiple Escrow Transfers
-        // We can Actually withdraw more supported with uncorrect math operations
-        // Second option is that we will withdraw less also supported with
-        // uncorrect math operations.
         fn check(
             &self,
             pre_ix: Self::IxSnapshot,
@@ -255,82 +250,54 @@ pub mod fuzz_example3_fuzz_instructions {
         ) -> Result<(), &'static str> {
             if let Some(escrow) = pre_ix.escrow {
                 let recipient = pre_ix.recipient.unwrap();
-                if escrow.recipient != *recipient.key {
-                    return Ok(());
-                } else if let Some(recepient_token_account_pre) = pre_ix.recipient_token_account {
+                if let Some(recepient_token_account_pre) = pre_ix.recipient_token_account {
                     if let Some(recepient_token_account_post) = post_ix.recipient_token_account {
-                        if recepient_token_account_pre.amount + escrow.amount
-                            != recepient_token_account_post.amount
-                        {
-                            if recepient_token_account_pre.amount + escrow.amount
-                                >= recepient_token_account_post.amount
+                        if escrow.recipient == *recipient.key {
+                            if recepient_token_account_pre.amount
+                                == recepient_token_account_post.amount
                             {
-                                eprintln!(
-                                    "Amount Mismatch: {}",
-                                    (recepient_token_account_pre.amount + escrow.amount)
-                                        - recepient_token_account_post.amount
-                                );
+                                // INFO Recipient was not able to withdraw
+                                return Err("Recipient was not able to withdraw any funds");
+                            } else if recepient_token_account_pre.amount + escrow.amount
+                                != recepient_token_account_post.amount
+                            {
+                                if recepient_token_account_pre.amount + escrow.amount
+                                    >= recepient_token_account_post.amount
+                                {
+                                    // INFO The recipient was able to withdraw,
+                                    // but not as much as was initially intended.
+                                    eprintln!(
+                                        "Amount Mismatch (Recipient withdrawn LESS) by: {}",
+                                        (recepient_token_account_pre.amount + escrow.amount)
+                                            - recepient_token_account_post.amount
+                                    );
+                                } else {
+                                    // INFO The recipient was able to withdraw,
+                                    // but more as was initially intended.
+                                    // This option is possible because the program uses one token accout with corresponding mint
+                                    // across multiple Escrow Transactions, this means that we can actually withdraw more
+                                    // if prior to Withdraw call, was sufficient amount transfered to the escrow token account.
+                                    // (e.g. due to prior Initialization of different Escrow Transactions)
+                                    eprintln!(
+                                        "Amount Mismatch (Recipient withdrawn MORE) by: {}",
+                                        recepient_token_account_post.amount
+                                            - (recepient_token_account_pre.amount + escrow.amount)
+                                    );
+                                }
                                 eprintln!("Before: {}", recepient_token_account_pre.amount);
                                 eprintln!("After: {}", recepient_token_account_post.amount);
                                 eprintln!(
                                     "Expected: {}",
                                     recepient_token_account_pre.amount + escrow.amount
                                 );
-                            } else {
-                                // INFO this option is possible because the program uses one token accout with corresponding mint
-                                // across multiple Escrow Transactions, this means that we can actually withdraw more
-                                // if prior to Withdraw call, was sufficient amount transfered to the escrow token account.
-                                // This option is supported with the fact that within get_accounts we use constan = 0, for
-                                // the Mint account Account ID
-                                eprintln!(
-                                    "Amount Mismatch: {}",
-                                    recepient_token_account_post.amount
-                                        - (recepient_token_account_pre.amount + escrow.amount)
-                                );
-                                eprintln!("Before: {}", recepient_token_account_pre.amount);
-                                eprintln!("After: {}", recepient_token_account_post.amount);
-                                eprintln!(
-                                    "Expected: {}",
-                                    recepient_token_account_pre.amount + escrow.amount
-                                );
+                                return Err("Transfered amount mismatch");
                             }
-
-                            return Err("Transfered amount mismatch");
                         }
                     }
                 }
             }
             Ok(())
         }
-        // INFO within this check we can discover Error that we will not be able
-        // to withdraw because of uncorrect math operations i.e. withdrawal amount
-        // is incorrectly computed, for example
-        // let nr_intervals = time
-        //     .checked_sub(self.start_time)?
-        //     .checked_div(self.interval)?
-        //     .checked_add(1)?;
-        // .checked_add(1)?; = can add excessive interval
-        // fn check(
-        //     &self,
-        //     pre_ix: Self::IxSnapshot,
-        //     post_ix: Self::IxSnapshot,
-        //     _ix_data: Self::IxData,
-        // ) -> Result<(), &'static str> {
-        //     if let Some(escrow) = pre_ix.escrow {
-        //         let recipient = pre_ix.recipient.unwrap();
-        //         if escrow.recipient != *recipient.key {
-        //             return Ok(());
-        //         } else if let Some(recepient_token_account_pre) = pre_ix.recipient_token_account {
-        //             if let Some(recepient_token_account_post) = post_ix.recipient_token_account {
-        //                 if recepient_token_account_pre.amount == recepient_token_account_post.amount
-        //                 {
-        //                     return Err("Transfered amount mismatch");
-        //                 }
-        //             }
-        //         }
-        //     }
-        //     Ok(())
-        // }
     }
     #[doc = r" Use AccountsStorage<T> where T can be one of:"]
     #[doc = r" Keypair, PdaStore, TokenStore, MintStore, ProgramStore"]

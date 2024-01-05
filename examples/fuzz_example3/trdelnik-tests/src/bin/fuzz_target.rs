@@ -2,7 +2,7 @@ use fuzz_example3::entry;
 use program_client::fuzz_example3_instruction::*;
 use trdelnik_client::{fuzz_trd, fuzzing::*};
 use trdelnik_tests::fuzz_instructions::fuzz_example3_fuzz_instructions::{
-    FuzzInstruction, InitVesting, WithdrawUnlocked,
+    FuzzInstruction, InitVesting,
 };
 
 const PROGRAM_NAME: &str = "fuzz_example3";
