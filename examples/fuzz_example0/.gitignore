@@ -6,6 +6,4 @@ target
 node_modules
 test-ledger
 .yarn
-hfuzz_target
-hfuzz_workspace
 trdelnik-tests/hfuzz_target
