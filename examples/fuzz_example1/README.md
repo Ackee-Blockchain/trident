@@ -5,54 +5,60 @@
 ## Program and Errors Description
 
 - ### Initialize
-    - Within this function we initialize a new common State, under which we can later register new Subjects, let's say Projects.
-    - Important variable inside the State account is:
-        - registrations_round: this option tells us if the Registration round is still open.
-        - ❗ **NOTE:** 🐛 It is not correctly set inside the Initialization, so it is implicitly set as **FALSE**.
+    - In this function, we initialize a new common State, under which we can later register new Subjects, such as Projects.
+    - An important variable inside the State account is:
+        - `registrations_round`: this option indicates if the Registration round is still open.
+        - ❗ **NOTE:** 🐛 It is incorrectly set in the Initialization, implicitly set as **FALSE**.
 
 - ### Register
-    - Register Project under specified State.
-    - ❗ **NOTE:** 🐛 It is important to notice that we do not correctly check if the registration window is open.
+    - This function registers a Project under a specified State.
+    - ❗ **NOTE:** 🐛 We fail to properly check if the registration window is open.
 
 - ### End Registrations
-    - Halts Project Registrations for a given State, meaning, flips **registrations_round** to false.
+    - This function halts Project Registrations for a given State, essentially setting **registrations_round** to false.
 
 - ### Invest
-    - Participants can Invest in a Project of their choice. Even though we performed a check if registration_round is still open:
+    - Participants can invest in a Project of their choice. While we perform a check to see if `registrations_round` is still open:
     ```rust
     require!(
         !state.registrations_round,
         CustomError::RegistrationRoundOpen
     );
     ```
-    - ❗**NOTE:** 🐛 Fuzz Test can discover the instruction sequence where **Invest** was successfully performed even though **End Registration** was not called before - this is a result of the problem mentioned above where **registrations_round** was not correctly set i.e. implicitly set to **FALSE**.
-
+    - ❗**NOTE:** 🐛 The Fuzz Test can uncover an instruction sequence where the **Invest** was successfully performed even though **End Registration** was not called beforehand. This is a result of the issue mentioned above where **registrations_round** was not correctly set, i.e., implicitly set to **FALSE**.
 
 ## Fuzz Test Checks
-- ### ✔️Register Instruction check
-We first check if the State is initialized before the Register instruction call
- ```rust
- if let Some(state) = pre_ix.state
- ```
- if so we then check if the Project was successfully created
- ```rust
- if let Some(_project) = post_ix.project
- ```
- Lastly, if both previous checks have passed, we then check if **registrations_round** within the State was false
+- ### ✔️Register Instruction Check
+We first verify if the State is initialized before the Register instruction call.
 ```rust
-if !registrations_round
+if let Some(state) = pre_ix.state {
+    // ...
+}
 ```
-If so, we found the 🚨Error🚨
+Then, we check if the Project was successfully created.
 ```rust
-return Err("We succesfully registered new project even though registrations are not open");
+if let Some(_project) = post_ix.project {
+    // ...
+}
 ```
+Finally, if both previous checks have passed, we check if **registrations_round** within the State was false.
+```rust
+if !registrations_round {
+    // ...
+}
+```
+If this condition is met, we have identified the 🚨Error🚨.
+```rust
+return Err("We successfully registered a new project even though registrations are not open");
+```
+
 <u> Final Check </u>
 ```rust
 if let Some(state) = pre_ix.state {
     if let Some(_project) = post_ix.project {
         let registrations_round = state.registrations_round;
         if !registrations_round {
-            return Err("We succesfully registered new project even though registrations are not open");
+            return Err("We successfully registered a new project even though registrations are not open");
         }
     }
 }
@@ -60,23 +66,30 @@ if let Some(state) = pre_ix.state {
 
 ---
 
-- ### ✔️Invest Instruction check
-We first check if the Project was already registered before the Invest instruction call
+- ### ✔️Invest Instruction Check
+We first check if the Project was already registered before the Invest instruction call.
 ```rust
-if let Some(project_pre) = pre_ix.project
+if let Some(project_pre) = pre_ix.project {
+    // ...
+}
 ```
-if so, we then check if the State was already initialized
+Then, we verify if the State was already initialized.
 ```rust
-if let Some(state) = pre_ix.state
+if let Some(state) = pre_ix.state {
+    // ...
+}
 ```
-Lastly, we check if the **invested amount before and after the instruction call has changed**
+Lastly, we check if the **invested amount before and after the instruction call has changed**.
 ```rust
-if !state.registrations_round && project_pre.invested_amount + ix_data.amount == project_post.invested_amount
+if !state.registrations_round && project_pre.invested_amount + ix_data.amount == project_post.invested_amount {
+    // ...
+}
 ```
-If so, we found the 🚨Error🚨
+If this condition is met, we have identified the 🚨Error🚨.
 ```rust
-return Err("Registration round was not terminated, however investor was able to invest inside registration window");
+return Err("Registration round was not terminated, however, the investor was able to invest inside the registration window");
 ```
+
 <u> Final Check </u>
 ```rust
 if let Some(project_pre) = pre_ix.project {
@@ -85,7 +98,7 @@ if let Some(project_pre) = pre_ix.project {
         if !state.registrations_round
             && project_pre.invested_amount + ix_data.amount
             == project_post.invested_amount{
-            return Err("Registration round was not terminated, however investor was able to invest inside registration window");
+            return Err("Registration round was not terminated, however, the investor was able to invest inside the registration window");
         }
     }
 }
