@@ -5,11 +5,12 @@
 ## Program and Errors Description
 
 - ### Initialize
-    - Within this function, we initialize Counter Account, set count to zero and also assign Authority to the Signer.
+    - In this function, we initialize a Counter Account, set the count to zero, and assign Authority to the Signer.
+
 - ### Update
-    - Based on the Instruction inputs we update the count variable within the Counter Account. The eligible Update Authority has to sign the Transaction.
-    - ❗ **NOTE:** 🐛 Within the **buggy_math_function** that performs computations in order to obtain new count, we do not correctly check input values so that the computation can result in **🚨div-by-zero🚨** or **🚨subtract with overflow panic.🚨**
+    - Based on the Instruction inputs, we update the count variable within the Counter Account. The eligible Update Authority must sign the Transaction.
+    - ❗ **NOTE:** 🐛 In the **buggy_math_function** that performs computations to obtain the new count, we fail to properly check input values. This oversight can result in **🚨division by zero🚨** or **🚨subtract with overflow 🚨**panic.
 
 
 ## Fuzz Test Checks
-- ✔️ For this example we do not need any checks because the **Fuzzer will panic automatically** when it notices **subtract with overflow** or **div-by-zero**.
+- ✔️ For this example, we do not need any specific checks because the **Fuzzer will automatically panic** when it detects **subtraction with overflow** or **division-by-zero** errors.
