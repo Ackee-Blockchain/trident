@@ -19,12 +19,20 @@ impl<'info> InitializeSnapshot<'info> {
         let accounts = get_account_infos_option(accounts, metas)
             .map_err(|_| FuzzingError::CannotGetAccounts)?;
         let mut accounts_iter = accounts.into_iter();
+        // FIXME
         let counter: Option<anchor_lang::accounts::account::Account<Counter>> = accounts_iter
             .next()
             .ok_or(FuzzingError::NotEnoughAccounts)?
             .map(|acc| anchor_lang::accounts::account::Account::try_from(&acc))
             .transpose()
-            .map_err(|_| FuzzingError::CannotDeserializeAccount)?;
+            .unwrap_or(None);
+        // let counter: Option<anchor_lang::accounts::account::Account<Counter>> = accounts_iter
+        //     .next()
+        //     .ok_or(FuzzingError::NotEnoughAccounts)?
+        //     .map(|acc| anchor_lang::accounts::account::Account::try_from(&acc))
+        //     .transpose()
+        //     .map_err(|_| FuzzingError::CannotDeserializeAccount)?;
+        // ----
         let user: Option<Signer<'_>> = accounts_iter
             .next()
             .ok_or(FuzzingError::NotEnoughAccounts)?
@@ -57,7 +65,15 @@ impl<'info> UpdateSnapshot<'info> {
             .ok_or(FuzzingError::NotEnoughAccounts)?
             .map(|acc| anchor_lang::accounts::account::Account::try_from(&acc))
             .transpose()
-            .map_err(|_| FuzzingError::CannotDeserializeAccount)?;
+            .unwrap_or(None);
+        // FIXME
+        // let counter: Option<anchor_lang::accounts::account::Account<Counter>> = accounts_iter
+        //     .next()
+        //     .ok_or(FuzzingError::NotEnoughAccounts)?
+        //     .map(|acc| anchor_lang::accounts::account::Account::try_from(&acc))
+        //     .transpose()
+        //     .map_err(|_| FuzzingError::CannotDeserializeAccount)?;
+        // ----
         let authority: Option<Signer<'_>> = accounts_iter
             .next()
             .ok_or(FuzzingError::NotEnoughAccounts)?
