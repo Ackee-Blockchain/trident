@@ -29,6 +29,8 @@
 
 ## Fuzz Test Checks
 - ### ✔️Register Instruction Check
+❗❗ To try this fuzz test, first uncomment it within [fuzz_instruction.rs](trdelnik-tests/src/fuzz_instructions.rs).
+
 We first verify if the State is initialized before the Register instruction call.
 ```rust
 if let Some(state) = pre_ix.state {
