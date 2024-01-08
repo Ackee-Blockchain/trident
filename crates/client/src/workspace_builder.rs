@@ -162,7 +162,7 @@ impl WorkspaceBuilder {
         let cargo_path = construct_path!(self.root, PROGRAM_CLIENT_DIRECTORY, CARGO);
         let src_path = construct_path!(self.root, PROGRAM_CLIENT_DIRECTORY, SRC);
         let crate_path = construct_path!(self.root, PROGRAM_CLIENT_DIRECTORY);
-        let lib_path = construct_path!(self.root, SRC, LIB);
+        let lib_path = construct_path!(self.root, PROGRAM_CLIENT_DIRECTORY, SRC, LIB);
 
         self.create_directory_all(&src_path).await?;
 
@@ -233,6 +233,7 @@ impl WorkspaceBuilder {
         };
 
         let new_fuzz_test = format!("fuzz_{fuzz_id}");
+        let new_fuzz_test_path = format!("fuzz_{fuzz_id}/{FUZZ_TEST}");
 
         let new_fuzz_test_dir = construct_path!(
             self.root,
@@ -242,20 +243,6 @@ impl WorkspaceBuilder {
         );
 
         self.create_directory(&new_fuzz_test_dir).await?;
-
-        let cargo_path = construct_path!(
-            self.root,
-            TESTS_WORKSPACE_DIRECTORY,
-            FUZZ_TEST_DIRECTORY,
-            &new_fuzz_test,
-            CARGO
-        );
-
-        let cargo_toml_content =
-            load_template("/src/templates/trdelnik-tests/Cargo_fuzz.toml.tmpl")?;
-        let cargo_content = cargo_toml_content.replace("###FUZZ_ID###", &fuzz_id.to_string());
-
-        self.create_file(&cargo_path, &cargo_content).await?;
 
         let fuzz_test_path = construct_path!(
             self.root,
@@ -274,14 +261,29 @@ impl WorkspaceBuilder {
 
         self.create_file(&fuzz_test_path, &template).await?;
 
+        let cargo_path = construct_path!(
+            self.root,
+            TESTS_WORKSPACE_DIRECTORY,
+            FUZZ_TEST_DIRECTORY,
+            CARGO
+        );
+
+        let cargo_toml_content =
+            load_template("/src/templates/trdelnik-tests/Cargo_fuzz.toml.tmpl")?;
+
+        self.create_file(&cargo_path, &cargo_toml_content).await?;
+
+        self.add_bin_target(&cargo_path, &new_fuzz_test, &new_fuzz_test_path)
+            .await?;
+
         // add this new fuzz test to the workspace
         self.add_workspace_member(&format!(
-            "{TESTS_WORKSPACE_DIRECTORY}/{FUZZ_TEST_DIRECTORY}/{new_fuzz_test}",
+            "{TESTS_WORKSPACE_DIRECTORY}/{FUZZ_TEST_DIRECTORY}",
         ))
         .await?;
 
         // add program dependencies
-        self.add_program_dependencies(&new_fuzz_test_dir, "dependencies", None)
+        self.add_program_dependencies(&fuzz_dir_path, "dependencies", None)
             .await?;
 
         // add fuzzing feature
@@ -348,6 +350,35 @@ impl WorkspaceBuilder {
 
         self.add_program_dependencies(&poc_dir_path, "dev-dependencies", None)
             .await?;
+    }
+
+    #[throws]
+    async fn add_bin_target(&self, cargo_path: &PathBuf, name: &str, path: &str) {
+        // Read the existing Cargo.toml file
+        let cargo_toml_content = fs::read_to_string(cargo_path).await?;
+        let mut cargo_toml: Value = cargo_toml_content.parse()?;
+
+        // Create a new bin table
+        let mut bin_table = Table::new();
+        bin_table.insert("name".to_string(), Value::String(name.to_string()));
+        bin_table.insert("path".to_string(), Value::String(path.to_string()));
+
+        // Add the new [[bin]] section to the [[bin]] array
+        if let Some(bin_array) = cargo_toml.as_table_mut().and_then(|t| t.get_mut("bin")) {
+            if let Value::Array(bin_array) = bin_array {
+                bin_array.push(Value::Table(bin_table));
+            }
+        } else {
+            // If there is no existing [[bin]] array, create one
+            let bin_array = Value::Array(vec![Value::Table(bin_table)]);
+            cargo_toml
+                .as_table_mut()
+                .unwrap()
+                .insert("bin".to_string(), bin_array);
+        }
+
+        // Write the updated Cargo.toml file
+        fs::write(cargo_path, cargo_toml.to_string()).await?;
     }
 
     // Creates the `trdelnik-tests` workspace with `src/bin` directory and empty `fuzz_target.rs` file

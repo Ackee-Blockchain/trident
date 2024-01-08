@@ -93,16 +93,16 @@ mod constants {
     pub const TESTS_WORKSPACE_DIRECTORY: &str = "trdelnik-tests";
     pub const POC_TEST_DIRECTORY: &str = "poc_tests";
     pub const TESTS: &str = "tests";
-
+    pub const CARGO_TARGET_DIR_DEFAULT: &str = "trdelnik-tests/fuzz_tests/fuzzing/hfuzz_target";
+    pub const HFUZZ_WORKSPACE_DEFAULT: &str = "trdelnik-tests/fuzz_tests/fuzzing/hfuzz_workspace";
     pub const FUZZ_TEST_DIRECTORY: &str = "fuzz_tests";
-
+    pub const FUZZING: &str = "fuzzing";
     pub const POC_TEST: &str = "test.rs";
     pub const FUZZ_TEST: &str = "test_fuzz.rs";
 
     // pub const PROGRAM_STUBS: &str = "program_stubs.rs";
 
     pub const HFUZZ_TARGET: &str = "hfuzz_target";
-    pub const HFUZZ_WORKSPACE: &str = "hfuzz_workspace";
 
     pub const GIT_IGNORE: &str = ".gitignore";
 

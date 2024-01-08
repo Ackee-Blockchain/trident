@@ -1,7 +1,8 @@
 [package]
-name = "fuzz_###FUZZ_ID###"
+name = "fuzz_tests"
 version = "0.1.0"
-edition = "2018"
+description = "Created with Trdelnik"
+edition = "2021"
 
 # Dependencies specific to Fuzz test
 [dependencies]
@@ -16,9 +17,4 @@ version = "0.5.0"
 features=["fuzzing"]
 
 [dependencies.program_client]
-path = "../../../.program_client"
-
-
-[[bin]]
-name = "fuzz_###FUZZ_ID###"
-path = "test_fuzz.rs"
+path = "../../.program_client"

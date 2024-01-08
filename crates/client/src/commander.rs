@@ -218,7 +218,11 @@ impl Commander {
         // INFO hfuzz target can be of course located somewhere else
         // but as we leave it within the root, we also expect it within the root
 
-        let hfuzz_target_path = root.join(HFUZZ_TARGET);
+        let hfuzz_target_path = root
+            .join(TESTS_WORKSPACE_DIRECTORY)
+            .join(FUZZ_TEST_DIRECTORY)
+            .join(FUZZING)
+            .join(HFUZZ_TARGET);
         if hfuzz_target_path.exists() {
             tokio::fs::remove_dir_all(hfuzz_target_path).await?;
         } else {
@@ -313,12 +317,23 @@ impl Commander {
         // if the target does not exists, honggfuzz will throw an error
         let config = Config::new();
 
+        // INFO This was tested on independant hongfuzz example, but if we specify HFUZZ_WORKSPACE,
+        // it will update the workspace directory , however HFUZZ_RUN_ARGS will still have stronger
+        // word and will be used for report and crash files if specified
+
         let hfuzz_run_args = std::env::var("HFUZZ_RUN_ARGS").unwrap_or_default();
+
+        let cargo_target_dir =
+            std::env::var("CARGO_TARGET_DIR").unwrap_or(CARGO_TARGET_DIR_DEFAULT.to_string());
+        let hfuzz_workspace =
+            std::env::var("HFUZZ_WORKSPACE").unwrap_or(HFUZZ_WORKSPACE_DEFAULT.to_string());
 
         let fuzz_args = config.get_fuzz_args(hfuzz_run_args);
 
         let mut child = tokio::process::Command::new("cargo")
             .env("HFUZZ_RUN_ARGS", fuzz_args)
+            .env("CARGO_TARGET_DIR", cargo_target_dir)
+            .env("HFUZZ_WORKSPACE", hfuzz_workspace)
             .arg("hfuzz")
             .arg("run")
             .arg(target)
@@ -345,11 +360,18 @@ impl Commander {
         let config = Config::new();
         // obtain hfuzz_run_args
         let hfuzz_run_args = std::env::var("HFUZZ_RUN_ARGS").unwrap_or_default();
+
+        let cargo_target_dir =
+            std::env::var("CARGO_TARGET_DIR").unwrap_or(CARGO_TARGET_DIR_DEFAULT.to_string());
+
+        let hfuzz_workspace =
+            std::env::var("HFUZZ_WORKSPACE").unwrap_or(HFUZZ_WORKSPACE_DEFAULT.to_string());
+
         // obtain string from config and hfuzz_run_args
         let fuzz_args = config.get_fuzz_args(hfuzz_run_args);
         // Parse the fuzz_args arguments to find out if the crash folder and crash files extension was modified.
         // This will give precedence to latter
-        let (crash_dir, ext) = get_crash_dir_and_ext(root, &target, &fuzz_args);
+        let (crash_dir, ext) = get_crash_dir_and_ext(root, &target, &fuzz_args, &hfuzz_workspace);
 
         if let Ok(crash_files) = get_crash_files(&crash_dir, &ext) {
             if !crash_files.is_empty() {
@@ -360,6 +382,8 @@ impl Commander {
 
         let mut child = tokio::process::Command::new("cargo")
             .env("HFUZZ_RUN_ARGS", fuzz_args)
+            .env("CARGO_TARGET_DIR", cargo_target_dir)
+            .env("HFUZZ_WORKSPACE", hfuzz_workspace)
             .arg("hfuzz")
             .arg("run")
             .arg(target)
@@ -463,6 +487,7 @@ fn get_crash_dir_and_ext(
     root: &std::path::Path,
     target: &str,
     hfuzz_run_args: &str,
+    hfuzz_workspace: &str,
 ) -> (std::path::PathBuf, String) {
     // FIXME: we split by whitespace without respecting escaping or quotes - same approach as honggfuzz-rs so there is no point to fix it here before the upstream is fixed
     let hfuzz_run_args = hfuzz_run_args.split_whitespace();
@@ -473,17 +498,13 @@ fn get_crash_dir_and_ext(
     let crash_dir = get_cmd_option_value(hfuzz_run_args.clone(), "", "--cr")
         .or_else(|| get_cmd_option_value(hfuzz_run_args.clone(), "-W", "--w"));
 
+    //INFO -W is stronger option when honggfuzz is executed, so if -W is specified
+    // we take it as crashdir, if not we take hfuzz_workspace which is set by user
+    // or default is set to fuzzing within trdelink-tests
     let crash_path = if let Some(dir) = crash_dir {
         std::path::Path::new(root).join(dir)
-        // Path::new(root).join(TESTS_WORKSPACE_DIRECTORY).join(dir)
     } else {
-        std::path::Path::new(root)
-            .join(HFUZZ_WORKSPACE)
-            .join(target)
-        // Path::new(root)
-        //     .join(TESTS_WORKSPACE_DIRECTORY)
-        //     .join(HFUZZ_WORKSPACE)
-        //     .join(target)
+        std::path::Path::new(hfuzz_workspace).join(target)
     };
 
     (crash_path, extension)
@@ -632,61 +653,126 @@ mod tests {
 
     #[test]
     fn test_get_crash_dir_and_ext() {
-        let root = std::path::Path::new("/home/fuzz");
-        let target = "target";
-        let default_crash_path = std::path::Path::new(root)
-            .join(HFUZZ_WORKSPACE)
-            .join(target);
+        pub const TARGET: &str = "fuzz_0";
+        pub const TEST_CRASH_PATH: &str = "/home/fuzz/test-crash-path";
 
-        let (crash_dir, ext) = get_crash_dir_and_ext(root, target, "");
+        let root = std::path::Path::new("/home/fuzz/");
 
-        assert_eq!(crash_dir, default_crash_path);
-        assert_eq!(&ext, "fuzz");
+        let default_crash_path = std::path::Path::new(HFUZZ_WORKSPACE_DEFAULT).join(TARGET);
+        let env_specified_crash_path = std::path::Path::new(TEST_CRASH_PATH).join(TARGET);
 
-        let (crash_dir, ext) = get_crash_dir_and_ext(root, target, "-Q -e");
+        // this is default behavior
+        let (crash_dir, ext) = get_crash_dir_and_ext(root, TARGET, "", HFUZZ_WORKSPACE_DEFAULT);
 
         assert_eq!(crash_dir, default_crash_path);
         assert_eq!(&ext, "fuzz");
 
-        let (crash_dir, ext) = get_crash_dir_and_ext(root, target, "-Q -e crash");
+        // behavior where path is specified within env variable HFUZZ_WORKSPACE, but not within -W HFUZZ_RUN_ARGS
+        let (crash_dir, ext) = get_crash_dir_and_ext(root, TARGET, "-Q -e", TEST_CRASH_PATH);
 
-        assert_eq!(crash_dir, default_crash_path);
+        assert_eq!(crash_dir, env_specified_crash_path);
+        assert_eq!(&ext, "fuzz");
+
+        // behavior as above
+        let (crash_dir, ext) = get_crash_dir_and_ext(root, TARGET, "-Q -e crash", TEST_CRASH_PATH);
+
+        assert_eq!(crash_dir, env_specified_crash_path);
         assert_eq!(&ext, "crash");
 
         // test absolute path
-        let (crash_dir, ext) = get_crash_dir_and_ext(root, target, "-Q -W /home/crash -e crash");
+        // HFUZZ_WORKSPACE has default value however -W is set
+        let (crash_dir, ext) = get_crash_dir_and_ext(
+            root,
+            TARGET,
+            "-Q -W /home/crash -e crash",
+            HFUZZ_WORKSPACE_DEFAULT,
+        );
 
         let expected_crash_path = std::path::Path::new("/home/crash");
         assert_eq!(crash_dir, expected_crash_path);
         assert_eq!(&ext, "crash");
 
         // test absolute path
-        let (crash_dir, ext) =
-            get_crash_dir_and_ext(root, target, "-Q --crash /home/crash -e crash");
-
+        // HFUZZ_WORKSPACE is set and -W is also set
+        let (crash_dir, ext) = get_crash_dir_and_ext(
+            root,
+            TARGET,
+            "-Q --crash /home/crash -e crash",
+            TEST_CRASH_PATH,
+        );
         let expected_crash_path = std::path::Path::new("/home/crash");
         assert_eq!(crash_dir, expected_crash_path);
         assert_eq!(&ext, "crash");
 
-        // test relative path
-        let (crash_dir, ext) = get_crash_dir_and_ext(root, target, "-Q -W ../crash -e crash");
+        // test absolute path
+        // HFUZZ_WORKSPACE is set and -W is also set
+        let (crash_dir, ext) = get_crash_dir_and_ext(
+            root,
+            TARGET,
+            "-Q --crash /home/crash/foo/bar/dead/beef -e crash",
+            TEST_CRASH_PATH,
+        );
 
-        let expected_crash_path = root.join("../crash");
+        let expected_crash_path = std::path::Path::new("/home/crash/foo/bar/dead/beef");
         assert_eq!(crash_dir, expected_crash_path);
         assert_eq!(&ext, "crash");
 
         // test relative path
-        let (crash_dir, ext) = get_crash_dir_and_ext(root, target, "-Q --crash ../crash -e crash");
-
-        let expected_crash_path = root.join("../crash");
-        assert_eq!(crash_dir, expected_crash_path);
-        assert_eq!(&ext, "crash");
-
-        // crash directory has precedence before workspace
+        // HFUZZ_WORKSPACE is set and -W is also set, this time with relative path
         let (crash_dir, ext) =
-            get_crash_dir_and_ext(root, target, "-Q --crash ../crash -W /workspace -e crash");
+            get_crash_dir_and_ext(root, TARGET, "-Q -W ../crash -e crash", TEST_CRASH_PATH);
 
         let expected_crash_path = root.join("../crash");
+        assert_eq!(crash_dir, expected_crash_path);
+        assert_eq!(&ext, "crash");
+
+        // test relative path
+        // HFUZZ_WORKSPACE is set and -W is also set, this time with relative path
+        let (crash_dir, ext) = get_crash_dir_and_ext(
+            root,
+            TARGET,
+            "-Q -W ../../dead/beef/crash -e crash",
+            TEST_CRASH_PATH,
+        );
+
+        let expected_crash_path = root.join("../../dead/beef/crash");
+        assert_eq!(crash_dir, expected_crash_path);
+        assert_eq!(&ext, "crash");
+
+        // test relative path
+        let (crash_dir, ext) = get_crash_dir_and_ext(
+            root,
+            TARGET,
+            "-Q --crash ../crash -e crash",
+            HFUZZ_WORKSPACE_DEFAULT,
+        );
+
+        let expected_crash_path = root.join("../crash");
+        assert_eq!(crash_dir, expected_crash_path);
+        assert_eq!(&ext, "crash");
+
+        // crash directory has precedence before workspace option , which have precedence before
+        // HFUZZ_WORKSPACE
+        let (crash_dir, ext) = get_crash_dir_and_ext(
+            root,
+            TARGET,
+            "-Q --crash ../bitcoin/to/the/moon -W /workspace -e crash",
+            TEST_CRASH_PATH,
+        );
+
+        let expected_crash_path = root.join("../bitcoin/to/the/moon");
+        assert_eq!(crash_dir, expected_crash_path);
+        assert_eq!(&ext, "crash");
+
+        // crash directory has precedence before workspace HFUZZ_WORKSPACE
+        let (crash_dir, ext) = get_crash_dir_and_ext(
+            root,
+            TARGET,
+            "-Q --crash /home/crashes/we/like/solana -e crash",
+            TEST_CRASH_PATH,
+        );
+
+        let expected_crash_path = root.join("/home/crashes/we/like/solana");
         assert_eq!(crash_dir, expected_crash_path);
         assert_eq!(&ext, "crash");
     }
