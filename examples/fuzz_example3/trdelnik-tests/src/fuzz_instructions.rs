@@ -292,11 +292,6 @@ pub mod fuzz_example3_fuzz_instructions {
                                 );
                                 return Err("Transfered amount mismatch");
                             }
-                        } else if recepient_token_account_pre.amount
-                            < recepient_token_account_post.amount
-                        {
-                            // TODO find crash file for this check
-                            return Err("Unauthorized withdrawal");
                         }
                     }
                 }

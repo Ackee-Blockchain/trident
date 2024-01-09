@@ -11,14 +11,8 @@
     - Within the Withdrawal function, we can unlock the locked amount. The condition is that the eligible recipient, stored as Recipient PubKey within the Escrow Account, has to sign the Transaction.
     - ❗ **NOTE:** 🐛 One issue is that within the **amount_unlocked function**, we do not correctly compute the unlocked amount, resulting in:
         - In some cases, the receiver **🚨can withdraw less🚨** than intended, due to the use of integer arithmetic, which rounds everything down.
-        - As multiple Escrows share one Token Account per Mint, it is also **🚨possible to withdraw more🚨** than intended.
+        - As multiple Escrows share one Token Account per Mint, it is also **🚨possible to withdraw more🚨** than intended, potentially leading to the **🚨unauthorized withdrawal🚨** of funds belonging to other customers.
         - If the **unlocked_amount** is greater than the initially locked amount and the Token Account has insufficient balance, **🚨the Recipient will not be able to withdraw any funds🚨**.
-        ```rust
-        todo!()
-        // finish fuzz test where hacker can steal funds
-        // example inside anchor test
-        ```
-
 
 ## Fuzz Test Checks
 - ### ✔️Withdraw Instruction Checks
