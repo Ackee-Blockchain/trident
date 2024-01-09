@@ -28,7 +28,6 @@ use tokio::{
     signal,
 };
 
-pub const TESTS_WORKSPACE: &str = "trdelnik-tests";
 pub const PROGRAM_CLIENT_DIRECTORY: &str = ".program_client";
 pub const CARGO_TARGET_DIR_DEFAULT: &str = "trdelnik-tests/fuzz_tests/fuzzing/hfuzz_target";
 pub const HFUZZ_WORKSPACE_DEFAULT: &str = "trdelnik-tests/fuzz_tests/fuzzing/hfuzz_workspace";
@@ -260,12 +259,7 @@ impl Commander {
     /// Runs fuzzer on the given target.
     #[throws]
     pub async fn run_fuzzer_debug(&self, target: String, crash_file_path: String) {
-        let cur_dir = Path::new(&self.root.to_string()).join(TESTS_WORKSPACE);
-        let crash_file = std::env::current_dir()?.join(crash_file_path);
-
-        if !cur_dir.try_exists()? {
-            throw!(Error::NotInitialized);
-        }
+        let crash_file = std::path::Path::new(&self.root as &str).join(crash_file_path);
 
         if !crash_file.try_exists()? {
             println!("The crash file {:?} not found!", crash_file);
@@ -277,7 +271,6 @@ impl Commander {
 
         // using exec rather than spawn and replacing current process to avoid unflushed terminal output after ctrl+c signal
         std::process::Command::new("cargo")
-            .current_dir(cur_dir)
             .env("CARGO_TARGET_DIR", cargo_target_dir)
             .arg("hfuzz")
             .arg("run-debug")
