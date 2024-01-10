@@ -4,7 +4,7 @@ on:
   push:
     branches: [master]
 
-name: Test Escrow and Turnstile
+name: Test PoC Tests Escrow and Turnstile
 
 env:
   SOLANA_CLI_VERSION: 1.16.6
@@ -43,29 +43,3 @@ jobs:
       - name: Test Turnstile
         working-directory: examples/turnstile
         run: cargo run --manifest-path ../../Cargo.toml test
-  test_fuzzer:
-    runs-on: ubuntu-20.04
-    steps:
-      - uses: actions/checkout@v3
-      - uses: ./.github/actions/setup-rust/
-      - uses: ./.github/actions/setup-solana/
-      - uses: ./.github/actions/setup-honggfuzz/
-        id: rust-setup
-      - uses: Swatinem/rust-cache@v2
-        name: Cache Rust and it's packages
-      - name: Test Fuzzer
-        working-directory: examples/fuzzer
-        run: cargo run --manifest-path ../../Cargo.toml fuzz run fuzz_1
-  test_fuzzer_with_exit_code:
-    runs-on: ubuntu-20.04
-    steps:
-      - uses: actions/checkout@v3
-      - uses: ./.github/actions/setup-rust/
-      - uses: ./.github/actions/setup-solana/
-      - uses: ./.github/actions/setup-honggfuzz/
-        id: rust-setup
-      - uses: Swatinem/rust-cache@v2
-        name: Cache Rust and it's packages
-      - name: Test Fuzzer
-        working-directory: examples/fuzzer
-        run: cargo run --manifest-path ../../Cargo.toml fuzz run -w fuzz_1 && echo "Fuzzer did not find anything" || echo "Fuzzer found an Error"

@@ -1,0 +1,26 @@
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches: [master]
+
+name: Test Fuzz Tests
+
+env:
+  SOLANA_CLI_VERSION: 1.16.6
+  ANCHOR_VERSION: 0.28.0
+
+jobs:
+  test_fuzz_example0:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/setup-rust/
+      - uses: ./.github/actions/setup-solana/
+      - uses: ./.github/actions/setup-honggfuzz/
+        id: rust-setup
+      - uses: Swatinem/rust-cache@v2
+        name: Cache Rust and it's packages
+      - name: Test Fuzz Example 0
+        working-directory: examples/fuzz_example0
+        run: cargo run --manifest-path ../../Cargo.toml fuzz run -w fuzz_0 && echo "Fuzzer did not find anything" || echo "Fuzzer found an Error"
