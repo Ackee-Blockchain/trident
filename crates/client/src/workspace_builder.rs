@@ -159,6 +159,8 @@ impl WorkspaceBuilder {
     #[throws]
     pub async fn add_fuzz_test(&mut self) {
         self.packages = Commander::collect_program_packages().await?;
+        (self.idl, self.codes_libs_pairs) =
+            Commander::build_program_packages(&self.packages).await?;
         self.add_new_fuzz_test().await?;
     }
     /// ## Creates program client folder and generates source code
@@ -214,6 +216,7 @@ impl WorkspaceBuilder {
                 .unwrap()
                 .map(|r| r.unwrap())
                 .collect();
+            directories.retain(|x| x.file_name() != "fuzzing");
             directories.sort_by_key(|dir| dir.path());
 
             // INFO this is kind of spaghetti, but esentially we are:
