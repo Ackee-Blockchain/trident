@@ -165,22 +165,42 @@ impl Commander {
     }
 
     #[throws]
-    pub async fn build_program_packages(packages: &[cargo_metadata::Package]) -> Idl {
+    pub async fn build_program_packages(
+        packages: &[cargo_metadata::Package],
+    ) -> (Idl, Vec<(String, cargo_metadata::camino::Utf8PathBuf)>) {
         let shared_mutex = std::sync::Arc::new(std::sync::Mutex::new(Vec::new()));
+        let shared_mutex_fuzzer = std::sync::Arc::new(std::sync::Mutex::new(Vec::new()));
+
         for package in packages.iter() {
             let mutex = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(true));
             let c_mutex = std::sync::Arc::clone(&mutex);
 
             let name = package.name.clone();
+
+            let mut libs = package.targets.iter().filter(|&t| t.is_lib());
+            let lib_path = libs
+                .next()
+                .ok_or(Error::ReadProgramCodeFailed(
+                    "Cannot find program library path.".into(),
+                ))?
+                .src_path
+                .clone();
+
             let c_shared_mutex = std::sync::Arc::clone(&shared_mutex);
+            let c_shared_mutex_fuzzer = std::sync::Arc::clone(&shared_mutex_fuzzer);
+
             let cargo_thread = std::thread::spawn(move || -> Result<(), Error> {
                 let output = Self::build_package(&name);
 
                 if output.status.success() {
                     let code = String::from_utf8(output.stdout).unwrap();
+
                     let idl_program = Idl::parse_to_idl_program(&name, &code).unwrap();
                     let mut vec = c_shared_mutex.lock().unwrap();
+                    let mut vec_fuzzer = c_shared_mutex_fuzzer.lock().unwrap();
+
                     vec.push(idl_program);
+                    vec_fuzzer.push((code, lib_path));
 
                     c_mutex.store(false, std::sync::atomic::Ordering::SeqCst);
                     Ok(())
@@ -195,13 +215,17 @@ impl Commander {
             cargo_thread.join().unwrap()?;
         }
         let idl_programs = shared_mutex.lock().unwrap().to_vec();
+        let codes_libs_pairs = shared_mutex_fuzzer.lock().unwrap().to_vec();
 
         if idl_programs.is_empty() {
             throw!(Error::NoProgramsFound);
         } else {
-            Idl {
-                programs: idl_programs,
-            }
+            (
+                Idl {
+                    programs: idl_programs,
+                },
+                codes_libs_pairs,
+            )
         }
     }
     #[throws]
@@ -413,28 +437,17 @@ impl Commander {
 
     /// Runs fuzzer on the given target.
     #[throws]
-    pub async fn run_fuzzer_debug(target: String, crash_file_path: String, root: String) {
-        let root = std::path::Path::new(&root);
-
-        let cur_dir = root.join(TESTS_WORKSPACE_DIRECTORY);
-        let crash_file = std::env::current_dir()?.join(crash_file_path);
-
-        if !cur_dir.try_exists()? {
-            throw!(Error::NotInitialized);
-        }
-
-        if !crash_file.try_exists()? {
-            println!("The crash file {:?} not found!", crash_file);
-            throw!(Error::CrashFileNotFound);
-        }
+    pub async fn run_fuzzer_debug(target: String, crash_file_path: String) {
+        let cargo_target_dir =
+            std::env::var("CARGO_TARGET_DIR").unwrap_or(CARGO_TARGET_DIR_DEFAULT.to_string());
 
         // using exec rather than spawn and replacing current process to avoid unflushed terminal output after ctrl+c signal
         std::process::Command::new("cargo")
-            .current_dir(cur_dir)
+            .env("CARGO_TARGET_DIR", cargo_target_dir)
             .arg("hfuzz")
             .arg("run-debug")
             .arg(target)
-            .arg(crash_file)
+            .arg(crash_file_path)
             .exec();
 
         eprintln!("cannot execute \"cargo hfuzz run-debug\" command");

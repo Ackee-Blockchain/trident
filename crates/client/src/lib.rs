@@ -5,13 +5,36 @@
 
 #[cfg(feature = "fuzzing")]
 pub mod fuzzing {
+    pub use super::fuzzer::accounts_storage::*;
+    pub use super::fuzzer::data_builder::build_ix_fuzz_data;
+    pub use super::fuzzer::data_builder::*;
+    pub use super::fuzzer::program_test_client_blocking::ProgramTestClientBlocking;
+    pub use super::fuzzer::snapshot::Snapshot;
+    pub use super::fuzzer::*;
     pub use anchor_lang;
     pub use arbitrary;
     pub use arbitrary::Arbitrary;
     pub use honggfuzz::fuzz;
     pub use solana_program_test;
     pub use solana_sdk;
+    pub use solana_sdk::pubkey::Pubkey;
     pub use solana_sdk::signer::Signer;
+
+    pub use std::cell::RefCell;
+    pub use trdelnik_derive_displayix::DisplayIx;
+    pub use trdelnik_derive_fuzz_deserialize::FuzzDeserialize;
+    pub use trdelnik_derive_fuzz_test_executor::FuzzTestExecutor;
+
+    // -----
+    pub use anchor_lang::solana_program::instruction::AccountMeta;
+    pub use anchor_lang::{InstructionData, ToAccountMetas};
+    pub use solana_sdk::account::Account;
+    pub use solana_sdk::instruction::Instruction;
+    pub use solana_sdk::signer::keypair::Keypair;
+    pub use solana_sdk::transaction::Transaction;
+
+    pub use super::temp_clone::TempClone;
+    pub use solana_program_test::processor;
 }
 
 pub mod prelude {
@@ -73,6 +96,9 @@ use commander::Commander;
 mod idl;
 use idl::{Idl, IdlError};
 
+mod fuzzer;
+pub use fuzzer::*;
+
 mod program_client_generator;
 
 mod workspace_builder;
@@ -90,6 +116,8 @@ mod constants {
     pub const LIB: &str = "lib.rs";
     pub const SRC: &str = "src";
 
+    pub const ACCOUNTS_SNAPSHOTS_FILE_NAME: &str = "accounts_snapshots.rs";
+    pub const FUZZ_INSTRUCTIONS_FILE_NAME: &str = "fuzz_instructions.rs";
     pub const TESTS_WORKSPACE_DIRECTORY: &str = "trdelnik-tests";
     pub const POC_TEST_DIRECTORY: &str = "poc_tests";
     pub const TESTS: &str = "tests";

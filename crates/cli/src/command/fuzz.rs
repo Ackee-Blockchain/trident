@@ -61,7 +61,7 @@ pub async fn fuzz(root: Option<String>, subcmd: FuzzCommand) {
             target,
             crash_file_path,
         } => {
-            Commander::run_fuzzer_debug(target, crash_file_path, root).await?;
+            Commander::run_fuzzer_debug(target, crash_file_path).await?;
         }
         FuzzCommand::Add => {
             let mut generator = WorkspaceBuilder::new_with_root(root);

@@ -11,8 +11,8 @@ description = "The trdelnik_client crate helps you build and deploy an Anchor pr
 fuzzing = [
     "dep:solana-program-test",
     "dep:honggfuzz",
-    "arbitrary/derive",
     "quinn-proto/arbitrary",
+    "dep:solana-program-runtime",
 ]
 poctesting = ["dep:rstest", "dep:serial_test", "dep:trdelnik-test"]
 [build-dependencies]
@@ -22,6 +22,9 @@ anyhow = { version = "1.0.45", features = ["std"], default-features = false }
 pretty_assertions = "1.1.0"
 
 [dependencies]
+trdelnik-derive-displayix = { path = "./derive/display_ix" }
+trdelnik-derive-fuzz-deserialize = { path = "./derive/fuzz_deserialize" }
+trdelnik-derive-fuzz-test-executor = { path = "./derive/fuzz_test_executor" }
 solana-sdk = { workspace = true }
 solana-cli-output = { workspace = true }
 solana-transaction-status = { workspace = true }
@@ -51,9 +54,11 @@ trdelnik-test = { workspace = true, optional = true }
 serial_test = { version = "2.0.0", optional = true }
 rstest = { version = "0.18.2", optional = true }
 honggfuzz = { version = "0.5.55", optional = true }
-arbitrary = { version = "1.3.0", optional = true }
+arbitrary = { version = "1.3.0", features = ["derive"] }
 solana-program-test = { version = "1.16.9", optional = true }
 quinn-proto = { version = "0.9.4", optional = true }
 shellexpand = { workspace = true }
 pathdiff = "0.2.1"
 indicatif = "0.17.7"
+solana-program-runtime = { version = "1.16.17", optional = true }
+proc-macro2 = { workspace = true }

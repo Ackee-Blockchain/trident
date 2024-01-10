@@ -34,6 +34,8 @@ pub enum Error {
     NoProgramsFound,
     #[error("parsing Cargo.toml dependencies failed")]
     ParsingCargoTomlDependenciesFailed,
+    #[error("read program code failed: '{0}'")]
+    ReadProgramCodeFailed(String),
 }
 
 macro_rules! construct_path {
@@ -51,6 +53,7 @@ pub struct WorkspaceBuilder {
     idl: Idl,
     use_tokens: Vec<ItemUse>,
     packages: Vec<Package>,
+    codes_libs_pairs: Vec<(String, cargo_metadata::camino::Utf8PathBuf)>,
 }
 impl Default for WorkspaceBuilder {
     fn default() -> Self {
@@ -67,6 +70,7 @@ impl WorkspaceBuilder {
             idl: Idl::default(),
             use_tokens: vec![syn::parse_quote! { use trdelnik_client::prelude::*; }],
             packages: vec![],
+            codes_libs_pairs: vec![],
         }
     }
     /// ## Build program packages, accordingly updates program client
@@ -146,7 +150,8 @@ impl WorkspaceBuilder {
     #[throws]
     async fn build_packages(&mut self) {
         self.packages = Commander::collect_program_packages().await?;
-        self.idl = Commander::build_program_packages(&self.packages).await?;
+        (self.idl, self.codes_libs_pairs) =
+            Commander::build_program_packages(&self.packages).await?;
         self.use_tokens = Commander::build_program_client().await?;
     }
 
@@ -244,6 +249,37 @@ impl WorkspaceBuilder {
 
         self.create_directory(&new_fuzz_test_dir).await?;
 
+        // TODO IDL HAS TO BE CHECKED
+        let fuzz_instructions = crate::fuzzer::fuzzer_generator::generate_source_code(&self.idl);
+        let fuzz_instructions = Commander::format_program_code(&fuzz_instructions).await?;
+
+        let fuzzer_snapshots =
+            crate::snapshot_generator::generate_snapshots_code(&self.codes_libs_pairs)
+                .map_err(Error::ReadProgramCodeFailed)?;
+        let fuzzer_snapshots = Commander::format_program_code(&fuzzer_snapshots).await?;
+
+        let fuzz_instructions_path = construct_path!(
+            self.root,
+            TESTS_WORKSPACE_DIRECTORY,
+            FUZZ_TEST_DIRECTORY,
+            &new_fuzz_test,
+            FUZZ_INSTRUCTIONS_FILE_NAME
+        );
+
+        let fuzz_snapshots_path = construct_path!(
+            self.root,
+            TESTS_WORKSPACE_DIRECTORY,
+            FUZZ_TEST_DIRECTORY,
+            &new_fuzz_test,
+            ACCOUNTS_SNAPSHOTS_FILE_NAME
+        );
+
+        self.create_file(&fuzz_instructions_path, &fuzz_instructions)
+            .await?;
+
+        self.create_file(&fuzz_snapshots_path, &fuzzer_snapshots)
+            .await?;
+
         let fuzz_test_path = construct_path!(
             self.root,
             TESTS_WORKSPACE_DIRECTORY,
@@ -252,14 +288,25 @@ impl WorkspaceBuilder {
             FUZZ_TEST
         );
 
-        let fuzz_test_content = load_template("/src/templates/trdelnik-tests/fuzz_test.tmpl.rs")?;
+        let fuzz_test_content = load_template("/src/templates/trdelnik-tests/fuzz_target.rs")?;
 
         let use_entry = format!("use {}::entry;\n", program_name);
         let use_instructions = format!("use program_client::{}_instruction::*;\n", program_name);
-        let mut template = format!("{use_entry}{use_instructions}{fuzz_test_content}");
-        template = template.replace("###PROGRAM_NAME###", program_name);
+        let use_fuzz_instructions = format!(
+            "use fuzz_instructions::{}_fuzz_instructions::FuzzInstruction;\n",
+            program_name
+        );
+        let template =
+            format!("{use_entry}{use_instructions}{use_fuzz_instructions}{fuzz_test_content}");
+        let fuzz_test_content = template.replace("###PROGRAM_NAME###", program_name);
 
-        self.create_file(&fuzz_test_path, &template).await?;
+        // let use_entry = format!("use {}::entry;\n", program_name);
+        // let use_instructions = format!("use program_client::{}_instruction::*;\n", program_name);
+        // let mut template = format!("{use_entry}{use_instructions}{fuzz_test_content}");
+        // template = template.replace("###PROGRAM_NAME###", program_name);
+
+        self.create_file(&fuzz_test_path, &fuzz_test_content)
+            .await?;
 
         let cargo_path = construct_path!(
             self.root,
