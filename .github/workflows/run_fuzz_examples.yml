@@ -24,3 +24,19 @@ jobs:
       - name: Test Fuzz Example 0
         working-directory: examples/fuzz_example0
         run: cargo run --manifest-path ../../Cargo.toml fuzz run -w fuzz_0 && echo "Fuzzer did not find anything" || echo "Fuzzer found an Error"
+  test_fuzz_example1:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/setup-rust/
+      - uses: ./.github/actions/setup-solana/
+      - uses: ./.github/actions/setup-honggfuzz/
+        id: rust-setup
+      - uses: Swatinem/rust-cache@v2
+        name: Cache Rust and it's packages
+      - name: Test Fuzz Example 1 - Check:1
+        working-directory: examples/fuzz_example1
+        run: cargo run --manifest-path ../../Cargo.toml fuzz run -w fuzz_0 && echo "Fuzzer did not find anything" || echo "Fuzzer found an Error"
+      - name: Test Fuzz Example 1 - Check:2
+        working-directory: examples/fuzz_example1
+        run: cargo run --manifest-path ../../Cargo.toml fuzz run -w fuzz_1 && echo "Fuzzer did not find anything" || echo "Fuzzer found an Error"
