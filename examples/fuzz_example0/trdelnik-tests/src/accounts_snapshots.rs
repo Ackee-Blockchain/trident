@@ -1,4 +1,4 @@
-use fuzzer::Counter;
+use fuzz_example0::Counter;
 use trdelnik_client::anchor_lang::solana_program::instruction::AccountMeta;
 use trdelnik_client::anchor_lang::{self, prelude::*};
 use trdelnik_client::fuzzing::{get_account_infos_option, FuzzingError};
@@ -19,20 +19,12 @@ impl<'info> InitializeSnapshot<'info> {
         let accounts = get_account_infos_option(accounts, metas)
             .map_err(|_| FuzzingError::CannotGetAccounts)?;
         let mut accounts_iter = accounts.into_iter();
-        // FIXME
         let counter: Option<anchor_lang::accounts::account::Account<Counter>> = accounts_iter
             .next()
             .ok_or(FuzzingError::NotEnoughAccounts)?
             .map(|acc| anchor_lang::accounts::account::Account::try_from(&acc))
             .transpose()
             .unwrap_or(None);
-        // let counter: Option<anchor_lang::accounts::account::Account<Counter>> = accounts_iter
-        //     .next()
-        //     .ok_or(FuzzingError::NotEnoughAccounts)?
-        //     .map(|acc| anchor_lang::accounts::account::Account::try_from(&acc))
-        //     .transpose()
-        //     .map_err(|_| FuzzingError::CannotDeserializeAccount)?;
-        // ----
         let user: Option<Signer<'_>> = accounts_iter
             .next()
             .ok_or(FuzzingError::NotEnoughAccounts)?
@@ -66,14 +58,6 @@ impl<'info> UpdateSnapshot<'info> {
             .map(|acc| anchor_lang::accounts::account::Account::try_from(&acc))
             .transpose()
             .unwrap_or(None);
-        // FIXME
-        // let counter: Option<anchor_lang::accounts::account::Account<Counter>> = accounts_iter
-        //     .next()
-        //     .ok_or(FuzzingError::NotEnoughAccounts)?
-        //     .map(|acc| anchor_lang::accounts::account::Account::try_from(&acc))
-        //     .transpose()
-        //     .map_err(|_| FuzzingError::CannotDeserializeAccount)?;
-        // ----
         let authority: Option<Signer<'_>> = accounts_iter
             .next()
             .ok_or(FuzzingError::NotEnoughAccounts)?

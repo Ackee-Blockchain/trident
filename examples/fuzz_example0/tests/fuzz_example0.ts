@@ -1,12 +1,12 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
-import { FuzzTrdelnik } from "../target/types/fuzzer";
+import { FuzzExample0 } from "../target/types/fuzz_example0";
 
 describe("fuzzer", () => {
   // Configure the client to use the local cluster.
   anchor.setProvider(anchor.AnchorProvider.env());
 
-  const program = anchor.workspace.Fuzzer as Program<Fuzzer>;
+  const program = anchor.workspace.FuzzExample0 as Program<FuzzExample0>;
 
   it("Is initialized!", async () => {
     // Add your test here.
