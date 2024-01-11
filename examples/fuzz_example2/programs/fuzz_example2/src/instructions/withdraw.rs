@@ -13,9 +13,7 @@ pub struct Withdraw<'info> {
     #[account(
         mut,
         close = receiver,
-        // INFO we have missing check here that receiver is actually receiver from
-        // the Escrow, same goes for receiver PKey seed which is taken from the Escrow
-        // Account not from the Signer
+        // INFO: There is a missing check to confirm that the 'receiver' matches the one specified in the Escrow.
         seeds = [escrow.author.key().as_ref(),escrow.receiver.as_ref(),ESCROW_SEED.as_ref()],
         bump = escrow.bump,
     )]

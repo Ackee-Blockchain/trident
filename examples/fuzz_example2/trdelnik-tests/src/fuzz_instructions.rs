@@ -143,7 +143,7 @@ pub mod fuzz_example2_fuzz_instructions {
                 let receiver_lamports_after = post_ix.receiver.unwrap().lamports();
 
                 // If the Receiver (i.e. Signer in the Context) and stored Receiver inside Escrow Account,
-                // do not match, however his balance increased, we found an Error
+                // do not match, however the receiver`s balance increased, we found an Error
                 if receiver.key() != escrow_pre.receiver.key()
                     && receiver_lamports_before < receiver_lamports_after
                 {
