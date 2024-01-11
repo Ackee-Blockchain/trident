@@ -160,6 +160,7 @@ pub trait FuzzClient {
     // TODO add methods to modify current accounts
     // TODO check if self must be mutable
     fn set_account(&mut self, lamports: u64) -> Keypair;
+    #[allow(clippy::too_many_arguments)]
     fn set_token_account(
         &mut self,
         mint: Pubkey,
