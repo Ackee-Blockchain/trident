@@ -24,8 +24,6 @@ pub mod fuzz_example3_fuzz_instructions {
     #[derive(Arbitrary, Clone)]
     pub struct InitVestingData {
         pub recipient: AccountId,
-        // the range is selected randomly
-        #[arbitrary(with = |u: &mut arbitrary::Unstructured| u.int_in_range(13581..=580743))]
         pub amount: u64,
         // we want start_at smaller than end_at
         // and for testing purposes we can run tests with times from the past
@@ -250,47 +248,33 @@ pub mod fuzz_example3_fuzz_instructions {
         ) -> Result<(), &'static str> {
             if let Some(escrow) = pre_ix.escrow {
                 let recipient = pre_ix.recipient.unwrap();
-                if let Some(recepient_token_account_pre) = pre_ix.recipient_token_account {
-                    if let Some(recepient_token_account_post) = post_ix.recipient_token_account {
+                if let Some(recipient_token_account_pre) = pre_ix.recipient_token_account {
+                    if let Some(recipient_token_account_post) = post_ix.recipient_token_account {
                         if escrow.recipient == *recipient.key {
-                            if recepient_token_account_pre.amount
-                                == recepient_token_account_post.amount
+                            if recipient_token_account_pre.amount
+                                == recipient_token_account_post.amount
                             {
                                 // INFO Recipient was not able to withdraw
                                 return Err("Recipient was not able to withdraw any funds");
-                            } else if recepient_token_account_pre.amount + escrow.amount
-                                != recepient_token_account_post.amount
+                            } else if recipient_token_account_pre.amount + escrow.amount
+                                != recipient_token_account_post.amount
                             {
-                                if recepient_token_account_pre.amount + escrow.amount
-                                    > recepient_token_account_post.amount
+                                if recipient_token_account_pre.amount + escrow.amount
+                                    > recipient_token_account_post.amount
                                 {
                                     // INFO The recipient was able to withdraw,
                                     // but not as much as was initially intended.
-                                    eprintln!(
-                                        "Amount Mismatch (Recipient withdrew LESS) by: {}",
-                                        (recepient_token_account_pre.amount + escrow.amount)
-                                            - recepient_token_account_post.amount
-                                    );
+                                    return Err("Recipient withdrew LESS");
                                 } else {
                                     // INFO The recipient was able to withdraw,
                                     // but more as was initially intended.
                                     // This option is possible because the program uses one token accout with corresponding mint
                                     // across multiple Escrow Transactions, this means that we can actually withdraw more
-                                    // if prior to Withdraw call, was sufficient amount transfered to the escrow token account.
+                                    // if prior to Withdraw call, was sufficient amount transferred to the escrow token account.
                                     // (e.g. due to prior Initialization of different Escrow Transactions)
-                                    eprintln!(
-                                        "Amount Mismatch (Recipient withdrew MORE) by: {}",
-                                        recepient_token_account_post.amount
-                                            - (recepient_token_account_pre.amount + escrow.amount)
-                                    );
+                                    // For testing purposes inside debug use eprintln!()
+                                    return Err("Recipient withdrew MORE");
                                 }
-                                eprintln!("Before: {}", recepient_token_account_pre.amount);
-                                eprintln!("After: {}", recepient_token_account_post.amount);
-                                eprintln!(
-                                    "Expected: {}",
-                                    recepient_token_account_pre.amount + escrow.amount
-                                );
-                                return Err("Transfered amount mismatch");
                             }
                         }
                     }

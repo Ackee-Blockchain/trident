@@ -31,14 +31,12 @@ impl<'info> InitVestingSnapshot<'info> {
         let accounts = get_account_infos_option(accounts, metas)
             .map_err(|_| FuzzingError::CannotGetAccounts)?;
         let mut accounts_iter = accounts.into_iter();
-        // eprintln!("deserializign sender");
         let sender: Option<Signer<'_>> = accounts_iter
             .next()
             .ok_or(FuzzingError::NotEnoughAccounts)?
             .map(|acc| anchor_lang::accounts::signer::Signer::try_from(&acc))
             .transpose()
             .map_err(|_| FuzzingError::CannotDeserializeAccount)?;
-        // eprintln!("deserializign sender ata");
         let sender_token_account: Option<anchor_lang::accounts::account::Account<TokenAccount>> =
             accounts_iter
                 .next()
@@ -46,14 +44,12 @@ impl<'info> InitVestingSnapshot<'info> {
                 .map(|acc| anchor_lang::accounts::account::Account::try_from(&acc))
                 .transpose()
                 .map_err(|_| FuzzingError::CannotDeserializeAccount)?;
-        // eprintln!("deserializign escrow");
         let escrow: Option<anchor_lang::accounts::account::Account<Escrow>> = accounts_iter
             .next()
             .ok_or(FuzzingError::NotEnoughAccounts)?
             .map(|acc| anchor_lang::accounts::account::Account::try_from(&acc))
             .transpose()
             .map_err(|_| FuzzingError::CannotDeserializeAccount)?;
-        // eprintln!("deserializign escrow ata");
         let escrow_token_account: Option<anchor_lang::accounts::account::Account<TokenAccount>> =
             accounts_iter
                 .next()
@@ -61,21 +57,18 @@ impl<'info> InitVestingSnapshot<'info> {
                 .map(|acc| anchor_lang::accounts::account::Account::try_from(&acc))
                 .transpose()
                 .map_err(|_| FuzzingError::CannotDeserializeAccount)?;
-        // eprintln!("deserializign mint");
         let mint: Option<anchor_lang::accounts::account::Account<Mint>> = accounts_iter
             .next()
             .ok_or(FuzzingError::NotEnoughAccounts)?
             .map(|acc| anchor_lang::accounts::account::Account::try_from(&acc))
             .transpose()
             .map_err(|_| FuzzingError::CannotDeserializeAccount)?;
-        // eprintln!("deserializign token program");
         let token_program: Option<anchor_lang::accounts::program::Program<Token>> = accounts_iter
             .next()
             .ok_or(FuzzingError::NotEnoughAccounts)?
             .map(|acc| anchor_lang::accounts::program::Program::try_from(&acc))
             .transpose()
             .map_err(|_| FuzzingError::CannotDeserializeAccount)?;
-        // eprintln!("deserializign system program");
         let system_program: Option<anchor_lang::accounts::program::Program<System>> = accounts_iter
             .next()
             .ok_or(FuzzingError::NotEnoughAccounts)?
