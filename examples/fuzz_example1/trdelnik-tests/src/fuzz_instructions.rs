@@ -174,23 +174,23 @@ pub mod fuzz_example1_fuzz_instructions {
         }
         fn check(
             &self,
-            _pre_ix: Self::IxSnapshot,
-            _post_ix: Self::IxSnapshot,
+            pre_ix: Self::IxSnapshot,
+            post_ix: Self::IxSnapshot,
             _ix_data: Self::IxData,
         ) -> Result<(), &'static str> {
             // INFO
             // This fuzz check will reveal that registrations can be performed
             // even though registration windows is not open.
-            // if let Some(state) = pre_ix.state {
-            //     if let Some(_project) = post_ix.project {
-            //         let registrations_round = state.registrations_round;
-            //         if !registrations_round {
-            //             return Err(
-            //                 "We succesfully registered new project even though registrations are not open",
-            //             );
-            //         }
-            //     }
-            // }
+            if let Some(state) = pre_ix.state {
+                if let Some(_project) = post_ix.project {
+                    let registrations_round = state.registrations_round;
+                    if !registrations_round {
+                        return Err(
+                            "We succesfully registered new project even though registrations are not open",
+                        );
+                    }
+                }
+            }
             Ok(())
         }
     }
@@ -297,37 +297,13 @@ pub mod fuzz_example1_fuzz_instructions {
             .to_account_metas(None);
             Ok((signers, acc_meta))
         }
-
-        fn check(
-            &self,
-            pre_ix: Self::IxSnapshot,
-            post_ix: Self::IxSnapshot,
-            ix_data: Self::IxData,
-        ) -> Result<(), &'static str> {
-            // INFO
-            // This fuzz check will reveal that invest can be performed
-            // even though registration windows was not closed.
-            if let Some(project_pre) = pre_ix.project {
-                let project_post = post_ix.project.unwrap();
-
-                if let Some(state) = pre_ix.state {
-                    if !state.registrations_round
-                        && project_pre.invested_amount + ix_data.amount
-                            == project_post.invested_amount
-                    {
-                        return Err(
-                            "Registration round was not terminated, however investor was able to invest inside registration window",
-                        );
-                    }
-                }
-            }
-            Ok(())
-        }
     }
     #[doc = r" Use AccountsStorage<T> where T can be one of:"]
     #[doc = r" Keypair, PdaStore, TokenStore, MintStore, ProgramStore"]
     #[derive(Default)]
     pub struct FuzzAccounts {
+        // INFO
+        // There is no need to fuzz the 'system_program' account.
         project_author: AccountsStorage<Keypair>,
         author: AccountsStorage<Keypair>,
         project: AccountsStorage<PdaStore>,
