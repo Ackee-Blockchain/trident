@@ -1,4 +1,4 @@
-use program_client::fuzzer_instruction::*;
+use program_client::fuzz_example0_instruction::*;
 use fehler::throws;
 use trdelnik_client::{anyhow::Result, *};
 
@@ -30,7 +30,7 @@ impl Fixture {
     fn new() -> Self {
         Fixture {
             client: Client::default(),
-            program: anchor_keypair("fuzzer").unwrap(),
+            program: anchor_keypair("fuzz_example0").unwrap(),
             state: keypair(42),
         }
     }
@@ -41,7 +41,7 @@ impl Fixture {
             .airdrop(self.client.payer().pubkey(), 5_000_000_000)
             .await?;
         self.client
-            .deploy_by_name(&self.program.clone(), "fuzzer")
+            .deploy_by_name(&self.program.clone(), "fuzz_example0")
             .await?;
     }
 }

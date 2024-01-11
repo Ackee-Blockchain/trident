@@ -13,4 +13,4 @@
 
 
 ## Fuzz Test Checks
-- ✔️ For this example, we do not need any specific checks because the **Fuzzer will automatically panic** when it detects **subtraction with overflow** or **division-by-zero** errors.
+- ✔️ For this example, we do not need any specific checks because the program will panic on **subtraction with overflow** or **division-by-zero** errors and the fuzzer will detect a crash automatically.

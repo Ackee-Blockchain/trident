@@ -1,9 +1,10 @@
-use fuzzer::entry;
-use program_client::fuzzer_instruction::*;
+use fuzz_example0::entry;
+use program_client::fuzz_example0_instruction::*;
 use trdelnik_client::{fuzz_trd, fuzzing::*};
-use trdelnik_tests::fuzz_instructions::fuzzer_fuzz_instructions::{FuzzInstruction, Initialize};
+use trdelnik_tests::fuzz_instructions::fuzz_example0_fuzz_instructions::FuzzInstruction;
+use trdelnik_tests::fuzz_instructions::fuzz_example0_fuzz_instructions::Initialize;
 
-const PROGRAM_NAME: &str = "fuzzer";
+const PROGRAM_NAME: &str = "fuzz_example0";
 
 struct MyFuzzData;
 

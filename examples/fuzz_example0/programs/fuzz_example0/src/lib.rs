@@ -4,7 +4,7 @@ const MAGIC_NUMBER: u8 = 254;
 declare_id!("CTb5cKBLEGgFEw3jDGYCHCiHJ2PY2LFoxXhEPRhFFL4h");
 
 #[program]
-pub mod fuzzer {
+pub mod fuzz_example0 {
     use super::*;
 
     pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
@@ -27,7 +27,7 @@ pub mod fuzzer {
 }
 
 pub fn buggy_math_function(input1: u8, input2: u8) -> u8 {
-    // INFO the if statement can prevent
+    // INFO uncommenting the if statement can prevent
     // div-by-zero and subtract with overflow panic
     // if input2 >= MAGIC_NUMBER {
     //     return 0;

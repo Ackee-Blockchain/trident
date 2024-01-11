@@ -1,4 +1,4 @@
-pub mod fuzzer_fuzz_instructions {
+pub mod fuzz_example0_fuzz_instructions {
     use crate::accounts_snapshots::*;
     use trdelnik_client::{fuzzing::*, solana_sdk::native_token::LAMPORTS_PER_SOL};
     #[derive(Arbitrary, Clone, DisplayIx, FuzzTestExecutor, FuzzDeserialize)]
@@ -35,7 +35,7 @@ pub mod fuzzer_fuzz_instructions {
         pub input2: u8,
     }
     impl<'info> IxOps<'info> for Initialize {
-        type IxData = fuzzer::instruction::Initialize;
+        type IxData = fuzz_example0::instruction::Initialize;
         type IxAccounts = FuzzAccounts;
         type IxSnapshot = InitializeSnapshot<'info>;
         fn get_data(
@@ -43,7 +43,7 @@ pub mod fuzzer_fuzz_instructions {
             _client: &mut impl FuzzClient,
             _fuzz_accounts: &mut FuzzAccounts,
         ) -> Result<Self::IxData, FuzzingError> {
-            let data = fuzzer::instruction::Initialize {};
+            let data = fuzz_example0::instruction::Initialize {};
             Ok(data)
         }
         fn get_accounts(
@@ -62,7 +62,7 @@ pub mod fuzzer_fuzz_instructions {
                 5 * LAMPORTS_PER_SOL,
             );
 
-            let acc_meta = fuzzer::accounts::Initialize {
+            let acc_meta = fuzz_example0::accounts::Initialize {
                 counter: counter.pubkey(),
                 user: user.pubkey(),
                 system_program: SYSTEM_PROGRAM_ID,
@@ -72,7 +72,7 @@ pub mod fuzzer_fuzz_instructions {
         }
     }
     impl<'info> IxOps<'info> for Update {
-        type IxData = fuzzer::instruction::Update;
+        type IxData = fuzz_example0::instruction::Update;
         type IxAccounts = FuzzAccounts;
         type IxSnapshot = UpdateSnapshot<'info>;
         fn get_data(
@@ -80,7 +80,7 @@ pub mod fuzzer_fuzz_instructions {
             _client: &mut impl FuzzClient,
             _fuzz_accounts: &mut FuzzAccounts,
         ) -> Result<Self::IxData, FuzzingError> {
-            let data = fuzzer::instruction::Update {
+            let data = fuzz_example0::instruction::Update {
                 input1: self.data.input1,
                 input2: self.data.input2,
             };
@@ -102,7 +102,7 @@ pub mod fuzzer_fuzz_instructions {
                 5 * LAMPORTS_PER_SOL,
             );
 
-            let acc_meta = fuzzer::accounts::Update {
+            let acc_meta = fuzz_example0::accounts::Update {
                 counter: counter.pubkey(),
                 authority: user.pubkey(),
             }
@@ -114,10 +114,17 @@ pub mod fuzzer_fuzz_instructions {
     #[doc = r" Keypair, PdaStore, TokenStore, MintStore, ProgramStore"]
     #[derive(Default)]
     pub struct FuzzAccounts {
+        // INFO
+        // The 'authority' and 'system_program' were automatically
+        // generated in the FuzzAccounts struct, as they are both
+        // used in the program. However, the 'authority' is in fact
+        // the user account, just named differently. Therefore, we will use only
+        // the generated user accounts for both 'user' and 'authority account' fields
+        // in this fuzz test. Additionally, there is no need to fuzz the 'system_program' account.
         user: AccountsStorage<Keypair>,
         counter: AccountsStorage<Keypair>,
-        _authority: AccountsStorage<Keypair>,
-        _system_program: AccountsStorage<ProgramStore>,
+        // authority: AccountsStorage<Keypair>,
+        // system_program: AccountsStorage<ProgramStore>,
     }
     impl FuzzAccounts {
         pub fn new() -> Self {

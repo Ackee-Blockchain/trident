@@ -2,7 +2,7 @@
 seeds = false
 skip-lint = false
 [programs.localnet]
-fuzz_trdelnik = "CTb5cKBLEGgFEw3jDGYCHCiHJ2PY2LFoxXhEPRhFFL4h"
+fuzz_example0 = "CTb5cKBLEGgFEw3jDGYCHCiHJ2PY2LFoxXhEPRhFFL4h"
 
 [registry]
 url = "https://api.apr.dev"

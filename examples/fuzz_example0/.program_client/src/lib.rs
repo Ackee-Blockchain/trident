@@ -1,5 +1,5 @@
 // DO NOT EDIT - automatically generated file (except `use` statements inside the `*_instruction` module
-pub mod fuzzer_instruction {
+pub mod fuzz_example0_instruction {
     use trdelnik_client::*;
     pub static PROGRAM_ID: Pubkey = Pubkey::new_from_array([
         170u8, 64u8, 48u8, 229u8, 53u8, 121u8, 89u8, 247u8, 36u8, 222u8, 119u8, 168u8, 36u8, 42u8,
@@ -16,8 +16,8 @@ pub mod fuzzer_instruction {
         client
             .send_instruction(
                 PROGRAM_ID,
-                fuzzer::instruction::Initialize {},
-                fuzzer::accounts::Initialize {
+                fuzz_example0::instruction::Initialize {},
+                fuzz_example0::accounts::Initialize {
                     counter: a_counter,
                     user: a_user,
                     system_program: a_system_program,
@@ -33,8 +33,8 @@ pub mod fuzzer_instruction {
     ) -> Instruction {
         Instruction {
             program_id: PROGRAM_ID,
-            data: fuzzer::instruction::Initialize {}.data(),
-            accounts: fuzzer::accounts::Initialize {
+            data: fuzz_example0::instruction::Initialize {}.data(),
+            accounts: fuzz_example0::accounts::Initialize {
                 counter: a_counter,
                 user: a_user,
                 system_program: a_system_program,
@@ -53,11 +53,11 @@ pub mod fuzzer_instruction {
         client
             .send_instruction(
                 PROGRAM_ID,
-                fuzzer::instruction::Update {
+                fuzz_example0::instruction::Update {
                     input1: i_input1,
                     input2: i_input2,
                 },
-                fuzzer::accounts::Update {
+                fuzz_example0::accounts::Update {
                     counter: a_counter,
                     authority: a_authority,
                 },
@@ -73,12 +73,12 @@ pub mod fuzzer_instruction {
     ) -> Instruction {
         Instruction {
             program_id: PROGRAM_ID,
-            data: fuzzer::instruction::Update {
+            data: fuzz_example0::instruction::Update {
                 input1: i_input1,
                 input2: i_input2,
             }
             .data(),
-            accounts: fuzzer::accounts::Update {
+            accounts: fuzz_example0::accounts::Update {
                 counter: a_counter,
                 authority: a_authority,
             }
