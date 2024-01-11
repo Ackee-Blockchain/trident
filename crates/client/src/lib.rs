@@ -21,11 +21,12 @@ pub use anyhow::{self, Error};
 pub mod fuzzing {
     pub use super::{
         anchor_lang, anchor_lang::system_program::ID as SYSTEM_PROGRAM_ID,
-        anchor_lang::InstructionData, anchor_lang::ToAccountMetas, solana_sdk::account::Account,
-        solana_sdk::transaction::Transaction, Instruction, Keypair, Pubkey, Signer, TempClone, fuzz_trd,
+        anchor_lang::InstructionData, anchor_lang::ToAccountMetas, fuzz_trd,
+        solana_sdk::account::Account, solana_sdk::transaction::Transaction, Instruction, Keypair,
+        Pubkey, Signer, TempClone,
     };
-    pub use anchor_lang::solana_program::instruction::AccountMeta;
     pub use anchor_client::anchor_lang::solana_program::hash::Hash;
+    pub use anchor_lang::solana_program::instruction::AccountMeta;
     pub use arbitrary;
     pub use arbitrary::Arbitrary;
     pub use honggfuzz::fuzz;
@@ -42,10 +43,10 @@ pub mod fuzzing {
     pub use super::fuzzer::program_test_client_blocking::ProgramTestClientBlocking;
     pub use super::fuzzer::snapshot::Snapshot;
     pub use super::fuzzer::*;
+    pub use std::cell::RefCell;
     pub use trdelnik_derive_displayix::DisplayIx;
     pub use trdelnik_derive_fuzz_deserialize::FuzzDeserialize;
     pub use trdelnik_derive_fuzz_test_executor::FuzzTestExecutor;
-    pub use std::cell::RefCell;
 }
 
 pub use futures::{self, FutureExt};

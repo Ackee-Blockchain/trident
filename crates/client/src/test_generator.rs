@@ -184,8 +184,12 @@ impl TestGenerator {
         let fuzz_test_content = if let Some(lib) = libs.first() {
             let use_entry = format!("use {}::entry;\n", lib);
             let use_instructions = format!("use program_client::{}_instruction::*;\n", lib);
-            let use_fuzz_instructions = format!("use trdelnik_tests::fuzz_instructions::{}_fuzz_instructions::FuzzInstruction;\n", lib);
-            let template = format!("{use_entry}{use_instructions}{use_fuzz_instructions}{fuzz_test_content}");
+            let use_fuzz_instructions = format!(
+                "use trdelnik_tests::fuzz_instructions::{}_fuzz_instructions::FuzzInstruction;\n",
+                lib
+            );
+            let template =
+                format!("{use_entry}{use_instructions}{use_fuzz_instructions}{fuzz_test_content}");
             template.replace("###PROGRAM_NAME###", lib)
         } else {
             throw!(Error::NoProgramsFound)
@@ -200,12 +204,8 @@ impl TestGenerator {
             .join(TESTS_WORKSPACE)
             .join("src")
             .join(FUZZ_LIB_FILE_NAME);
-        self.create_file(
-            &fuzz_lib_path,
-            FUZZ_LIB_FILE_NAME,
-            fuzz_lib_content,
-        )
-        .await?;
+        self.create_file(&fuzz_lib_path, FUZZ_LIB_FILE_NAME, fuzz_lib_content)
+            .await?;
 
         // create fuzz instructions file
         let fuzz_instructions_path = root
