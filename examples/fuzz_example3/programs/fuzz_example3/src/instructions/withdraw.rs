@@ -15,10 +15,6 @@ pub fn _withdraw_unlocked(ctx: Context<WithdrawUnlocked>) -> Result<()> {
         b"ESCROW_PDA_AUTHORITY".as_ref(),
         &[*ctx.bumps.get("escrow_pda_authority").unwrap()],
     ];
-    let token_acc_amount = ctx.accounts.escrow_token_account.amount;
-    msg!("withdrawal {}", escrow.withdrawal);
-    msg!("unlocked_amount {}", unlocked_amount);
-    msg!("token_acc_amount {}", token_acc_amount);
 
     transfer(
         CpiContext::new(

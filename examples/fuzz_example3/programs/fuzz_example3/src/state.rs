@@ -20,21 +20,16 @@ impl Escrow {
         };
 
         let duration = self.end_time.checked_sub(self.start_time)?;
-        msg!("duration {}", duration);
-        msg!("amount {}", self.amount);
-        msg!("interval {}", self.interval);
 
         let interval_amount = self
             .amount
             .checked_mul(self.interval)?
             .checked_div(duration)?;
-        msg!("interval_amount {}", interval_amount);
 
         let nr_intervals = time
             .checked_sub(self.start_time)?
             .checked_div(self.interval)?
             .checked_add(1)?;
-        msg!("nr_intervals {}", nr_intervals);
 
         nr_intervals
             .checked_mul(interval_amount)?
