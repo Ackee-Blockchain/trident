@@ -294,7 +294,7 @@ fn deserialize_tokens(
         .ok_or(FuzzingError::NotEnoughAccounts)?
         .map(|acc| #deser_method)
         .transpose()
-        .map_err(|_| FuzzingError::CannotDeserializeAccount)?;
+        .unwrap_or(None);
     }
 }
 
