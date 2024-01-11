@@ -1,6 +1,6 @@
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{parse_macro_input, Data, DeriveInput, Fields};
+use syn::{parse_macro_input, Data, DeriveInput};
 
 #[proc_macro_derive(DisplayIx)]
 pub fn display_ix(input: TokenStream) -> TokenStream {

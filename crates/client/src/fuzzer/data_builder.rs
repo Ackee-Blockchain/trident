@@ -1,4 +1,3 @@
-use core::fmt;
 use std::cell::RefCell;
 use std::error::Error;
 use std::fmt::Display;
