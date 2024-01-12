@@ -16,16 +16,13 @@ pub mod fuzz_example2_fuzz_instructions {
     }
     #[derive(Arbitrary, Clone)]
     pub struct InitializeAccounts {
-        #[arbitrary(with = |u: &mut arbitrary::Unstructured| u.int_in_range(0..=2))]
         pub author: AccountId,
-        #[arbitrary(with = |u: &mut arbitrary::Unstructured| u.int_in_range(0..=2))]
         pub escrow: AccountId,
         pub system_program: AccountId,
     }
     #[derive(Arbitrary, Clone)]
     pub struct InitializeData {
-        #[arbitrary(with = |u: &mut arbitrary::Unstructured| u.int_in_range(0..=2))]
-        pub receiver: AccountId,
+        pub receiver: [u8; 32],
         pub amount: u64,
     }
     #[derive(Arbitrary, Clone)]
@@ -35,9 +32,7 @@ pub mod fuzz_example2_fuzz_instructions {
     }
     #[derive(Arbitrary, Clone)]
     pub struct WithdrawAccounts {
-        #[arbitrary(with = |u: &mut arbitrary::Unstructured| u.int_in_range(0..=2))]
         pub receiver: AccountId,
-        #[arbitrary(with = |u: &mut arbitrary::Unstructured| u.int_in_range(0..=2))]
         pub escrow: AccountId,
         pub system_program: AccountId,
     }
@@ -49,16 +44,11 @@ pub mod fuzz_example2_fuzz_instructions {
         type IxSnapshot = InitializeSnapshot<'info>;
         fn get_data(
             &self,
-            client: &mut impl FuzzClient,
-            fuzz_accounts: &mut FuzzAccounts,
+            _client: &mut impl FuzzClient,
+            _fuzz_accounts: &mut FuzzAccounts,
         ) -> Result<Self::IxData, FuzzingError> {
-            let receiver = fuzz_accounts.receiver.get_or_create_account(
-                self.data.receiver,
-                client,
-                10 * LAMPORTS_PER_SOL,
-            );
             let data = fuzz_example2::instruction::Initialize {
-                receiver: receiver.pubkey(),
+                receiver: Pubkey::new_from_array(self.data.receiver),
                 amount: 100,
             };
             Ok(data)
@@ -74,19 +64,13 @@ pub mod fuzz_example2_fuzz_instructions {
                 10 * LAMPORTS_PER_SOL,
             );
 
-            let receiver = fuzz_accounts.receiver.get_or_create_account(
-                self.data.receiver,
-                client,
-                10 * LAMPORTS_PER_SOL,
-            );
-
             let escrow = fuzz_accounts
                 .escrow
                 .get_or_create_account(
                     self.accounts.escrow,
                     &[
                         author.pubkey().as_ref(),
-                        receiver.pubkey().as_ref(),
+                        self.data.receiver.as_ref(),
                         ESCROW_SEED.as_ref(),
                     ],
                     &fuzz_example2::ID,
@@ -149,7 +133,7 @@ pub mod fuzz_example2_fuzz_instructions {
             &self,
             pre_ix: Self::IxSnapshot,
             post_ix: Self::IxSnapshot,
-            _ix_data: Self::IxData,
+            ix_data: Self::IxData,
         ) -> Result<(), &'static str> {
             if let Some(escrow_pre) = pre_ix.escrow {
                 // we can unwrap the receiver account because it has to be initialized before the instruction
@@ -158,6 +142,8 @@ pub mod fuzz_example2_fuzz_instructions {
                 let receiver_lamports_before = receiver.lamports();
                 let receiver_lamports_after = post_ix.receiver.unwrap().lamports();
 
+                // If the Receiver (i.e. Signer in the Context) and stored Receiver inside Escrow Account,
+                // do not match, however the receiver`s balance increased, we found an Error
                 if receiver.key() != escrow_pre.receiver.key()
                     && receiver_lamports_before < receiver_lamports_after
                 {
@@ -173,6 +159,7 @@ pub mod fuzz_example2_fuzz_instructions {
     #[derive(Default)]
     pub struct FuzzAccounts {
         receiver: AccountsStorage<Keypair>,
+        system_program: AccountsStorage<ProgramStore>,
         author: AccountsStorage<Keypair>,
         escrow: AccountsStorage<PdaStore>,
     }

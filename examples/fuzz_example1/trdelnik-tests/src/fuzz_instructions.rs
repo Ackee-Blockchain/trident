@@ -172,6 +172,27 @@ pub mod fuzz_example1_fuzz_instructions {
             .to_account_metas(None);
             Ok((signers, acc_meta))
         }
+        fn check(
+            &self,
+            pre_ix: Self::IxSnapshot,
+            post_ix: Self::IxSnapshot,
+            _ix_data: Self::IxData,
+        ) -> Result<(), &'static str> {
+            // INFO
+            // This fuzz check will reveal that registrations can be performed
+            // even though registration windows is not open.
+            if let Some(state) = pre_ix.state {
+                if let Some(_project) = post_ix.project {
+                    let registrations_round = state.registrations_round;
+                    if !registrations_round {
+                        return Err(
+                            "We succesfully registered new project even though registrations are not open",
+                        );
+                    }
+                }
+            }
+            Ok(())
+        }
     }
     impl<'info> IxOps<'info> for EndRegistrations {
         type IxData = fuzz_example1::instruction::EndRegistrations;
@@ -276,27 +297,13 @@ pub mod fuzz_example1_fuzz_instructions {
             .to_account_metas(None);
             Ok((signers, acc_meta))
         }
-
-        fn check(
-            &self,
-            pre_ix: Self::IxSnapshot,
-            _post_ix: Self::IxSnapshot,
-            _ix_data: Self::IxData,
-        ) -> Result<(), &'static str> {
-            if let Some(state) = pre_ix.state {
-                if !state.registrations_round {
-                    return Err("Registration instruction passed before registration activation!");
-                }
-            }
-            Ok(())
-        }
-
-
     }
     #[doc = r" Use AccountsStorage<T> where T can be one of:"]
     #[doc = r" Keypair, PdaStore, TokenStore, MintStore, ProgramStore"]
     #[derive(Default)]
     pub struct FuzzAccounts {
+        // INFO
+        // There is no need to fuzz the 'system_program' account.
         project_author: AccountsStorage<Keypair>,
         author: AccountsStorage<Keypair>,
         project: AccountsStorage<PdaStore>,

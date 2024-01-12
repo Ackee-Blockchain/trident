@@ -2,9 +2,7 @@
 
 use solana_sdk::{account::Account, instruction::AccountMeta};
 
-use crate::data_builder::{FuzzDeserialize, FuzzClient, FuzzClientError, FuzzingError};
-
-
+use crate::data_builder::{FuzzClient, FuzzClientError, FuzzDeserialize, FuzzingError};
 
 pub struct Snapshot<'info, T> {
     before: Vec<Option<Account>>,

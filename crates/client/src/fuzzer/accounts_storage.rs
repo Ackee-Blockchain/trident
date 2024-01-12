@@ -67,6 +67,7 @@ impl AccountsStorage<Keypair> {
 }
 
 impl AccountsStorage<TokenStore> {
+    #[allow(clippy::too_many_arguments)]
     pub fn get_or_create_account(
         &mut self,
         account_id: AccountId,
