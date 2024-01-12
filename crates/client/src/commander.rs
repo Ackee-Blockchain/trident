@@ -1,7 +1,11 @@
 use crate::config::Config;
+use crate::fuzzer;
+use crate::snapshot_generator::generate_snapshots_code;
+use crate::test_generator::ACCOUNTS_SNAPSHOTS_FILE_NAME;
 use crate::{
     idl::{self, Idl},
     program_client_generator,
+    test_generator::FUZZ_INSTRUCTIONS_FILE_NAME,
     test_generator::TESTS_WORKSPACE,
     Client,
 };
@@ -324,7 +328,7 @@ impl Commander {
     /// It's used internally by the [`#[trdelnik_test]`](trdelnik_test::trdelnik_test) macro.
     #[throws]
     pub async fn generate_program_client_lib_rs(&self) {
-        let idl_programs = self.program_packages().map(|package| async move {
+        let program_idls_codes = self.program_packages().map(|package| async move {
             let name = package.name;
             let output = Command::new("cargo")
                 .arg("+nightly")
@@ -337,23 +341,56 @@ impl Commander {
                 .await?;
             if output.status.success() {
                 let code = String::from_utf8(output.stdout)?;
-                Ok(idl::parse_to_idl_program(name, &code).await?)
+                let mut libs = package.targets.iter().filter(|&t| t.is_lib());
+                let lib_path = libs
+                    .next()
+                    .ok_or(Error::ReadProgramCodeFailed(
+                        "Cannot find program library path.".into(),
+                    ))?
+                    .src_path
+                    .clone();
+                Ok((
+                    idl::parse_to_idl_program(name, &code).await?,
+                    (code, lib_path),
+                ))
             } else {
                 let error_text = String::from_utf8(output.stderr)?;
                 Err(Error::ReadProgramCodeFailed(error_text))
             }
         });
+        let (program_idls, codes_libs_pairs): (Vec<_>, Vec<_>) =
+            try_join_all(program_idls_codes).await?.into_iter().unzip();
         let idl = Idl {
-            programs: try_join_all(idl_programs).await?,
+            programs: program_idls,
         };
         let use_tokens = self.parse_program_client_imports().await?;
-        let program_client = program_client_generator::generate_source_code(idl, &use_tokens);
+        let program_client = program_client_generator::generate_source_code(&idl, &use_tokens);
         let program_client = Self::format_program_code(&program_client).await?;
 
+        let program_fuzzer = fuzzer::fuzzer_generator::generate_source_code(&idl);
+        let program_fuzzer = Self::format_program_code(&program_fuzzer).await?;
+
+        let fuzzer_snapshots =
+            generate_snapshots_code(codes_libs_pairs).map_err(Error::ReadProgramCodeFailed)?;
+        let fuzzer_snapshots = Self::format_program_code(&fuzzer_snapshots).await?;
+
+        // TODO do not overwrite files if they already exist to keep user changes
         let rust_file_path = Path::new(self.root.as_ref())
             .join(PROGRAM_CLIENT_DIRECTORY)
             .join("src/lib.rs");
         fs::write(rust_file_path, &program_client).await?;
+
+        let rust_file_path = Path::new(self.root.as_ref())
+            .join(TESTS_WORKSPACE)
+            .join("src/")
+            .join(FUZZ_INSTRUCTIONS_FILE_NAME);
+        fs::write(rust_file_path, &program_fuzzer).await?;
+
+        let rust_file_path = Path::new(self.root.as_ref())
+            .join(TESTS_WORKSPACE)
+            .join("src/")
+            .join(ACCOUNTS_SNAPSHOTS_FILE_NAME);
+        fs::write(rust_file_path, &fuzzer_snapshots).await?;
     }
 
     /// Formats program code.

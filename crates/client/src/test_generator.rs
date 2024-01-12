@@ -22,6 +22,9 @@ const TESTS_DIRECTORY: &str = "tests";
 const FUZZ_DIRECTORY: &str = "src/bin";
 const TESTS_FILE_NAME: &str = "test.rs";
 const FUZZ_TEST_FILE_NAME: &str = "fuzz_target.rs";
+pub(crate) const FUZZ_LIB_FILE_NAME: &str = "lib.rs";
+pub(crate) const FUZZ_INSTRUCTIONS_FILE_NAME: &str = "fuzz_instructions.rs";
+pub(crate) const ACCOUNTS_SNAPSHOTS_FILE_NAME: &str = "accounts_snapshots.rs";
 pub(crate) const HFUZZ_TARGET: &str = "hfuzz_target";
 
 #[derive(Error, Debug)]
@@ -98,12 +101,12 @@ impl TestGenerator {
         let commander = Commander::with_root(root_path);
         commander.create_program_client_crate().await?;
         self.generate_test_files(&root).await?;
-        self.update_workspace(&root).await?;
-        self.build_program_client(&commander).await?;
         if !skip_fuzzer {
             self.generate_fuzz_test_files(&root).await?;
             self.update_gitignore(&root, "hfuzz_target")?;
         }
+        self.update_workspace(&root).await?;
+        self.build_program_client(&commander).await?;
     }
 
     /// Builds and generates programs for `program_client` module
@@ -170,6 +173,7 @@ impl TestGenerator {
 
         let libs = self.get_program_lib_names(root).await?;
 
+        // create fuzz test template
         let fuzzer_test_path = fuzzer_path.join(FUZZ_TEST_FILE_NAME);
         let fuzz_test_content = include_str!(concat!(
             env!("CARGO_MANIFEST_DIR"),
@@ -180,7 +184,12 @@ impl TestGenerator {
         let fuzz_test_content = if let Some(lib) = libs.first() {
             let use_entry = format!("use {}::entry;\n", lib);
             let use_instructions = format!("use program_client::{}_instruction::*;\n", lib);
-            let template = format!("{use_entry}{use_instructions}{fuzz_test_content}");
+            let use_fuzz_instructions = format!(
+                "use trdelnik_tests::fuzz_instructions::{}_fuzz_instructions::FuzzInstruction;\n",
+                lib
+            );
+            let template =
+                format!("{use_entry}{use_instructions}{use_fuzz_instructions}{fuzz_test_content}");
             template.replace("###PROGRAM_NAME###", lib)
         } else {
             throw!(Error::NoProgramsFound)
@@ -188,6 +197,47 @@ impl TestGenerator {
 
         self.create_file(&fuzzer_test_path, FUZZ_TEST_FILE_NAME, &fuzz_test_content)
             .await?;
+
+        // create ./trdelnik-tests/src/lib.rs file
+        let fuzz_lib_content = "pub mod fuzz_instructions;\npub mod accounts_snapshots;";
+        let fuzz_lib_path = root
+            .join(TESTS_WORKSPACE)
+            .join("src")
+            .join(FUZZ_LIB_FILE_NAME);
+        self.create_file(&fuzz_lib_path, FUZZ_LIB_FILE_NAME, fuzz_lib_content)
+            .await?;
+
+        // create fuzz instructions file
+        let fuzz_instructions_path = root
+            .join(TESTS_WORKSPACE)
+            .join("src")
+            .join(FUZZ_INSTRUCTIONS_FILE_NAME);
+        let fuzz_instructions_content = include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/src/templates/trdelnik-tests/fuzz_instructions.rs"
+        ));
+        self.create_file(
+            &fuzz_instructions_path,
+            FUZZ_INSTRUCTIONS_FILE_NAME,
+            fuzz_instructions_content,
+        )
+        .await?;
+
+        // create accounts_snapshots file
+        let accounts_snapshots_path = root
+            .join(TESTS_WORKSPACE)
+            .join("src")
+            .join(ACCOUNTS_SNAPSHOTS_FILE_NAME);
+        let accounts_snapshots_content = include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/src/templates/trdelnik-tests/accounts_snapshots.rs"
+        ));
+        self.create_file(
+            &accounts_snapshots_path,
+            ACCOUNTS_SNAPSHOTS_FILE_NAME,
+            accounts_snapshots_content,
+        )
+        .await?;
 
         let workspace_path = root.join(TESTS_WORKSPACE);
         let cargo_toml_path = workspace_path.join(CARGO_TOML);
