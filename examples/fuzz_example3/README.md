@@ -87,19 +87,15 @@ if let Some(escrow) = pre_ix.escrow {
                 } else if recepient_token_account_pre.amount + escrow.amount != recepient_token_account_post.amount {
 
                     if recepient_token_account_pre.amount + escrow.amount > recepient_token_account_post.amount {
-
-                        eprintln!("Amount Mismatch (Recipient withdrew LESS) by: {}", (recepient_token_account_pre.amount + escrow.amount) - recepient_token_account_post.amount);
-
+                        return Err("Recipient withdrew LESS");
                     } else {
 
-                        eprintln!("Amount Mismatch (Recipient withdrew MORE) by: {}", recepient_token_account_post.amount - (recepient_token_account_pre.amount + escrow.amount));
+                        // print info within debug mode
+                        // eprintln!("Before: {}", recepient_token_account_pre.amount);
+                        return Err("Recipient withdrew MORE");
+
 
                     }
-
-                    eprintln!("Before: {}", recepient_token_account_pre.amount);
-                    eprintln!("After: {}", recepient_token_account_post.amount);
-                    eprintln!("Expected: {}", recepient_token_account_pre.amount + escrow.amount);
-                    return Err("Transferred amount mismatch");
                 }
             }
         }
