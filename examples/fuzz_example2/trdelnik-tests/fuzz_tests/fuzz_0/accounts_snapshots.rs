@@ -25,19 +25,19 @@ impl<'info> InitializeSnapshot<'info> {
             .ok_or(FuzzingError::NotEnoughAccounts)?
             .map(|acc| anchor_lang::accounts::signer::Signer::try_from(&acc))
             .transpose()
-            .map_err(|_| FuzzingError::CannotDeserializeAccount)?;
+            .unwrap_or(None);
         let escrow: Option<anchor_lang::accounts::account::Account<Escrow>> = accounts_iter
             .next()
             .ok_or(FuzzingError::NotEnoughAccounts)?
             .map(|acc| anchor_lang::accounts::account::Account::try_from(&acc))
             .transpose()
-            .map_err(|_| FuzzingError::CannotDeserializeAccount)?;
+            .unwrap_or(None);
         let system_program: Option<anchor_lang::accounts::program::Program<System>> = accounts_iter
             .next()
             .ok_or(FuzzingError::NotEnoughAccounts)?
             .map(|acc| anchor_lang::accounts::program::Program::try_from(&acc))
             .transpose()
-            .map_err(|_| FuzzingError::CannotDeserializeAccount)?;
+            .unwrap_or(None);
         Ok(Self {
             author,
             escrow,
@@ -58,19 +58,19 @@ impl<'info> WithdrawSnapshot<'info> {
             .ok_or(FuzzingError::NotEnoughAccounts)?
             .map(|acc| anchor_lang::accounts::signer::Signer::try_from(&acc))
             .transpose()
-            .map_err(|_| FuzzingError::CannotDeserializeAccount)?;
+            .unwrap_or(None);
         let escrow: Option<anchor_lang::accounts::account::Account<Escrow>> = accounts_iter
             .next()
             .ok_or(FuzzingError::NotEnoughAccounts)?
             .map(|acc| anchor_lang::accounts::account::Account::try_from(&acc))
             .transpose()
-            .map_err(|_| FuzzingError::CannotDeserializeAccount)?;
+            .unwrap_or(None);
         let system_program: Option<anchor_lang::accounts::program::Program<System>> = accounts_iter
             .next()
             .ok_or(FuzzingError::NotEnoughAccounts)?
             .map(|acc| anchor_lang::accounts::program::Program::try_from(&acc))
             .transpose()
-            .map_err(|_| FuzzingError::CannotDeserializeAccount)?;
+            .unwrap_or(None);
         Ok(Self {
             receiver,
             escrow,

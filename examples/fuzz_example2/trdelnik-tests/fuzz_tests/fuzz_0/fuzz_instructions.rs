@@ -133,7 +133,7 @@ pub mod fuzz_example2_fuzz_instructions {
             &self,
             pre_ix: Self::IxSnapshot,
             post_ix: Self::IxSnapshot,
-            ix_data: Self::IxData,
+            _ix_data: Self::IxData,
         ) -> Result<(), &'static str> {
             if let Some(escrow_pre) = pre_ix.escrow {
                 // we can unwrap the receiver account because it has to be initialized before the instruction
@@ -159,7 +159,7 @@ pub mod fuzz_example2_fuzz_instructions {
     #[derive(Default)]
     pub struct FuzzAccounts {
         receiver: AccountsStorage<Keypair>,
-        system_program: AccountsStorage<ProgramStore>,
+        // system_program: AccountsStorage<ProgramStore>,
         author: AccountsStorage<Keypair>,
         escrow: AccountsStorage<PdaStore>,
     }
