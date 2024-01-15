@@ -1,5 +1,5 @@
 [workspace]
-members = ["programs/*", "trdelnik-tests"]
+members = ["programs/*", "trdelnik-tests/poc_tests", "trdelnik-tests/fuzz_tests"]
 [profile.release]
 overflow-checks = true
 lto = "fat"

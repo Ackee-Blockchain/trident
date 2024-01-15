@@ -1,8 +1,9 @@
 use fuzz_example0::entry;
+use fuzz_instructions::fuzz_example0_fuzz_instructions::{FuzzInstruction, Initialize};
 use program_client::fuzz_example0_instruction::*;
 use trdelnik_client::{fuzz_trd, fuzzing::*};
-use trdelnik_tests::fuzz_instructions::fuzz_example0_fuzz_instructions::FuzzInstruction;
-use trdelnik_tests::fuzz_instructions::fuzz_example0_fuzz_instructions::Initialize;
+mod accounts_snapshots;
+mod fuzz_instructions;
 
 const PROGRAM_NAME: &str = "fuzz_example0";
 
