@@ -8,5 +8,5 @@ pub async fn build(root: String) {
     commander.create_program_client_crate().await?;
     commander.build_programs().await?;
     commander.generate_program_client_deps().await?;
-    commander.generate_program_client_lib_rs().await?;
+    commander.generate_program_client_lib_rs(None).await?;
 }
