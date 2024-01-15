@@ -1,4 +1,6 @@
 use trdelnik_client::{fuzz_trd, fuzzing::*};
+mod accounts_snapshots;
+mod fuzz_instructions;
 
 const PROGRAM_NAME: &str = "###PROGRAM_NAME###";
 
