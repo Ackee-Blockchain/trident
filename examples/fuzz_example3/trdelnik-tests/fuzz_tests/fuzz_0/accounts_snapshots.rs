@@ -1,6 +1,5 @@
-use anchor_spl::token::{Mint, Token, TokenAccount};
+use anchor_spl::token::{TokenAccount, Token, Mint};
 use fuzz_example3::state::Escrow;
-
 use trdelnik_client::anchor_lang::solana_program::instruction::AccountMeta;
 use trdelnik_client::anchor_lang::{self, prelude::*};
 use trdelnik_client::fuzzing::{get_account_infos_option, FuzzingError};
@@ -36,45 +35,45 @@ impl<'info> InitVestingSnapshot<'info> {
             .ok_or(FuzzingError::NotEnoughAccounts)?
             .map(|acc| anchor_lang::accounts::signer::Signer::try_from(&acc))
             .transpose()
-            .map_err(|_| FuzzingError::CannotDeserializeAccount)?;
+            .unwrap_or(None);
         let sender_token_account: Option<anchor_lang::accounts::account::Account<TokenAccount>> =
             accounts_iter
                 .next()
                 .ok_or(FuzzingError::NotEnoughAccounts)?
                 .map(|acc| anchor_lang::accounts::account::Account::try_from(&acc))
                 .transpose()
-                .map_err(|_| FuzzingError::CannotDeserializeAccount)?;
+                .unwrap_or(None);
         let escrow: Option<anchor_lang::accounts::account::Account<Escrow>> = accounts_iter
             .next()
             .ok_or(FuzzingError::NotEnoughAccounts)?
             .map(|acc| anchor_lang::accounts::account::Account::try_from(&acc))
             .transpose()
-            .map_err(|_| FuzzingError::CannotDeserializeAccount)?;
+            .unwrap_or(None);
         let escrow_token_account: Option<anchor_lang::accounts::account::Account<TokenAccount>> =
             accounts_iter
                 .next()
                 .ok_or(FuzzingError::NotEnoughAccounts)?
                 .map(|acc| anchor_lang::accounts::account::Account::try_from(&acc))
                 .transpose()
-                .map_err(|_| FuzzingError::CannotDeserializeAccount)?;
+                .unwrap_or(None);
         let mint: Option<anchor_lang::accounts::account::Account<Mint>> = accounts_iter
             .next()
             .ok_or(FuzzingError::NotEnoughAccounts)?
             .map(|acc| anchor_lang::accounts::account::Account::try_from(&acc))
             .transpose()
-            .map_err(|_| FuzzingError::CannotDeserializeAccount)?;
+            .unwrap_or(None);
         let token_program: Option<anchor_lang::accounts::program::Program<Token>> = accounts_iter
             .next()
             .ok_or(FuzzingError::NotEnoughAccounts)?
             .map(|acc| anchor_lang::accounts::program::Program::try_from(&acc))
             .transpose()
-            .map_err(|_| FuzzingError::CannotDeserializeAccount)?;
+            .unwrap_or(None);
         let system_program: Option<anchor_lang::accounts::program::Program<System>> = accounts_iter
             .next()
             .ok_or(FuzzingError::NotEnoughAccounts)?
             .map(|acc| anchor_lang::accounts::program::Program::try_from(&acc))
             .transpose()
-            .map_err(|_| FuzzingError::CannotDeserializeAccount)?;
+            .unwrap_or(None);
         Ok(Self {
             sender,
             sender_token_account,
@@ -99,27 +98,27 @@ impl<'info> WithdrawUnlockedSnapshot<'info> {
             .ok_or(FuzzingError::NotEnoughAccounts)?
             .map(|acc| anchor_lang::accounts::signer::Signer::try_from(&acc))
             .transpose()
-            .map_err(|_| FuzzingError::CannotDeserializeAccount)?;
+            .unwrap_or(None);
         let recipient_token_account: Option<anchor_lang::accounts::account::Account<TokenAccount>> =
             accounts_iter
                 .next()
                 .ok_or(FuzzingError::NotEnoughAccounts)?
                 .map(|acc| anchor_lang::accounts::account::Account::try_from(&acc))
                 .transpose()
-                .map_err(|_| FuzzingError::CannotDeserializeAccount)?;
+                .unwrap_or(None);
         let escrow: Option<anchor_lang::accounts::account::Account<Escrow>> = accounts_iter
             .next()
             .ok_or(FuzzingError::NotEnoughAccounts)?
             .map(|acc| anchor_lang::accounts::account::Account::try_from(&acc))
             .transpose()
-            .map_err(|_| FuzzingError::CannotDeserializeAccount)?;
+            .unwrap_or(None);
         let escrow_token_account: Option<anchor_lang::accounts::account::Account<TokenAccount>> =
             accounts_iter
                 .next()
                 .ok_or(FuzzingError::NotEnoughAccounts)?
                 .map(|acc| anchor_lang::accounts::account::Account::try_from(&acc))
                 .transpose()
-                .map_err(|_| FuzzingError::CannotDeserializeAccount)?;
+                .unwrap_or(None);
         let escrow_pda_authority = accounts_iter
             .next()
             .ok_or(FuzzingError::NotEnoughAccounts)?;
@@ -128,19 +127,19 @@ impl<'info> WithdrawUnlockedSnapshot<'info> {
             .ok_or(FuzzingError::NotEnoughAccounts)?
             .map(|acc| anchor_lang::accounts::account::Account::try_from(&acc))
             .transpose()
-            .map_err(|_| FuzzingError::CannotDeserializeAccount)?;
+            .unwrap_or(None);
         let token_program: Option<anchor_lang::accounts::program::Program<Token>> = accounts_iter
             .next()
             .ok_or(FuzzingError::NotEnoughAccounts)?
             .map(|acc| anchor_lang::accounts::program::Program::try_from(&acc))
             .transpose()
-            .map_err(|_| FuzzingError::CannotDeserializeAccount)?;
+            .unwrap_or(None);
         let system_program: Option<anchor_lang::accounts::program::Program<System>> = accounts_iter
             .next()
             .ok_or(FuzzingError::NotEnoughAccounts)?
             .map(|acc| anchor_lang::accounts::program::Program::try_from(&acc))
             .transpose()
-            .map_err(|_| FuzzingError::CannotDeserializeAccount)?;
+            .unwrap_or(None);
         Ok(Self {
             recipient,
             recipient_token_account,

@@ -1,15 +1,14 @@
 use fuzz_example3::entry;
+use fuzz_instructions::fuzz_example3_fuzz_instructions::{FuzzInstruction, InitVesting};
 use program_client::fuzz_example3_instruction::*;
 use trdelnik_client::{fuzz_trd, fuzzing::*};
-use trdelnik_tests::fuzz_instructions::fuzz_example3_fuzz_instructions::{
-    FuzzInstruction, InitVesting,
-};
+mod accounts_snapshots;
+mod fuzz_instructions;
 
 const PROGRAM_NAME: &str = "fuzz_example3";
 
 struct MyFuzzData;
 
-// impl FuzzDataBuilder<FuzzInstruction> for MyFuzzData {}
 impl FuzzDataBuilder<FuzzInstruction> for MyFuzzData {
     fn pre_ixs(u: &mut arbitrary::Unstructured) -> arbitrary::Result<Vec<FuzzInstruction>> {
         let init_ix = FuzzInstruction::InitVesting(InitVesting::arbitrary(u)?);
