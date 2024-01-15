@@ -1,4 +1,4 @@
-use fuzz_example1::state::{State, Project};
+use fuzz_example1::state::{Project, State};
 use trdelnik_client::anchor_lang::solana_program::instruction::AccountMeta;
 use trdelnik_client::anchor_lang::{self, prelude::*};
 use trdelnik_client::fuzzing::{get_account_infos_option, FuzzingError};
@@ -36,19 +36,19 @@ impl<'info> InitializeSnapshot<'info> {
             .ok_or(FuzzingError::NotEnoughAccounts)?
             .map(|acc| anchor_lang::accounts::signer::Signer::try_from(&acc))
             .transpose()
-            .map_err(|_| FuzzingError::CannotDeserializeAccount)?;
+            .unwrap_or(None);
         let state: Option<anchor_lang::accounts::account::Account<State>> = accounts_iter
             .next()
             .ok_or(FuzzingError::NotEnoughAccounts)?
             .map(|acc| anchor_lang::accounts::account::Account::try_from(&acc))
             .transpose()
-            .map_err(|_| FuzzingError::CannotDeserializeAccount)?;
+            .unwrap_or(None);
         let system_program: Option<anchor_lang::accounts::program::Program<System>> = accounts_iter
             .next()
             .ok_or(FuzzingError::NotEnoughAccounts)?
             .map(|acc| anchor_lang::accounts::program::Program::try_from(&acc))
             .transpose()
-            .map_err(|_| FuzzingError::CannotDeserializeAccount)?;
+            .unwrap_or(None);
         Ok(Self {
             author,
             state,
@@ -69,25 +69,25 @@ impl<'info> RegisterSnapshot<'info> {
             .ok_or(FuzzingError::NotEnoughAccounts)?
             .map(|acc| anchor_lang::accounts::signer::Signer::try_from(&acc))
             .transpose()
-            .map_err(|_| FuzzingError::CannotDeserializeAccount)?;
+            .unwrap_or(None);
         let project: Option<anchor_lang::accounts::account::Account<Project>> = accounts_iter
             .next()
             .ok_or(FuzzingError::NotEnoughAccounts)?
             .map(|acc| anchor_lang::accounts::account::Account::try_from(&acc))
             .transpose()
-            .map_err(|_| FuzzingError::CannotDeserializeAccount)?;
+            .unwrap_or(None);
         let state: Option<anchor_lang::accounts::account::Account<State>> = accounts_iter
             .next()
             .ok_or(FuzzingError::NotEnoughAccounts)?
             .map(|acc| anchor_lang::accounts::account::Account::try_from(&acc))
             .transpose()
-            .map_err(|_| FuzzingError::CannotDeserializeAccount)?;
+            .unwrap_or(None);
         let system_program: Option<anchor_lang::accounts::program::Program<System>> = accounts_iter
             .next()
             .ok_or(FuzzingError::NotEnoughAccounts)?
             .map(|acc| anchor_lang::accounts::program::Program::try_from(&acc))
             .transpose()
-            .map_err(|_| FuzzingError::CannotDeserializeAccount)?;
+            .unwrap_or(None);
         Ok(Self {
             project_author,
             project,
@@ -109,13 +109,13 @@ impl<'info> EndRegistrationsSnapshot<'info> {
             .ok_or(FuzzingError::NotEnoughAccounts)?
             .map(|acc| anchor_lang::accounts::signer::Signer::try_from(&acc))
             .transpose()
-            .map_err(|_| FuzzingError::CannotDeserializeAccount)?;
+            .unwrap_or(None);
         let state: Option<anchor_lang::accounts::account::Account<State>> = accounts_iter
             .next()
             .ok_or(FuzzingError::NotEnoughAccounts)?
             .map(|acc| anchor_lang::accounts::account::Account::try_from(&acc))
             .transpose()
-            .map_err(|_| FuzzingError::CannotDeserializeAccount)?;
+            .unwrap_or(None);
         Ok(Self { author, state })
     }
 }
@@ -132,25 +132,25 @@ impl<'info> InvestSnapshot<'info> {
             .ok_or(FuzzingError::NotEnoughAccounts)?
             .map(|acc| anchor_lang::accounts::signer::Signer::try_from(&acc))
             .transpose()
-            .map_err(|_| FuzzingError::CannotDeserializeAccount)?;
+            .unwrap_or(None);
         let project: Option<anchor_lang::accounts::account::Account<Project>> = accounts_iter
             .next()
             .ok_or(FuzzingError::NotEnoughAccounts)?
             .map(|acc| anchor_lang::accounts::account::Account::try_from(&acc))
             .transpose()
-            .map_err(|_| FuzzingError::CannotDeserializeAccount)?;
+            .unwrap_or(None);
         let state: Option<anchor_lang::accounts::account::Account<State>> = accounts_iter
             .next()
             .ok_or(FuzzingError::NotEnoughAccounts)?
             .map(|acc| anchor_lang::accounts::account::Account::try_from(&acc))
             .transpose()
-            .map_err(|_| FuzzingError::CannotDeserializeAccount)?;
+            .unwrap_or(None);
         let system_program: Option<anchor_lang::accounts::program::Program<System>> = accounts_iter
             .next()
             .ok_or(FuzzingError::NotEnoughAccounts)?
             .map(|acc| anchor_lang::accounts::program::Program::try_from(&acc))
             .transpose()
-            .map_err(|_| FuzzingError::CannotDeserializeAccount)?;
+            .unwrap_or(None);
         Ok(Self {
             investor,
             project,
