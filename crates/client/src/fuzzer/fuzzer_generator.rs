@@ -79,7 +79,7 @@ pub fn generate_source_code(idl: &Idl) -> String {
                             .collect::<Vec<_>>();
 
                         let ix_enum_variant: syn::ItemStruct = parse_quote! {
-                            #[derive(Arbitrary, Clone)]
+                            #[derive(Arbitrary, Clone, Debug)]
                             pub struct #instruction_name {
                                  pub accounts: #instruction_accounts_name,
                                  pub data: #instruction_data_name
@@ -88,14 +88,14 @@ pub fn generate_source_code(idl: &Idl) -> String {
                         };
 
                         let ix_accounts: syn::ItemStruct = parse_quote! {
-                            #[derive(Arbitrary, Clone)]
+                            #[derive(Arbitrary, Clone, Debug)]
                             pub struct #instruction_accounts_name {
                                  #(pub #accounts),*
                             }
 
                         };
                         let ix_data: syn::ItemStruct = parse_quote! {
-                            #[derive(Arbitrary, Clone)]
+                            #[derive(Arbitrary, Clone, Debug)]
                             pub struct #instruction_data_name {
                                  #(pub #parameters),*
                             }
