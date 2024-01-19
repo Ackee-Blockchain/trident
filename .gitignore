@@ -1,4 +1,10 @@
 target
 test-ledger
-
 .idea
+examples/*
+!examples/turnstile
+!examples/escrow
+!examples/fuzz_example0
+!examples/fuzz_example1
+!examples/fuzz_example2
+!examples/fuzz_example3
