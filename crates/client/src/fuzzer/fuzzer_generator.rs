@@ -13,6 +13,7 @@ pub fn generate_source_code(idl: &Idl) -> String {
             let program_name = idl_program.name.snake_case.replace('-', "_");
             let fuzz_instructions_module_name = format_ident!("{}_fuzz_instructions", program_name);
             let module_name: syn::Ident = parse_str(&program_name).unwrap();
+            let mut accounts_from_instr_input: Vec<(String, String)> = vec![];
 
             let instructions = idl_program
                 .instruction_account_pairs
@@ -52,9 +53,25 @@ pub fn generate_source_code(idl: &Idl) -> String {
                             .parameters
                             .iter()
                             .map(|(name, ty)| {
-                                let name = format_ident!("{name}");
-                                let ty: syn::Type = parse_str(ty).unwrap();
-                                let parameter: syn::FnArg = parse_quote!(#name: #ty);
+                                let name_ident = format_ident!("{name}");
+                                // TODO What about custom Enums and Structs on Instr Input ?
+                                let ty = parse_str(ty).unwrap();
+                                let ty: syn::Type = match &ty {
+                                    syn::Type::Path(tp) => {
+                                        let last_type =
+                                            &tp.path.segments.last().unwrap().ident.to_string();
+                                        if last_type == "Pubkey" {
+                                            let t: syn::Type = parse_str("AccountId").unwrap();
+                                            accounts_from_instr_input
+                                                .push((name.to_string(), "AccountId".to_string()));
+                                            t
+                                        } else {
+                                            ty
+                                        }
+                                    }
+                                    _ => ty,
+                                };
+                                let parameter: syn::FnArg = parse_quote!(#name_ident: #ty);
                                 parameter
                             })
                             .collect::<Vec<_>>();
@@ -173,7 +190,7 @@ pub fn generate_source_code(idl: &Idl) -> String {
                 )
                 .into_iter();
 
-            let fuzz_accounts = idl_program.instruction_account_pairs.iter().fold(
+            let mut fuzz_accounts = idl_program.instruction_account_pairs.iter().fold(
                 HashMap::new(),
                 |mut fuzz_accounts, (_idl_instruction, idl_account_group)| {
                     idl_account_group.accounts.iter().fold(
@@ -184,10 +201,19 @@ pub fn generate_source_code(idl: &Idl) -> String {
                             fuzz_accounts
                         },
                     );
-
                     fuzz_accounts
                 },
             );
+
+            fuzz_accounts.extend(accounts_from_instr_input.iter().fold(
+                HashMap::new(),
+                |mut fuzz_accounts, (name, _ty)| {
+                    let name = format_ident!("{name}");
+                    fuzz_accounts.entry(name).or_insert_with(|| "".to_string());
+                    fuzz_accounts
+                },
+            ));
+
             // this ensures that the order of accounts is deterministic
             // so we can use expected generated template within tests
             let mut sorted_fuzz_accounts: Vec<_> = fuzz_accounts.keys().collect();
@@ -195,7 +221,6 @@ pub fn generate_source_code(idl: &Idl) -> String {
 
             let fuzzer_module: syn::ItemMod = parse_quote! {
                 pub mod #fuzz_instructions_module_name {
-                    use trdelnik_client::fuzzing::*;
                     use crate::accounts_snapshots::*;
 
                     #[derive(Arbitrary, Clone, DisplayIx, FuzzTestExecutor, FuzzDeserialize)]
