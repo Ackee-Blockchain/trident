@@ -36,6 +36,7 @@ pub mod fuzzing {
         ProgramTestContext,
     };
 
+    pub use super::error::*;
     pub use super::fuzzer::accounts_storage::*;
     pub use super::fuzzer::data_builder::build_ix_fuzz_data;
     pub use super::fuzzer::data_builder::*;

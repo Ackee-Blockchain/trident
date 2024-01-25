@@ -13,20 +13,36 @@ pub fn fuzz_test_executor(input: TokenStream) -> TokenStream {
                 let variant_name = &variant.ident;
                 quote! {
                     #enum_name::#variant_name (ix) => {
+
                     let (mut signers, metas) =
-                        if let Ok(acc) = ix.get_accounts(client, &mut accounts.borrow_mut()) {
-                            acc
-                        } else {
-                            return Ok(());
+                        match ix.get_accounts(client, &mut accounts.borrow_mut())
+                            .map_err(|e| e.with_origin(Origin::Instruction(self.to_string()))){
+                            Ok(acc)=>{acc},
+                            Err(e)=>{
+                                eprintln!("{}",e);
+                                panic!()
+                            }
                         };
-                    let mut snaphot = Snapshot::new(&metas, ix);
-                    snaphot.capture_before(client).unwrap();
+
+                    let mut snapshot = Snapshot::new(&metas, ix);
+                    match snapshot.capture_before(client) {
+                        Ok(_)=>{},
+                        Err(e)=>{
+                            eprintln!("{}",e);
+                            panic!()
+                        },
+                    };
+
                     let data =
-                        if let Ok(data) = ix.get_data(client, &mut accounts.borrow_mut()) {
-                            data
-                        } else {
-                            return Ok(());
+                        match ix.get_data(client, &mut accounts.borrow_mut())
+                            .map_err(|e| e.with_origin(Origin::Instruction(self.to_string()))){
+                            Ok(data)=>{data},
+                            Err(e)=>{
+                                eprintln!("{}",e);
+                                panic!()
+                            }
                         };
+
                     let ixx = Instruction {
                         program_id,
                         accounts: metas.clone(),
@@ -38,18 +54,36 @@ pub fn fuzz_test_executor(input: TokenStream) -> TokenStream {
                     let sig: Vec<&Keypair> = signers.iter().collect();
                     transaction.sign(&sig, client.get_last_blockhash());
 
-                    let res = client.process_transaction(transaction);
-                    snaphot.capture_after(client).unwrap();
-                    let (acc_before, acc_after) = snaphot.get_snapshot().unwrap(); // we want to panic if we cannot unwrap to cause a crash
-                    if let Err(e) = ix.check(acc_before, acc_after, data) {
-                        eprintln!(
-                            "Custom check after the {} instruction did not pass with the error message: {}",
-                            self, e
-                        );
-                        eprintln!("Instruction data submitted to the instruction were:"); // TODO data does not implement Debug trait -> derive Debug trait on InitializeIx and automaticaly implement conversion from Initialize to InitializeIx
-                        panic!("{}", e)
-                    }
 
+                    let res = client.process_transaction(transaction)
+                        .map_err(|e| e.with_origin(Origin::Instruction(self.to_string())));
+
+
+                    match snapshot.capture_after(client) {
+                        Ok(_)=>{},
+                        Err(e)=>{
+                            eprintln!("{}",e);
+                            panic!()
+                        },
+                    };
+                    match snapshot.get_snapshot()
+                        .map_err(|e| e.with_origin(Origin::Instruction(self.to_string()))){
+                        Ok((acc_before, acc_after))=>{
+                            match ix.check(acc_before, acc_after, data)
+                                .map_err(|e| e.with_origin(Origin::Instruction(self.to_string()))) {
+                                Ok(_)=>{},
+                                Err(e)=>{
+                                    eprintln!("{}",e);
+                                    panic!()
+                                },
+                            };
+                        },
+                        Err(e)=>{
+                            eprintln!("{}",e);
+                            panic!()
+
+                        }
+                    };
                     if res.is_err() {
                         return Ok(());
                     }

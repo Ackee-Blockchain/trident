@@ -2,8 +2,8 @@
 
 use solana_sdk::{account::Account, instruction::AccountMeta};
 
-use crate::data_builder::{FuzzClient, FuzzClientError, FuzzDeserialize, FuzzingError};
-
+use crate::data_builder::{FuzzClient, FuzzDeserialize};
+use crate::error::*;
 pub struct Snapshot<'info, T> {
     before: Vec<Option<Account>>,
     after: Vec<Option<Account>>,
@@ -24,20 +24,30 @@ where
         }
     }
 
-    pub fn capture_before(&mut self, client: &mut impl FuzzClient) -> Result<(), FuzzClientError> {
-        self.before = self.capture(client)?;
+    pub fn capture_before(
+        &mut self,
+        client: &mut impl FuzzClient,
+    ) -> Result<(), FuzzClientErrorWithOrigin> {
+        self.before = self
+            .capture(client)
+            .map_err(|e| e.with_context(Context::Pre))?;
         Ok(())
     }
 
-    pub fn capture_after(&mut self, client: &mut impl FuzzClient) -> Result<(), FuzzClientError> {
-        self.after = self.capture(client)?;
+    pub fn capture_after(
+        &mut self,
+        client: &mut impl FuzzClient,
+    ) -> Result<(), FuzzClientErrorWithOrigin> {
+        self.after = self
+            .capture(client)
+            .map_err(|e| e.with_context(Context::Post))?;
         Ok(())
     }
 
     fn capture(
         &mut self,
         client: &mut impl FuzzClient,
-    ) -> Result<Vec<Option<Account>>, FuzzClientError> {
+    ) -> Result<Vec<Option<Account>>, FuzzClientErrorWithOrigin> {
         let accounts;
         {
             accounts = client.get_accounts(self.metas)?;
@@ -53,7 +63,7 @@ where
         }
     }
 
-    pub fn get_snapshot(&'info mut self) -> Result<(T::Ix, T::Ix), FuzzingError> {
+    pub fn get_snapshot(&'info mut self) -> Result<(T::Ix, T::Ix), FuzzingErrorWithOrigin> {
         // When user passes an account that is not initialized, the runtime will provide
         // a default empty account to the program. If the uninitialized account is of type
         // AccountInfo, Signer or UncheckedAccount, Anchor will not return an error. However
@@ -64,8 +74,14 @@ where
         Self::set_missing_accounts_to_default(&mut self.before);
         Self::set_missing_accounts_to_default(&mut self.after);
 
-        let pre_ix = self.ix.deserialize_option(self.metas, &mut self.before)?;
-        let post_ix = self.ix.deserialize_option(self.metas, &mut self.after)?;
+        let pre_ix = self
+            .ix
+            .deserialize_option(self.metas, &mut self.before)
+            .map_err(|e| e.with_context(Context::Pre))?;
+        let post_ix = self
+            .ix
+            .deserialize_option(self.metas, &mut self.after)
+            .map_err(|e| e.with_context(Context::Post))?;
         Ok((pre_ix, post_ix))
     }
 }

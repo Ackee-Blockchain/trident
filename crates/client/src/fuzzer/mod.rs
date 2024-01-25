@@ -7,3 +7,5 @@ pub mod snapshot;
 pub mod snapshot_generator;
 
 pub type AccountId = u8;
+
+pub mod error;
