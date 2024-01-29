@@ -8,3 +8,4 @@ node_modules
 __pycache__
 test-ledger
 mocked_state
+hfuzz_target
