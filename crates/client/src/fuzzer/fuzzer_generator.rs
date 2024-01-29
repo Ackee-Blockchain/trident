@@ -173,31 +173,25 @@ pub fn generate_source_code(idl: &Idl) -> String {
                 )
                 .into_iter();
 
-            let fuzz_accounts = idl_program
-                .instruction_account_pairs
-                .iter()
-                .fold(
-                    HashMap::new(),
-                    |mut fuzz_accounts, (_idl_instruction, idl_account_group)| {
-                        idl_account_group.accounts.iter().fold(
-                            &mut fuzz_accounts,
-                            |fuzz_accounts, (name, _ty)| {
-                                let name = format_ident!("{name}");
-                                fuzz_accounts.entry(name).or_insert_with(|| "".to_string());
-                                fuzz_accounts
-                            },
-                        );
+            let fuzz_accounts = idl_program.instruction_account_pairs.iter().fold(
+                HashMap::new(),
+                |mut fuzz_accounts, (_idl_instruction, idl_account_group)| {
+                    idl_account_group.accounts.iter().fold(
+                        &mut fuzz_accounts,
+                        |fuzz_accounts, (name, _ty)| {
+                            let name = format_ident!("{name}");
+                            fuzz_accounts.entry(name).or_insert_with(|| "".to_string());
+                            fuzz_accounts
+                        },
+                    );
 
-                        fuzz_accounts
-                    },
-                )
-                .into_iter()
-                .map(|fuzz_accounts| {
-                    // TODO find out the type of the account and remember it as Keypair, PdaStore, TokenStore, MintStore, ProgramStore etc.
-                    fuzz_accounts.0
-                })
-                .collect::<Vec<_>>()
-                .into_iter();
+                    fuzz_accounts
+                },
+            );
+            // this ensures that the order of accounts is deterministic
+            // so we can use expected generated template within tests
+            let mut sorted_fuzz_accounts: Vec<_> = fuzz_accounts.keys().collect();
+            sorted_fuzz_accounts.sort();
 
             let fuzzer_module: syn::ItemMod = parse_quote! {
                 pub mod #fuzz_instructions_module_name {
@@ -218,7 +212,7 @@ pub fn generate_source_code(idl: &Idl) -> String {
                     /// Keypair, PdaStore, TokenStore, MintStore, ProgramStore
                     #[derive(Default)]
                     pub struct FuzzAccounts {
-                        #(#fuzz_accounts: AccountsStorage<todo!()>),*
+                        #(#sorted_fuzz_accounts: AccountsStorage<todo!()>),*
                     }
 
                     impl FuzzAccounts {
