@@ -10,12 +10,12 @@ const PROGRAM_NAME: &str = "fuzz_example3";
 async fn test_fuzz_instructions() {
     let expanded_fuzz_example3 = include_str!(concat!(
         env!("CARGO_MANIFEST_DIR"),
-        "/tests/test_data/expanded_fuzz_example3.rs"
+        "/tests/test_data/expanded_source_codes/expanded_fuzz_example3.rs"
     ));
 
     let expected_fuzz_instructions_code = include_str!(concat!(
         env!("CARGO_MANIFEST_DIR"),
-        "/tests/test_data/expected_fuzz_instructions.rs"
+        "/tests/test_data/expected_source_codes/expected_fuzz_instructions.rs"
     ));
 
     let program_idl =
@@ -38,12 +38,12 @@ async fn test_fuzz_instructions() {
 async fn test_account_snapshots() {
     let expanded_fuzz_example3 = include_str!(concat!(
         env!("CARGO_MANIFEST_DIR"),
-        "/tests/test_data/expanded_fuzz_example3.rs"
+        "/tests/test_data/expanded_source_codes/expanded_fuzz_example3.rs"
     ));
 
     let expected_accounts_snapshots = include_str!(concat!(
         env!("CARGO_MANIFEST_DIR"),
-        "/tests/test_data/expected_accounts_snapshots.rs"
+        "/tests/test_data/expected_source_codes/expected_accounts_snapshots.rs"
     ));
 
     let mut program_path = std::env::current_dir()
@@ -65,22 +65,42 @@ async fn test_account_snapshots() {
 
     assert_str_eq!(fuzzer_snapshots, expected_accounts_snapshots);
 }
+
 #[throws]
 #[tokio::test]
-async fn test_fuzz_instruction_macros() {
+async fn test_display_ix() {
     // this will automatically created expanded code within the same directory
     // with ".expanded.rs" extension, if the file does not exist already.
     // Do not perform any formatting command on the expanded code
     // the test will then fail
-    macrotest::expand("tests/test_data/fuzzer_macros/fuzz_instructions.rs");
+    macrotest::expand("tests/test_data/fuzzer_macros/fuzz_display_ix.rs");
+}
+#[throws]
+#[tokio::test]
+async fn test_fuzz_deserialize() {
+    // this will automatically created expanded code within the same directory
+    // with ".expanded.rs" extension, if the file does not exist already.
+    // Do not perform any formatting command on the expanded code
+    // the test will then fail
+    macrotest::expand("tests/test_data/fuzzer_macros/fuzz_fuzz_deserialize.rs");
 }
 
 #[throws]
 #[tokio::test]
-async fn test_test_fuzz_macros() {
+async fn test_fuzz_test_executor() {
     // this will automatically created expanded code within the same directory
     // with ".expanded.rs" extension, if the file does not exist already.
     // Do not perform any formatting command on the expanded code
     // the test will then fail
-    macrotest::expand("tests/test_data/fuzzer_macros/test_fuzz.rs");
+    macrotest::expand("tests/test_data/fuzzer_macros/fuzz_fuzz_test_executor.rs");
+}
+
+#[throws]
+#[tokio::test]
+async fn test_fuzz_trd() {
+    // this will automatically created expanded code within the same directory
+    // with ".expanded.rs" extension, if the file does not exist already.
+    // Do not perform any formatting command on the expanded code
+    // the test will then fail
+    macrotest::expand("tests/test_data/fuzzer_macros/fuzz_fuzz_trd.rs");
 }

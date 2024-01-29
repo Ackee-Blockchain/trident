@@ -92,3 +92,7 @@ pub use error_reporter::*;
 
 pub mod cleaner;
 pub use cleaner::*;
+
+pub use trdelnik_derive_displayix::DisplayIx;
+pub use trdelnik_derive_fuzz_deserialize::FuzzDeserialize;
+pub use trdelnik_derive_fuzz_test_executor::FuzzTestExecutor;
