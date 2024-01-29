@@ -27,9 +27,7 @@ use tokio::{
     signal,
 };
 
-pub const PROGRAM_CLIENT_DIRECTORY: &str = ".program_client";
-pub const CARGO_TARGET_DIR_DEFAULT: &str = "trdelnik-tests/fuzz_tests/fuzzing/hfuzz_target";
-pub const HFUZZ_WORKSPACE_DEFAULT: &str = "trdelnik-tests/fuzz_tests/fuzzing/hfuzz_workspace";
+pub use crate::constants::*;
 
 #[derive(Error, Debug)]
 pub enum Error {

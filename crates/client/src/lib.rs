@@ -49,6 +49,31 @@ pub mod fuzzing {
     pub use trdelnik_derive_fuzz_test_executor::FuzzTestExecutor;
 }
 
+/// Internal module, used by internal dependencies
+/// Inspired by anchor_lang::__private
+/// The goal of this is to distinguish between what we
+/// actually want to show as public and what is public
+/// only to be used within other crates.
+#[doc(hidden)]
+pub mod __private {
+    pub use crate::commander::get_cmd_option_value;
+    pub use crate::commander::get_crash_dir_and_ext;
+    pub use crate::commander::get_crash_files;
+    pub use crate::config::Config;
+    pub use crate::config::Fuzz;
+    pub use crate::config::Test;
+    pub use crate::fuzz_trd;
+    pub use trdelnik_derive_displayix::DisplayIx;
+    pub use trdelnik_derive_fuzz_deserialize::FuzzDeserialize;
+    pub use trdelnik_derive_fuzz_test_executor::FuzzTestExecutor;
+}
+
+pub mod constants {
+    pub const PROGRAM_CLIENT_DIRECTORY: &str = ".program_client";
+    pub const CARGO_TARGET_DIR_DEFAULT: &str = "trdelnik-tests/fuzz_tests/fuzzing/hfuzz_target";
+    pub const HFUZZ_WORKSPACE_DEFAULT: &str = "trdelnik-tests/fuzz_tests/fuzzing/hfuzz_workspace";
+}
+
 pub use futures::{self, FutureExt};
 pub use rstest::*;
 pub use serial_test;
@@ -68,7 +93,7 @@ mod reader;
 pub use reader::Reader;
 
 mod commander;
-pub use commander::*;
+pub use commander::{Commander, LocalnetHandle};
 
 mod tester;
 pub use tester::Tester;
@@ -92,7 +117,3 @@ pub use error_reporter::*;
 
 pub mod cleaner;
 pub use cleaner::*;
-
-pub use trdelnik_derive_displayix::DisplayIx;
-pub use trdelnik_derive_fuzz_deserialize::FuzzDeserialize;
-pub use trdelnik_derive_fuzz_test_executor::FuzzTestExecutor;

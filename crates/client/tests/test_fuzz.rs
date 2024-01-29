@@ -69,7 +69,7 @@ async fn test_account_snapshots() {
 #[throws]
 #[tokio::test]
 async fn test_display_ix() {
-    // this will automatically created expanded code within the same directory
+    // this will automatically create expanded code within the same directory
     // with ".expanded.rs" extension, if the file does not exist already.
     // Do not perform any formatting command on the expanded code
     // the test will then fail
@@ -78,7 +78,7 @@ async fn test_display_ix() {
 #[throws]
 #[tokio::test]
 async fn test_fuzz_deserialize() {
-    // this will automatically created expanded code within the same directory
+    // this will automatically create expanded code within the same directory
     // with ".expanded.rs" extension, if the file does not exist already.
     // Do not perform any formatting command on the expanded code
     // the test will then fail
@@ -88,7 +88,7 @@ async fn test_fuzz_deserialize() {
 #[throws]
 #[tokio::test]
 async fn test_fuzz_test_executor() {
-    // this will automatically created expanded code within the same directory
+    // this will automatically create expanded code within the same directory
     // with ".expanded.rs" extension, if the file does not exist already.
     // Do not perform any formatting command on the expanded code
     // the test will then fail
