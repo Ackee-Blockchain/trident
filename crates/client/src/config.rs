@@ -152,7 +152,7 @@ impl FuzzArg {
     }
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Clone, Default)]
 pub struct Config {
     pub test: Test,
     pub fuzz: Fuzz,
@@ -234,5 +234,3 @@ impl Config {
         args.join(" ")
     }
 }
-
-
