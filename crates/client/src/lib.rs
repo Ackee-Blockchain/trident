@@ -58,6 +58,7 @@ pub use tokio;
 pub use trdelnik_test::trdelnik_test;
 
 mod config;
+pub use config::*;
 
 mod client;
 pub use client::Client;
@@ -67,7 +68,7 @@ mod reader;
 pub use reader::Reader;
 
 mod commander;
-pub use commander::{Commander, LocalnetHandle};
+pub use commander::*;
 
 mod tester;
 pub use tester::Tester;
