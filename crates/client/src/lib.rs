@@ -83,7 +83,6 @@ pub use tokio;
 pub use trdelnik_test::trdelnik_test;
 
 mod config;
-pub use config::*;
 
 mod client;
 pub use client::Client;
