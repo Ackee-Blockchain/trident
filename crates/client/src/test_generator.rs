@@ -459,58 +459,6 @@ impl TestGenerator {
         }
     }
 
-    /// Adds programs to Cargo.toml as a dev dependencies to be able to be used in tests
-    // #[throws]
-    // async fn add_feature_to_dep(
-    //     &self,
-    //     root: &Path,
-    //     cargo_toml_path: &Path,
-    //     dependency: &str,
-    //     feature: &str,
-    // ) {
-    //     let rel_path = cargo_toml_path
-    //         .strip_prefix(root)
-    //         .unwrap_or(Path::new("Cargo.toml"))
-    //         .to_string_lossy()
-    //         .to_string();
-    //     println!("Adding feature {feature} to dependency {dependency} in {rel_path} ...");
-    //     let mut content: Value = fs::read_to_string(cargo_toml_path).await?.parse()?;
-    //     let deps = content
-    //         .get_mut("dependencies")
-    //         .and_then(Value::as_table_mut)
-    //         .ok_or(Error::CannotParseCargoToml)?;
-
-    //     let values = deps
-    //         .get_mut(dependency)
-    //         .and_then(|f| {
-    //             if f.is_table() {
-    //                 f.as_table_mut()
-    //             } else if f.is_str() {
-    //                 // if the value is only a string with version such as dependency = 0.0, create a new table with that version
-    //                 let version = f.as_str().unwrap();
-    //                 let mut map = Map::new();
-    //                 let _ = map.insert("version".to_string(), Value::String(version.to_string()));
-    //                 let t = Value::Table(map);
-    //                 *f = t.to_owned();
-    //                 f.as_table_mut()
-    //             } else {
-    //                 None
-    //             }
-    //         })
-    //         .ok_or(Error::CannotParseCargoToml)?;
-
-    //     let fuzzing = Value::String(feature.to_string());
-    //     let value = Value::Array(vec![fuzzing.clone()]);
-    //     let features = values.entry("features").or_insert(value);
-    //     if let Some(features) = features.as_array_mut() {
-    //         if !features.iter().any(|f| *f == fuzzing) {
-    //             features.push(fuzzing);
-    //         };
-    //     }
-
-    //     fs::write(cargo_toml_path, content.to_string()).await?;
-    // }
-
     /// Scans `programs` directory and returns a list of `toml::Value` programs and their paths.
     async fn get_programs(&self, root: &Path, cargo_dir: &PathBuf) -> Result<Vec<Value>, Error> {
         let programs = root.join("programs");
