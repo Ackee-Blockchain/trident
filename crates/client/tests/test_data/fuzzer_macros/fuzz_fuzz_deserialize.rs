@@ -1,5 +1,4 @@
-use trdelnik_client::__private::FuzzDeserialize;
-
+use trdelnik_client::FuzzDeserialize;
 #[derive(FuzzDeserialize)]
 pub enum FuzzInstruction {
     InitVesting(InitVesting),

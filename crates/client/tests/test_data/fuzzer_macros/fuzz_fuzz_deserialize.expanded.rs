@@ -1,4 +1,4 @@
-use trdelnik_client::__private::FuzzDeserialize;
+use trdelnik_client::FuzzDeserialize;
 pub enum FuzzInstruction {
     InitVesting(InitVesting),
     WithdrawUnlocked(WithdrawUnlocked),

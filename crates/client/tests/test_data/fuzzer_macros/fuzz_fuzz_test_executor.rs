@@ -1,5 +1,4 @@
-use trdelnik_client::__private::FuzzTestExecutor;
-
+use trdelnik_client::FuzzTestExecutor;
 #[derive(FuzzTestExecutor)]
 pub enum FuzzInstruction {
     InitVesting(InitVesting),

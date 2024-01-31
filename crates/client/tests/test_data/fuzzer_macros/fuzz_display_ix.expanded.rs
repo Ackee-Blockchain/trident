@@ -1,4 +1,4 @@
-use trdelnik_client::__private::DisplayIx;
+use trdelnik_client::DisplayIx;
 pub enum FuzzInstruction {
     InitVesting(InitVesting),
     WithdrawUnlocked(WithdrawUnlocked),
