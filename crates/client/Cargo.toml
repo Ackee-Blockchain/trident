@@ -24,6 +24,7 @@ macrotest = "1.0.9"
 
 [dependencies]
 trdelnik-test = { workspace = true }
+anchor-lang = { version = "0.29.0", features = ["idl-build"] }
 solana-sdk = { workspace = true }
 solana-cli-output = { workspace = true }
 solana-transaction-status = { workspace = true }

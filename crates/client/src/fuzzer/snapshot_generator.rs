@@ -4,6 +4,7 @@
 
 use std::{error::Error, fs::File, io::Read};
 
+use anchor_lang::anchor_syn::{AccountField, Ty};
 use cargo_metadata::camino::Utf8PathBuf;
 use proc_macro2::{Span, TokenStream};
 use quote::{format_ident, quote, ToTokens};
@@ -13,6 +14,8 @@ use syn::{
     parse_quote, Attribute, Fields, GenericArgument, Item, ItemStruct, Path, PathArguments,
     TypePath,
 };
+
+use anchor_lang::anchor_syn::parser::accounts::parse_account_field;
 
 pub fn generate_snapshots_code(code_path: Vec<(String, Utf8PathBuf)>) -> Result<String, String> {
     let code = code_path.iter().map(|(code, path)| {
@@ -24,7 +27,7 @@ pub fn generate_snapshots_code(code_path: Vec<(String, Utf8PathBuf)>) -> Result<
 
         let parse_result = syn::parse_file(&content).map_err(|e| e.to_string())?;
 
-        // locate the program module to extract instructions and corresponding Context structs
+        // locate the program module to extract instructions and corresponding Context structs.
         for item in parse_result.items.iter() {
             if let Item::Mod(module) = item {
                 // Check if the module has the #[program] attribute
@@ -81,14 +84,28 @@ pub fn generate_snapshots_code(code_path: Vec<(String, Utf8PathBuf)>) -> Result<
                 // TODO add support for types with fully qualified path such as ix::Initialize
             }
             let ty = ty.ok_or(format!("malformed parameters of {} instruction", pair.0))?;
-            // println!("{} - {}", pair.0, ty);
 
-            // recursively find the context struct and create a new version with wrapped field into Option
+            // recursively find the context struct and create a new version with wrapped fields into Option
             if let Some(ctx) = get_ctx_struct(&parse_result.items, &ty) {
-                let wrapped_struct = wrap_fields_in_option(ctx).unwrap();
-                // println!("{}", wrapped_struct);
-                let deser_code = deserialize_ctx_struct(ctx).unwrap();
-                // println!("{}", deser_code);
+                let fields_parsed = if let Fields::Named(f) = ctx.fields.clone() {
+                    let field_deser: ParseResult<Vec<AccountField>> = f
+                        .named
+                        .iter()
+                        .map(|field| parse_account_field(field))
+                        .collect();
+                    field_deser
+                } else {
+                    Err(ParseError::new(
+                        ctx.fields.span(),
+                        "Context struct parse errror.",
+                    ))
+                }
+                .map_err(|e| e.to_string())?;
+
+                let wrapped_struct = wrap_fields_in_option(ctx, &fields_parsed).unwrap();
+                let deser_code = deserialize_ctx_struct_anchor2(ctx, &fields_parsed)
+                    .map_err(|e| e.to_string())?;
+                // let deser_code = deserialize_ctx_struct(ctx).unwrap();
                 structs = format!("{}{}", structs, wrapped_struct.into_token_stream());
                 desers = format!("{}{}", desers, deser_code.into_token_stream());
             } else {
@@ -112,7 +129,6 @@ fn get_ctx_struct<'a>(items: &'a Vec<syn::Item>, name: &'a syn::Ident) -> Option
     for item in items {
         if let Item::Struct(struct_item) = item {
             if struct_item.ident == *name {
-                // println!("we found the struct {}", name);
                 return Some(struct_item);
             }
         }
@@ -133,17 +149,57 @@ fn get_ctx_struct<'a>(items: &'a Vec<syn::Item>, name: &'a syn::Ident) -> Option
     None
 }
 
-fn wrap_fields_in_option(orig_struct: &ItemStruct) -> Result<TokenStream, Box<dyn Error>> {
+fn is_optional(parsed_field: &AccountField) -> bool {
+    let is_optional = match parsed_field {
+        AccountField::Field(field) => field.is_optional,
+        AccountField::CompositeField(_) => false,
+    };
+    let constraints = match parsed_field {
+        AccountField::Field(f) => &f.constraints,
+        AccountField::CompositeField(f) => &f.constraints,
+    };
+
+    (constraints.init.is_some() || constraints.is_close()) && !is_optional
+}
+
+fn deserialize_as_option(parsed_field: &AccountField) -> bool {
+    let is_optional = match parsed_field {
+        AccountField::Field(field) => field.is_optional,
+        AccountField::CompositeField(_) => false,
+    };
+    let constraints = match parsed_field {
+        AccountField::Field(f) => &f.constraints,
+        AccountField::CompositeField(f) => &f.constraints,
+    };
+
+    constraints.init.is_some() || constraints.is_close() || is_optional
+}
+
+fn wrap_fields_in_option(
+    orig_struct: &ItemStruct,
+    parsed_fields: &[AccountField],
+) -> Result<TokenStream, Box<dyn Error>> {
     let struct_name = format_ident!("{}Snapshot", orig_struct.ident);
     let wrapped_fields = match orig_struct.fields.clone() {
         Fields::Named(named) => {
-            let field_wrappers = named.named.iter().map(|field| {
-                let field_name = &field.ident;
-                let field_type = &field.ty;
-                quote! {
-                    pub #field_name: Option<#field_type>,
-                }
-            });
+            let field_wrappers =
+                named
+                    .named
+                    .iter()
+                    .zip(parsed_fields)
+                    .map(|(field, parsed_field)| {
+                        let field_name = &field.ident;
+                        let field_type = &field.ty;
+                        if is_optional(parsed_field) {
+                            quote! {
+                                pub #field_name: Option<#field_type>,
+                            }
+                        } else {
+                            quote! {
+                                pub #field_name: #field_type,
+                            }
+                        }
+                    });
 
             quote! {
                 { #(#field_wrappers)* }
@@ -166,6 +222,7 @@ fn deserialize_ctx_struct(orig_struct: &ItemStruct) -> Result<TokenStream, Box<d
     let names_deser_pairs = match orig_struct.fields.clone() {
         Fields::Named(named) => {
             let field_deser = named.named.iter().map(|field| {
+                let res = parse_account_field(field);
                 let field_name = match &field.ident {
                     Some(name) => name,
                     None => {
@@ -175,19 +232,7 @@ fn deserialize_ctx_struct(orig_struct: &ItemStruct) -> Result<TokenStream, Box<d
                         ))
                     }
                 };
-                // let field_type = &field.ty;
 
-                // let path = match &field_type {
-                //     syn::Type::Path(ty_path) => ty_path.path.clone(),
-                //     _ => {
-                //         return Err(ParseError::new(
-                //             field_type.span(),
-                //             "invalid account type given",
-                //         ))
-                //     }
-                // };
-                // let id: syn::PathSegment = path.segments[0].clone();
-                // println!("field name: {}, type: {}", field_name, id.ident);
                 let (ident, _optional, path) = ident_string(field)?;
                 let ty = match ident.as_str() {
                     "AccountInfo" => AnchorType::AccountInfo,
@@ -213,7 +258,7 @@ fn deserialize_ctx_struct(orig_struct: &ItemStruct) -> Result<TokenStream, Box<d
                 };
                 let deser_tokens = match ty.to_tokens() {
                     Some((return_type, deser_method)) => {
-                        deserialize_tokens(field_name, return_type, deser_method)
+                        deserialize_account_tokens(field_name, true, return_type, deser_method)
                     }
                     None => acc_info_tokens(field_name),
                 };
@@ -255,6 +300,77 @@ fn deserialize_ctx_struct(orig_struct: &ItemStruct) -> Result<TokenStream, Box<d
     };
 
     Ok(generated_deser_impl.to_token_stream())
+}
+
+fn deserialize_ctx_struct_anchor2(
+    snapshot_struct: &ItemStruct,
+    parsed_fields: &[AccountField],
+) -> Result<TokenStream, Box<dyn Error>> {
+    let impl_name = format_ident!("{}Snapshot", snapshot_struct.ident);
+    let names_deser_pairs: Result<Vec<(TokenStream, TokenStream)>, _> = parsed_fields
+        .iter()
+        .map(|parsed_f| match parsed_f {
+            AccountField::Field(f) => {
+                let field_name = f.ident.clone();
+                let deser_tokens = match ty_to_tokens(&f.ty) {
+                    Some((return_type, deser_method)) => deserialize_account_tokens(
+                        &field_name,
+                        deserialize_as_option(parsed_f),
+                        return_type,
+                        deser_method,
+                    ),
+                    None => acc_info_tokens(&field_name),
+                };
+                Ok((
+                    quote! {#field_name},
+                    quote! {
+                        #deser_tokens
+                    },
+                ))
+            }
+            AccountField::CompositeField(_) => Err("CompositeFields not supported!"),
+        })
+        .collect();
+
+    let (names, fields_deser): (Vec<_>, Vec<_>) = names_deser_pairs?.iter().cloned().unzip();
+
+    let generated_deser_impl: syn::Item = parse_quote! {
+        impl<'info> #impl_name<'info> {
+            pub fn deserialize_option(
+                metas: &'info [AccountMeta],
+                accounts: &'info mut [Option<trdelnik_client::solana_sdk::account::Account>],
+            ) -> core::result::Result<Self, FuzzingError> {
+                let accounts = get_account_infos_option(accounts, metas)
+                    .map_err(|_| FuzzingError::CannotGetAccounts)?;
+
+                let mut accounts_iter = accounts.into_iter();
+
+                #(#fields_deser)*
+
+                Ok(Self {
+                    #(#names),*
+                })
+            }
+        }
+    };
+
+    Ok(generated_deser_impl.to_token_stream())
+}
+
+fn sysvar_to_ident(sysvar: &anchor_lang::anchor_syn::SysvarTy) -> String {
+    let str = match sysvar {
+        anchor_lang::anchor_syn::SysvarTy::Clock => "Clock",
+        anchor_lang::anchor_syn::SysvarTy::Rent => "Rent",
+        anchor_lang::anchor_syn::SysvarTy::EpochSchedule => "EpochSchedule",
+        anchor_lang::anchor_syn::SysvarTy::Fees => "Fees",
+        anchor_lang::anchor_syn::SysvarTy::RecentBlockhashes => "RecentBlockhashes",
+        anchor_lang::anchor_syn::SysvarTy::SlotHashes => "SlotHashes",
+        anchor_lang::anchor_syn::SysvarTy::SlotHistory => "SlotHistory",
+        anchor_lang::anchor_syn::SysvarTy::StakeHistory => "StakeHistory",
+        anchor_lang::anchor_syn::SysvarTy::Instructions => "Instructions",
+        anchor_lang::anchor_syn::SysvarTy::Rewards => "Rewards",
+    };
+    str.into()
 }
 
 // TODO add all account types as in https://github.com/coral-xyz/anchor/blob/master/lang/syn/src/parser/accounts/mod.rs#L351
@@ -334,7 +450,7 @@ impl AnchorType {
             AnchorType::Sysvar(sysvar) => {
                 let id = syn::Ident::new(sysvar.to_string().as_str(), Span::call_site());
                 (
-                    quote! { SysVar<#id>},
+                    quote! { Sysvar<#id>},
                     quote!(anchor_lang::accounts::sysvar::Sysvar::try_from(&acc)),
                 )
             }
@@ -382,18 +498,90 @@ impl AnchorType {
     }
 }
 
-fn deserialize_tokens(
+pub fn ty_to_tokens(ty: &anchor_lang::anchor_syn::Ty) -> Option<(TokenStream, TokenStream)> {
+    let (return_type, deser_method) = match ty {
+        Ty::AccountInfo | Ty::UncheckedAccount => return None,
+        Ty::SystemAccount => (
+            quote! { SystemAccount<'_>},
+            quote!(anchor_lang::accounts::system_account::SystemAccount::try_from(&acc)),
+        ),
+        Ty::Sysvar(sysvar) => {
+            let id = syn::Ident::new(&sysvar_to_ident(sysvar), Span::call_site());
+            (
+                quote! { Sysvar<#id>},
+                quote!(anchor_lang::accounts::sysvar::Sysvar::from_account_info(
+                    &acc
+                )),
+            )
+        }
+        Ty::Signer => (
+            quote! { Signer<'_>},
+            quote!(anchor_lang::accounts::signer::Signer::try_from(&acc)),
+        ),
+        Ty::Account(acc) => {
+            let path = &acc.account_type_path;
+            (
+                quote! { anchor_lang::accounts::account::Account<#path>},
+                quote! {anchor_lang::accounts::account::Account::try_from(&acc)},
+            )
+        }
+        Ty::AccountLoader(acc) => {
+            let path = &acc.account_type_path;
+            (
+                quote! { anchor_lang::accounts::account_loader::AccountLoader<#path>},
+                quote! {anchor_lang::accounts::account_loader::AccountLoader::try_from(&acc)},
+            )
+        }
+        Ty::Program(prog) => {
+            let path = &prog.account_type_path;
+            (
+                quote! { anchor_lang::accounts::program::Program<#path>},
+                quote!(anchor_lang::accounts::program::Program::try_from(&acc)),
+            )
+        }
+        Ty::Interface(interf) => {
+            let path = &interf.account_type_path;
+            (
+                quote! { anchor_lang::accounts::interface::Interface<#path>},
+                quote! {anchor_lang::accounts::interface::Interface::try_from(&acc)},
+            )
+        }
+        Ty::InterfaceAccount(interf_acc) => {
+            let path = &interf_acc.account_type_path;
+            (
+                quote! { anchor_lang::accounts::interface_account::InterfaceAccount<#path>},
+                quote! {anchor_lang::accounts::interface_account::InterfaceAccount::try_from(&acc)},
+            )
+        }
+        Ty::ProgramData => return None,
+    };
+    Some((return_type, deser_method))
+}
+
+fn deserialize_account_tokens(
     name: &syn::Ident,
+    is_optional: bool,
     return_type: TokenStream,
     deser_method: TokenStream,
 ) -> TokenStream {
-    quote! {
-        let #name:Option<#return_type> = accounts_iter
-        .next()
-        .ok_or(FuzzingError::NotEnoughAccounts)?
-        .map(|acc| #deser_method)
-        .transpose()
-        .unwrap_or(None);
+    if is_optional {
+        quote! {
+            let #name:Option<#return_type> = accounts_iter
+            .next()
+            .ok_or(FuzzingError::NotEnoughAccounts)?
+            .map(|acc| #deser_method)
+            .transpose()
+            .unwrap_or(None);
+        }
+    } else {
+        quote! {
+            let #name: #return_type = accounts_iter
+            .next()
+            .ok_or(FuzzingError::NotEnoughAccounts)?
+            .map(|acc| #deser_method)
+            .ok_or(FuzzingError::AccountNotFound)?
+            .map_err(|_| FuzzingError::CannotDeserializeAccount)?;
+        }
     }
 }
 
