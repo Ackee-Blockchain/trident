@@ -114,13 +114,11 @@ pub enum Error {
     MissingOrInvalidProgramItems(&'static str),
 }
 
-#[doc = r"Stores module name and it`s visibility"]
 struct ModPub {
     pub mod_name: String,
     pub is_pub: bool,
 }
 
-#[doc = r"Stores important information for obtaining full path for custom types"]
 struct FullPathFinder {
     target_item_name: String,
     current_module: String,
@@ -186,21 +184,17 @@ impl<'ast> syn::visit::Visit<'ast> for FullPathFinder {
     }
 }
 
-#[doc = r"Wrapper through all programs specified within the Solana project"]
 #[derive(Debug)]
 pub struct Idl {
     pub programs: Vec<IdlProgram>,
 }
 
-#[doc = r"Name struct for corresponding program"]
 #[derive(Debug)]
 pub struct IdlName {
     pub snake_case: String,
     pub upper_camel_case: String,
 }
 
-#[doc = r"IdlProgram struct which is generated for each program"]
-#[doc = r"within the project"]
 #[derive(Debug)]
 pub struct IdlProgram {
     pub name: IdlName,
@@ -208,19 +202,12 @@ pub struct IdlProgram {
     pub instruction_account_pairs: Vec<(IdlInstruction, IdlAccountGroup)>,
 }
 
-#[doc = r"IdlInstruction struct contains IdlName of struct"]
-#[doc = r"and corresponding Vector of parameters with their "]
-#[doc = r"types, for custom types such as Struct or Enum,"]
-#[doc = r" full path is obtained"]
 #[derive(Debug)]
 pub struct IdlInstruction {
     pub name: IdlName,
     pub parameters: Vec<(String, String)>,
 }
 
-#[doc = r"IdlAccountGroup struct contains IdlName of struct"]
-#[doc = r"(within Anchor framework perspective - Context), and"]
-#[doc = r"corresponding Accounts with the types"]
 #[derive(Debug)]
 pub struct IdlAccountGroup {
     pub name: IdlName,
@@ -656,7 +643,6 @@ pub async fn parse_to_idl_program(name: String, code: &str) -> Result<IdlProgram
     })
 }
 
-#[doc = r"Recursively looks for '__client_accounts_' modules"]
 fn set_account_modules(account_modules: &mut Vec<syn::ItemMod>, item_module: syn::ItemMod) {
     if item_module
         .ident
