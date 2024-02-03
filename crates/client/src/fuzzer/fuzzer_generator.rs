@@ -221,6 +221,7 @@ pub fn generate_source_code(idl: &Idl) -> String {
 
             let fuzzer_module: syn::ItemMod = parse_quote! {
                 pub mod #fuzz_instructions_module_name {
+                    use trdelnik_client::fuzzing::*;
                     use crate::accounts_snapshots::*;
 
                     #[derive(Arbitrary, Clone, DisplayIx, FuzzTestExecutor, FuzzDeserialize)]

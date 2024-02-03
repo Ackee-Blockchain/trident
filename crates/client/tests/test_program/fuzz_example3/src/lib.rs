@@ -14,13 +14,13 @@ pub mod fuzz_example3 {
 
     pub fn init_vesting(
         ctx: Context<InitVesting>,
-        recipient: Pubkey,
+        i_recipient: Pubkey,
         amount: u64,
         start_at: u64,
         end_at: u64,
         interval: u64,
     ) -> Result<()> {
-        _init_vesting(ctx, recipient, amount, start_at, end_at, interval)
+        _init_vesting(ctx, i_recipient, amount, start_at, end_at, interval)
     }
 
     pub fn withdraw_unlocked(ctx: Context<WithdrawUnlocked>) -> Result<()> {

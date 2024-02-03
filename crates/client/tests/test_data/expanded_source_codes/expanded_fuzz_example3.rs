@@ -108,7 +108,7 @@ mod instructions {
                         error_msg: VestingError::InvalidAmount.to_string(),
                         error_origin: Some(anchor_lang::error::ErrorOrigin::Source(
                             anchor_lang::error::Source {
-                                filename: "programs/fuzz_example3/src/instructions/initialize.rs",
+                                filename: "src/instructions/initialize.rs",
                                 line: 18u32,
                             },
                         )),
@@ -124,7 +124,7 @@ mod instructions {
                         error_msg: VestingError::InvalidTimeRange.to_string(),
                         error_origin: Some(anchor_lang::error::ErrorOrigin::Source(
                             anchor_lang::error::Source {
-                                filename: "programs/fuzz_example3/src/instructions/initialize.rs",
+                                filename: "src/instructions/initialize.rs",
                                 line: 20u32,
                             },
                         )),
@@ -140,7 +140,7 @@ mod instructions {
                         error_msg: VestingError::InvalidInterval.to_string(),
                         error_origin: Some(anchor_lang::error::ErrorOrigin::Source(
                             anchor_lang::error::Source {
-                                filename: "programs/fuzz_example3/src/instructions/initialize.rs",
+                                filename: "src/instructions/initialize.rs",
                                 line: 22u32,
                             },
                         )),
@@ -156,7 +156,7 @@ mod instructions {
                         error_msg: VestingError::InvalidInterval.to_string(),
                         error_origin: Some(anchor_lang::error::ErrorOrigin::Source(
                             anchor_lang::error::Source {
-                                filename: "programs/fuzz_example3/src/instructions/initialize.rs",
+                                filename: "src/instructions/initialize.rs",
                                 line: 23u32,
                             },
                         )),
@@ -365,7 +365,7 @@ mod instructions {
                                                                        error_code_number: anchor_lang::error::ErrorCode::TryingToInitPayerAsProgramAccount.into(),
                                                                        error_msg: anchor_lang::error::ErrorCode::TryingToInitPayerAsProgramAccount.to_string(),
                                                                        error_origin: Some(anchor_lang::error::ErrorOrigin::Source(anchor_lang::error::Source {
-                                                                                   filename: "programs/fuzz_example3/src/instructions/initialize.rs",
+                                                                                   filename: "src/instructions/initialize.rs",
                                                                                    line: 64u32,
                                                                                })),
                                                                        compared_values: None,
@@ -1364,7 +1364,7 @@ pub mod state {
                             .to_string(),
                         error_origin: Some(anchor_lang::error::ErrorOrigin::Source(
                             anchor_lang::error::Source {
-                                filename: "programs/fuzz_example3/src/state.rs",
+                                filename: "src/state.rs",
                                 line: 3u32,
                             },
                         )),
@@ -1764,7 +1764,7 @@ mod __private {
                                 .to_string(),
                             error_origin: Some(anchor_lang::error::ErrorOrigin::Source(
                                 anchor_lang::error::Source {
-                                    filename: "programs/fuzz_example3/src/lib.rs",
+                                    filename: "src/lib.rs",
                                     line: 11u32,
                                 },
                             )),
@@ -3424,7 +3424,7 @@ mod __private {
                         error_msg: anchor_lang::error::ErrorCode::RequireEqViolated.to_string(),
                         error_origin: Some(anchor_lang::error::ErrorOrigin::Source(
                             anchor_lang::error::Source {
-                                filename: "programs/fuzz_example3/src/lib.rs",
+                                filename: "src/lib.rs",
                                 line: 11u32,
                             },
                         )),
@@ -3466,7 +3466,7 @@ mod __private {
                         error_msg: anchor_lang::error::ErrorCode::RequireGteViolated.to_string(),
                         error_origin: Some(anchor_lang::error::ErrorOrigin::Source(
                             anchor_lang::error::Source {
-                                filename: "programs/fuzz_example3/src/lib.rs",
+                                filename: "src/lib.rs",
                                 line: 11u32,
                             },
                         )),
@@ -3492,7 +3492,7 @@ mod __private {
             let ix = instruction::InitVesting::deserialize(&mut &__ix_data[..])
                 .map_err(|_| anchor_lang::error::ErrorCode::InstructionDidNotDeserialize)?;
             let instruction::InitVesting {
-                recipient,
+                i_recipient,
                 amount,
                 start_at,
                 end_at,
@@ -3515,7 +3515,7 @@ mod __private {
                     __remaining_accounts,
                     __bumps,
                 ),
-                recipient,
+                i_recipient,
                 amount,
                 start_at,
                 end_at,
@@ -3557,13 +3557,13 @@ pub mod fuzz_example3 {
     use super::*;
     pub fn init_vesting(
         ctx: Context<InitVesting>,
-        recipient: Pubkey,
+        i_recipient: Pubkey,
         amount: u64,
         start_at: u64,
         end_at: u64,
         interval: u64,
     ) -> Result<()> {
-        _init_vesting(ctx, recipient, amount, start_at, end_at, interval)
+        _init_vesting(ctx, i_recipient, amount, start_at, end_at, interval)
     }
     pub fn withdraw_unlocked(ctx: Context<WithdrawUnlocked>) -> Result<()> {
         _withdraw_unlocked(ctx)
@@ -3579,7 +3579,7 @@ pub mod instruction {
     use super::*;
     #[doc = r" Instruction."]
     pub struct InitVesting {
-        pub recipient: Pubkey,
+        pub i_recipient: Pubkey,
         pub amount: u64,
         pub start_at: u64,
         pub end_at: u64,
@@ -3597,7 +3597,7 @@ pub mod instruction {
             &self,
             writer: &mut W,
         ) -> ::core::result::Result<(), borsh::maybestd::io::Error> {
-            borsh::BorshSerialize::serialize(&self.recipient, writer)?;
+            borsh::BorshSerialize::serialize(&self.i_recipient, writer)?;
             borsh::BorshSerialize::serialize(&self.amount, writer)?;
             borsh::BorshSerialize::serialize(&self.start_at, writer)?;
             borsh::BorshSerialize::serialize(&self.end_at, writer)?;
@@ -3617,7 +3617,7 @@ pub mod instruction {
             reader: &mut R,
         ) -> ::core::result::Result<Self, borsh::maybestd::io::Error> {
             Ok(Self {
-                recipient: borsh::BorshDeserialize::deserialize_reader(reader)?,
+                i_recipient: borsh::BorshDeserialize::deserialize_reader(reader)?,
                 amount: borsh::BorshDeserialize::deserialize_reader(reader)?,
                 start_at: borsh::BorshDeserialize::deserialize_reader(reader)?,
                 end_at: borsh::BorshDeserialize::deserialize_reader(reader)?,
