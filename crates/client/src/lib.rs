@@ -92,6 +92,7 @@ pub use error_reporter::*;
 pub mod cleaner;
 pub use cleaner::*;
 
+// This is a workaround for tests: https://github.com/Ackee-Blockchain/trdelnik/pull/112#issuecomment-1924920952
 pub use trdelnik_derive_displayix::DisplayIx;
 pub use trdelnik_derive_fuzz_deserialize::FuzzDeserialize;
 pub use trdelnik_derive_fuzz_test_executor::FuzzTestExecutor;

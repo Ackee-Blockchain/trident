@@ -20,6 +20,7 @@ anyhow = { version = "1.0.45", features = ["std"], default-features = false }
 
 [dev-dependencies]
 pretty_assertions = "1.1.0"
+macrotest = "1.0.9"
 
 [dependencies]
 trdelnik-test = { workspace = true }
@@ -61,4 +62,3 @@ trdelnik-derive-displayix = { path = "./derive/display_ix" }
 trdelnik-derive-fuzz-deserialize = { path = "./derive/fuzz_deserialize" }
 trdelnik-derive-fuzz-test-executor = { path = "./derive/fuzz_test_executor" }
 pathdiff = "0.2.1"
-macrotest = "1.0.9"
