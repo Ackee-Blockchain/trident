@@ -214,8 +214,13 @@ impl TestGenerator {
         } else {
             let mut directories: std::collections::HashSet<_> = fuzz_dir_path
                 .read_dir()
-                .unwrap()
-                .map(|r| r.unwrap().file_name().to_str().unwrap().to_string())
+                .expect("Reading directory failed")
+                .map(|r| {
+                    r.expect("Reading directory; DirEntry error")
+                        .file_name()
+                        .to_string_lossy()
+                        .to_string()
+                })
                 .collect();
 
             // INFO discard known entries created by framework, everything else
@@ -226,7 +231,7 @@ impl TestGenerator {
             let mut fuzz_id = directories.len();
             loop {
                 let fuzz_test = format!("fuzz_{fuzz_id}");
-                if directories.contains(&fuzz_test) {
+                if directories.contains(&fuzz_test) && fuzz_id < usize::MAX {
                     fuzz_id += 1;
                 } else {
                     break fuzz_id;
