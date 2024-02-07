@@ -28,8 +28,6 @@ use tokio::{
 };
 
 pub const PROGRAM_CLIENT_DIRECTORY: &str = ".program_client";
-pub const CARGO_TARGET_DIR_DEFAULT: &str = "trdelnik-tests/fuzz_tests/fuzzing/hfuzz_target";
-pub const HFUZZ_WORKSPACE_DEFAULT: &str = "trdelnik-tests/fuzz_tests/fuzzing/hfuzz_workspace";
 
 #[derive(Error, Debug)]
 pub enum Error {
@@ -164,17 +162,27 @@ impl Commander {
     pub async fn run_fuzzer_with_exit_code(&self, target: String) {
         let config = Config::new();
 
+        // obtain hfuzz_run_args from env variable, this variable can contain multiple
+        // arguments so we need to parse the variable content.
         let hfuzz_run_args = std::env::var("HFUZZ_RUN_ARGS").unwrap_or_default();
 
-        let cargo_target_dir =
-            std::env::var("CARGO_TARGET_DIR").unwrap_or(CARGO_TARGET_DIR_DEFAULT.to_string());
-
-        // we read the workspace from the env variable , if not explicitly set, set it to
-        // the default directory
-        let hfuzz_workspace =
-            std::env::var("HFUZZ_WORKSPACE").unwrap_or(HFUZZ_WORKSPACE_DEFAULT.to_string());
-
         let fuzz_args = config.get_fuzz_args(hfuzz_run_args);
+
+        // let cargo_target_dir = std::env::var("CARGO_TARGET_DIR").unwrap_or_default();
+
+        // obtain cargo_target_dir, as this variable contains only 1 string
+        // which corresponds to desired path, we can compare it to the Config
+        // the default/desired value is set inside Config, however variable entered
+        // form CLI has always precedence
+        let cargo_target_dir = std::env::var("CARGO_TARGET_DIR")
+            .unwrap_or_else(|_| config.get_env_arg("CARGO_TARGET_DIR"));
+
+        // obtain hfuzz_workspace, as this variable contains only 1 string
+        // which corresponds to desired path, we can compare it to the Config
+        // the default/desired value is set inside Config, however variable entered
+        // form CLI has always precedence
+        let hfuzz_workspace = std::env::var("HFUZZ_WORKSPACE")
+            .unwrap_or_else(|_| config.get_env_arg("HFUZZ_WORKSPACE"));
 
         let (crash_dir, ext) =
             get_crash_dir_and_ext(&self.root, &target, &fuzz_args, &hfuzz_workspace);
@@ -225,10 +233,11 @@ impl Commander {
         let config = Config::new();
 
         let hfuzz_run_args = std::env::var("HFUZZ_RUN_ARGS").unwrap_or_default();
-        let cargo_target_dir =
-            std::env::var("CARGO_TARGET_DIR").unwrap_or(CARGO_TARGET_DIR_DEFAULT.to_string());
-        let hfuzz_workspace =
-            std::env::var("HFUZZ_WORKSPACE").unwrap_or(HFUZZ_WORKSPACE_DEFAULT.to_string());
+
+        let cargo_target_dir = std::env::var("CARGO_TARGET_DIR")
+            .unwrap_or_else(|_| config.get_env_arg("CARGO_TARGET_DIR"));
+        let hfuzz_workspace = std::env::var("HFUZZ_WORKSPACE")
+            .unwrap_or_else(|_| config.get_env_arg("HFUZZ_WORKSPACE"));
 
         let fuzz_args = config.get_fuzz_args(hfuzz_run_args);
 
@@ -258,6 +267,8 @@ impl Commander {
     /// Runs fuzzer on the given target.
     #[throws]
     pub async fn run_fuzzer_debug(&self, target: String, crash_file_path: String) {
+        let config = Config::new();
+
         let crash_file = std::path::Path::new(&self.root as &str).join(crash_file_path);
 
         if !crash_file.try_exists()? {
@@ -265,8 +276,8 @@ impl Commander {
             throw!(Error::CrashFileNotFound);
         }
 
-        let cargo_target_dir =
-            std::env::var("CARGO_TARGET_DIR").unwrap_or(CARGO_TARGET_DIR_DEFAULT.to_string());
+        let cargo_target_dir = std::env::var("CARGO_TARGET_DIR")
+            .unwrap_or_else(|_| config.get_env_arg("CARGO_TARGET_DIR"));
 
         // using exec rather than spawn and replacing current process to avoid unflushed terminal output after ctrl+c signal
         std::process::Command::new("cargo")
@@ -629,6 +640,7 @@ fn get_crash_files(
 #[cfg(test)]
 mod tests {
     use super::*;
+    pub const HFUZZ_WORKSPACE_DEFAULT: &str = "trdelnik-tests/fuzz_tests/fuzzing/hfuzz_workspace";
     #[test]
     fn test_cmd_options_parsing() {
         let mut command = String::from("-Q -v --extension fuzz");

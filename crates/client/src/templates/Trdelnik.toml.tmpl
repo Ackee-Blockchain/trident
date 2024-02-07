@@ -2,7 +2,6 @@
 validator_startup_timeout = 15000
 
 
-# contains default values
 [fuzz]
 # Timeout in seconds (default: 10)
 timeout = 10
@@ -18,6 +17,11 @@ verbose = false
 exit_upon_crash = false
 # Maximal number of mutations per one run (default: 6)
 mutations_per_run = 6
+# Target compilation directory, (default: "" ["trdelnik-tests/fuzz_tests/fuzzing/hfuzz_target"]).
+# To not clash with cargo build's default target directory.
+cargo_target_dir = ""
+# Honggfuzz working directory, (default: "" ["trdelnik-tests/fuzz_tests/fuzzing/hfuzz_workspace"]).
+hfuzz_workspace = ""
 # Directory where crashes are saved to (default: "" [workspace directory])
 crashdir = ""
 # Input file extension (e.g. 'swf'), (default: "" ['fuzz'])
