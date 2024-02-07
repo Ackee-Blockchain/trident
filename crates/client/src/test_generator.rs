@@ -98,6 +98,8 @@ impl TestGenerator {
         };
         let root_path = root.to_str().unwrap().to_string();
         let commander = Commander::with_root(root_path);
+        commander.build_programs().await?;
+
         commander.create_program_client_crate().await?;
         self.generate_test_files(&root).await?;
         self.update_workspace(&root, "trdelnik-tests/poc_tests")
@@ -117,10 +119,10 @@ impl TestGenerator {
             Ok(root) => root,
             Err(_) => throw!(Error::BadWorkspace),
         };
-        let new_fuzz_test_dir = self.generate_fuzz_test_files(&root).await?;
-
         let root_path = root.to_str().unwrap().to_string();
         let commander = Commander::with_root(root_path);
+        commander.build_programs().await?;
+        let new_fuzz_test_dir = self.generate_fuzz_test_files(&root).await?;
         self.build_program_client(&commander, new_fuzz_test_dir)
             .await?;
         self.update_gitignore(
@@ -132,7 +134,6 @@ impl TestGenerator {
     /// Builds and generates programs for `program_client` module
     #[throws]
     async fn build_program_client(&self, commander: &Commander, new_fuzz_test_dir: PathBuf) {
-        commander.build_programs().await?;
         commander.generate_program_client_deps().await?;
         commander
             .generate_program_client_lib_rs(Some(new_fuzz_test_dir))
