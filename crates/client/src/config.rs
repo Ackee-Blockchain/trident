@@ -1,12 +1,17 @@
 use anyhow::Context;
 use fehler::throw;
 use serde::Deserialize;
-use std::{env, fs, io, path::PathBuf};
+use std::{collections::HashMap, env, fs, io, path::PathBuf};
 use thiserror::Error;
 
 pub const CARGO_TOML: &str = "Cargo.toml";
 pub const TRDELNIK_TOML: &str = "Trdelnik.toml";
 pub const ANCHOR_TOML: &str = "Anchor.toml";
+pub const CARGO_TARGET_DIR_DEFAULT: &str = "trdelnik-tests/fuzz_tests/fuzzing/hfuzz_target";
+pub const HFUZZ_WORKSPACE_DEFAULT: &str = "trdelnik-tests/fuzz_tests/fuzzing/hfuzz_workspace";
+
+pub const CARGO_TARGET_DIR_ENV: &str = "CARGO_TARGET_DIR";
+pub const HFUZZ_WORKSPACE_ENV: &str = "HFUZZ_WORKSPACE";
 
 #[derive(Error, Debug)]
 pub enum Error {
@@ -52,43 +57,83 @@ pub struct FuzzArg {
 #[derive(Debug, Deserialize, Clone)]
 pub struct Fuzz {
     pub fuzz_args: Vec<FuzzArg>,
+    pub env_variables: HashMap<String, String>,
 }
 #[derive(Default, Debug, Deserialize, Clone)]
 struct _Fuzz {
     #[serde(default)]
     /// Timeout in seconds (default: 10)
     /// -t
+    /// --timeout
     pub timeout: Option<u16>,
     #[serde(default)]
     /// Number of fuzzing iterations (default: 0 [no limit])
     /// -N
+    /// --iterations
     pub iterations: Option<u64>,
+    #[serde(default)]
+    /// Number of concurrent fuzzing threads (default: number of CPUs / 2)
+    /// -n
+    /// --threads
+    pub threads: Option<u16>,
     #[serde(default)]
     /// Don't close children's stdin, stdout, stderr; can be noisy
     /// -Q
+    /// --keep_output
     pub keep_output: Option<bool>,
     #[serde(default)]
     /// Disable ANSI console; use simple log output
     /// -v
+    /// --verbose
     pub verbose: Option<bool>,
     #[serde(default)]
     /// Exit upon seeing the first crash (default: false)
     /// --exit_upon_crash
     pub exit_upon_crash: Option<bool>,
+    #[serde(default)]
+    /// Maximal number of mutations per one run (default: 6)
+    /// -r
+    /// --mutations_per_run
+    pub mutations_per_run: Option<u16>,
+    #[serde(default)]
+    /// Target compilation directory, defaults to "trdelnik-tests/fuzz_tests/fuzzing/hfuzz_target" to not clash with cargo build's default target directory.
+    /// CARGO_TARGET_DIR env variable
+    pub cargo_target_dir: Option<String>,
+    #[serde(default)]
+    /// Honggfuzz working directory, defaults to "trdelnik-tests/fuzz_tests/fuzzing/hfuzz_workspace".
+    /// HFUZZ_WORKSPACE env variable
+    pub hfuzz_workspace: Option<String>,
+    #[serde(default)]
+    /// Directory where crashes are saved to (default: workspace directory)
+    /// --crashdir
+    pub crashdir: Option<String>,
+    #[serde(default)]
+    /// Input file extension (e.g. 'swf'), (default: 'fuzz')
+    /// -e
+    /// --extension
+    pub extension: Option<String>,
+    #[serde(default)]
+    /// Number of seconds this fuzzing session will last (default: 0 [no limit])
+    /// --run_time
+    pub run_time: Option<u32>,
+    #[serde(default)]
+    /// Maximal size of files processed by the fuzzer in bytes (default: 1048576 = 1MB)
+    /// -F
+    /// --max_file_size
+    pub max_file_size: Option<u32>,
+    #[serde(default)]
+    /// Save all test-cases (not only the unique ones) by appending the current time-stamp to the filenames (default: false)
+    /// -u
+    /// --save_all
+    pub save_all: Option<bool>,
 }
-impl Default for Fuzz {
-    fn default() -> Self {
-        Self {
-            fuzz_args: vec![
-                FuzzArg::new("-t", "--timeout", &10.to_string()),
-                FuzzArg::new("-N", "--iterations", &0.to_string()),
-            ],
-        }
-    }
-}
+
 impl From<_Fuzz> for Fuzz {
     fn from(_f: _Fuzz) -> Self {
-        let mut _self = Self { fuzz_args: vec![] };
+        let mut _self = Self {
+            fuzz_args: vec![],
+            env_variables: HashMap::default(),
+        };
 
         // timeout
         let timeout = _f.timeout.unwrap_or(10);
@@ -102,6 +147,14 @@ impl From<_Fuzz> for Fuzz {
             .fuzz_args
             .push(FuzzArg::new("-N", "--iterations", &iterations.to_string()));
 
+        // threads
+        let threads = _f.threads.unwrap_or(0);
+        if threads > 0 {
+            _self
+                .fuzz_args
+                .push(FuzzArg::new("-n", "--threads", &threads.to_string()));
+        }
+
         // keep_output
         let keep_output = _f.keep_output.unwrap_or(false);
         if keep_output {
@@ -109,7 +162,6 @@ impl From<_Fuzz> for Fuzz {
                 .fuzz_args
                 .push(FuzzArg::new("-Q", "--keep_output", ""));
         }
-
         // verbose
         let verbose = _f.verbose.unwrap_or(false);
         if verbose {
@@ -122,6 +174,69 @@ impl From<_Fuzz> for Fuzz {
             _self
                 .fuzz_args
                 .push(FuzzArg::new("", "--exit_upon_crash", ""));
+        }
+        // mutations_per_run
+        let mutations_per_run = _f.mutations_per_run.unwrap_or(6);
+        _self.fuzz_args.push(FuzzArg::new(
+            "-r",
+            "--mutations_per_run",
+            &mutations_per_run.to_string(),
+        ));
+        // cargo_target_dir
+        let cargo_target_dir = _f.cargo_target_dir.unwrap_or_default();
+        if !cargo_target_dir.is_empty() {
+            _self
+                .env_variables
+                .insert(CARGO_TARGET_DIR_ENV.to_owned(), cargo_target_dir);
+        } else {
+            _self.env_variables.insert(
+                CARGO_TARGET_DIR_ENV.to_owned(),
+                CARGO_TARGET_DIR_DEFAULT.to_owned(),
+            );
+        }
+        // hfuzz_workspace
+        let hfuzz_workspace = _f.hfuzz_workspace.unwrap_or_default();
+        if !hfuzz_workspace.is_empty() {
+            _self
+                .env_variables
+                .insert(HFUZZ_WORKSPACE_ENV.to_owned(), hfuzz_workspace);
+        } else {
+            _self.env_variables.insert(
+                HFUZZ_WORKSPACE_ENV.to_owned(),
+                HFUZZ_WORKSPACE_DEFAULT.to_owned(),
+            );
+        }
+        // crashdir
+        let crash_dir = _f.crashdir.unwrap_or_default();
+        if !crash_dir.is_empty() {
+            _self
+                .fuzz_args
+                .push(FuzzArg::new("", "--crashdir", &crash_dir));
+        }
+        // extension
+        let extension = _f.extension.unwrap_or_default();
+        if !extension.is_empty() {
+            _self
+                .fuzz_args
+                .push(FuzzArg::new("-e", "--extension", &extension));
+        }
+        // run_time
+        let run_time = _f.run_time.unwrap_or(0);
+        _self
+            .fuzz_args
+            .push(FuzzArg::new("", "--run_time", &run_time.to_string()));
+
+        // max_file_size
+        let max_file_size = _f.max_file_size.unwrap_or(1_048_576);
+        _self.fuzz_args.push(FuzzArg::new(
+            "-F",
+            "--max_file_size",
+            &max_file_size.to_string(),
+        ));
+        // save_all
+        let save_all = _f.save_all.unwrap_or(false);
+        if save_all {
+            _self.fuzz_args.push(FuzzArg::new("-u", "--save_all", ""));
         }
         _self
     }
@@ -209,7 +324,7 @@ impl Config {
         }
         throw!(Error::BadWorkspace)
     }
-    pub fn get_fuzz_args(self, cli_input: String) -> String {
+    pub fn get_fuzz_args(&self, cli_input: String) -> String {
         // Tested on a few examples, HFUZZ_RUN_ARGS give precedence to the later arguments.
         // so if HFUZZ_RUN_ARGS="-t 10 -t 15" -> timeout 15s is applied.
         // That means we do not need to parse the arguments from the CLI;
@@ -233,10 +348,43 @@ impl Config {
         args.push(cli_input);
         args.join(" ")
     }
+    pub fn get_env_arg(&self, env_variable: &str) -> String {
+        let expect = format!("{env_variable} not found");
+        self.fuzz
+            .env_variables
+            .get(env_variable)
+            .expect(&expect)
+            .to_string()
+    }
 }
 
 #[cfg(test)]
 mod tests {
+    impl Default for Fuzz {
+        fn default() -> Self {
+            let mut env_variables: HashMap<String, String> = HashMap::default();
+            env_variables.insert(
+                HFUZZ_WORKSPACE_ENV.to_owned(),
+                HFUZZ_WORKSPACE_DEFAULT.to_owned(),
+            );
+            env_variables.insert(
+                CARGO_TARGET_DIR_ENV.to_owned(),
+                CARGO_TARGET_DIR_DEFAULT.to_owned(),
+            );
+            Self {
+                fuzz_args: vec![
+                    FuzzArg::new("-t", "--timeout", &10.to_string()),
+                    FuzzArg::new("-N", "--iterations", &0.to_string()),
+                    FuzzArg::new("-r", "--mutations_per_run", &6.to_string()),
+                    FuzzArg::new("-e", "--extension", "fuzz"),
+                    FuzzArg::new("", "--run_time", &0.to_string()),
+                    FuzzArg::new("-F", "--max_file_size", &1_048_576.to_string()),
+                ],
+                env_variables,
+            }
+        }
+    }
+
     use super::*;
     #[test]
     fn test_merge_and_precedence1() {
@@ -246,7 +394,10 @@ mod tests {
         };
 
         let env_var_string = config.get_fuzz_args(String::default());
-        assert_eq!(env_var_string, "-t 10 -N 0 ");
+        assert_eq!(
+            env_var_string,
+            "-t 10 -N 0 -r 6 -e fuzz --run_time 0 -F 1048576 "
+        );
     }
     #[test]
     fn test_merge_and_precedence2() {
@@ -257,7 +408,10 @@ mod tests {
 
         let env_var_string = config.get_fuzz_args("-t 0 -N10 --exit_upon_crash".to_string());
 
-        assert_eq!(env_var_string, "-t 10 -N 0 -t 0 -N10 --exit_upon_crash");
+        assert_eq!(
+            env_var_string,
+            "-t 10 -N 0 -r 6 -e fuzz --run_time 0 -F 1048576 -t 0 -N10 --exit_upon_crash"
+        );
     }
     #[test]
     fn test_merge_and_precedence3() {
@@ -269,7 +423,7 @@ mod tests {
             config.get_fuzz_args("-t 100 -N 5000 -Q -v --exit_upon_crash".to_string());
         assert_eq!(
             env_var_string,
-            "-t 10 -N 0 -t 100 -N 5000 -Q -v --exit_upon_crash"
+            "-t 10 -N 0 -r 6 -e fuzz --run_time 0 -F 1048576 -t 100 -N 5000 -Q -v --exit_upon_crash"
         );
     }
     #[test]
@@ -282,7 +436,56 @@ mod tests {
         let env_var_string = config.get_fuzz_args("-t 10 -N 500 -Q -v --exit_upon_crash -n 15 --mutations_per_run 8 --verifier -W random_dir --crashdir random_dir5 --run_time 666".to_string());
         assert_eq!(
             env_var_string,
-            "-t 10 -N 0 -t 10 -N 500 -Q -v --exit_upon_crash -n 15 --mutations_per_run 8 --verifier -W random_dir --crashdir random_dir5 --run_time 666"
+            "-t 10 -N 0 -r 6 -e fuzz --run_time 0 -F 1048576 -t 10 -N 500 -Q -v --exit_upon_crash -n 15 --mutations_per_run 8 --verifier -W random_dir --crashdir random_dir5 --run_time 666"
         );
+    }
+    #[test]
+    fn test_merge_and_precedence5() {
+        let config = Config {
+            test: Test::default(),
+            fuzz: Fuzz::default(),
+        };
+
+        let env_var_string = config.get_fuzz_args("-t 10 -N 500 -Q -v --exit_upon_crash -n 15 --verifier -W random_dir --crashdir random_dir5 --run_time 666".to_string());
+        assert_eq!(
+            env_var_string,
+            "-t 10 -N 0 -r 6 -e fuzz --run_time 0 -F 1048576 -t 10 -N 500 -Q -v --exit_upon_crash -n 15 --verifier -W random_dir --crashdir random_dir5 --run_time 666"
+        );
+    }
+    #[test]
+    fn test_obtain_env_variables() {
+        let config = Config {
+            test: Test::default(),
+            fuzz: Fuzz::default(),
+        };
+
+        let cargo_target_dir = config.get_env_arg(CARGO_TARGET_DIR_ENV);
+
+        assert_eq!(cargo_target_dir, CARGO_TARGET_DIR_DEFAULT);
+        let hfuzz_workspace = config.get_env_arg(HFUZZ_WORKSPACE_ENV);
+        assert_eq!(hfuzz_workspace, HFUZZ_WORKSPACE_DEFAULT);
+    }
+    #[test]
+    fn test_obtain_env_variables2() {
+        let mut config = Config {
+            test: Test::default(),
+            fuzz: Fuzz::default(),
+        };
+
+        config
+            .fuzz
+            .env_variables
+            .insert(CARGO_TARGET_DIR_ENV.to_owned(), "new_value_x".to_owned());
+
+        config
+            .fuzz
+            .env_variables
+            .insert(HFUZZ_WORKSPACE_ENV.to_owned(), "new_value_y".to_owned());
+
+        let cargo_target_dir = config.get_env_arg(CARGO_TARGET_DIR_ENV);
+
+        assert_eq!(cargo_target_dir, "new_value_x");
+        let hfuzz_workspace = config.get_env_arg(HFUZZ_WORKSPACE_ENV);
+        assert_eq!(hfuzz_workspace, "new_value_y");
     }
 }
