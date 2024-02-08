@@ -252,6 +252,9 @@ fn deserialize_ctx_struct_anchor(
                         return_type,
                         deser_method,
                     ),
+                    None if matches!(&f.ty, Ty::UncheckedAccount) => {
+                        acc_unchecked_tokens(&field_name)
+                    }
                     None => acc_info_tokens(&field_name),
                 };
                 Ok((
@@ -403,7 +406,19 @@ fn acc_info_tokens(name: &syn::Ident) -> TokenStream {
     quote! {
         let #name = accounts_iter
         .next()
-        .ok_or(FuzzingError::NotEnoughAccounts)?;
+        .ok_or(FuzzingError::NotEnoughAccounts)?
+        .ok_or(FuzzingError::AccountNotFound)?;
+    }
+}
+
+/// Generates the code used with Unchecked accounts
+fn acc_unchecked_tokens(name: &syn::Ident) -> TokenStream {
+    quote! {
+        let #name = accounts_iter
+        .next()
+        .ok_or(FuzzingError::NotEnoughAccounts)?
+        .map(anchor_lang::accounts::unchecked_account::UncheckedAccount::try_from)
+        .ok_or(FuzzingError::AccountNotFound)?;
     }
 }
 

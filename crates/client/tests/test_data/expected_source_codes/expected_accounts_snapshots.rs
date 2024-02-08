@@ -119,7 +119,8 @@ impl<'info> WithdrawUnlockedSnapshot<'info> {
                 .map_err(|_| FuzzingError::CannotDeserializeAccount)?;
         let escrow_pda_authority = accounts_iter
             .next()
-            .ok_or(FuzzingError::NotEnoughAccounts)?;
+            .ok_or(FuzzingError::NotEnoughAccounts)?
+            .ok_or(FuzzingError::AccountNotFound)?;
         let mint: anchor_lang::accounts::account::Account<Mint> = accounts_iter
             .next()
             .ok_or(FuzzingError::NotEnoughAccounts)?
