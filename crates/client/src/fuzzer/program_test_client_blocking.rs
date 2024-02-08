@@ -1,7 +1,7 @@
 use crate::fuzzing::ProgramTest;
 use crate::fuzzing::{ProgramTestContext, SYSTEM_PROGRAM_ID};
 use crate::solana_sdk::account::Account;
-use solana_program_runtime::invoke_context::ProcessInstructionWithContext;
+use solana_program_runtime::invoke_context::BuiltinFunctionWithContext;
 use solana_sdk::{
     account::AccountSharedData, hash::Hash, instruction::AccountMeta, program_option::COption,
     program_pack::Pack, pubkey::Pubkey, rent::Rent, signature::Keypair, signature::Signer,
@@ -22,14 +22,13 @@ impl ProgramTestClientBlocking {
     pub fn new(
         program_name: &str,
         program_id: Pubkey,
-        entry: Option<ProcessInstructionWithContext>,
+        entry: Option<BuiltinFunctionWithContext>,
     ) -> Result<Self, FuzzClientError> {
         let program_test = ProgramTest::new(program_name, program_id, entry);
-        // let rt: tokio::runtime::Runtime = Builder::new_multi_thread()
-        //     .enable_all()
-        //     .build()
-        //     .map_err(|_| FuzzClientError::ClientInitError)?;
-        let rt: tokio::runtime::Runtime = Builder::new_current_thread().enable_all().build()?;
+        let rt: tokio::runtime::Runtime = Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .map_err(|_| FuzzClientError::ClientInitError)?;
 
         let ctx = rt.block_on(program_test.start_with_context());
         Ok(Self { ctx, rt })

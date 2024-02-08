@@ -31,7 +31,7 @@ pub mod fuzzing {
     pub use arbitrary::Arbitrary;
     pub use honggfuzz::fuzz;
     // TODO add optional feature gated dependency
-    pub use solana_program_test::{
+    pub use solana_program_test_anchor_fix::{
         processor, tokio::runtime::Runtime, BanksClient, BanksClientError, ProgramTest,
         ProgramTestContext,
     };
