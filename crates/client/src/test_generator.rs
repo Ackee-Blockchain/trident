@@ -1,7 +1,11 @@
 use crate::{
     commander::{Commander, Error as CommanderError},
     config::{Config, CARGO_TOML, TRDELNIK_TOML},
+    fuzzer,
+    idl::Idl,
+    snapshot_generator::generate_snapshots_code,
 };
+use cargo_metadata::camino::Utf8PathBuf;
 use fehler::{throw, throws};
 use std::{
     env,
@@ -40,9 +44,14 @@ pub enum Error {
     BadWorkspace,
     #[error("The Anchor project does not contain any programs")]
     NoProgramsFound,
+    #[error("read program code failed: '{0}'")]
+    ReadProgramCodeFailed(String),
 }
 
-pub struct TestGenerator;
+pub struct TestGenerator {
+    pub idl: Idl,
+    pub fuzzer_pairs: Vec<(String, Utf8PathBuf)>,
+}
 impl Default for TestGenerator {
     fn default() -> Self {
         Self::new()
@@ -50,7 +59,10 @@ impl Default for TestGenerator {
 }
 impl TestGenerator {
     pub fn new() -> Self {
-        Self
+        Self {
+            idl: Idl::default(),
+            fuzzer_pairs: vec![],
+        }
     }
 
     /// Builds all the programs and creates `.program_client` directory. Initializes the
@@ -91,7 +103,7 @@ impl TestGenerator {
     /// It fails when:
     /// - there is not a root directory (no `Anchor.toml` file)
     #[throws]
-    pub async fn generate(&self, _skip_fuzzer: bool) {
+    pub async fn generate(&mut self, _skip_fuzzer: bool) {
         let root = match Config::discover_root() {
             Ok(root) => root,
             Err(_) => throw!(Error::BadWorkspace),
@@ -99,11 +111,12 @@ impl TestGenerator {
         let root_path = root.to_str().unwrap().to_string();
         let commander = Commander::with_root(root_path);
         commander.create_program_client_crate().await?;
+        self.build_program_client(&commander).await?;
         self.generate_test_files(&root).await?;
         self.update_workspace(&root, "trdelnik-tests/poc_tests")
             .await?;
-        let new_fuzz_test_dir = self.generate_fuzz_test_files(&root).await?;
-        self.build_program_client(&commander, new_fuzz_test_dir)
+        self.generate_fuzz_test_files(&root).await?;
+        self.update_workspace(&root.to_path_buf(), "trdelnik-tests/fuzz_tests")
             .await?;
         self.update_gitignore(
             &root,
@@ -112,17 +125,30 @@ impl TestGenerator {
     }
 
     #[throws]
-    pub async fn add_new_fuzz_test(&self) {
+    pub async fn build(&mut self) {
         let root = match Config::discover_root() {
             Ok(root) => root,
             Err(_) => throw!(Error::BadWorkspace),
         };
-        let new_fuzz_test_dir = self.generate_fuzz_test_files(&root).await?;
+        let root_path = root.to_str().unwrap().to_string();
+        let commander = Commander::with_root(root_path);
+        commander.create_program_client_crate().await?;
+        commander.build_programs().await?;
+        commander.generate_program_client_deps().await?;
+        commander.generate_program_client_lib_rs(self).await?;
+    }
+
+    #[throws]
+    pub async fn add_new_fuzz_test(&mut self) {
+        let root = match Config::discover_root() {
+            Ok(root) => root,
+            Err(_) => throw!(Error::BadWorkspace),
+        };
 
         let root_path = root.to_str().unwrap().to_string();
         let commander = Commander::with_root(root_path);
-        self.build_program_client(&commander, new_fuzz_test_dir)
-            .await?;
+        self.build_program_client(&commander).await?;
+        self.generate_fuzz_test_files(&root).await?;
         self.update_gitignore(
             &root,
             &format!("{TESTS_WORKSPACE}/{FUZZ_TEST_DIRECTORY}/{FUZZING}/{HFUZZ_TARGET}"),
@@ -131,12 +157,10 @@ impl TestGenerator {
 
     /// Builds and generates programs for `program_client` module
     #[throws]
-    async fn build_program_client(&self, commander: &Commander, new_fuzz_test_dir: PathBuf) {
+    async fn build_program_client(&mut self, commander: &Commander) {
         commander.build_programs().await?;
         commander.generate_program_client_deps().await?;
-        commander
-            .generate_program_client_lib_rs(Some(new_fuzz_test_dir))
-            .await?;
+        commander.generate_program_client_lib_rs(self).await?;
     }
 
     /// Creates the `trdelnik-tests` workspace with `tests` directory and empty `test.rs` file
@@ -198,6 +222,78 @@ impl TestGenerator {
             .await?;
     }
 
+    #[throws]
+    async fn add_fuzz_snapshots(&self, new_fuzz_test_dir: &Path, _root: &Path) {
+        let accounts_snapshots_content =
+            generate_snapshots_code(&self.fuzzer_pairs).map_err(Error::ReadProgramCodeFailed)?;
+
+        let accounts_snapshots_content =
+            Commander::format_program_code(&accounts_snapshots_content).await?;
+        // create accounts_snapshots file
+        let accounts_snapshots_path = new_fuzz_test_dir.join(ACCOUNTS_SNAPSHOTS_FILE_NAME);
+        // let accounts_snapshots_content = include_str!(concat!(
+        //     env!("CARGO_MANIFEST_DIR"),
+        //     "/src/templates/trdelnik-tests/accounts_snapshots.rs"
+        // ));
+        self.create_file(
+            &accounts_snapshots_path,
+            ACCOUNTS_SNAPSHOTS_FILE_NAME,
+            &accounts_snapshots_content,
+        )
+        .await?;
+    }
+
+    #[throws]
+    async fn add_fuzz_instructions(&self, new_fuzz_test_dir: &Path, _root: &Path) {
+        let fuzz_instructions_content = fuzzer::fuzzer_generator::generate_source_code(&self.idl);
+        let fuzz_instructions_content =
+            Commander::format_program_code(&fuzz_instructions_content).await?;
+
+        // create fuzz instructions file
+        let fuzz_instructions_path = new_fuzz_test_dir.join(FUZZ_INSTRUCTIONS_FILE_NAME);
+        // let fuzz_instructions_content = include_str!(concat!(
+        //     env!("CARGO_MANIFEST_DIR"),
+        //     "/src/templates/trdelnik-tests/fuzz_instructions.rs"
+        // ));
+        self.create_file(
+            &fuzz_instructions_path,
+            FUZZ_INSTRUCTIONS_FILE_NAME,
+            &fuzz_instructions_content,
+        )
+        .await?;
+    }
+
+    #[throws]
+    async fn add_fuzz_target(&self, new_fuzz_test_dir: &Path, root: &Path) {
+        let libs = self.get_program_lib_names(root).await?;
+
+        let fuzz_test_path = new_fuzz_test_dir.join(FUZZ_TEST);
+
+        let fuzz_test_content = include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/src/templates/trdelnik-tests/test_fuzz.rs"
+        ))
+        .to_string();
+
+        // create fuzz target file
+        let fuzz_test_content = if let Some(lib) = libs.first() {
+            let use_entry = format!("use {}::entry;\n", lib);
+            let use_instructions = format!("use program_client::{}_instruction::*;\n", lib);
+            let use_fuzz_instructions = format!(
+                "use fuzz_instructions::{}_fuzz_instructions::FuzzInstruction;\n",
+                lib
+            );
+            let template =
+                format!("{use_entry}{use_instructions}{use_fuzz_instructions}{fuzz_test_content}");
+            template.replace("###PROGRAM_NAME###", lib)
+        } else {
+            throw!(Error::NoProgramsFound)
+        };
+
+        self.create_file(&fuzz_test_path, FUZZ_TEST, &fuzz_test_content)
+            .await?;
+    }
+
     /// Creates the `trdelnik-tests` workspace with `src/bin` directory and empty `fuzz_target.rs` file
     #[throws]
     async fn generate_fuzz_test_files(&self, root: &Path) -> PathBuf {
@@ -206,8 +302,6 @@ impl TestGenerator {
 
         self.create_directory_all(&fuzz_dir_path, FUZZ_TEST_DIRECTORY)
             .await?;
-
-        let libs = self.get_program_lib_names(root).await?;
 
         let fuzz_id = if fuzz_dir_path.read_dir()?.next().is_none() {
             0
@@ -246,57 +340,9 @@ impl TestGenerator {
         self.create_directory(&new_fuzz_test_dir, &new_fuzz_test)
             .await?;
 
-        let fuzz_test_path = new_fuzz_test_dir.join(FUZZ_TEST);
-
-        let fuzz_test_content = include_str!(concat!(
-            env!("CARGO_MANIFEST_DIR"),
-            "/src/templates/trdelnik-tests/test_fuzz.rs"
-        ))
-        .to_string();
-
-        // create fuzz target file
-        let fuzz_test_content = if let Some(lib) = libs.first() {
-            let use_entry = format!("use {}::entry;\n", lib);
-            let use_instructions = format!("use program_client::{}_instruction::*;\n", lib);
-            let use_fuzz_instructions = format!(
-                "use fuzz_instructions::{}_fuzz_instructions::FuzzInstruction;\n",
-                lib
-            );
-            let template =
-                format!("{use_entry}{use_instructions}{use_fuzz_instructions}{fuzz_test_content}");
-            template.replace("###PROGRAM_NAME###", lib)
-        } else {
-            throw!(Error::NoProgramsFound)
-        };
-
-        self.create_file(&fuzz_test_path, FUZZ_TEST, &fuzz_test_content)
-            .await?;
-
-        // create fuzz instructions file
-        let fuzz_instructions_path = new_fuzz_test_dir.join(FUZZ_INSTRUCTIONS_FILE_NAME);
-        let fuzz_instructions_content = include_str!(concat!(
-            env!("CARGO_MANIFEST_DIR"),
-            "/src/templates/trdelnik-tests/fuzz_instructions.rs"
-        ));
-        self.create_file(
-            &fuzz_instructions_path,
-            FUZZ_INSTRUCTIONS_FILE_NAME,
-            fuzz_instructions_content,
-        )
-        .await?;
-
-        // // create accounts_snapshots file
-        let accounts_snapshots_path = new_fuzz_test_dir.join(ACCOUNTS_SNAPSHOTS_FILE_NAME);
-        let accounts_snapshots_content = include_str!(concat!(
-            env!("CARGO_MANIFEST_DIR"),
-            "/src/templates/trdelnik-tests/accounts_snapshots.rs"
-        ));
-        self.create_file(
-            &accounts_snapshots_path,
-            ACCOUNTS_SNAPSHOTS_FILE_NAME,
-            accounts_snapshots_content,
-        )
-        .await?;
+        self.add_fuzz_target(&new_fuzz_test_dir, root).await?;
+        self.add_fuzz_instructions(&new_fuzz_test_dir, root).await?;
+        self.add_fuzz_snapshots(&new_fuzz_test_dir, root).await?;
 
         let cargo_toml_content = include_str!(concat!(
             env!("CARGO_MANIFEST_DIR"),
@@ -310,8 +356,6 @@ impl TestGenerator {
             .await?;
         self.add_program_deps(root, &fuzz_dir_path).await?;
 
-        self.update_workspace(&root.to_path_buf(), "trdelnik-tests/fuzz_tests")
-            .await?;
         new_fuzz_test_dir
     }
 

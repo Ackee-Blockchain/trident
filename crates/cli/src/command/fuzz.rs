@@ -60,7 +60,7 @@ pub async fn fuzz(root: Option<String>, subcmd: FuzzCommand) {
         }
 
         FuzzCommand::Add => {
-            let generator = TestGenerator::new();
+            let mut generator = TestGenerator::new();
             generator.add_new_fuzz_test().await?;
         }
     };

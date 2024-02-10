@@ -1,12 +1,8 @@
 use crate::config::Config;
-use crate::fuzzer;
-use crate::snapshot_generator::generate_snapshots_code;
-use crate::test_generator::ACCOUNTS_SNAPSHOTS_FILE_NAME;
+use crate::TestGenerator;
 use crate::{
     idl::{self, Idl},
-    program_client_generator,
-    test_generator::FUZZ_INSTRUCTIONS_FILE_NAME,
-    Client,
+    program_client_generator, Client,
 };
 use cargo_metadata::{MetadataCommand, Package};
 use fehler::{throw, throws};
@@ -401,7 +397,7 @@ impl Commander {
     ///
     /// It's used internally by the [`#[trdelnik_test]`](trdelnik_test::trdelnik_test) macro.
     #[throws]
-    pub async fn generate_program_client_lib_rs(&self, new_fuzz_test_dir: Option<PathBuf>) {
+    pub async fn generate_program_client_lib_rs(&self, test_generator: &mut TestGenerator) {
         let program_idls_codes = self.program_packages().map(|package| async move {
             let name = package.name;
             let output = Command::new("cargo")
@@ -441,26 +437,14 @@ impl Commander {
         let program_client = program_client_generator::generate_source_code(&idl, &use_tokens);
         let program_client = Self::format_program_code(&program_client).await?;
 
+        test_generator.fuzzer_pairs = codes_libs_pairs;
+        test_generator.idl = idl;
+
         // TODO do not overwrite files if they already exist to keep user changes
         let rust_file_path = Path::new(self.root.as_ref())
             .join(PROGRAM_CLIENT_DIRECTORY)
             .join("src/lib.rs");
         fs::write(rust_file_path, &program_client).await?;
-
-        if let Some(fuzz_test_dir) = new_fuzz_test_dir {
-            let program_fuzzer = fuzzer::fuzzer_generator::generate_source_code(&idl);
-            let program_fuzzer = Self::format_program_code(&program_fuzzer).await?;
-
-            let fuzzer_snapshots =
-                generate_snapshots_code(codes_libs_pairs).map_err(Error::ReadProgramCodeFailed)?;
-            let fuzzer_snapshots = Self::format_program_code(&fuzzer_snapshots).await?;
-
-            let rust_file_path = fuzz_test_dir.join(FUZZ_INSTRUCTIONS_FILE_NAME);
-            fs::write(rust_file_path, &program_fuzzer).await?;
-
-            let rust_file_path = fuzz_test_dir.join(ACCOUNTS_SNAPSHOTS_FILE_NAME);
-            fs::write(rust_file_path, &fuzzer_snapshots).await?;
-        }
     }
 
     /// Formats program code.

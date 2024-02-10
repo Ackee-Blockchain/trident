@@ -4,6 +4,6 @@ use trdelnik_client::TestGenerator;
 
 #[throws]
 pub async fn init(skip_fuzzer: bool) {
-    let generator = TestGenerator::new();
+    let mut generator = TestGenerator::new();
     generator.generate(skip_fuzzer).await?;
 }

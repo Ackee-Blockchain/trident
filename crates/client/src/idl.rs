@@ -108,7 +108,7 @@ pub enum Error {
     MissingOrInvalidProgramItems(&'static str),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Idl {
     pub programs: Vec<IdlProgram>,
 }
