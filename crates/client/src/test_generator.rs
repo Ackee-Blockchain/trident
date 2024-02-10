@@ -1,6 +1,6 @@
 use crate::{
     commander::{Commander, Error as CommanderError},
-    config::{Config, CARGO_TOML, TRDELNIK_TOML},
+    config::{CARGO_TOML, TRDELNIK_TOML},
 };
 use fehler::{throw, throws};
 use std::{
@@ -42,7 +42,9 @@ pub enum Error {
     NoProgramsFound,
 }
 
-pub struct TestGenerator;
+pub struct TestGenerator {
+    pub root: PathBuf,
+}
 impl Default for TestGenerator {
     fn default() -> Self {
         Self::new()
@@ -50,7 +52,14 @@ impl Default for TestGenerator {
 }
 impl TestGenerator {
     pub fn new() -> Self {
-        Self
+        Self {
+            root: PathBuf::default(),
+        }
+    }
+    pub fn new_with_root(root: &String) -> Self {
+        Self {
+            root: Path::new(&root).to_path_buf(),
+        }
     }
 
     /// Builds all the programs and creates `.program_client` directory. Initializes the
@@ -92,39 +101,31 @@ impl TestGenerator {
     /// - there is not a root directory (no `Anchor.toml` file)
     #[throws]
     pub async fn generate(&self, _skip_fuzzer: bool) {
-        let root = match Config::discover_root() {
-            Ok(root) => root,
-            Err(_) => throw!(Error::BadWorkspace),
-        };
-        let root_path = root.to_str().unwrap().to_string();
+        let root_path = self.root.to_str().unwrap().to_string();
         let commander = Commander::with_root(root_path);
         commander.create_program_client_crate().await?;
-        self.generate_test_files(&root).await?;
-        self.update_workspace(&root, "trdelnik-tests/poc_tests")
+        self.generate_test_files(&self.root).await?;
+        self.update_workspace(&self.root, "trdelnik-tests/poc_tests")
             .await?;
-        let new_fuzz_test_dir = self.generate_fuzz_test_files(&root).await?;
+        let new_fuzz_test_dir = self.generate_fuzz_test_files(&self.root).await?;
         self.build_program_client(&commander, new_fuzz_test_dir)
             .await?;
         self.update_gitignore(
-            &root,
+            &self.root,
             &format!("{TESTS_WORKSPACE}/{FUZZ_TEST_DIRECTORY}/{FUZZING}/{HFUZZ_TARGET}"),
         )?;
     }
 
     #[throws]
     pub async fn add_new_fuzz_test(&self) {
-        let root = match Config::discover_root() {
-            Ok(root) => root,
-            Err(_) => throw!(Error::BadWorkspace),
-        };
-        let new_fuzz_test_dir = self.generate_fuzz_test_files(&root).await?;
+        let new_fuzz_test_dir = self.generate_fuzz_test_files(&self.root).await?;
 
-        let root_path = root.to_str().unwrap().to_string();
+        let root_path = self.root.to_str().unwrap().to_string();
         let commander = Commander::with_root(root_path);
         self.build_program_client(&commander, new_fuzz_test_dir)
             .await?;
         self.update_gitignore(
-            &root,
+            &self.root,
             &format!("{TESTS_WORKSPACE}/{FUZZ_TEST_DIRECTORY}/{FUZZING}/{HFUZZ_TARGET}"),
         )?;
     }

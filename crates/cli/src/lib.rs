@@ -1,4 +1,5 @@
-use anyhow::Error;
+use anyhow::{Context, Error, Result};
+
 use clap::{Parser, Subcommand};
 use fehler::throws;
 
@@ -75,4 +76,49 @@ pub async fn start() {
         Command::Init { skip_fuzzer } => command::init(skip_fuzzer).await?,
         Command::Clean => command::clean().await?,
     }
+}
+
+// Climbs each parent directory until we find target.
+fn _discover(target: &str) -> Result<Option<String>> {
+    let _cwd = std::env::current_dir()?;
+    let mut cwd_opt = Some(_cwd.as_path());
+
+    while let Some(cwd) = cwd_opt {
+        for f in std::fs::read_dir(cwd)
+            .with_context(|| format!("Error reading the directory with path: {}", cwd.display()))?
+        {
+            let p = f
+                .with_context(|| {
+                    format!("Error reading the directory with path: {}", cwd.display())
+                })?
+                .path();
+            if let Some(filename) = p.file_name() {
+                if filename.to_str() == Some(target) {
+                    return Ok(Some(cwd.to_string_lossy().to_string()));
+                }
+            }
+        }
+
+        cwd_opt = cwd.parent();
+    }
+
+    Ok(None)
+}
+
+// Check if dir directory already contains target
+fn _check_if_present(dir: &String, target: &str) -> Result<bool> {
+    let dir = std::path::Path::new(&dir);
+    for f in std::fs::read_dir(dir)
+        .with_context(|| format!("Error reading the directory with path: {}", dir.display()))?
+    {
+        let p = f
+            .with_context(|| format!("Error reading the directory with path: {}", dir.display()))?
+            .path();
+        if let Some(filename) = p.file_name() {
+            if filename.to_str() == Some(target) {
+                return Ok(true);
+            }
+        }
+    }
+    Ok(false)
 }

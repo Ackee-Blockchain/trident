@@ -1,8 +1,11 @@
-use anyhow::{bail, Context, Error, Result};
+use anyhow::{bail, Error};
 
 use clap::Subcommand;
 use fehler::throws;
 use trdelnik_client::{Commander, TestGenerator};
+
+use crate::_discover;
+const TRDELNIK_TOML: &str = "Trdelnik.toml";
 
 #[derive(Subcommand)]
 #[allow(non_camel_case_types)]
@@ -30,7 +33,7 @@ pub async fn fuzz(root: Option<String>, subcmd: FuzzCommand) {
     let root = match root {
         Some(r) => r,
         _ => {
-            let root = _discover()?;
+            let root = _discover(TRDELNIK_TOML)?;
             if let Some(r) = root {
                 r
             } else {
@@ -60,35 +63,8 @@ pub async fn fuzz(root: Option<String>, subcmd: FuzzCommand) {
         }
 
         FuzzCommand::Add => {
-            let generator = TestGenerator::new();
+            let generator = TestGenerator::new_with_root(&root);
             generator.add_new_fuzz_test().await?;
         }
     };
-}
-
-// Climbs each parent directory until we find Trdelnik.toml.
-fn _discover() -> Result<Option<String>> {
-    let _cwd = std::env::current_dir()?;
-    let mut cwd_opt = Some(_cwd.as_path());
-
-    while let Some(cwd) = cwd_opt {
-        for f in std::fs::read_dir(cwd)
-            .with_context(|| format!("Error reading the directory with path: {}", cwd.display()))?
-        {
-            let p = f
-                .with_context(|| {
-                    format!("Error reading the directory with path: {}", cwd.display())
-                })?
-                .path();
-            if let Some(filename) = p.file_name() {
-                if filename.to_str() == Some("Trdelnik.toml") {
-                    return Ok(Some(cwd.to_string_lossy().to_string()));
-                }
-            }
-        }
-
-        cwd_opt = cwd.parent();
-    }
-
-    Ok(None)
 }
