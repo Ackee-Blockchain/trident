@@ -416,7 +416,13 @@ fn deserialize_account_tokens(
             let #name:Option<#return_type> = accounts_iter
             .next()
             .ok_or(FuzzingError::NotEnoughAccounts)?
-            .map(|acc| #deser_method)
+            .map(|acc| {
+                if acc.key() != PROGRAM_ID {
+                    #deser_method.map_err(|e| e.to_string())
+                } else {
+                    Err("Optional account not provided".to_string())
+                }
+            })
             .transpose()
             .unwrap_or(None);
         }
