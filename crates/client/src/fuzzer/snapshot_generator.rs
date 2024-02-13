@@ -169,12 +169,18 @@ fn is_boxed(ty: &anchor_lang::anchor_syn::Ty) -> bool {
 
 /// Determines if an Account should be wrapped into the `Option` type.
 /// The function returns true if the account has the init or close constraints set
-/// and is not already wrapped into the `Option` type.
+/// or if it is wrapped into the `Option` type.
 fn is_optional(parsed_field: &AccountField) -> bool {
-    match parsed_field {
+    let is_optional = match parsed_field {
         AccountField::Field(field) => field.is_optional,
         AccountField::CompositeField(_) => false,
-    }
+    };
+    let constraints = match parsed_field {
+        AccountField::Field(f) => &f.constraints,
+        AccountField::CompositeField(f) => &f.constraints,
+    };
+
+    constraints.init.is_some() || constraints.is_close() || is_optional
 }
 
 /// Creates new Snapshot struct from the context struct. Removes Box<> types.
