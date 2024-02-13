@@ -44,7 +44,14 @@ impl<'info> InitVestingSnapshot<'info> {
         let escrow: Option<anchor_lang::accounts::account::Account<Escrow>> = accounts_iter
             .next()
             .ok_or(FuzzingError::NotEnoughAccounts)?
-            .map(|acc| anchor_lang::accounts::account::Account::try_from(&acc))
+            .map(|acc| {
+                if acc.key() != PROGRAM_ID {
+                    anchor_lang::accounts::account::Account::try_from(&acc)
+                        .map_err(|e| e.to_string())
+                } else {
+                    Err("Optional account not provided".to_string())
+                }
+            })
             .transpose()
             .unwrap_or(None);
         let escrow_token_account: anchor_lang::accounts::account::Account<TokenAccount> =
@@ -107,7 +114,14 @@ impl<'info> WithdrawUnlockedSnapshot<'info> {
         let escrow: Option<anchor_lang::accounts::account::Account<Escrow>> = accounts_iter
             .next()
             .ok_or(FuzzingError::NotEnoughAccounts)?
-            .map(|acc| anchor_lang::accounts::account::Account::try_from(&acc))
+            .map(|acc| {
+                if acc.key() != PROGRAM_ID {
+                    anchor_lang::accounts::account::Account::try_from(&acc)
+                        .map_err(|e| e.to_string())
+                } else {
+                    Err("Optional account not provided".to_string())
+                }
+            })
             .transpose()
             .unwrap_or(None);
         let escrow_token_account: anchor_lang::accounts::account::Account<TokenAccount> =
