@@ -10,7 +10,7 @@ use proc_macro2::{Ident, Span, TokenStream};
 use quote::{format_ident, quote, ToTokens};
 use syn::parse::{Error as ParseError, Result as ParseResult};
 use syn::spanned::Spanned;
-use syn::{parse_quote, Attribute, Fields, GenericArgument, Item, ItemStruct, PathArguments};
+use syn::{parse_quote, Attribute, Fields, GenericArgument, Item, ItemStruct, PathArguments, Type};
 
 use anchor_lang::anchor_syn::parser::accounts::parse_account_field;
 
@@ -87,7 +87,7 @@ fn get_snapshot_structs_and_impls(
             }
             .map_err(|e| e.to_string())?;
 
-            let wrapped_struct = wrap_fields_in_option(ctx, &fields_parsed).unwrap();
+            let wrapped_struct = create_snapshot_struct(ctx, &fields_parsed).unwrap();
             let deser_code =
                 deserialize_ctx_struct_anchor(ctx, &fields_parsed).map_err(|e| e.to_string())?;
             // let deser_code = deserialize_ctx_struct(ctx).unwrap();
@@ -159,40 +159,26 @@ fn find_ctx_struct<'a>(items: &'a Vec<syn::Item>, name: &'a syn::Ident) -> Optio
     None
 }
 
+fn is_boxed(ty: &anchor_lang::anchor_syn::Ty) -> bool {
+    match ty {
+        Ty::Account(acc) => acc.boxed,
+        Ty::InterfaceAccount(acc) => acc.boxed,
+        _ => false,
+    }
+}
+
 /// Determines if an Account should be wrapped into the `Option` type.
 /// The function returns true if the account has the init or close constraints set
 /// and is not already wrapped into the `Option` type.
 fn is_optional(parsed_field: &AccountField) -> bool {
-    let is_optional = match parsed_field {
+    match parsed_field {
         AccountField::Field(field) => field.is_optional,
         AccountField::CompositeField(_) => false,
-    };
-    let constraints = match parsed_field {
-        AccountField::Field(f) => &f.constraints,
-        AccountField::CompositeField(f) => &f.constraints,
-    };
-
-    (constraints.init.is_some() || constraints.is_close()) && !is_optional
+    }
 }
 
-/// Determines if an Accout should be deserialized as optional.
-/// The function returns true if the account has the init or close constraints set
-/// or if it is explicitly optional (it was wrapped into the `Option` type already
-/// in the definition of it's corresponding context structure).
-fn deserialize_as_option(parsed_field: &AccountField) -> bool {
-    let is_optional = match parsed_field {
-        AccountField::Field(field) => field.is_optional,
-        AccountField::CompositeField(_) => false,
-    };
-    let constraints = match parsed_field {
-        AccountField::Field(f) => &f.constraints,
-        AccountField::CompositeField(f) => &f.constraints,
-    };
-
-    constraints.init.is_some() || constraints.is_close() || is_optional
-}
-
-fn wrap_fields_in_option(
+/// Creates new Snapshot struct from the context struct. Removes Box<> types.
+fn create_snapshot_struct(
     orig_struct: &ItemStruct,
     parsed_fields: &[AccountField],
 ) -> Result<TokenStream, Box<dyn Error>> {
@@ -206,18 +192,40 @@ fn wrap_fields_in_option(
                     .zip(parsed_fields)
                     .map(|(field, parsed_field)| {
                         let field_name = &field.ident;
-                        let field_type = &field.ty;
-                        if is_optional(parsed_field) {
-                            quote! {
-                                pub #field_name: Option<#field_type>,
+                        let mut field_type = &field.ty;
+                        if let AccountField::Field(f) = parsed_field {
+                            if f.is_optional {
+                                // remove option
+                                if let Some(ty) = extract_inner_type(field_type) {
+                                    field_type = ty;
+                                }
+                            }
+                            if is_boxed(&f.ty) {
+                                // remove box
+                                if let Some(ty) = extract_inner_type(field_type) {
+                                    field_type = ty;
+                                }
                             }
                         } else {
-                            quote! {
+                            return Err(
+                                "Composite field types in context structs not supported".into()
+                            );
+                        }
+
+                        if is_optional(parsed_field) {
+                            Ok(quote! {
+                                pub #field_name: Option<#field_type>,
+                            })
+                        } else {
+                            Ok(quote! {
                                 pub #field_name: #field_type,
-                            }
+                            })
                         }
                     });
 
+            let field_wrappers: Result<Vec<_>, Box<dyn Error>> =
+                field_wrappers.into_iter().collect();
+            let field_wrappers = field_wrappers?;
             quote! {
                 { #(#field_wrappers)* }
             }
@@ -234,6 +242,23 @@ fn wrap_fields_in_option(
     Ok(generated_struct.to_token_stream())
 }
 
+fn extract_inner_type(field_type: &Type) -> Option<&Type> {
+    if let syn::Type::Path(type_path) = field_type {
+        let segment = type_path.path.segments.last()?;
+        let ident = &segment.ident;
+
+        if ident == "Box" || ident == "Option" {
+            if let PathArguments::AngleBracketed(args) = &segment.arguments {
+                if let Some(syn::GenericArgument::Type(inner_type)) = args.args.first() {
+                    return Some(inner_type);
+                }
+            }
+        }
+    }
+
+    None
+}
+
 /// Generates code to deserialize the snapshot structs.
 fn deserialize_ctx_struct_anchor(
     snapshot_struct: &ItemStruct,
@@ -248,7 +273,7 @@ fn deserialize_ctx_struct_anchor(
                 let deser_tokens = match ty_to_tokens(&f.ty) {
                     Some((return_type, deser_method)) => deserialize_account_tokens(
                         &field_name,
-                        deserialize_as_option(parsed_f),
+                        is_optional(parsed_f),
                         return_type,
                         deser_method,
                     ),
