@@ -13,7 +13,6 @@ pub fn generate_source_code(idl: &Idl) -> String {
             let program_name = idl_program.name.snake_case.replace('-', "_");
             let fuzz_instructions_module_name = format_ident!("{}_fuzz_instructions", program_name);
             let module_name: syn::Ident = parse_str(&program_name).unwrap();
-            let mut accounts_from_instr_input: Vec<(String, String)> = vec![];
 
             let instructions = idl_program
                 .instruction_account_pairs
@@ -54,7 +53,6 @@ pub fn generate_source_code(idl: &Idl) -> String {
                             .iter()
                             .map(|(name, ty)| {
                                 let name_ident = format_ident!("{name}");
-                                // TODO What about custom Enums and Structs on Instr Input ?
                                 let ty = parse_str(ty).unwrap();
                                 let ty: syn::Type = match &ty {
                                     syn::Type::Path(tp) => {
@@ -62,8 +60,6 @@ pub fn generate_source_code(idl: &Idl) -> String {
                                             &tp.path.segments.last().unwrap().ident.to_string();
                                         if last_type == "Pubkey" {
                                             let t: syn::Type = parse_str("AccountId").unwrap();
-                                            accounts_from_instr_input
-                                                .push((name.to_string(), "AccountId".to_string()));
                                             t
                                         } else {
                                             ty
@@ -190,7 +186,7 @@ pub fn generate_source_code(idl: &Idl) -> String {
                 )
                 .into_iter();
 
-            let mut fuzz_accounts = idl_program.instruction_account_pairs.iter().fold(
+            let fuzz_accounts = idl_program.instruction_account_pairs.iter().fold(
                 HashMap::new(),
                 |mut fuzz_accounts, (_idl_instruction, idl_account_group)| {
                     idl_account_group.accounts.iter().fold(
@@ -204,15 +200,6 @@ pub fn generate_source_code(idl: &Idl) -> String {
                     fuzz_accounts
                 },
             );
-
-            fuzz_accounts.extend(accounts_from_instr_input.iter().fold(
-                HashMap::new(),
-                |mut fuzz_accounts, (name, _ty)| {
-                    let name = format_ident!("{name}");
-                    fuzz_accounts.entry(name).or_insert_with(|| "".to_string());
-                    fuzz_accounts
-                },
-            ));
 
             // this ensures that the order of accounts is deterministic
             // so we can use expected generated template within tests
