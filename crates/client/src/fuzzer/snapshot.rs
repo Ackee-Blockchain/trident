@@ -45,7 +45,25 @@ where
         Ok(accounts)
     }
 
+    fn set_missing_accounts_to_default(accounts: &mut [Option<Account>]) {
+        for acc in accounts.iter_mut() {
+            if acc.is_none() {
+                *acc = Some(solana_sdk::account::Account::default());
+            }
+        }
+    }
+
     pub fn get_snapshot(&'info mut self) -> Result<(T::Ix, T::Ix), FuzzingError> {
+        // When user passes an account that is not initialized, the runtime will provide
+        // a default empty account to the program. If the uninitialized account is of type
+        // AccountInfo, Signer or UncheckedAccount, Anchor will not return an error. However
+        // when we try to fetch "on-chain" accounts and an account is not initilized, this
+        // account simply does not exist and the get_account() method returns None. To prevent
+        // errors during deserialization due to missing accounts, we replace the missing accounts
+        // with default values similar as the runtime does.
+        Self::set_missing_accounts_to_default(&mut self.before);
+        Self::set_missing_accounts_to_default(&mut self.after);
+
         let pre_ix = self.ix.deserialize_option(self.metas, &mut self.before)?;
         let post_ix = self.ix.deserialize_option(self.metas, &mut self.after)?;
         Ok((pre_ix, post_ix))

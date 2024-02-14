@@ -19,6 +19,7 @@ pub use anyhow::{self, Error};
 
 #[cfg(feature = "fuzzing")]
 pub mod fuzzing {
+    pub use self::anchor_lang::solana_program::instruction::AccountMeta;
     pub use super::{
         anchor_lang, anchor_lang::system_program::ID as SYSTEM_PROGRAM_ID,
         anchor_lang::InstructionData, anchor_lang::ToAccountInfo, anchor_lang::ToAccountMetas,
@@ -26,7 +27,6 @@ pub mod fuzzing {
         Keypair, Pubkey, Signer, TempClone,
     };
     pub use anchor_client::anchor_lang::solana_program::hash::Hash;
-    pub use anchor_lang::solana_program::instruction::AccountMeta;
     pub use arbitrary;
     pub use arbitrary::Arbitrary;
     pub use honggfuzz::fuzz;

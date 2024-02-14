@@ -208,6 +208,7 @@ pub enum FuzzingError {
     CannotGetInstructionData,
     CannotDeserializeAccount,
     NotEnoughAccounts, // TODO add also custom error
+    AccountNotFound,
 }
 
 #[macro_export]

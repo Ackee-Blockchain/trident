@@ -18,7 +18,7 @@ runs:
         rustup component add rustfmt clippy
       shell: bash
     - name: Install Cargo Expand
-      run: cargo install cargo-expand
+      run: cargo install --locked cargo-expand
       shell: bash
     - name: Get rustc version
       id: rust-version
