@@ -53,25 +53,15 @@ pub fn generate_source_code(idl: &Idl) -> String {
                             .iter()
                             .map(|(name, ty)| {
                                 let name_ident = format_ident!("{name}");
-                                let ty = parse_str(ty).expect("Unable To parse argument type");
-                                let ty: syn::Type = match &ty {
-                                    syn::Type::Path(tp) => {
-                                        if &tp
-                                            .path
-                                            .segments
-                                            .last()
-                                            .expect("Unable To obtain last type")
-                                            .ident
-                                            .to_string()
-                                            == "Pubkey"
-                                        {
-                                            parse_str("AccountId")
-                                                .expect("Unable To parse AccountId")
-                                        } else {
-                                            ty
-                                        }
-                                    }
-                                    _ => ty,
+                                // the option ":: Pubkey"is for "anchor_lang::pubkey::Pubkey", that looks
+                                // like "anchor_lang :: pubkey :: Pubkey"
+                                let ty: syn::Type = if ty.ends_with("Pubkey")
+                                    || ty.ends_with("::Pubkey")
+                                    || ty.ends_with(":: Pubkey")
+                                {
+                                    parse_str("AccountId").expect("Unable to parse AccountId")
+                                } else {
+                                    parse_str(ty).expect("Unable to parse ty")
                                 };
                                 let parameter: syn::FnArg = parse_quote!(#name_ident: #ty);
                                 parameter
