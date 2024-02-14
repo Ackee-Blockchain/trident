@@ -96,7 +96,7 @@
 
 use heck::{ToSnakeCase, ToUpperCamelCase};
 use quote::ToTokens;
-use syn::visit::Visit;
+use syn::{visit::Visit, File};
 use thiserror::Error;
 
 const ACCOUNT_MOD_PREFIX: &str = "__client_accounts_";
@@ -126,15 +126,14 @@ struct FullPathFinder {
     module_pub: Vec<ModPub>,
 }
 
-fn find_item_path(code: &str, target_item_name: &str) -> Option<String> {
-    let syn_file = syn::parse_file(code).ok()?;
+fn find_item_path(target_item_name: &str, syn_file: &File) -> Option<String> {
     let mut finder = FullPathFinder {
         target_item_name: target_item_name.to_string(),
         current_module: "".to_string(),
         found_path: None,
         module_pub: vec![],
     };
-    finder.visit_file(&syn_file);
+    finder.visit_file(syn_file);
     finder.found_path
 }
 
@@ -220,14 +219,16 @@ pub async fn parse_to_idl_program(name: String, code: &str) -> Result<IdlProgram
     let mut mod_instruction = None::<syn::ItemMod>;
     let mut account_mods = Vec::<syn::ItemMod>::new();
 
-    for item in syn::parse_file(code)?.items.into_iter() {
+    let syn_file = syn::parse_file(code)?;
+
+    for item in syn_file.items.iter() {
         match item {
             syn::Item::Static(item_static) if item_static.ident == ID_IDENT => {
-                static_program_id = Some(item_static);
+                static_program_id = Some(item_static.clone());
             }
             syn::Item::Mod(item_mod) => match item_mod.ident.to_string().as_str() {
-                MOD_PRIVATE => mod_private = Some(item_mod),
-                MOD_INSTRUCTION => mod_instruction = Some(item_mod),
+                MOD_PRIVATE => mod_private = Some(item_mod.clone()),
+                MOD_INSTRUCTION => mod_instruction = Some(item_mod.clone()),
                 _ => set_account_modules(&mut account_mods, item_mod),
             },
             _ => (),
@@ -547,7 +548,7 @@ pub async fn parse_to_idl_program(name: String, code: &str) -> Result<IdlProgram
                 let parameter_name = field.ident.unwrap().to_string();
                 let parameter_id_type = field.ty.into_token_stream().to_string();
 
-                if let Some(path) = find_item_path(code, &parameter_id_type) {
+                if let Some(path) = find_item_path(&parameter_id_type, &syn_file) {
                     let tmp_final_path = format!("{name}{path}");
                     (parameter_name, tmp_final_path)
                 } else {
@@ -643,23 +644,24 @@ pub async fn parse_to_idl_program(name: String, code: &str) -> Result<IdlProgram
     })
 }
 
-fn set_account_modules(account_modules: &mut Vec<syn::ItemMod>, item_module: syn::ItemMod) {
+fn set_account_modules(account_modules: &mut Vec<syn::ItemMod>, item_module: &syn::ItemMod) {
     if item_module
         .ident
         .to_string()
         .starts_with(ACCOUNT_MOD_PREFIX)
     {
-        account_modules.push(item_module);
+        account_modules.push(item_module.clone());
         return;
     }
-    let modules = item_module
+    let modules = &item_module
         .content
+        .as_ref()
         .ok_or(Error::MissingOrInvalidProgramItems(
             "account mod: empty content",
         ))
         .unwrap()
         .1;
-    for module in modules {
+    for module in modules.iter() {
         if let syn::Item::Mod(nested_module) = module {
             set_account_modules(account_modules, nested_module);
         }
