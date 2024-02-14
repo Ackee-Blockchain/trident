@@ -3493,6 +3493,7 @@ mod __private {
                 .map_err(|_| anchor_lang::error::ErrorCode::InstructionDidNotDeserialize)?;
             let instruction::InitVesting {
                 recipient,
+                _recipient,
                 amount,
                 start_at,
                 end_at,
@@ -3516,6 +3517,7 @@ mod __private {
                     __bumps,
                 ),
                 recipient,
+                _recipient,
                 amount,
                 start_at,
                 end_at,
@@ -3558,6 +3560,7 @@ pub mod fuzz_example3 {
     pub fn init_vesting(
         ctx: Context<InitVesting>,
         recipient: Pubkey,
+        _recipient: anchor_lang::prelude::Pubkey,
         amount: u64,
         start_at: u64,
         end_at: u64,
@@ -3580,6 +3583,7 @@ pub mod instruction {
     #[doc = r" Instruction."]
     pub struct InitVesting {
         pub recipient: Pubkey,
+        pub _recipient: anchor_lang::prelude::Pubkey,
         pub amount: u64,
         pub start_at: u64,
         pub end_at: u64,
@@ -3588,6 +3592,7 @@ pub mod instruction {
     impl borsh::ser::BorshSerialize for InitVesting
     where
         Pubkey: borsh::ser::BorshSerialize,
+        anchor_lang::prelude::Pubkey: borsh::ser::BorshSerialize,
         u64: borsh::ser::BorshSerialize,
         u64: borsh::ser::BorshSerialize,
         u64: borsh::ser::BorshSerialize,
@@ -3598,6 +3603,7 @@ pub mod instruction {
             writer: &mut W,
         ) -> ::core::result::Result<(), borsh::maybestd::io::Error> {
             borsh::BorshSerialize::serialize(&self.recipient, writer)?;
+            borsh::BorshSerialize::serialize(&self._recipient, writer)?;
             borsh::BorshSerialize::serialize(&self.amount, writer)?;
             borsh::BorshSerialize::serialize(&self.start_at, writer)?;
             borsh::BorshSerialize::serialize(&self.end_at, writer)?;
@@ -3608,6 +3614,7 @@ pub mod instruction {
     impl borsh::de::BorshDeserialize for InitVesting
     where
         Pubkey: borsh::BorshDeserialize,
+        anchor_lang::prelude::Pubkey: borsh::BorshDeserialize,
         u64: borsh::BorshDeserialize,
         u64: borsh::BorshDeserialize,
         u64: borsh::BorshDeserialize,
@@ -3618,6 +3625,7 @@ pub mod instruction {
         ) -> ::core::result::Result<Self, borsh::maybestd::io::Error> {
             Ok(Self {
                 recipient: borsh::BorshDeserialize::deserialize_reader(reader)?,
+                _recipient: borsh::BorshDeserialize::deserialize_reader(reader)?,
                 amount: borsh::BorshDeserialize::deserialize_reader(reader)?,
                 start_at: borsh::BorshDeserialize::deserialize_reader(reader)?,
                 end_at: borsh::BorshDeserialize::deserialize_reader(reader)?,

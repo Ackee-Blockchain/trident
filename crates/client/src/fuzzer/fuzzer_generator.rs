@@ -53,14 +53,20 @@ pub fn generate_source_code(idl: &Idl) -> String {
                             .iter()
                             .map(|(name, ty)| {
                                 let name_ident = format_ident!("{name}");
-                                let ty = parse_str(ty).unwrap();
+                                let ty = parse_str(ty).expect("Unable To parse argument type");
                                 let ty: syn::Type = match &ty {
                                     syn::Type::Path(tp) => {
-                                        let last_type =
-                                            &tp.path.segments.last().unwrap().ident.to_string();
-                                        if last_type == "Pubkey" {
-                                            let t: syn::Type = parse_str("AccountId").unwrap();
-                                            t
+                                        if &tp
+                                            .path
+                                            .segments
+                                            .last()
+                                            .expect("Unable To obtain last type")
+                                            .ident
+                                            .to_string()
+                                            == "Pubkey"
+                                        {
+                                            parse_str("AccountId")
+                                                .expect("Unable To parse AccountId")
                                         } else {
                                             ty
                                         }
