@@ -63,7 +63,9 @@ where
         }
     }
 
-    pub fn get_snapshot(&'info mut self) -> Result<(T::Ix, T::Ix), FuzzingErrorWithOrigin> {
+    pub fn get_snapshot(
+        &'info mut self,
+    ) -> std::result::Result<(T::Ix, T::Ix), FuzzingErrorWithOrigin> {
         // When user passes an account that is not initialized, the runtime will provide
         // a default empty account to the program. If the uninitialized account is of type
         // AccountInfo, Signer or UncheckedAccount, Anchor will not return an error. However
