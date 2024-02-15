@@ -53,11 +53,10 @@ pub fn generate_source_code(idl: &Idl) -> String {
                             .iter()
                             .map(|(name, ty)| {
                                 let name_ident = format_ident!("{name}");
-                                // the option ":: Pubkey"is for "anchor_lang::pubkey::Pubkey", that looks
-                                // like "anchor_lang :: pubkey :: Pubkey"
-                                let ty: syn::Type = if ty.ends_with("Pubkey")
-                                    || ty.ends_with("::Pubkey")
-                                    || ty.ends_with(":: Pubkey")
+                                // Replace Pubkey type by AccountId, so the fuzzer will generate only Account indices
+                                // a not always unique Pubkeys
+                                let ty: syn::Type = if ty == "Pubkey"
+                                    || ty.replace(' ', "").ends_with("::Pubkey")
                                 {
                                     parse_str("AccountId").expect("Unable to parse AccountId")
                                 } else {
