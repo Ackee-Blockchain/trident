@@ -26,6 +26,229 @@ use anchor_spl::token::{
     TokenAccount, Transfer,
 };
 
+pub mod innerstate {
+    use super::*;
+
+    pub enum EnumInputInner {
+        Variant1,
+        Variant2,
+        Variant3,
+        Variant4,
+        Variant5,
+    }
+    impl borsh::de::BorshDeserialize for EnumInputInner {
+        fn deserialize_reader<R: borsh::maybestd::io::Read>(reader: &mut R)
+            -> ::core::result::Result<Self, borsh::maybestd::io::Error> {
+            let tag =
+                <u8 as
+                            borsh::de::BorshDeserialize>::deserialize_reader(reader)?;
+            <Self as borsh::de::EnumExt>::deserialize_variant(reader, tag)
+        }
+    }
+    impl borsh::de::EnumExt for EnumInputInner {
+        fn deserialize_variant<R: borsh::maybestd::io::Read>(reader: &mut R,
+            variant_idx: u8)
+            -> ::core::result::Result<Self, borsh::maybestd::io::Error> {
+            let mut return_value =
+                match variant_idx {
+                    0u8 => EnumInputInner::Variant1,
+                    1u8 => EnumInputInner::Variant2,
+                    2u8 => EnumInputInner::Variant3,
+                    3u8 => EnumInputInner::Variant4,
+                    4u8 => EnumInputInner::Variant5,
+                    _ =>
+                        return Err(borsh::maybestd::io::Error::new(borsh::maybestd::io::ErrorKind::InvalidInput,
+
+
+
+
+
+
+
+
+
+
+                                    // Transferring from initializer to taker
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                    {
+                                        let res =
+                                            ::alloc::fmt::format(format_args!("Unexpected variant index: {0:?}",
+                                                    variant_idx));
+                                        res
+                                    })),
+                };
+            Ok(return_value)
+        }
+    }
+    impl borsh::ser::BorshSerialize for EnumInputInner {
+        fn serialize<W: borsh::maybestd::io::Write>(&self, writer: &mut W)
+            -> ::core::result::Result<(), borsh::maybestd::io::Error> {
+            let variant_idx: u8 =
+                match self {
+                    EnumInputInner::Variant1 => 0u8,
+                    EnumInputInner::Variant2 => 1u8,
+                    EnumInputInner::Variant3 => 2u8,
+                    EnumInputInner::Variant4 => 3u8,
+                    EnumInputInner::Variant5 => 4u8,
+                };
+            writer.write_all(&variant_idx.to_le_bytes())?;
+            match self {
+                EnumInputInner::Variant1 => {}
+                EnumInputInner::Variant2 => {}
+                EnumInputInner::Variant3 => {}
+                EnumInputInner::Variant4 => {}
+                EnumInputInner::Variant5 => {}
+            }
+            Ok(())
+        }
+    }
+}
+pub use crate::innerstate::*;
+pub mod state {
+    use anchor_lang::prelude::*;
+    pub enum EnumInput { Variant1, Variant2, Variant3, Variant4, Variant5, }
+    impl borsh::de::BorshDeserialize for EnumInput {
+        fn deserialize_reader<R: borsh::maybestd::io::Read>(reader: &mut R)
+            -> ::core::result::Result<Self, borsh::maybestd::io::Error> {
+            let tag =
+                <u8 as
+                            borsh::de::BorshDeserialize>::deserialize_reader(reader)?;
+            <Self as borsh::de::EnumExt>::deserialize_variant(reader, tag)
+        }
+    }
+    impl borsh::de::EnumExt for EnumInput {
+        fn deserialize_variant<R: borsh::maybestd::io::Read>(reader: &mut R,
+            variant_idx: u8)
+            -> ::core::result::Result<Self, borsh::maybestd::io::Error> {
+            let mut return_value =
+                match variant_idx {
+                    0u8 => EnumInput::Variant1,
+                    1u8 => EnumInput::Variant2,
+                    2u8 => EnumInput::Variant3,
+                    3u8 => EnumInput::Variant4,
+                    4u8 => EnumInput::Variant5,
+                    _ =>
+                        return Err(borsh::maybestd::io::Error::new(borsh::maybestd::io::ErrorKind::InvalidInput,
+                                    {
+                                        let res =
+                                            ::alloc::fmt::format(format_args!("Unexpected variant index: {0:?}",
+                                                    variant_idx));
+                                        res
+                                    })),
+                };
+            Ok(return_value)
+        }
+    }
+    impl borsh::ser::BorshSerialize for EnumInput {
+        fn serialize<W: borsh::maybestd::io::Write>(&self, writer: &mut W)
+            -> ::core::result::Result<(), borsh::maybestd::io::Error> {
+            let variant_idx: u8 =
+                match self {
+                    EnumInput::Variant1 => 0u8,
+                    EnumInput::Variant2 => 1u8,
+                    EnumInput::Variant3 => 2u8,
+                    EnumInput::Variant4 => 3u8,
+                    EnumInput::Variant5 => 4u8,
+                };
+            writer.write_all(&variant_idx.to_le_bytes())?;
+            match self {
+                EnumInput::Variant1 => {}
+                EnumInput::Variant2 => {}
+                EnumInput::Variant3 => {}
+                EnumInput::Variant4 => {}
+                EnumInput::Variant5 => {}
+            }
+            Ok(())
+        }
+    }
+    pub struct StructInput {
+        pub field1: u8,
+        pub field2: String,
+        pub field3: StructInputInner,
+    }
+    impl borsh::de::BorshDeserialize for StructInput where
+        u8: borsh::BorshDeserialize, String: borsh::BorshDeserialize,
+        StructInputInner: borsh::BorshDeserialize {
+        fn deserialize_reader<R: borsh::maybestd::io::Read>(reader: &mut R)
+            -> ::core::result::Result<Self, borsh::maybestd::io::Error> {
+            Ok(Self {
+                    field1: borsh::BorshDeserialize::deserialize_reader(reader)?,
+                    field2: borsh::BorshDeserialize::deserialize_reader(reader)?,
+                    field3: borsh::BorshDeserialize::deserialize_reader(reader)?,
+                })
+        }
+    }
+    impl borsh::ser::BorshSerialize for StructInput where
+        u8: borsh::ser::BorshSerialize, String: borsh::ser::BorshSerialize,
+        StructInputInner: borsh::ser::BorshSerialize {
+        fn serialize<W: borsh::maybestd::io::Write>(&self, writer: &mut W)
+            -> ::core::result::Result<(), borsh::maybestd::io::Error> {
+            borsh::BorshSerialize::serialize(&self.field1, writer)?;
+            borsh::BorshSerialize::serialize(&self.field2, writer)?;
+            borsh::BorshSerialize::serialize(&self.field3, writer)?;
+            Ok(())
+        }
+    }
+    #[automatically_derived]
+    impl ::core::default::Default for StructInput {
+        #[inline]
+        fn default() -> StructInput {
+            StructInput {
+                field1: ::core::default::Default::default(),
+                field2: ::core::default::Default::default(),
+                field3: ::core::default::Default::default(),
+            }
+        }
+    }
+    pub struct StructInputInner {
+        pub field1: Pubkey,
+        pub field2: String,
+    }
+    impl borsh::de::BorshDeserialize for StructInputInner where
+        Pubkey: borsh::BorshDeserialize, String: borsh::BorshDeserialize {
+        fn deserialize_reader<R: borsh::maybestd::io::Read>(reader: &mut R)
+            -> ::core::result::Result<Self, borsh::maybestd::io::Error> {
+            Ok(Self {
+                    field1: borsh::BorshDeserialize::deserialize_reader(reader)?,
+                    field2: borsh::BorshDeserialize::deserialize_reader(reader)?,
+                })
+        }
+    }
+    impl borsh::ser::BorshSerialize for StructInputInner where
+        Pubkey: borsh::ser::BorshSerialize, String: borsh::ser::BorshSerialize
+        {
+        fn serialize<W: borsh::maybestd::io::Write>(&self, writer: &mut W)
+            -> ::core::result::Result<(), borsh::maybestd::io::Error> {
+            borsh::BorshSerialize::serialize(&self.field1, writer)?;
+            borsh::BorshSerialize::serialize(&self.field2, writer)?;
+            Ok(())
+        }
+    }
+    #[automatically_derived]
+    impl ::core::default::Default for StructInputInner {
+        #[inline]
+        fn default() -> StructInputInner {
+            StructInputInner {
+                field1: ::core::default::Default::default(),
+                field2: ::core::default::Default::default(),
+            }
+        }
+    }
+}
+pub use crate::state::*;
 #[doc = r" The static program ID"]
 pub static ID: anchor_lang::solana_program::pubkey::Pubkey =
     anchor_lang::solana_program::pubkey::Pubkey::new_from_array([5u8, 214u8,
@@ -39,30 +262,7 @@ pub fn check_id(id: &anchor_lang::solana_program::pubkey::Pubkey) -> bool {
 }
 #[doc = r" Returns the program ID"]
 pub fn id() -> anchor_lang::solana_program::pubkey::Pubkey { ID }
-
 use self::escrow::*;
-
-
-
-
-
-
-
-// Transferring from initializer to taker
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /// # Safety
 #[no_mangle]
 pub unsafe extern "C" fn entrypoint(input: *mut u8) -> u64 {
@@ -358,7 +558,7 @@ mod __private {
                                             error_msg: anchor_lang::error::ErrorCode::AccountDiscriminatorMismatch.to_string(),
                                             error_origin: Some(anchor_lang::error::ErrorOrigin::Source(anchor_lang::error::Source {
                                                         filename: "programs/escrow/src/lib.rs",
-                                                        line: 25u32,
+                                                        line: 42u32,
                                                     })),
                                             compared_values: None,
                                         }).with_account_name("IdlAccount"));
@@ -1697,7 +1897,7 @@ mod __private {
                                         error_msg: anchor_lang::error::ErrorCode::RequireEqViolated.to_string(),
                                         error_origin: Some(anchor_lang::error::ErrorOrigin::Source(anchor_lang::error::Source {
                                                     filename: "programs/escrow/src/lib.rs",
-                                                    line: 25u32,
+                                                    line: 42u32,
                                                 })),
                                         compared_values: None,
                                     }).with_values((idl_expansion.len(), idl_data.len())));
@@ -1730,7 +1930,7 @@ mod __private {
                                         error_msg: anchor_lang::error::ErrorCode::RequireGteViolated.to_string(),
                                         error_origin: Some(anchor_lang::error::ErrorOrigin::Source(anchor_lang::error::Source {
                                                     filename: "programs/escrow/src/lib.rs",
-                                                    line: 25u32,
+                                                    line: 42u32,
                                                 })),
                                         compared_values: None,
                                     }).with_values((target.len(), buffer_len)));
@@ -1752,7 +1952,11 @@ mod __private {
                 instruction::InitializeEscrow::deserialize(&mut &__ix_data[..]).map_err(|_|
                             anchor_lang::error::ErrorCode::InstructionDidNotDeserialize)?;
             let instruction::InitializeEscrow {
-                    initializer_amount, taker_amount } = ix;
+                    initializer_amount,
+                    taker_amount,
+                    _enum_variant,
+                    _enum_variant_inner,
+                    _struct_variant_inner } = ix;
             let mut __bumps = std::collections::BTreeMap::new();
             let mut __reallocs = std::collections::BTreeSet::new();
             let mut __remaining_accounts: &[AccountInfo] = __accounts;
@@ -1763,7 +1967,8 @@ mod __private {
             let result =
                 escrow::initialize_escrow(anchor_lang::context::Context::new(__program_id,
                             &mut __accounts, __remaining_accounts, __bumps),
-                        initializer_amount, taker_amount)?;
+                        initializer_amount, taker_amount, _enum_variant,
+                        _enum_variant_inner, _struct_variant_inner)?;
             __accounts.exit(__program_id)
         }
         #[inline(never)]
@@ -1813,7 +2018,9 @@ pub mod escrow {
     use super::*;
     const ESCROW_PDA_SEED: &[u8] = b"escrow";
     pub fn initialize_escrow(ctx: Context<InitializeEscrow>,
-        initializer_amount: u64, taker_amount: u64) -> Result<()> {
+        initializer_amount: u64, taker_amount: u64, _enum_variant: EnumInput,
+        _enum_variant_inner: EnumInputInner,
+        _struct_variant_inner: StructInput) -> Result<()> {
         ctx.accounts.escrow_account.initializer_key =
             *ctx.accounts.initializer.key;
         ctx.accounts.escrow_account.initializer_deposit_token_account =
@@ -1865,24 +2072,41 @@ pub mod instruction {
     pub struct InitializeEscrow {
         pub initializer_amount: u64,
         pub taker_amount: u64,
+        pub _enum_variant: EnumInput,
+        pub _enum_variant_inner: EnumInputInner,
+        pub _struct_variant_inner: StructInput,
     }
     impl borsh::ser::BorshSerialize for InitializeEscrow where
-        u64: borsh::ser::BorshSerialize, u64: borsh::ser::BorshSerialize {
+        u64: borsh::ser::BorshSerialize, u64: borsh::ser::BorshSerialize,
+        EnumInput: borsh::ser::BorshSerialize,
+        EnumInputInner: borsh::ser::BorshSerialize,
+        StructInput: borsh::ser::BorshSerialize {
         fn serialize<W: borsh::maybestd::io::Write>(&self, writer: &mut W)
             -> ::core::result::Result<(), borsh::maybestd::io::Error> {
             borsh::BorshSerialize::serialize(&self.initializer_amount,
                     writer)?;
             borsh::BorshSerialize::serialize(&self.taker_amount, writer)?;
+            borsh::BorshSerialize::serialize(&self._enum_variant, writer)?;
+            borsh::BorshSerialize::serialize(&self._enum_variant_inner,
+                    writer)?;
+            borsh::BorshSerialize::serialize(&self._struct_variant_inner,
+                    writer)?;
             Ok(())
         }
     }
     impl borsh::de::BorshDeserialize for InitializeEscrow where
-        u64: borsh::BorshDeserialize, u64: borsh::BorshDeserialize {
+        u64: borsh::BorshDeserialize, u64: borsh::BorshDeserialize,
+        EnumInput: borsh::BorshDeserialize,
+        EnumInputInner: borsh::BorshDeserialize,
+        StructInput: borsh::BorshDeserialize {
         fn deserialize_reader<R: borsh::maybestd::io::Read>(reader: &mut R)
             -> ::core::result::Result<Self, borsh::maybestd::io::Error> {
             Ok(Self {
                     initializer_amount: borsh::BorshDeserialize::deserialize_reader(reader)?,
                     taker_amount: borsh::BorshDeserialize::deserialize_reader(reader)?,
+                    _enum_variant: borsh::BorshDeserialize::deserialize_reader(reader)?,
+                    _enum_variant_inner: borsh::BorshDeserialize::deserialize_reader(reader)?,
+                    _struct_variant_inner: borsh::BorshDeserialize::deserialize_reader(reader)?,
                 })
         }
     }
@@ -1940,9 +2164,9 @@ pub mod instruction {
 #[doc = r" mirroring the structs deriving `Accounts`, where each field is"]
 #[doc = r" a `Pubkey`. This is useful for specifying accounts for a client."]
 pub mod accounts {
+    pub use crate::__client_accounts_initialize_escrow::*;
     pub use crate::__client_accounts_exchange::*;
     pub use crate::__client_accounts_cancel_escrow::*;
-    pub use crate::__client_accounts_initialize_escrow::*;
 }
 #[instruction(initializer_amount : u64)]
 pub struct InitializeEscrow<'info> {
@@ -2061,7 +2285,7 @@ impl<'info> anchor_lang::Accounts<'info> for InitializeEscrow<'info> where
                                                                error_msg: anchor_lang::error::ErrorCode::TryingToInitPayerAsProgramAccount.to_string(),
                                                                error_origin: Some(anchor_lang::error::ErrorOrigin::Source(anchor_lang::error::Source {
                                                                            filename: "programs/escrow/src/lib.rs",
-                                                                           line: 103u32,
+                                                                           line: 123u32,
                                                                        })),
                                                                compared_values: None,
                                                            }).with_pubkeys((initializer.key(), escrow_account.key())));
@@ -3002,7 +3226,7 @@ impl anchor_lang::AccountDeserialize for EscrowAccount {
                                     error_msg: anchor_lang::error::ErrorCode::AccountDiscriminatorMismatch.to_string(),
                                     error_origin: Some(anchor_lang::error::ErrorOrigin::Source(anchor_lang::error::Source {
                                                 filename: "programs/escrow/src/lib.rs",
-                                                line: 169u32,
+                                                line: 189u32,
                                             })),
                                     compared_values: None,
                                 }).with_account_name("EscrowAccount"));

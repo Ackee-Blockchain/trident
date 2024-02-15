@@ -17,7 +17,7 @@ pub async fn generate_program_client() {
     // after you've called `makers trdelnik test`.
     let expected_client_code = include_str!(concat!(
         env!("CARGO_MANIFEST_DIR"),
-        "/tests/test_data/expected_source_codes/expected_client_code.rs"
+        "/tests/test_data/expected_source_codes/expected_program_client_code.rs"
     ));
 
     let program_idl =

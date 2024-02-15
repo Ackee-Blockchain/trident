@@ -10,6 +10,9 @@ pub mod escrow_instruction {
         client: &Client,
         i_initializer_amount: u64,
         i_taker_amount: u64,
+        i__enum_variant: escrow::state::EnumInput,
+        i__enum_variant_inner: escrow::innerstate::EnumInputInner,
+        i__struct_variant_inner: escrow::state::StructInput,
         a_initializer: Pubkey,
         a_initializer_deposit_token_account: Pubkey,
         a_initializer_receive_token_account: Pubkey,
@@ -24,6 +27,9 @@ pub mod escrow_instruction {
                 escrow::instruction::InitializeEscrow {
                     initializer_amount: i_initializer_amount,
                     taker_amount: i_taker_amount,
+                    _enum_variant: i__enum_variant,
+                    _enum_variant_inner: i__enum_variant_inner,
+                    _struct_variant_inner: i__struct_variant_inner,
                 },
                 escrow::accounts::InitializeEscrow {
                     initializer: a_initializer,
@@ -40,6 +46,9 @@ pub mod escrow_instruction {
     pub fn initialize_escrow_ix(
         i_initializer_amount: u64,
         i_taker_amount: u64,
+        i__enum_variant: escrow::state::EnumInput,
+        i__enum_variant_inner: escrow::innerstate::EnumInputInner,
+        i__struct_variant_inner: escrow::state::StructInput,
         a_initializer: Pubkey,
         a_initializer_deposit_token_account: Pubkey,
         a_initializer_receive_token_account: Pubkey,
@@ -52,6 +61,9 @@ pub mod escrow_instruction {
             data: escrow::instruction::InitializeEscrow {
                 initializer_amount: i_initializer_amount,
                 taker_amount: i_taker_amount,
+                _enum_variant: i__enum_variant,
+                _enum_variant_inner: i__enum_variant_inner,
+                _struct_variant_inner: i__struct_variant_inner,
             }
             .data(),
             accounts: escrow::accounts::InitializeEscrow {
