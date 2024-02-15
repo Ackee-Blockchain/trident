@@ -549,6 +549,7 @@ pub async fn parse_to_idl_program(name: String, code: &str) -> Result<IdlProgram
                 let parameter_id_type = field.ty.into_token_stream().to_string();
 
                 if let Some(path) = find_item_path(&parameter_id_type, &syn_file) {
+                    let name = name.to_snake_case();
                     let tmp_final_path = format!("{name}{path}");
                     (parameter_name, tmp_final_path)
                 } else {
