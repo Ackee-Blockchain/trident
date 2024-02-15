@@ -52,9 +52,17 @@ pub fn generate_source_code(idl: &Idl) -> String {
                             .parameters
                             .iter()
                             .map(|(name, ty)| {
-                                let name = format_ident!("{name}");
-                                let ty: syn::Type = parse_str(ty).unwrap();
-                                let parameter: syn::FnArg = parse_quote!(#name: #ty);
+                                let name_ident = format_ident!("{name}");
+                                // Replace Pubkey type by AccountId, so the fuzzer will generate only Account indices
+                                // a not always unique Pubkeys
+                                let ty: syn::Type = if ty == "Pubkey"
+                                    || ty.replace(' ', "").ends_with("::Pubkey")
+                                {
+                                    parse_str("AccountId").expect("Unable to parse AccountId")
+                                } else {
+                                    parse_str(ty).expect("Unable to parse ty")
+                                };
+                                let parameter: syn::FnArg = parse_quote!(#name_ident: #ty);
                                 parameter
                             })
                             .collect::<Vec<_>>();
@@ -184,10 +192,10 @@ pub fn generate_source_code(idl: &Idl) -> String {
                             fuzz_accounts
                         },
                     );
-
                     fuzz_accounts
                 },
             );
+
             // this ensures that the order of accounts is deterministic
             // so we can use expected generated template within tests
             let mut sorted_fuzz_accounts: Vec<_> = fuzz_accounts.keys().collect();

@@ -23,7 +23,8 @@ pub mod fuzz_example3_fuzz_instructions {
     }
     #[derive(Arbitrary, Clone)]
     pub struct InitVestingData {
-        pub recipient: Pubkey,
+        pub recipient: AccountId,
+        pub _recipient: AccountId,
         pub amount: u64,
         pub start_at: u64,
         pub end_at: u64,
@@ -58,6 +59,7 @@ pub mod fuzz_example3_fuzz_instructions {
         ) -> Result<Self::IxData, FuzzingError> {
             let data = fuzz_example3::instruction::InitVesting {
                 recipient: todo!(),
+                _recipient: todo!(),
                 amount: todo!(),
                 start_at: todo!(),
                 end_at: todo!(),

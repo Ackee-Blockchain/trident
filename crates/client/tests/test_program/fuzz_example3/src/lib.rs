@@ -15,6 +15,7 @@ pub mod fuzz_example3 {
     pub fn init_vesting(
         ctx: Context<InitVesting>,
         recipient: Pubkey,
+        _recipient: anchor_lang::prelude::Pubkey,
         amount: u64,
         start_at: u64,
         end_at: u64,
