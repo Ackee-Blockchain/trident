@@ -1,5 +1,6 @@
 use anyhow::Error;
 use clap::{Parser, Subcommand};
+use command::InitTemplate;
 use fehler::throws;
 
 // subcommand functions to call and nested subcommands
@@ -53,9 +54,9 @@ enum Command {
     },
     /// Initialize test environment
     Init {
-        /// Flag to skip generating template for fuzzing and activating the fuzzing feature.
-        #[arg(short, long)]
-        skip_fuzzer: bool,
+        /// Generates Tests (Fuzz, PoC) based on the provided template option.
+        #[clap(default_value = "both")]
+        template: InitTemplate,
     },
     /// Removes target contents except for KeyPair and removes hfuzz_target folder
     Clean,
@@ -72,7 +73,7 @@ pub async fn start() {
         Command::Fuzz { root, subcmd } => command::fuzz(root, subcmd).await?,
         Command::Localnet => command::localnet().await?,
         Command::Explorer { subcmd } => command::explorer(subcmd).await?,
-        Command::Init { skip_fuzzer } => command::init(skip_fuzzer).await?,
+        Command::Init { template } => command::init(template).await?,
         Command::Clean => command::clean().await?,
     }
 }

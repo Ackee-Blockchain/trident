@@ -91,7 +91,7 @@ impl TestGenerator {
     /// It fails when:
     /// - there is not a root directory (no `Anchor.toml` file)
     #[throws]
-    pub async fn generate(&self, _skip_fuzzer: bool) {
+    pub async fn generate_both(&self) {
         let root = match Config::discover_root() {
             Ok(root) => root,
             Err(_) => throw!(Error::BadWorkspace),
@@ -103,12 +103,44 @@ impl TestGenerator {
         self.update_workspace(&root, "trdelnik-tests/poc_tests")
             .await?;
         let new_fuzz_test_dir = self.generate_fuzz_test_files(&root).await?;
-        self.build_program_client(&commander, new_fuzz_test_dir)
+        self.build_program_client(&commander, Some(new_fuzz_test_dir))
             .await?;
         self.update_gitignore(
             &root,
             &format!("{TESTS_WORKSPACE}/{FUZZ_TEST_DIRECTORY}/{FUZZING}/{HFUZZ_TARGET}"),
         )?;
+    }
+
+    #[throws]
+    pub async fn generate_fuzz(&self) {
+        let root = match Config::discover_root() {
+            Ok(root) => root,
+            Err(_) => throw!(Error::BadWorkspace),
+        };
+        let root_path = root.to_str().unwrap().to_string();
+        let commander = Commander::with_root(root_path);
+        commander.create_program_client_crate().await?;
+        let new_fuzz_test_dir = self.generate_fuzz_test_files(&root).await?;
+        self.build_program_client(&commander, Some(new_fuzz_test_dir))
+            .await?;
+        self.update_gitignore(
+            &root,
+            &format!("{TESTS_WORKSPACE}/{FUZZ_TEST_DIRECTORY}/{FUZZING}/{HFUZZ_TARGET}"),
+        )?;
+    }
+    #[throws]
+    pub async fn generate_poc(&self) {
+        let root = match Config::discover_root() {
+            Ok(root) => root,
+            Err(_) => throw!(Error::BadWorkspace),
+        };
+        let root_path = root.to_str().unwrap().to_string();
+        let commander = Commander::with_root(root_path);
+        commander.create_program_client_crate().await?;
+        self.generate_test_files(&root).await?;
+        self.update_workspace(&root, "trdelnik-tests/poc_tests")
+            .await?;
+        self.build_program_client(&commander, None).await?;
     }
 
     #[throws]
@@ -121,7 +153,7 @@ impl TestGenerator {
 
         let root_path = root.to_str().unwrap().to_string();
         let commander = Commander::with_root(root_path);
-        self.build_program_client(&commander, new_fuzz_test_dir)
+        self.build_program_client(&commander, Some(new_fuzz_test_dir))
             .await?;
         self.update_gitignore(
             &root,
@@ -131,11 +163,15 @@ impl TestGenerator {
 
     /// Builds and generates programs for `program_client` module
     #[throws]
-    async fn build_program_client(&self, commander: &Commander, new_fuzz_test_dir: PathBuf) {
+    async fn build_program_client(
+        &self,
+        commander: &Commander,
+        new_fuzz_test_dir: Option<PathBuf>,
+    ) {
         commander.build_programs().await?;
         commander.generate_program_client_deps().await?;
         commander
-            .generate_program_client_lib_rs(Some(new_fuzz_test_dir))
+            .generate_program_client_lib_rs(new_fuzz_test_dir)
             .await?;
     }
 
