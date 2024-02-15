@@ -7,10 +7,10 @@ use thiserror::Error;
 pub enum FuzzClientError {
     #[error("Custom fuzzing error: {0}")]
     Custom(u32),
-    #[error("Not able to initialize client")]
+    #[error("Not able to initialize client: {0}")]
     ClientInitError(#[from] std::io::Error),
     // Box for Error variant too Long warnings
-    #[error("Obtained Banks Client Error: {0}")]
+    #[error("Banks Client Error: {0}")]
     BanksError(Box<BanksClientError>),
 }
 
@@ -32,7 +32,7 @@ pub enum FuzzingError {
     NotAbleToObtainAccountInfos,
     #[error("Balance Mismatch\n")]
     BalanceMismatch,
-    #[error("Data Mismatch example message xyz\n")]
+    #[error("Data Mismatch\n")]
     DataMismatch,
     #[error("Unable to obtain Data\n")]
     UnableToObtainData,

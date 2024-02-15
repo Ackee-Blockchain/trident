@@ -148,8 +148,6 @@ pub mod fuzz_example3_fuzz_instructions {
             }
             .to_account_metas(None);
 
-            // let sender_only = &acc_meta[0];
-            // Ok((vec![sender], vec![sender_only.clone()]))
             Ok((vec![sender], acc_meta))
         }
     }
@@ -251,38 +249,34 @@ pub mod fuzz_example3_fuzz_instructions {
             _ix_data: Self::IxData,
         ) -> Result<(), FuzzingError> {
             if let Some(escrow) = pre_ix.escrow {
-                let recipient = pre_ix.recipient.unwrap();
-                if let Some(recipient_token_account_pre) = pre_ix.recipient_token_account {
-                    if let Some(recipient_token_account_post) = post_ix.recipient_token_account {
-                        if escrow.recipient == *recipient.key {
-                            if recipient_token_account_pre.amount
-                                == recipient_token_account_post.amount
-                            {
-                                // INFO Recipient was not able to withdraw
-                                // return Err("Recipient was not able to withdraw any funds");
-                                return Err(FuzzingError::BalanceMismatch);
-                            } else if recipient_token_account_pre.amount + escrow.amount
-                                != recipient_token_account_post.amount
-                            {
-                                if recipient_token_account_pre.amount + escrow.amount
-                                    > recipient_token_account_post.amount
-                                {
-                                    // INFO The recipient was able to withdraw,
-                                    // but not as much as was initially intended.
-                                    // return Err("Recipient withdrew LESS");
-                                    return Err(FuzzingError::Custom(15));
-                                } else {
-                                    // INFO The recipient was able to withdraw,
-                                    // but more as was initially intended.
-                                    // This option is possible because the program uses one token accout with corresponding mint
-                                    // across multiple Escrow Transactions, this means that we can actually withdraw more
-                                    // if prior to Withdraw call, was sufficient amount transferred to the escrow token account.
-                                    // (e.g. due to prior Initialization of different Escrow Transactions)
-                                    // For testing purposes inside debug use eprintln!()
-                                    // return Err("Recipient withdrew MORE");
-                                    return Err(FuzzingError::Custom(2));
-                                }
-                            }
+                let recipient = pre_ix.recipient;
+                let recipient_token_account_pre = pre_ix.recipient_token_account;
+                let recipient_token_account_post = post_ix.recipient_token_account;
+                if escrow.recipient == *recipient.key {
+                    if recipient_token_account_pre.amount == recipient_token_account_post.amount {
+                        // INFO Recipient was not able to withdraw
+                        // return Err("Recipient was not able to withdraw any funds");
+                        return Err(FuzzingError::BalanceMismatch);
+                    } else if recipient_token_account_pre.amount + escrow.amount
+                        != recipient_token_account_post.amount
+                    {
+                        if recipient_token_account_pre.amount + escrow.amount
+                            > recipient_token_account_post.amount
+                        {
+                            // INFO The recipient was able to withdraw,
+                            // but not as much as was initially intended.
+                            // return Err("Recipient withdrew LESS");
+                            return Err(FuzzingError::Custom(15));
+                        } else {
+                            // INFO The recipient was able to withdraw,
+                            // but more as was initially intended.
+                            // This option is possible because the program uses one token accout with corresponding mint
+                            // across multiple Escrow Transactions, this means that we can actually withdraw more
+                            // if prior to Withdraw call, was sufficient amount transferred to the escrow token account.
+                            // (e.g. due to prior Initialization of different Escrow Transactions)
+                            // For testing purposes inside debug use eprintln!()
+                            // return Err("Recipient withdrew MORE");
+                            return Err(FuzzingError::Custom(2));
                         }
                     }
                 }
