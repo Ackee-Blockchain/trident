@@ -9,18 +9,21 @@ pub enum FuzzClientError {
     Custom(u32),
     #[error("Not able to initialize client")]
     ClientInitError(#[from] std::io::Error),
+    // Box for Error variant too Long warnings
     #[error("Obtained Banks Client Error: {0}")]
-    BanksError(#[from] BanksClientError),
-    // #[error("Obtained Banks Client Error: {0}")]
-    // SetAccount(#[from] solana_sdk::program_error::ProgramError),
+    BanksError(Box<BanksClientError>),
 }
 
 #[derive(Debug, Error)]
 pub enum FuzzingError {
     #[error("Custom fuzzing error: {0}\n")]
     Custom(u32),
+    // #[error("Not able to deserialize account: {0}\n")]
+    // CannotDeserializeAccount(anchor_lang::error::Error),
     #[error("Not able to deserialize account: {0}\n")]
     CannotDeserializeAccount(String),
+    #[error("Optional Account not provided: {0}\n")]
+    OptionalAccountNotProvided(String),
     #[error("Not enough Accounts: {0}\n")]
     NotEnoughAccounts(String),
     #[error("Account not Found: {0}\n")]
@@ -33,8 +36,12 @@ pub enum FuzzingError {
     DataMismatch,
     #[error("Unable to obtain Data\n")]
     UnableToObtainData,
-    #[error("Optional Account not provided\n")]
-    OptionalAccountNotProvided,
+}
+
+impl From<BanksClientError> for FuzzClientError {
+    fn from(value: BanksClientError) -> Self {
+        Self::BanksError(Box::new(value))
+    }
 }
 
 impl FuzzClientError {
@@ -63,16 +70,30 @@ impl FuzzingError {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub enum Origin {
     Instruction(String),
     Account(Pubkey),
 }
 
-#[derive(Debug, Clone)]
+impl Display for Origin {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        writeln!(f, "Origin: {:#?}", self)?;
+        Ok(())
+    }
+}
+
+#[derive(Debug)]
 pub enum Context {
     Pre,
     Post,
+}
+
+impl Display for Context {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        writeln!(f, "Context: {:#?}", self)?;
+        Ok(())
+    }
 }
 
 #[derive(Debug)]
@@ -108,22 +129,27 @@ impl From<FuzzingError> for FuzzingErrorWithOrigin {
         }
     }
 }
-
-// \x1b[93m ... \x1b[0m provides some text color in the terminal
-// this can help to increase readability of the debug output
 impl Display for FuzzClientErrorWithOrigin {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         Display::fmt(&self.client_error, f)?;
-        writeln!(f, "\x1b[93mOrigin:\x1b[0m {:#?}", &self.origin)?;
-        writeln!(f, "\x1b[93mContext:\x1b[0m {:#?}", &self.context)?;
+        if let Some(o) = &self.origin {
+            Display::fmt(o, f)?;
+        }
+        if let Some(c) = &self.context {
+            Display::fmt(c, f)?;
+        }
         Ok(())
     }
 }
 impl Display for FuzzingErrorWithOrigin {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         Display::fmt(&self.fuzzing_error, f)?;
-        writeln!(f, "\x1b[93mOrigin:\x1b[0m {:#?}", &self.origin)?;
-        writeln!(f, "\x1b[93mContext:\x1b[0m {:#?}", &self.context)?;
+        if let Some(o) = &self.origin {
+            Display::fmt(o, f)?;
+        }
+        if let Some(c) = &self.context {
+            Display::fmt(c, f)?;
+        }
         Ok(())
     }
 }
