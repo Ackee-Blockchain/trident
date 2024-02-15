@@ -308,7 +308,7 @@ fn deserialize_ctx_struct_anchor(
                 accounts: &'info mut [Option<trdelnik_client::solana_sdk::account::Account>],
             ) -> core::result::Result<Self, FuzzingError> {
                 let accounts = get_account_infos_option(accounts, metas)
-                    .map_err(|_| FuzzingError::CannotGetAccounts)?;
+                    .map_err(|_| FuzzingError::NotAbleToObtainAccountInfos)?;
 
                 let mut accounts_iter = accounts.into_iter();
 
@@ -412,50 +412,63 @@ fn deserialize_account_tokens(
     deser_method: TokenStream,
 ) -> TokenStream {
     if is_optional {
+        let name_str = name.to_string();
         quote! {
             let #name:Option<#return_type> = accounts_iter
             .next()
-            .ok_or(FuzzingError::NotEnoughAccounts)?
+            .ok_or(FuzzingError::NotEnoughAccounts(#name_str.to_string()))?
             .map(|acc| {
                 if acc.key() != PROGRAM_ID {
-                    #deser_method.map_err(|e| e.to_string())
-                } else {
-                    Err("Optional account not provided".to_string())
+                    #deser_method.map_err(|_| FuzzingError::CannotDeserializeAccount(#name_str.to_string()))
+                } else {Err(FuzzingError::OptionalAccountNotProvided(
+                        #name_str.to_string(),
+                    ))
                 }
             })
             .transpose()
             .unwrap_or(None);
         }
     } else {
+        let name_str = name.to_string();
         quote! {
             let #name: #return_type = accounts_iter
             .next()
-            .ok_or(FuzzingError::NotEnoughAccounts)?
+            .ok_or(FuzzingError::NotEnoughAccounts(#name_str.to_string()))?
             .map(|acc| #deser_method)
-            .ok_or(FuzzingError::AccountNotFound)?
-            .map_err(|_| FuzzingError::CannotDeserializeAccount)?;
+            .ok_or(FuzzingError::AccountNotFound(#name_str.to_string()))?
+            // TODO It would be helpful to do something like line below.
+            // where we propagate anchor error
+            // However I suggest that this is not possible right now as for
+            // fuzz_example3 the anchor_lang has version 0.28.0. However trdelnik
+            // uses 0.29.0 I think this is the reason why the '?' operator cannot propagate
+            // the error even though I implemnted From<anchor_lang::error::Error> trait
+            // that i
+            // .map_err(|e| e.with_account_name(#name_str).into())?;
+            .map_err(|_| FuzzingError::CannotDeserializeAccount(#name_str.to_string()))?;
         }
     }
 }
 
 /// Generates the code used with raw accounts as AccountInfo
 fn acc_info_tokens(name: &syn::Ident) -> TokenStream {
+    let name_str = name.to_string();
     quote! {
         let #name = accounts_iter
         .next()
-        .ok_or(FuzzingError::NotEnoughAccounts)?
-        .ok_or(FuzzingError::AccountNotFound)?;
+        .ok_or(FuzzingError::NotEnoughAccounts(#name_str.to_string()))?
+        .ok_or(FuzzingError::AccountNotFound(#name_str.to_string()))?;
     }
 }
 
 /// Generates the code used with Unchecked accounts
 fn acc_unchecked_tokens(name: &syn::Ident) -> TokenStream {
+    let name_str = name.to_string();
     quote! {
         let #name = accounts_iter
         .next()
-        .ok_or(FuzzingError::NotEnoughAccounts)?
+        .ok_or(FuzzingError::NotEnoughAccounts(#name_str.to_string()))?
         .map(anchor_lang::accounts::unchecked_account::UncheckedAccount::try_from)
-        .ok_or(FuzzingError::AccountNotFound)?;
+        .ok_or(FuzzingError::AccountNotFound(#name_str.to_string()))?;
     }
 }
 
