@@ -18,8 +18,8 @@ cpi = ["no-entrypoint"]
 default = []
 
 [dependencies]
-anchor-lang = "0.28.0"
-anchor-spl = "0.28.0"
+anchor-lang = "0.29.0"
+anchor-spl = "0.29.0"
 # ahash is unused but got an error during `anchor build`
 # fix: https://solana.stackexchange.com/questions/8796/anchor-build-failed-the-error-is-use-of-unstable-library-feature-build-hasher-s
 ahash = "=0.8.6"
