@@ -18,8 +18,6 @@ pub enum FuzzClientError {
 pub enum FuzzingError {
     #[error("Custom fuzzing error: {0}\n")]
     Custom(u32),
-    // #[error("Not able to deserialize account: {0}\n")]
-    // CannotDeserializeAccount(anchor_lang::error::Error),
     #[error("Not able to deserialize account: {0}\n")]
     CannotDeserializeAccount(String),
     #[error("Optional Account not provided: {0}\n")]
@@ -78,8 +76,7 @@ pub enum Origin {
 
 impl Display for Origin {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        writeln!(f, "Origin: {:#?}", self)?;
-        Ok(())
+        writeln!(f, "Origin: {:#?}", self)
     }
 }
 
@@ -91,8 +88,7 @@ pub enum Context {
 
 impl Display for Context {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        writeln!(f, "Context: {:#?}", self)?;
-        Ok(())
+        writeln!(f, "Context: {:#?}", self)
     }
 }
 
