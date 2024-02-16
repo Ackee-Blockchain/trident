@@ -10,7 +10,8 @@ use solana_sdk::{
 use spl_token::state::Mint;
 use tokio::runtime::Builder;
 
-use crate::data_builder::{FuzzClient, FuzzClientError};
+use crate::data_builder::FuzzClient;
+use crate::error::*;
 
 pub struct ProgramTestClientBlocking {
     ctx: ProgramTestContext,
@@ -28,10 +29,7 @@ impl ProgramTestClientBlocking {
         //     .enable_all()
         //     .build()
         //     .map_err(|_| FuzzClientError::ClientInitError)?;
-        let rt: tokio::runtime::Runtime = Builder::new_current_thread()
-            .enable_all()
-            .build()
-            .map_err(|_| FuzzClientError::ClientInitError)?;
+        let rt: tokio::runtime::Runtime = Builder::new_current_thread().enable_all().build()?;
 
         let ctx = rt.block_on(program_test.start_with_context());
         Ok(Self { ctx, rt })
@@ -137,32 +135,36 @@ impl FuzzClient for ProgramTestClientBlocking {
     }
 
     fn get_account(&mut self, key: &Pubkey) -> Result<Option<Account>, FuzzClientError> {
-        self.rt
+        Ok(self
+            .rt
             .block_on(self.ctx.banks_client.get_account_with_commitment(
                 *key,
                 solana_sdk::commitment_config::CommitmentLevel::Confirmed,
-            ))
-            .map_err(|_| FuzzClientError::CannotGetAccounts)
+            ))?)
     }
-
     fn get_accounts(
         &mut self,
         metas: &[AccountMeta],
-    ) -> Result<Vec<Option<Account>>, FuzzClientError> {
-        let result: Vec<_> = metas.iter().map(|m| self.get_account(&m.pubkey)).collect();
+    ) -> Result<Vec<Option<Account>>, FuzzClientErrorWithOrigin> {
+        let result: Vec<_> = metas
+            .iter()
+            .map(|m| {
+                self.get_account(&m.pubkey)
+                    .map_err(|e| e.with_origin(Origin::Account(m.pubkey)))
+            })
+            .collect();
         result.into_iter().collect()
     }
 
     fn get_last_blockhash(&self) -> Hash {
         self.ctx.last_blockhash
     }
-
     fn process_transaction(
         &mut self,
         transaction: impl Into<VersionedTransaction>,
     ) -> Result<(), FuzzClientError> {
-        self.rt
-            .block_on(self.ctx.banks_client.process_transaction(transaction))
-            .map_err(|_| FuzzClientError::CannotProcessTransaction)
+        Ok(self
+            .rt
+            .block_on(self.ctx.banks_client.process_transaction(transaction))?)
     }
 }

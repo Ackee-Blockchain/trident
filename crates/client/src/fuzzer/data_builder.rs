@@ -1,7 +1,3 @@
-use std::cell::RefCell;
-use std::error::Error;
-use std::fmt::Display;
-
 use anchor_client::anchor_lang::solana_program::account_info::{Account as Acc, AccountInfo};
 use anchor_client::anchor_lang::solana_program::hash::Hash;
 use arbitrary::Arbitrary;
@@ -11,6 +7,11 @@ use solana_sdk::instruction::AccountMeta;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
 use solana_sdk::transaction::VersionedTransaction;
+use std::cell::RefCell;
+use std::error::Error;
+use std::fmt::Display;
+
+use crate::error::*;
 
 pub struct FuzzData<T, U> {
     pub pre_ixs: Vec<T>,
@@ -139,7 +140,7 @@ pub trait IxOps<'info> {
         pre_ix: Self::IxSnapshot,
         post_ix: Self::IxSnapshot,
         ix_data: Self::IxData,
-    ) -> Result<(), &'static str> {
+    ) -> Result<(), FuzzingError> {
         Ok(())
     }
 }
@@ -184,7 +185,7 @@ pub trait FuzzClient {
     fn get_accounts(
         &mut self,
         metas: &[AccountMeta],
-    ) -> Result<Vec<Option<Account>>, FuzzClientError>;
+    ) -> Result<Vec<Option<Account>>, FuzzClientErrorWithOrigin>;
 
     fn get_last_blockhash(&self) -> Hash;
 
@@ -192,23 +193,6 @@ pub trait FuzzClient {
         &mut self,
         transaction: impl Into<VersionedTransaction>,
     ) -> Result<(), FuzzClientError>;
-}
-
-#[derive(Debug)]
-pub enum FuzzClientError {
-    CannotGetAccounts,
-    CannotProcessTransaction, // TODO add also custom error
-    ClientInitError,
-}
-
-#[derive(Debug)]
-pub enum FuzzingError {
-    // TODO Add context with_account_name()
-    CannotGetAccounts,
-    CannotGetInstructionData,
-    CannotDeserializeAccount,
-    NotEnoughAccounts, // TODO add also custom error
-    AccountNotFound,
 }
 
 #[macro_export]
@@ -246,7 +230,7 @@ pub fn build_ix_fuzz_data<U: for<'a> Arbitrary<'a>, T: FuzzDataBuilder<U>, V: De
 pub fn get_account_infos_option<'info>(
     accounts: &'info mut [Option<Account>],
     metas: &'info [AccountMeta],
-) -> Result<Vec<Option<AccountInfo<'info>>>, Box<dyn Error + 'static>> {
+) -> Result<Vec<Option<AccountInfo<'info>>>, FuzzingError> {
     let iter = accounts.iter_mut().zip(metas);
     let r = iter
         .map(|(account, meta)| {

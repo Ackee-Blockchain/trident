@@ -63,3 +63,4 @@ trdelnik-derive-displayix = { path = "./derive/display_ix" }
 trdelnik-derive-fuzz-deserialize = { path = "./derive/fuzz_deserialize" }
 trdelnik-derive-fuzz-test-executor = { path = "./derive/fuzz_test_executor" }
 pathdiff = "0.2.1"
+solana-banks-client = "1.16.19"

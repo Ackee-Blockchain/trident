@@ -14,15 +14,18 @@ pub fn fuzz_test_executor(input: TokenStream) -> TokenStream {
                 quote! {
                     #enum_name::#variant_name (ix) => {
                     let (mut signers, metas) =
-                        if let Ok(acc) = ix.get_accounts(client, &mut accounts.borrow_mut()) {
+                        if let Ok(acc) = ix.get_accounts(client, &mut accounts.borrow_mut())
+                        .map_err(|e| e.with_origin(Origin::Instruction(self.to_string()))) {
                             acc
                         } else {
                             return Ok(());
                         };
                     let mut snaphot = Snapshot::new(&metas, ix);
+                    // this can return FuzzClientErrorWithOrigin
                     snaphot.capture_before(client).unwrap();
                     let data =
-                        if let Ok(data) = ix.get_data(client, &mut accounts.borrow_mut()) {
+                        if let Ok(data) = ix.get_data(client, &mut accounts.borrow_mut())
+                        .map_err(|e| e.with_origin(Origin::Instruction(self.to_string()))) {
                             data
                         } else {
                             return Ok(());
@@ -38,10 +41,15 @@ pub fn fuzz_test_executor(input: TokenStream) -> TokenStream {
                     let sig: Vec<&Keypair> = signers.iter().collect();
                     transaction.sign(&sig, client.get_last_blockhash());
 
-                    let res = client.process_transaction(transaction);
+                    let res = client.process_transaction(transaction)
+                    .map_err(|e| e.with_origin(Origin::Instruction(self.to_string())));
+
+                    // this can return FuzzClientErrorWithOrigin
                     snaphot.capture_after(client).unwrap();
-                    let (acc_before, acc_after) = snaphot.get_snapshot().unwrap(); // we want to panic if we cannot unwrap to cause a crash
-                    if let Err(e) = ix.check(acc_before, acc_after, data) {
+                    let (acc_before, acc_after) = snaphot.get_snapshot()
+                        .map_err(|e| e.with_origin(Origin::Instruction(self.to_string()))).unwrap(); // we want to panic if we cannot unwrap to cause a crash
+
+                    if let Err(e) = ix.check(acc_before, acc_after, data).map_err(|e| e.with_origin(Origin::Instruction(self.to_string()))) {
                         eprintln!(
                             "Custom check after the {} instruction did not pass with the error message: {}",
                             self, e

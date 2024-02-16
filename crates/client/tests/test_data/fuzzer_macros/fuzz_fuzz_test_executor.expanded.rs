@@ -13,7 +13,11 @@ impl FuzzTestExecutor<FuzzAccounts> for FuzzInstruction {
         match self {
             FuzzInstruction::InitVesting(ix) => {
                 let (mut signers, metas) = if let Ok(acc)
-                    = ix.get_accounts(client, &mut accounts.borrow_mut())
+                    = ix
+                        .get_accounts(client, &mut accounts.borrow_mut())
+                        .map_err(|e| {
+                            e.with_origin(Origin::Instruction(self.to_string()))
+                        })
                 {
                     acc
                 } else {
@@ -22,7 +26,11 @@ impl FuzzTestExecutor<FuzzAccounts> for FuzzInstruction {
                 let mut snaphot = Snapshot::new(&metas, ix);
                 snaphot.capture_before(client).unwrap();
                 let data = if let Ok(data)
-                    = ix.get_data(client, &mut accounts.borrow_mut())
+                    = ix
+                        .get_data(client, &mut accounts.borrow_mut())
+                        .map_err(|e| {
+                            e.with_origin(Origin::Instruction(self.to_string()))
+                        })
                 {
                     data
                 } else {
@@ -40,10 +48,21 @@ impl FuzzTestExecutor<FuzzAccounts> for FuzzInstruction {
                 signers.push(client.payer().clone());
                 let sig: Vec<&Keypair> = signers.iter().collect();
                 transaction.sign(&sig, client.get_last_blockhash());
-                let res = client.process_transaction(transaction);
+                let res = client
+                    .process_transaction(transaction)
+                    .map_err(|e| e.with_origin(Origin::Instruction(self.to_string())));
                 snaphot.capture_after(client).unwrap();
-                let (acc_before, acc_after) = snaphot.get_snapshot().unwrap();
-                if let Err(e) = ix.check(acc_before, acc_after, data) {
+                let (acc_before, acc_after) = snaphot
+                    .get_snapshot()
+                    .map_err(|e| e.with_origin(Origin::Instruction(self.to_string())))
+                    .unwrap();
+                if let Err(e)
+                    = ix
+                        .check(acc_before, acc_after, data)
+                        .map_err(|e| {
+                            e.with_origin(Origin::Instruction(self.to_string()))
+                        })
+                {
                     {
                         ::std::io::_eprint(
                             format_args!(
@@ -69,7 +88,11 @@ impl FuzzTestExecutor<FuzzAccounts> for FuzzInstruction {
             }
             FuzzInstruction::WithdrawUnlocked(ix) => {
                 let (mut signers, metas) = if let Ok(acc)
-                    = ix.get_accounts(client, &mut accounts.borrow_mut())
+                    = ix
+                        .get_accounts(client, &mut accounts.borrow_mut())
+                        .map_err(|e| {
+                            e.with_origin(Origin::Instruction(self.to_string()))
+                        })
                 {
                     acc
                 } else {
@@ -78,7 +101,11 @@ impl FuzzTestExecutor<FuzzAccounts> for FuzzInstruction {
                 let mut snaphot = Snapshot::new(&metas, ix);
                 snaphot.capture_before(client).unwrap();
                 let data = if let Ok(data)
-                    = ix.get_data(client, &mut accounts.borrow_mut())
+                    = ix
+                        .get_data(client, &mut accounts.borrow_mut())
+                        .map_err(|e| {
+                            e.with_origin(Origin::Instruction(self.to_string()))
+                        })
                 {
                     data
                 } else {
@@ -96,10 +123,21 @@ impl FuzzTestExecutor<FuzzAccounts> for FuzzInstruction {
                 signers.push(client.payer().clone());
                 let sig: Vec<&Keypair> = signers.iter().collect();
                 transaction.sign(&sig, client.get_last_blockhash());
-                let res = client.process_transaction(transaction);
+                let res = client
+                    .process_transaction(transaction)
+                    .map_err(|e| e.with_origin(Origin::Instruction(self.to_string())));
                 snaphot.capture_after(client).unwrap();
-                let (acc_before, acc_after) = snaphot.get_snapshot().unwrap();
-                if let Err(e) = ix.check(acc_before, acc_after, data) {
+                let (acc_before, acc_after) = snaphot
+                    .get_snapshot()
+                    .map_err(|e| e.with_origin(Origin::Instruction(self.to_string())))
+                    .unwrap();
+                if let Err(e)
+                    = ix
+                        .check(acc_before, acc_after, data)
+                        .map_err(|e| {
+                            e.with_origin(Origin::Instruction(self.to_string()))
+                        })
+                {
                     {
                         ::std::io::_eprint(
                             format_args!(
