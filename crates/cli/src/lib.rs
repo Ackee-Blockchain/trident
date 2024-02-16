@@ -30,13 +30,13 @@ enum Command {
         #[clap(subcommand)]
         subcmd: KeyPairCommand,
     },
-    /// Run program tests
+    /// Run program Integration tests
     Test {
         /// Anchor project root
         #[clap(short, long, default_value = "./")]
         root: String,
     },
-    /// Run and debug fuzz tests
+    /// Run and debug Fuzz tests
     Fuzz {
         /// Anchor project root
         #[clap(short, long)]

@@ -22,6 +22,7 @@ pub enum FuzzCommand {
         /// Path to the crash file
         crash_file_path: String,
     },
+    /// Add new fuzz test. Explicit fuzz test name is not yet supported. Implicit name is fuzz_ID, where ID is automatically derived.
     Add,
 }
 

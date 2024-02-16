@@ -25,16 +25,18 @@ trdelnik init
 The command will generate the required folder structure and fuzz test files:
 ```shell
 project-root
-├── .trdelnik_client
+├── .program_client
 ├── trdelnik-tests
-│   ├── src # fuzz tests folder
-│   │   ├── bin
-│   │   │   └── fuzz_target.rs # the binary target of your fuzz test
-│   │   ├── fuzz_instructions.rs # the definition of your fuzz test
-│   │   ├── accounts_snapshots.rs # generated accounts deserialization methods
-│   │   └── lib.rs
-│   ├── tests # integration tests folder
-│   └── Cargo.toml
+│   ├── fuzz_tests # fuzz tests folder
+│   │   ├── fuzz_0 # particular fuzz test
+│   │   │   ├── accounts_snapshots.rs # generated accounts deserialization methods
+│   │   │   ├── test_fuzz.rs # the binary target of your fuzz test
+│   │   │   └── fuzz_instructions.rs # the definition of your fuzz test
+│   │   ├── fuzz_1
+│   │   ├── fuzz_X # possible multiple fuzz tests
+│   │   ├── fuzzing # compilations and crashes folder
+│   │   └── Cargo.toml
+│   ├── poc_tests # integration tests folder
 ├── Trdelnik.toml
 └── ...
 ```
@@ -43,7 +45,7 @@ project-root
 Once you have finished the implementation of `get_accounts` and `get_data` methods (see below), you can run the fuzz test as follows:
 
 ```shell
-# Replace <TARGET_NAME> with the name of your fuzz target (by default "fuzz_target")
+# Replace <TARGET_NAME> with the name of particular fuzz test (for example: "fuzz_0")
 trdelnik fuzz run <TARGET_NAME>
 ```
 
@@ -61,7 +63,7 @@ iterations = 1000 # Number of fuzzing iterations
 exit_upon_crash = true # Stop the fuzzer upon crash.
 ```
 
-Or you can pass any parameter via [environment variables](https://github.com/rust-fuzz/honggfuzz-rs#environment-variables). A list of hongfuzz parameters can be found in honggfuzz [usage documentation](https://github.com/google/honggfuzz/blob/master/docs/USAGE.md#cmdline---help). The parameters passed via environment variables have higher priority. For example:
+Or you can pass any parameter via [environment variables](https://github.com/rust-fuzz/honggfuzz-rs#environment-variables). A list of hongfuzz parameters can be found in honggfuzz [usage documentation](https://github.com/google/honggfuzz/blob/master/docs/USAGE.md#cmdline---help). The parameters passed via **environment variables** have **higher priority**. For example:
  ```shell
 # Time-out: 10 secs
 # Number of concurrent fuzzing threads: 1
@@ -96,13 +98,13 @@ Some diagram states are labeled with emojis:
 
 ## Write a fuzz test
 At the current development stage, there are some manual steps required to make your fuzz test compile:
-1. Add dependencies specific to your program to `trdelnik-tests/Cargo.toml` (such as anchor-spl etc.).
-2. Add necessary `use` statements into `trdelnik-tests/src/accounts_snapshots.rs` to import missing types.
+1. Add dependencies specific to your program to `trdelnik-tests/fuzz_tests/Cargo.toml` (such as anchor-spl etc.).
+2. Add necessary `use` statements into `trdelnik-tests/fuzz_tests/<FUZZ_TEST_NAME>/accounts_snapshots.rs` to import missing types.
 
 ### Specify accounts to reuse
 Trdelnik fuzzer helps you to generate only a limited amount of pseudo-random accounts and reuse them in the instructions. Always generating only random accounts would in most cases lead to a situation where the fuzzer would be stuck because the accounts would be almost every time rejected by your Anchor program. Therefore it is necessary to specify, what accounts should be used and also limit the number of newly created accounts to reduce the space complexity.
 
-Go to the `trdelnik-tests/src/fuzz_instructions.rs` file and complete the pre-generated `FuzzAccounts` structure. It contains all accounts used in your program. You have to determine, if the account is a signer, a PDA, a token account or program account. Than use the corresponding `AccountsStorage` types such as:
+Go to the `trdelnik-tests/fuzz_tests/<FUZZ_TEST_NAME>/fuzz_instructions.rs` file and complete the pre-generated `FuzzAccounts` structure. It contains all accounts used in your program. You have to determine, if the account is a signer, a PDA, a token account or program account. Than use the corresponding `AccountsStorage` types such as:
 ```rust
 pub struct FuzzAccounts {
     signer: AccountsStorage<Keypair>,
@@ -113,7 +115,7 @@ pub struct FuzzAccounts {
 ```
 
 ### Specify instruction data
-Trdelnik fuzzer generates random instruction data for you. Currently it is however required, that you manually assign the random fuzzer data to the instruction data. It is done using the `IxOps` trait and its method `get_data`. Go to the `trdelnik-tests/src/fuzz_instructions.rs` file and complete the pre-generated `get_data` methods for each instruction such as:
+Trdelnik fuzzer generates random instruction data for you. Currently it is however required, that you manually assign the random fuzzer data to the instruction data. It is done using the `IxOps` trait and its method `get_data`. Go to the `trdelnik-tests/fuzz_tests/<FUZZ_TEST_NAME>/fuzz_instructions.rs` file and complete the pre-generated `get_data` methods for each instruction such as:
 ```rust
 fn get_data(
     &self,
@@ -128,7 +130,7 @@ fn get_data(
 ```
 
 ### Specify instruction accounts
-Trdelnik fuzzer generates random indexes of accounts to use in each instruction. Each created account is saved in the `FuzzAccounts` structure which helps you to reuse already existing accounts. You are required to define, how these accounts should be created and which accounts should be passed to an instruction. It is done using the `IxOps` trait and its method `get_accounts`. Go to the `trdelnik-tests/src/fuzz_instructions.rs` file and complete the pre-generated `get_accounts` methods for each instruction such as:
+Trdelnik fuzzer generates random indexes of accounts to use in each instruction. Each created account is saved in the `FuzzAccounts` structure which helps you to reuse already existing accounts. You are required to define, how these accounts should be created and which accounts should be passed to an instruction. It is done using the `IxOps` trait and its method `get_accounts`. Go to the `trdelnik-tests/fuzz_tests/<FUZZ_TEST_NAME>/fuzz_instructions.rs` file and complete the pre-generated `get_accounts` methods for each instruction such as:
 ```rust
 fn get_accounts(
     &self,
@@ -188,7 +190,7 @@ fn check(
 ```
 
 ### Customize instructions generation
-It is possible to customize how the instructions are generated and which instructions will be executed at the beginning (`pre_ixs`), in the middle (`ixs`) and at the end (`post_ixs`) of each fuzz iteration. This can be useful for example if your program needs an initialization or you want to fuzz some specific program state. Go to the bin target file of your fuzz test and implement the corresponding optional method of the `FuzzDataBuilder<FuzzInstruction>` trait. For example, in order to always call the `initialize` instruction for the default fuzz target, modify the trait's implementation in `trdelnik-tests/src/bin/fuzz_target.rs` file as follows:
+It is possible to customize how the instructions are generated and which instructions will be executed at the beginning (`pre_ixs`), in the middle (`ixs`) and at the end (`post_ixs`) of each fuzz iteration. This can be useful for example if your program needs an initialization or you want to fuzz some specific program state. Go to the bin target file of your fuzz test and implement the corresponding optional method of the `FuzzDataBuilder<FuzzInstruction>` trait. For example, in order to always call the `initialize` instruction for the default fuzz target, modify the trait's implementation in `trdelnik-tests/fuzz_tests/<FUZZ_TEST_NAME>/test_fuzz.rs` file as follows:
 ```rust
 impl FuzzDataBuilder<FuzzInstruction> for MyFuzzData {
     fn pre_ixs(u: &mut arbitrary::Unstructured) -> arbitrary::Result<Vec<FuzzInstruction>> {
