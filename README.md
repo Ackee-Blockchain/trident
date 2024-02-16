@@ -54,11 +54,11 @@ trdelnik fuzz run <TARGET_NAME>
 trdelnik --help
 ```
 ### How to write fuzz tests?
-Once you initialize Trdelnik in your Anchor project, you will find a fuzz test template in the `trdelnik-tests/src/bin` folder that you can modify according to your needs or create new targets. Do not forget to install honggfuzz-rs using `cargo install honggfuzz`.
+Once you initialize Trdelnik in your Anchor project, you will find a fuzz test template in the `trdelnik-tests/fuzz_tests/fuzz_0` folder that you can modify according to your needs or create new targets. Do not forget to install honggfuzz-rs using `cargo install honggfuzz`.
 
 
 ```shell
-# To run the fuzz test, execute this command from your terminal and replace <TARGET_NAME> with the name of your fuzz target (by default "fuzz_target")
+# To run the fuzz test, execute this command from your terminal and replace <TARGET_NAME> with the name of particular fuzz test (for example: "fuzz_0")
 trdelnik fuzz run <TARGET_NAME>
 
 # To debug your fuzz target crash with parameters from a crash file
@@ -84,8 +84,8 @@ Trdelnik also supports writing integration tests in Rust.
 </div>
 
 ```rust
-// <my_project>/trdelnik-tests/tests/test.rs
-// TODO: do not forget to add all necessary dependencies to the generated `trdelnik-tests/Cargo.toml`
+// <my_project>/trdelnik-tests/poc_tests/tests/test.rs
+// TODO: do not forget to add all necessary dependencies to the generated `trdelnik-tests/poc_tests/Cargo.toml`
 use program_client::my_instruction;
 use trdelnik_client::*;
 use my_program;
@@ -174,14 +174,14 @@ async fn test() {}
 - `Trdelnik` does not export `anchor-spl` and `spl-associated-token-account`, so you have to add it manually.
 
 ```toml
-# <my-project>/trdelnik-tests/Cargo.toml
+# <my-project>/trdelnik-tests/poc_tests/Cargo.toml
 # import the correct versions manually
 anchor-spl = "0.28.0"
 spl-associated-token-account = "2.0.0"
 ```
 
 ```rust
-// <my-project>/trdelnik-tests/tests/test.rs
+// <my-project>/trdelnik-tests/poc_tests/tests/test.rs
 use anchor_spl::token::Token;
 use spl_associated_token_account;
 
