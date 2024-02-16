@@ -9,6 +9,12 @@ pub fn display_ix(input: TokenStream) -> TokenStream {
 
     let display_impl = match &input.data {
         Data::Enum(enum_data) => {
+            let to_context_string_match_arms = enum_data.variants.iter().map(|variant| {
+                let variant_name = &variant.ident;
+                quote! {
+                    #enum_name::#variant_name (_) => String::from(stringify!(#variant_name)),
+                }
+            });
             let display_match_arms = enum_data.variants.iter().map(|variant| {
                 let variant_name = &variant.ident;
 
@@ -38,6 +44,13 @@ pub fn display_ix(input: TokenStream) -> TokenStream {
                     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
                         match self {
                             #(#display_match_arms)*
+                        }
+                    }
+                }
+                impl #enum_name {
+                    fn to_context_string(&self)->String{
+                        match self {
+                            #(#to_context_string_match_arms)*
                         }
                     }
                 }

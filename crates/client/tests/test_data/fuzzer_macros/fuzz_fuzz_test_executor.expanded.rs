@@ -16,7 +16,7 @@ impl FuzzTestExecutor<FuzzAccounts> for FuzzInstruction {
                     = ix
                         .get_accounts(client, &mut accounts.borrow_mut())
                         .map_err(|e| {
-                            e.with_origin(Origin::Instruction(self.to_string()))
+                            e.with_origin(Origin::Instruction(self.to_context_string()))
                         })
                 {
                     acc
@@ -29,7 +29,7 @@ impl FuzzTestExecutor<FuzzAccounts> for FuzzInstruction {
                     = ix
                         .get_data(client, &mut accounts.borrow_mut())
                         .map_err(|e| {
-                            e.with_origin(Origin::Instruction(self.to_string()))
+                            e.with_origin(Origin::Instruction(self.to_context_string()))
                         })
                 {
                     data
@@ -50,24 +50,28 @@ impl FuzzTestExecutor<FuzzAccounts> for FuzzInstruction {
                 transaction.sign(&sig, client.get_last_blockhash());
                 let res = client
                     .process_transaction(transaction)
-                    .map_err(|e| e.with_origin(Origin::Instruction(self.to_string())));
+                    .map_err(|e| {
+                        e.with_origin(Origin::Instruction(self.to_context_string()))
+                    });
                 snaphot.capture_after(client).unwrap();
                 let (acc_before, acc_after) = snaphot
                     .get_snapshot()
-                    .map_err(|e| e.with_origin(Origin::Instruction(self.to_string())))
+                    .map_err(|e| {
+                        e.with_origin(Origin::Instruction(self.to_context_string()))
+                    })
                     .unwrap();
                 if let Err(e)
                     = ix
                         .check(acc_before, acc_after, data)
                         .map_err(|e| {
-                            e.with_origin(Origin::Instruction(self.to_string()))
+                            e.with_origin(Origin::Instruction(self.to_context_string()))
                         })
                 {
                     {
                         ::std::io::_eprint(
                             format_args!(
                                 "Custom check after the {0} instruction did not pass with the error message: {1}\n",
-                                self, e,
+                                self.to_context_string(), e,
                             ),
                         );
                     };
@@ -91,7 +95,7 @@ impl FuzzTestExecutor<FuzzAccounts> for FuzzInstruction {
                     = ix
                         .get_accounts(client, &mut accounts.borrow_mut())
                         .map_err(|e| {
-                            e.with_origin(Origin::Instruction(self.to_string()))
+                            e.with_origin(Origin::Instruction(self.to_context_string()))
                         })
                 {
                     acc
@@ -104,7 +108,7 @@ impl FuzzTestExecutor<FuzzAccounts> for FuzzInstruction {
                     = ix
                         .get_data(client, &mut accounts.borrow_mut())
                         .map_err(|e| {
-                            e.with_origin(Origin::Instruction(self.to_string()))
+                            e.with_origin(Origin::Instruction(self.to_context_string()))
                         })
                 {
                     data
@@ -125,24 +129,28 @@ impl FuzzTestExecutor<FuzzAccounts> for FuzzInstruction {
                 transaction.sign(&sig, client.get_last_blockhash());
                 let res = client
                     .process_transaction(transaction)
-                    .map_err(|e| e.with_origin(Origin::Instruction(self.to_string())));
+                    .map_err(|e| {
+                        e.with_origin(Origin::Instruction(self.to_context_string()))
+                    });
                 snaphot.capture_after(client).unwrap();
                 let (acc_before, acc_after) = snaphot
                     .get_snapshot()
-                    .map_err(|e| e.with_origin(Origin::Instruction(self.to_string())))
+                    .map_err(|e| {
+                        e.with_origin(Origin::Instruction(self.to_context_string()))
+                    })
                     .unwrap();
                 if let Err(e)
                     = ix
                         .check(acc_before, acc_after, data)
                         .map_err(|e| {
-                            e.with_origin(Origin::Instruction(self.to_string()))
+                            e.with_origin(Origin::Instruction(self.to_context_string()))
                         })
                 {
                     {
                         ::std::io::_eprint(
                             format_args!(
                                 "Custom check after the {0} instruction did not pass with the error message: {1}\n",
-                                self, e,
+                                self.to_context_string(), e,
                             ),
                         );
                     };

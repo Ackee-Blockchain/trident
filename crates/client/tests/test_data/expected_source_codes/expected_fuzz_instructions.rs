@@ -6,12 +6,12 @@ pub mod fuzz_example3_fuzz_instructions {
         InitVesting(InitVesting),
         WithdrawUnlocked(WithdrawUnlocked),
     }
-    #[derive(Arbitrary, Clone)]
+    #[derive(Arbitrary, Clone, Debug)]
     pub struct InitVesting {
         pub accounts: InitVestingAccounts,
         pub data: InitVestingData,
     }
-    #[derive(Arbitrary, Clone)]
+    #[derive(Arbitrary, Clone, Debug)]
     pub struct InitVestingAccounts {
         pub sender: AccountId,
         pub sender_token_account: AccountId,
@@ -21,7 +21,7 @@ pub mod fuzz_example3_fuzz_instructions {
         pub token_program: AccountId,
         pub system_program: AccountId,
     }
-    #[derive(Arbitrary, Clone)]
+    #[derive(Arbitrary, Clone, Debug)]
     pub struct InitVestingData {
         pub recipient: AccountId,
         pub _recipient: AccountId,
@@ -30,12 +30,12 @@ pub mod fuzz_example3_fuzz_instructions {
         pub end_at: u64,
         pub interval: u64,
     }
-    #[derive(Arbitrary, Clone)]
+    #[derive(Arbitrary, Clone, Debug)]
     pub struct WithdrawUnlocked {
         pub accounts: WithdrawUnlockedAccounts,
         pub data: WithdrawUnlockedData,
     }
-    #[derive(Arbitrary, Clone)]
+    #[derive(Arbitrary, Clone, Debug)]
     pub struct WithdrawUnlockedAccounts {
         pub recipient: AccountId,
         pub recipient_token_account: AccountId,
@@ -46,7 +46,7 @@ pub mod fuzz_example3_fuzz_instructions {
         pub token_program: AccountId,
         pub system_program: AccountId,
     }
-    #[derive(Arbitrary, Clone)]
+    #[derive(Arbitrary, Clone, Debug)]
     pub struct WithdrawUnlockedData {}
     impl<'info> IxOps<'info> for InitVesting {
         type IxData = fuzz_example3::instruction::InitVesting;

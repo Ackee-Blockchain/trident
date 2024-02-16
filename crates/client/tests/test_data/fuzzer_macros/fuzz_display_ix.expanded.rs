@@ -6,10 +6,22 @@ pub enum FuzzInstruction {
 impl std::fmt::Display for FuzzInstruction {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            FuzzInstruction::InitVesting(_) => f.write_fmt(format_args!("InitVesting")),
-            FuzzInstruction::WithdrawUnlocked(_) => {
-                f.write_fmt(format_args!("WithdrawUnlocked"))
+            FuzzInstruction::InitVesting(ref content) => {
+                f.write_fmt(format_args!("InitVesting"))?;
+                f.write_fmt(format_args!("({0:#?})", content))
             }
+            FuzzInstruction::WithdrawUnlocked(ref content) => {
+                f.write_fmt(format_args!("WithdrawUnlocked"))?;
+                f.write_fmt(format_args!("({0:#?})", content))
+            }
+        }
+    }
+}
+impl FuzzInstruction {
+    fn to_context_string(&self) -> String {
+        match self {
+            FuzzInstruction::InitVesting(_) => String::from("InitVesting"),
+            FuzzInstruction::WithdrawUnlocked(_) => String::from("WithdrawUnlocked"),
         }
     }
 }

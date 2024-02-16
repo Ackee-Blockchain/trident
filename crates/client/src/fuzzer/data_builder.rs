@@ -72,6 +72,7 @@ where
             for ix in self.iter() {
                 eprintln!("{}", ix);
             }
+            eprintln!("------ End of Instructions sequence ------ ");
         }
 
         for fuzz_ix in &mut self.iter() {
@@ -220,7 +221,7 @@ macro_rules! fuzz_trd {
 ///
 /// # Examples
 ///
-/// ```rust
+/// ```rust,ignore
 /// use trdelnik_client::fuzzing::show_account;
 ///
 /// #[derive(Debug)]
@@ -237,7 +238,7 @@ macro_rules! fuzz_trd {
 ///     pre_ix: Self::IxSnapshot,
 ///     post_ix: Self::IxSnapshot,
 ///     ix_data: Self::IxData,
-/// ) -> Result<(), &'static str> {} {
+/// ) -> Result<(), FuzzingError> {
 ///     if let Some(escrow) = pre_ix.escrow{
 ///         show_account!(escrow);
 ///     }
