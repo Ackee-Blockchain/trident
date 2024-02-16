@@ -30,7 +30,7 @@ enum Command {
         #[clap(subcommand)]
         subcmd: KeyPairCommand,
     },
-    /// Run program PoC tests
+    /// Run program Integration tests
     Test {
         /// Anchor project root
         #[clap(short, long, default_value = "./")]
