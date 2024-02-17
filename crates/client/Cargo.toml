@@ -26,6 +26,9 @@ macrotest = "1.0.9"
 [dependencies]
 trdelnik-test = { workspace = true }
 anchor-lang = { version = "0.29.0", features = ["idl-build"] }
+# INFO: This is a hack! Anchor-spl is here as dependency only to activate the idl-build feature, so that
+# users do not have to do it manually in their program's Cargo.toml
+anchor-spl = { version = "0.29.0", features = ["idl-build"] }
 solana-sdk = { workspace = true }
 solana-cli-output = { workspace = true }
 solana-transaction-status = { workspace = true }
