@@ -26,6 +26,7 @@ pub mod fuzzing {
         fuzz_trd, solana_sdk::account::Account, solana_sdk::transaction::Transaction, Instruction,
         Keypair, Pubkey, Signer, TempClone,
     };
+    pub use anchor_client::anchor_lang::solana_program::account_info::AccountInfo;
     pub use anchor_client::anchor_lang::solana_program::hash::Hash;
     pub use arbitrary;
     pub use arbitrary::Arbitrary;

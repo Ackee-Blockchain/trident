@@ -16,10 +16,9 @@ pub fn fuzz_deserialize(input: TokenStream) -> TokenStream {
                         type Ix = #snapshot_name<'info>;
                         fn deserialize_option(
                             &self,
-                            metas: &'info [AccountMeta],
-                            accounts: &'info mut [Option<Account>],
+                            accounts: &'info mut [Option<AccountInfo<'info>>],
                         ) -> Result<Self::Ix, FuzzingError> {
-                            Self::Ix::deserialize_option(metas, accounts)
+                            Self::Ix::deserialize_option(accounts)
                         }
                     }
                 }

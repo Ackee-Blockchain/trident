@@ -46,8 +46,7 @@ pub fn generate_snapshots_code(code_path: Vec<(String, Utf8PathBuf)>) -> Result<
 
         let use_statements = quote! {
             use trdelnik_client::anchor_lang::{prelude::*, self};
-            use trdelnik_client::anchor_lang::solana_program::instruction::AccountMeta;
-            use trdelnik_client::fuzzing::{get_account_infos_option, FuzzingError};
+            use trdelnik_client::fuzzing::FuzzingError;
         }
         .into_token_stream();
         Ok(format!("{}{}{}", use_statements, structs, impls))
@@ -199,6 +198,7 @@ fn create_snapshot_struct(
                     .map(|(field, parsed_field)| {
                         let field_name = &field.ident;
                         let mut field_type = &field.ty;
+                        let mut is_account_info = false;
                         if let AccountField::Field(f) = parsed_field {
                             if f.is_optional {
                                 // remove option
@@ -212,20 +212,24 @@ fn create_snapshot_struct(
                                     field_type = ty;
                                 }
                             }
+                            is_account_info = field_type
+                                .to_token_stream()
+                                .to_string()
+                                .replace(' ', "")
+                                .starts_with("AccountInfo<");
                         } else {
                             return Err(
                                 "Composite field types in context structs not supported".into()
                             );
                         }
 
-                        if is_optional(parsed_field) {
-                            Ok(quote! {
-                                pub #field_name: Option<#field_type>,
-                            })
-                        } else {
-                            Ok(quote! {
-                                pub #field_name: #field_type,
-                            })
+                        match (is_optional(parsed_field), is_account_info) {
+                            (true, true) => {
+                                Ok(quote! {pub #field_name: Option<&'info #field_type>,})
+                            }
+                            (true, _) => Ok(quote! {pub #field_name: Option<#field_type>,}),
+                            (_, true) => Ok(quote! {pub #field_name: &'info #field_type,}),
+                            _ => Ok(quote! {pub #field_name: #field_type,}),
                         }
                     });
 
@@ -276,17 +280,18 @@ fn deserialize_ctx_struct_anchor(
         .map(|parsed_f| match parsed_f {
             AccountField::Field(f) => {
                 let field_name = f.ident.clone();
+                let is_optional = is_optional(parsed_f);
                 let deser_tokens = match ty_to_tokens(&f.ty) {
                     Some((return_type, deser_method)) => deserialize_account_tokens(
                         &field_name,
-                        is_optional(parsed_f),
+                        is_optional,
                         return_type,
                         deser_method,
                     ),
                     None if matches!(&f.ty, Ty::UncheckedAccount) => {
-                        acc_unchecked_tokens(&field_name)
+                        acc_unchecked_tokens(&field_name, is_optional)
                     }
-                    None => acc_info_tokens(&field_name),
+                    None => acc_info_tokens(&field_name, is_optional),
                 };
                 Ok((
                     quote! {#field_name},
@@ -304,13 +309,9 @@ fn deserialize_ctx_struct_anchor(
     let generated_deser_impl: syn::Item = parse_quote! {
         impl<'info> #impl_name<'info> {
             pub fn deserialize_option(
-                metas: &'info [AccountMeta],
-                accounts: &'info mut [Option<trdelnik_client::solana_sdk::account::Account>],
+                accounts: &'info mut [Option<AccountInfo<'info>>],
             ) -> core::result::Result<Self, FuzzingError> {
-                let accounts = get_account_infos_option(accounts, metas)
-                    .map_err(|_| FuzzingError::NotAbleToObtainAccountInfos)?;
-
-                let mut accounts_iter = accounts.into_iter();
+                let mut accounts_iter = accounts.iter();
 
                 #(#fields_deser)*
 
@@ -349,54 +350,52 @@ pub fn ty_to_tokens(ty: &anchor_lang::anchor_syn::Ty) -> Option<(TokenStream, To
         Ty::AccountInfo | Ty::UncheckedAccount => return None,
         Ty::SystemAccount => (
             quote! { SystemAccount<'_>},
-            quote!(anchor_lang::accounts::system_account::SystemAccount::try_from(&acc)),
+            quote!(anchor_lang::accounts::system_account::SystemAccount::try_from),
         ),
         Ty::Sysvar(sysvar) => {
             let id = syn::Ident::new(&sysvar_to_ident(sysvar), Span::call_site());
             (
                 quote! { Sysvar<#id>},
-                quote!(anchor_lang::accounts::sysvar::Sysvar::from_account_info(
-                    &acc
-                )),
+                quote!(anchor_lang::accounts::sysvar::Sysvar::from_account_info),
             )
         }
         Ty::Signer => (
             quote! { Signer<'_>},
-            quote!(anchor_lang::accounts::signer::Signer::try_from(&acc)),
+            quote!(anchor_lang::accounts::signer::Signer::try_from),
         ),
         Ty::Account(acc) => {
             let path = &acc.account_type_path;
             (
                 quote! { anchor_lang::accounts::account::Account<#path>},
-                quote! {anchor_lang::accounts::account::Account::try_from(&acc)},
+                quote! {anchor_lang::accounts::account::Account::try_from},
             )
         }
         Ty::AccountLoader(acc) => {
             let path = &acc.account_type_path;
             (
                 quote! { anchor_lang::accounts::account_loader::AccountLoader<#path>},
-                quote! {anchor_lang::accounts::account_loader::AccountLoader::try_from(&acc)},
+                quote! {anchor_lang::accounts::account_loader::AccountLoader::try_from},
             )
         }
         Ty::Program(prog) => {
             let path = &prog.account_type_path;
             (
                 quote! { anchor_lang::accounts::program::Program<#path>},
-                quote!(anchor_lang::accounts::program::Program::try_from(&acc)),
+                quote!(anchor_lang::accounts::program::Program::try_from),
             )
         }
         Ty::Interface(interf) => {
             let path = &interf.account_type_path;
             (
                 quote! { anchor_lang::accounts::interface::Interface<#path>},
-                quote! {anchor_lang::accounts::interface::Interface::try_from(&acc)},
+                quote! {anchor_lang::accounts::interface::Interface::try_from},
             )
         }
         Ty::InterfaceAccount(interf_acc) => {
             let path = &interf_acc.account_type_path;
             (
                 quote! { anchor_lang::accounts::interface_account::InterfaceAccount<#path>},
-                quote! {anchor_lang::accounts::interface_account::InterfaceAccount::try_from(&acc)},
+                quote! {anchor_lang::accounts::interface_account::InterfaceAccount::try_from},
             )
         }
         Ty::ProgramData => return None,
@@ -413,13 +412,15 @@ fn deserialize_account_tokens(
 ) -> TokenStream {
     if is_optional {
         let name_str = name.to_string();
+        // TODO make this more idiomatic
         quote! {
             let #name:Option<#return_type> = accounts_iter
             .next()
             .ok_or(FuzzingError::NotEnoughAccounts(#name_str.to_string()))?
+            .as_ref()
             .map(|acc| {
                 if acc.key() != PROGRAM_ID {
-                    #deser_method.map_err(|_| FuzzingError::CannotDeserializeAccount(#name_str.to_string()))
+                    #deser_method(acc).map_err(|_| FuzzingError::CannotDeserializeAccount(#name_str.to_string()))
                 } else {Err(FuzzingError::OptionalAccountNotProvided(
                         #name_str.to_string(),
                     ))
@@ -434,7 +435,8 @@ fn deserialize_account_tokens(
             let #name: #return_type = accounts_iter
             .next()
             .ok_or(FuzzingError::NotEnoughAccounts(#name_str.to_string()))?
-            .map(|acc| #deser_method)
+            .as_ref()
+            .map(#deser_method)
             .ok_or(FuzzingError::AccountNotFound(#name_str.to_string()))?
             // TODO It would be helpful to do something like line below.
             // where we propagate anchor error
@@ -450,25 +452,46 @@ fn deserialize_account_tokens(
 }
 
 /// Generates the code used with raw accounts as AccountInfo
-fn acc_info_tokens(name: &syn::Ident) -> TokenStream {
+fn acc_info_tokens(name: &syn::Ident, is_optional: bool) -> TokenStream {
     let name_str = name.to_string();
-    quote! {
-        let #name = accounts_iter
-        .next()
-        .ok_or(FuzzingError::NotEnoughAccounts(#name_str.to_string()))?
-        .ok_or(FuzzingError::AccountNotFound(#name_str.to_string()))?;
+    if is_optional {
+        quote! {
+            let #name = accounts_iter
+            .next()
+            .ok_or(FuzzingError::NotEnoughAccounts(#name_str.to_string()))?
+            .as_ref();
+        }
+    } else {
+        quote! {
+            let #name = accounts_iter
+            .next()
+            .ok_or(FuzzingError::NotEnoughAccounts(#name_str.to_string()))?
+            .as_ref()
+            .ok_or(FuzzingError::AccountNotFound(#name_str.to_string()))?;
+        }
     }
 }
 
 /// Generates the code used with Unchecked accounts
-fn acc_unchecked_tokens(name: &syn::Ident) -> TokenStream {
+fn acc_unchecked_tokens(name: &syn::Ident, is_optional: bool) -> TokenStream {
     let name_str = name.to_string();
-    quote! {
-        let #name = accounts_iter
-        .next()
-        .ok_or(FuzzingError::NotEnoughAccounts(#name_str.to_string()))?
-        .map(anchor_lang::accounts::unchecked_account::UncheckedAccount::try_from)
-        .ok_or(FuzzingError::AccountNotFound(#name_str.to_string()))?;
+    if is_optional {
+        quote! {
+            let #name = accounts_iter
+            .next()
+            .ok_or(FuzzingError::NotEnoughAccounts(#name_str.to_string()))?
+            .as_ref()
+            .map(anchor_lang::accounts::unchecked_account::UncheckedAccount::try_from);
+        }
+    } else {
+        quote! {
+            let #name = accounts_iter
+            .next()
+            .ok_or(FuzzingError::NotEnoughAccounts(#name_str.to_string()))?
+            .as_ref()
+            .map(anchor_lang::accounts::unchecked_account::UncheckedAccount::try_from)
+            .ok_or(FuzzingError::AccountNotFound(#name_str.to_string()))?;
+        }
     }
 }
 
