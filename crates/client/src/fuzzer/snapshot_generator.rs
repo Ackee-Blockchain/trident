@@ -198,6 +198,7 @@ fn create_snapshot_struct(
                     .map(|(field, parsed_field)| {
                         let field_name = &field.ident;
                         let mut field_type = &field.ty;
+                        #[allow(unused_assignments)]
                         let mut is_account_info = false;
                         if let AccountField::Field(f) = parsed_field {
                             if f.is_optional {
