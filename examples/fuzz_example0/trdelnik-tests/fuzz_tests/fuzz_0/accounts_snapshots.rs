@@ -1,42 +1,53 @@
 use fuzz_example0::Counter;
-use trdelnik_client::anchor_lang::solana_program::instruction::AccountMeta;
+use program_client::fuzz_example0_instruction::PROGRAM_ID;
 use trdelnik_client::anchor_lang::{self, prelude::*};
-use trdelnik_client::fuzzing::{get_account_infos_option, FuzzingError};
+use trdelnik_client::fuzzing::FuzzingError;
 pub struct InitializeSnapshot<'info> {
     pub counter: Option<Account<'info, Counter>>,
-    pub user: Option<Signer<'info>>,
-    pub system_program: Option<Program<'info, System>>,
+    pub user: Signer<'info>,
+    pub system_program: Program<'info, System>,
 }
 pub struct UpdateSnapshot<'info> {
-    pub counter: Option<Account<'info, Counter>>,
-    pub authority: Option<Signer<'info>>,
+    pub counter: Account<'info, Counter>,
+    pub authority: Signer<'info>,
 }
 impl<'info> InitializeSnapshot<'info> {
     pub fn deserialize_option(
-        metas: &'info [AccountMeta],
-        accounts: &'info mut [Option<trdelnik_client::solana_sdk::account::Account>],
+        accounts: &'info mut [Option<AccountInfo<'info>>],
     ) -> core::result::Result<Self, FuzzingError> {
-        let accounts = get_account_infos_option(accounts, metas)
-            .map_err(|_| FuzzingError::CannotGetAccounts)?;
-        let mut accounts_iter = accounts.into_iter();
+        let mut accounts_iter = accounts.iter();
         let counter: Option<anchor_lang::accounts::account::Account<Counter>> = accounts_iter
             .next()
-            .ok_or(FuzzingError::NotEnoughAccounts)?
-            .map(|acc| anchor_lang::accounts::account::Account::try_from(&acc))
+            .ok_or(FuzzingError::NotEnoughAccounts("counter".to_string()))?
+            .as_ref()
+            .map(|acc| {
+                if acc.key() != PROGRAM_ID {
+                    anchor_lang::accounts::account::Account::try_from(acc)
+                        .map_err(|_| FuzzingError::CannotDeserializeAccount("counter".to_string()))
+                } else {
+                    Err(FuzzingError::OptionalAccountNotProvided(
+                        "counter".to_string(),
+                    ))
+                }
+            })
             .transpose()
             .unwrap_or(None);
-        let user: Option<Signer<'_>> = accounts_iter
+        let user: Signer<'_> = accounts_iter
             .next()
-            .ok_or(FuzzingError::NotEnoughAccounts)?
-            .map(|acc| anchor_lang::accounts::signer::Signer::try_from(&acc))
-            .transpose()
-            .map_err(|_| FuzzingError::CannotDeserializeAccount)?;
-        let system_program: Option<anchor_lang::accounts::program::Program<System>> = accounts_iter
+            .ok_or(FuzzingError::NotEnoughAccounts("user".to_string()))?
+            .as_ref()
+            .map(anchor_lang::accounts::signer::Signer::try_from)
+            .ok_or(FuzzingError::AccountNotFound("user".to_string()))?
+            .map_err(|_| FuzzingError::CannotDeserializeAccount("user".to_string()))?;
+        let system_program: anchor_lang::accounts::program::Program<System> = accounts_iter
             .next()
-            .ok_or(FuzzingError::NotEnoughAccounts)?
-            .map(|acc| anchor_lang::accounts::program::Program::try_from(&acc))
-            .transpose()
-            .map_err(|_| FuzzingError::CannotDeserializeAccount)?;
+            .ok_or(FuzzingError::NotEnoughAccounts(
+                "system_program".to_string(),
+            ))?
+            .as_ref()
+            .map(anchor_lang::accounts::program::Program::try_from)
+            .ok_or(FuzzingError::AccountNotFound("system_program".to_string()))?
+            .map_err(|_| FuzzingError::CannotDeserializeAccount("system_program".to_string()))?;
         Ok(Self {
             counter,
             user,
@@ -46,24 +57,23 @@ impl<'info> InitializeSnapshot<'info> {
 }
 impl<'info> UpdateSnapshot<'info> {
     pub fn deserialize_option(
-        metas: &'info [AccountMeta],
-        accounts: &'info mut [Option<trdelnik_client::solana_sdk::account::Account>],
+        accounts: &'info mut [Option<AccountInfo<'info>>],
     ) -> core::result::Result<Self, FuzzingError> {
-        let accounts = get_account_infos_option(accounts, metas)
-            .map_err(|_| FuzzingError::CannotGetAccounts)?;
-        let mut accounts_iter = accounts.into_iter();
-        let counter: Option<anchor_lang::accounts::account::Account<Counter>> = accounts_iter
+        let mut accounts_iter = accounts.iter();
+        let counter: anchor_lang::accounts::account::Account<Counter> = accounts_iter
             .next()
-            .ok_or(FuzzingError::NotEnoughAccounts)?
-            .map(|acc| anchor_lang::accounts::account::Account::try_from(&acc))
-            .transpose()
-            .unwrap_or(None);
-        let authority: Option<Signer<'_>> = accounts_iter
+            .ok_or(FuzzingError::NotEnoughAccounts("counter".to_string()))?
+            .as_ref()
+            .map(anchor_lang::accounts::account::Account::try_from)
+            .ok_or(FuzzingError::AccountNotFound("counter".to_string()))?
+            .map_err(|_| FuzzingError::CannotDeserializeAccount("counter".to_string()))?;
+        let authority: Signer<'_> = accounts_iter
             .next()
-            .ok_or(FuzzingError::NotEnoughAccounts)?
-            .map(|acc| anchor_lang::accounts::signer::Signer::try_from(&acc))
-            .transpose()
-            .map_err(|_| FuzzingError::CannotDeserializeAccount)?;
+            .ok_or(FuzzingError::NotEnoughAccounts("authority".to_string()))?
+            .as_ref()
+            .map(anchor_lang::accounts::signer::Signer::try_from)
+            .ok_or(FuzzingError::AccountNotFound("authority".to_string()))?
+            .map_err(|_| FuzzingError::CannotDeserializeAccount("authority".to_string()))?;
         Ok(Self { counter, authority })
     }
 }
