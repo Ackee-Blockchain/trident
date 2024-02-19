@@ -2,7 +2,7 @@ pub mod fuzz_example1_fuzz_instructions {
     use crate::accounts_snapshots::*;
     use fuzz_example1::state::{PROJECT_SEED, STATE_SEED};
     use trdelnik_client::fuzzing::*;
-    #[derive(Arbitrary, Debug, DisplayIx, FuzzTestExecutor, FuzzDeserialize)]
+    #[derive(Arbitrary, DisplayIx, FuzzTestExecutor, FuzzDeserialize)]
     pub enum FuzzInstruction {
         Initialize(Initialize),
         Register(Register),

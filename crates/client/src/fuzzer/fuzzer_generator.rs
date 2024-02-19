@@ -208,7 +208,7 @@ pub fn generate_source_code(idl: &Idl) -> String {
                     use trdelnik_client::fuzzing::*;
                     use crate::accounts_snapshots::*;
 
-                    #[derive(Arbitrary, Clone, DisplayIx, FuzzTestExecutor, FuzzDeserialize)]
+                    #[derive(Arbitrary, DisplayIx, FuzzTestExecutor, FuzzDeserialize)]
                     pub enum FuzzInstruction {
                         #(#instructions),*
                     }

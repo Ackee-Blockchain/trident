@@ -4,7 +4,7 @@ pub mod fuzz_example2_fuzz_instructions {
     use trdelnik_client::{
         anchor_lang::Key, fuzzing::*, solana_sdk::native_token::LAMPORTS_PER_SOL,
     };
-    #[derive(Arbitrary, Debug, DisplayIx, FuzzTestExecutor, FuzzDeserialize)]
+    #[derive(Arbitrary, DisplayIx, FuzzTestExecutor, FuzzDeserialize)]
     pub enum FuzzInstruction {
         Initialize(Initialize),
         Withdraw(Withdraw),

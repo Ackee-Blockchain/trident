@@ -70,15 +70,8 @@ impl FuzzTestExecutor<FuzzAccounts> for FuzzInstruction {
                     {
                         ::std::io::_eprint(
                             format_args!(
-                                "Custom check after the {0} instruction did not pass with the error message: {1}\n",
-                                self.to_context_string(), e,
-                            ),
-                        );
-                    };
-                    {
-                        ::std::io::_eprint(
-                            format_args!(
-                                "Instruction data submitted to the instruction were:\n",
+                                "CRASH DETECTED! Custom check after the {0} instruction did not pass!\n",
+                                self.to_context_string(),
                             ),
                         );
                     };
@@ -149,15 +142,8 @@ impl FuzzTestExecutor<FuzzAccounts> for FuzzInstruction {
                     {
                         ::std::io::_eprint(
                             format_args!(
-                                "Custom check after the {0} instruction did not pass with the error message: {1}\n",
-                                self.to_context_string(), e,
-                            ),
-                        );
-                    };
-                    {
-                        ::std::io::_eprint(
-                            format_args!(
-                                "Instruction data submitted to the instruction were:\n",
+                                "CRASH DETECTED! Custom check after the {0} instruction did not pass!\n",
+                                self.to_context_string(),
                             ),
                         );
                     };

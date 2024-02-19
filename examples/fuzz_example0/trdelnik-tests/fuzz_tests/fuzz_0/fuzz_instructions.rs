@@ -1,7 +1,7 @@
 pub mod fuzz_example0_fuzz_instructions {
     use crate::accounts_snapshots::*;
     use trdelnik_client::{fuzzing::*, solana_sdk::native_token::LAMPORTS_PER_SOL};
-    #[derive(Arbitrary, Debug, DisplayIx, FuzzTestExecutor, FuzzDeserialize)]
+    #[derive(Arbitrary, DisplayIx, FuzzTestExecutor, FuzzDeserialize)]
     pub enum FuzzInstruction {
         Initialize(Initialize),
         Update(Update),
