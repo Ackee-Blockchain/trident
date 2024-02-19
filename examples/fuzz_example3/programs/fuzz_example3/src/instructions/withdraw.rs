@@ -11,10 +11,8 @@ pub fn _withdraw_unlocked(ctx: Context<WithdrawUnlocked>) -> Result<()> {
         .amount_unlocked(current_time)
         .ok_or(VestingError::InvalidAmount)?;
 
-    let seeds = &[
-        b"ESCROW_PDA_AUTHORITY".as_ref(),
-        &[*ctx.bumps.get("escrow_pda_authority").unwrap()],
-    ];
+    let bump = ctx.bumps.escrow_pda_authority;
+    let seeds = &[b"ESCROW_PDA_AUTHORITY".as_ref(), &[bump]];
 
     transfer(
         CpiContext::new(

@@ -27,7 +27,7 @@ pub fn _init_vesting(
     escrow.end_time = end_at;
     escrow.interval = interval;
     escrow.recipient = recipient;
-    escrow.bump = *ctx.bumps.get("escrow").unwrap();
+    escrow.bump = ctx.bumps.escrow;
 
     let (escrow_pda_authority, _) =
         Pubkey::find_program_address(&[b"ESCROW_PDA_AUTHORITY"], ctx.program_id);
