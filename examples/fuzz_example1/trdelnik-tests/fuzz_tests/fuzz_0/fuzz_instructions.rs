@@ -104,7 +104,7 @@ pub mod fuzz_example1_fuzz_instructions {
                     &[author.pubkey().as_ref(), STATE_SEED.as_ref()],
                     &fuzz_example1::ID,
                 )
-                .ok_or(FuzzingError::CannotGetAccounts)?
+                .ok_or(FuzzingError::Custom(1))?
                 .pubkey();
 
             let acc_meta = fuzz_example1::accounts::Initialize {
@@ -146,7 +146,7 @@ pub mod fuzz_example1_fuzz_instructions {
                     &[project_author.pubkey().as_ref(), STATE_SEED.as_ref()],
                     &fuzz_example1::ID,
                 )
-                .ok_or(FuzzingError::CannotGetAccounts)?
+                .ok_or(FuzzingError::Custom(2))?
                 .pubkey();
 
             let project = fuzz_accounts
@@ -160,7 +160,7 @@ pub mod fuzz_example1_fuzz_instructions {
                     ],
                     &fuzz_example1::ID,
                 )
-                .ok_or(FuzzingError::CannotGetAccounts)?
+                .ok_or(FuzzingError::Custom(3))?
                 .pubkey();
 
             let acc_meta = fuzz_example1::accounts::Register {
@@ -177,18 +177,15 @@ pub mod fuzz_example1_fuzz_instructions {
             pre_ix: Self::IxSnapshot,
             post_ix: Self::IxSnapshot,
             _ix_data: Self::IxData,
-        ) -> Result<(), &'static str> {
+        ) -> Result<(), FuzzingError> {
             // INFO
             // This fuzz check will reveal that registrations can be performed
             // even though registration windows is not open.
-            if let Some(state) = pre_ix.state {
-                if let Some(_project) = post_ix.project {
-                    let registrations_round = state.registrations_round;
-                    if !registrations_round {
-                        return Err(
-                            "We succesfully registered new project even though registrations are not open",
-                        );
-                    }
+            let state = pre_ix.state;
+            if let Some(_project) = post_ix.project {
+                let registrations_round = state.registrations_round;
+                if !registrations_round {
+                    return Err(FuzzingError::Custom(11));
                 }
             }
             Ok(())
@@ -224,7 +221,7 @@ pub mod fuzz_example1_fuzz_instructions {
                     &[author.pubkey().as_ref(), STATE_SEED.as_ref()],
                     &fuzz_example1::ID,
                 )
-                .ok_or(FuzzingError::CannotGetAccounts)?
+                .ok_or(FuzzingError::Custom(4))?
                 .pubkey();
             let acc_meta = fuzz_example1::accounts::EndRegistration {
                 author: author.pubkey(),
@@ -272,7 +269,7 @@ pub mod fuzz_example1_fuzz_instructions {
                     &[project_author.pubkey().as_ref(), STATE_SEED.as_ref()],
                     &fuzz_example1::ID,
                 )
-                .ok_or(FuzzingError::CannotGetAccounts)?
+                .ok_or(FuzzingError::Custom(5))?
                 .pubkey();
 
             let project = fuzz_accounts
@@ -286,7 +283,7 @@ pub mod fuzz_example1_fuzz_instructions {
                     ],
                     &fuzz_example1::ID,
                 )
-                .ok_or(FuzzingError::CannotGetAccounts)?
+                .ok_or(FuzzingError::Custom(6))?
                 .pubkey();
             let acc_meta = fuzz_example1::accounts::Invest {
                 investor: investor.pubkey(),

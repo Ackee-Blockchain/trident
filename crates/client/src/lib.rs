@@ -26,12 +26,13 @@ pub mod fuzzing {
         fuzz_trd, solana_sdk::account::Account, solana_sdk::transaction::Transaction, Instruction,
         Keypair, Pubkey, Signer, TempClone,
     };
+    pub use anchor_client::anchor_lang::solana_program::account_info::AccountInfo;
     pub use anchor_client::anchor_lang::solana_program::hash::Hash;
     pub use arbitrary;
     pub use arbitrary::Arbitrary;
     pub use honggfuzz::fuzz;
     // TODO add optional feature gated dependency
-    pub use solana_program_test::{
+    pub use solana_program_test_anchor_fix::{
         processor, tokio::runtime::Runtime, BanksClient, BanksClientError, ProgramTest,
         ProgramTestContext,
     };

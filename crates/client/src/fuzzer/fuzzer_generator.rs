@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use crate::idl::Idl;
+use proc_macro2::Ident;
 use quote::{format_ident, ToTokens};
 use syn::{parse_quote, parse_str};
 
@@ -183,12 +184,13 @@ pub fn generate_source_code(idl: &Idl) -> String {
 
             let fuzz_accounts = idl_program.instruction_account_pairs.iter().fold(
                 HashMap::new(),
-                |mut fuzz_accounts, (_idl_instruction, idl_account_group)| {
+                |mut fuzz_accounts: HashMap<Ident, String>,
+                 (_idl_instruction, idl_account_group)| {
                     idl_account_group.accounts.iter().fold(
                         &mut fuzz_accounts,
                         |fuzz_accounts, (name, _ty)| {
                             let name = format_ident!("{name}");
-                            fuzz_accounts.entry(name).or_insert_with(|| "".to_string());
+                            fuzz_accounts.entry(name).or_default();
                             fuzz_accounts
                         },
                     );

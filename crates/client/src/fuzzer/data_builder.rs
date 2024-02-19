@@ -151,8 +151,7 @@ pub trait FuzzDeserialize<'info> {
 
     fn deserialize_option(
         &self,
-        metas: &'info [AccountMeta],
-        accounts: &'info mut [Option<Account>],
+        accounts: &'info mut [Option<AccountInfo<'info>>],
     ) -> Result<Self::Ix, FuzzingError>;
 }
 

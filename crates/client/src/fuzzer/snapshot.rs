@@ -1,12 +1,16 @@
 #![allow(dead_code)] // The Snapshot is constructed in the FuzzTestExecutor macro and is generated automatically
 
+use anchor_client::anchor_lang::solana_program::account_info::Account as Acc;
+use anchor_client::anchor_lang::solana_program::account_info::AccountInfo;
 use solana_sdk::{account::Account, instruction::AccountMeta};
 
 use crate::data_builder::{FuzzClient, FuzzDeserialize};
 use crate::error::*;
 pub struct Snapshot<'info, T> {
     before: Vec<Option<Account>>,
+    before_acc_inf: Vec<Option<AccountInfo<'info>>>,
     after: Vec<Option<Account>>,
+    after_acc_inf: Vec<Option<AccountInfo<'info>>>,
     metas: &'info [AccountMeta],
     ix: &'info T,
 }
@@ -16,9 +20,12 @@ where
     T: FuzzDeserialize<'info>,
 {
     pub fn new(metas: &'info [AccountMeta], ix: &'info T) -> Snapshot<'info, T> {
+        let capacity = metas.len();
         Self {
-            before: Vec::new(),
-            after: Vec::new(),
+            before: Vec::with_capacity(capacity),
+            before_acc_inf: Vec::with_capacity(capacity),
+            after: Vec::with_capacity(capacity),
+            after_acc_inf: Vec::with_capacity(capacity),
             metas,
             ix,
         }
@@ -48,11 +55,34 @@ where
         &mut self,
         client: &mut impl FuzzClient,
     ) -> Result<Vec<Option<Account>>, FuzzClientErrorWithOrigin> {
-        let accounts;
-        {
-            accounts = client.get_accounts(self.metas)?;
-        }
-        Ok(accounts)
+        client.get_accounts(self.metas)
+    }
+
+    fn calculate_account_info(
+        accounts: &'info mut [Option<Account>],
+        metas: &'info [AccountMeta],
+    ) -> Vec<Option<AccountInfo<'info>>> {
+        accounts
+            .iter_mut()
+            .zip(metas)
+            .map(|(account, meta)| {
+                if let Some(account) = account {
+                    let (lamports, data, owner, executable, rent_epoch) = account.get();
+                    Some(AccountInfo::new(
+                        &meta.pubkey,
+                        meta.is_signer,
+                        meta.is_writable,
+                        lamports,
+                        data,
+                        owner,
+                        executable,
+                        rent_epoch,
+                    ))
+                } else {
+                    None
+                }
+            })
+            .collect()
     }
 
     fn set_missing_accounts_to_default(accounts: &mut [Option<Account>]) {
@@ -63,9 +93,7 @@ where
         }
     }
 
-    pub fn get_snapshot(
-        &'info mut self,
-    ) -> std::result::Result<(T::Ix, T::Ix), FuzzingErrorWithOrigin> {
+    pub fn get_snapshot(&'info mut self) -> Result<(T::Ix, T::Ix), FuzzingErrorWithOrigin> {
         // When user passes an account that is not initialized, the runtime will provide
         // a default empty account to the program. If the uninitialized account is of type
         // AccountInfo, Signer or UncheckedAccount, Anchor will not return an error. However
@@ -76,13 +104,16 @@ where
         Self::set_missing_accounts_to_default(&mut self.before);
         Self::set_missing_accounts_to_default(&mut self.after);
 
+        self.before_acc_inf = Self::calculate_account_info(&mut self.before, self.metas);
+        self.after_acc_inf = Self::calculate_account_info(&mut self.after, self.metas);
+
         let pre_ix = self
             .ix
-            .deserialize_option(self.metas, &mut self.before)
+            .deserialize_option(&mut self.before_acc_inf)
             .map_err(|e| e.with_context(Context::Pre))?;
         let post_ix = self
             .ix
-            .deserialize_option(self.metas, &mut self.after)
+            .deserialize_option(&mut self.after_acc_inf)
             .map_err(|e| e.with_context(Context::Post))?;
         Ok((pre_ix, post_ix))
     }

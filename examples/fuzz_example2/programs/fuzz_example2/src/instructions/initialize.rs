@@ -8,7 +8,7 @@ pub fn _initialize(ctx: Context<Initialize>, receiver: Pubkey, amount: u64) -> R
     escorw.author = ctx.accounts.author.key();
     escorw.amount = amount;
     escorw.receiver = receiver;
-    escorw.bump = *ctx.bumps.get("escrow").unwrap();
+    escorw.bump = ctx.bumps.escrow;
 
     system_program::transfer(
         CpiContext::new(
