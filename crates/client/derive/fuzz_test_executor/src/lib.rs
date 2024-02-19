@@ -51,10 +51,8 @@ pub fn fuzz_test_executor(input: TokenStream) -> TokenStream {
 
                     if let Err(e) = ix.check(acc_before, acc_after, data).map_err(|e| e.with_origin(Origin::Instruction(self.to_context_string()))) {
                         eprintln!(
-                            "Custom check after the {} instruction did not pass with the error message: {}",
-                            self.to_context_string(), e
-                        );
-                        eprintln!("Instruction data submitted to the instruction were:"); // TODO data does not implement Debug trait -> derive Debug trait on InitializeIx and automaticaly implement conversion from Initialize to InitializeIx
+                            "CRASH DETECTED! Custom check after the {} instruction did not pass!",
+                            self.to_context_string());
                         panic!("{}", e)
                     }
 
