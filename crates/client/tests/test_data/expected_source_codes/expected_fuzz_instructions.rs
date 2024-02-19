@@ -1,17 +1,17 @@
 pub mod fuzz_example3_fuzz_instructions {
     use crate::accounts_snapshots::*;
     use trdelnik_client::fuzzing::*;
-    #[derive(Arbitrary, Clone, DisplayIx, FuzzTestExecutor, FuzzDeserialize)]
+    #[derive(Arbitrary, DisplayIx, FuzzTestExecutor, FuzzDeserialize)]
     pub enum FuzzInstruction {
         InitVesting(InitVesting),
         WithdrawUnlocked(WithdrawUnlocked),
     }
-    #[derive(Arbitrary, Clone, Debug)]
+    #[derive(Arbitrary, Debug)]
     pub struct InitVesting {
         pub accounts: InitVestingAccounts,
         pub data: InitVestingData,
     }
-    #[derive(Arbitrary, Clone, Debug)]
+    #[derive(Arbitrary, Debug)]
     pub struct InitVestingAccounts {
         pub sender: AccountId,
         pub sender_token_account: AccountId,
@@ -21,7 +21,7 @@ pub mod fuzz_example3_fuzz_instructions {
         pub token_program: AccountId,
         pub system_program: AccountId,
     }
-    #[derive(Arbitrary, Clone, Debug)]
+    #[derive(Arbitrary, Debug)]
     pub struct InitVestingData {
         pub recipient: AccountId,
         pub _recipient: AccountId,
@@ -30,12 +30,12 @@ pub mod fuzz_example3_fuzz_instructions {
         pub end_at: u64,
         pub interval: u64,
     }
-    #[derive(Arbitrary, Clone, Debug)]
+    #[derive(Arbitrary, Debug)]
     pub struct WithdrawUnlocked {
         pub accounts: WithdrawUnlockedAccounts,
         pub data: WithdrawUnlockedData,
     }
-    #[derive(Arbitrary, Clone, Debug)]
+    #[derive(Arbitrary, Debug)]
     pub struct WithdrawUnlockedAccounts {
         pub recipient: AccountId,
         pub recipient_token_account: AccountId,
@@ -46,7 +46,7 @@ pub mod fuzz_example3_fuzz_instructions {
         pub token_program: AccountId,
         pub system_program: AccountId,
     }
-    #[derive(Arbitrary, Clone, Debug)]
+    #[derive(Arbitrary, Debug)]
     pub struct WithdrawUnlockedData {}
     impl<'info> IxOps<'info> for InitVesting {
         type IxData = fuzz_example3::instruction::InitVesting;

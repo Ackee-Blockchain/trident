@@ -4,39 +4,39 @@ pub mod fuzz_example2_fuzz_instructions {
     use trdelnik_client::{
         anchor_lang::Key, fuzzing::*, solana_sdk::native_token::LAMPORTS_PER_SOL,
     };
-    #[derive(Arbitrary, Clone, DisplayIx, FuzzTestExecutor, FuzzDeserialize)]
+    #[derive(Arbitrary, Debug, DisplayIx, FuzzTestExecutor, FuzzDeserialize)]
     pub enum FuzzInstruction {
         Initialize(Initialize),
         Withdraw(Withdraw),
     }
-    #[derive(Arbitrary, Clone)]
+    #[derive(Arbitrary, Debug)]
     pub struct Initialize {
         pub accounts: InitializeAccounts,
         pub data: InitializeData,
     }
-    #[derive(Arbitrary, Clone)]
+    #[derive(Arbitrary, Debug)]
     pub struct InitializeAccounts {
         pub author: AccountId,
         pub escrow: AccountId,
         pub system_program: AccountId,
     }
-    #[derive(Arbitrary, Clone)]
+    #[derive(Arbitrary, Debug)]
     pub struct InitializeData {
         pub receiver: AccountId,
         pub amount: u64,
     }
-    #[derive(Arbitrary, Clone)]
+    #[derive(Arbitrary, Debug)]
     pub struct Withdraw {
         pub accounts: WithdrawAccounts,
         pub data: WithdrawData,
     }
-    #[derive(Arbitrary, Clone)]
+    #[derive(Arbitrary, Debug)]
     pub struct WithdrawAccounts {
         pub receiver: AccountId,
         pub escrow: AccountId,
         pub system_program: AccountId,
     }
-    #[derive(Arbitrary, Clone)]
+    #[derive(Arbitrary, Debug)]
     pub struct WithdrawData {}
     impl<'info> IxOps<'info> for Initialize {
         type IxData = fuzz_example2::instruction::Initialize;
