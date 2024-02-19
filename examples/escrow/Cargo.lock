@@ -5184,6 +5184,7 @@ version = "0.5.0"
 dependencies = [
  "anchor-client",
  "anchor-lang",
+ "anchor-spl",
  "anyhow",
  "arbitrary",
  "bincode",

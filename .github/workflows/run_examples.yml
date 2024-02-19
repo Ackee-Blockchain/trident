@@ -7,8 +7,8 @@ on:
 name: Test Escrow and Turnstile
 
 env:
-  SOLANA_CLI_VERSION: 1.16.6
-  ANCHOR_VERSION: 0.28.0
+  SOLANA_CLI_VERSION: 1.17.16
+  ANCHOR_VERSION: 0.29.0
 
 jobs:
   test_escrow:

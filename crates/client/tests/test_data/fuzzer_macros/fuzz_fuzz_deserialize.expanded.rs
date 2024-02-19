@@ -7,20 +7,18 @@ impl<'info> FuzzDeserialize<'info> for InitVesting {
     type Ix = InitVestingSnapshot<'info>;
     fn deserialize_option(
         &self,
-        metas: &'info [AccountMeta],
-        accounts: &'info mut [Option<Account>],
+        accounts: &'info mut [Option<AccountInfo<'info>>],
     ) -> Result<Self::Ix, FuzzingError> {
-        Self::Ix::deserialize_option(metas, accounts)
+        Self::Ix::deserialize_option(accounts)
     }
 }
 impl<'info> FuzzDeserialize<'info> for WithdrawUnlocked {
     type Ix = WithdrawUnlockedSnapshot<'info>;
     fn deserialize_option(
         &self,
-        metas: &'info [AccountMeta],
-        accounts: &'info mut [Option<Account>],
+        accounts: &'info mut [Option<AccountInfo<'info>>],
     ) -> Result<Self::Ix, FuzzingError> {
-        Self::Ix::deserialize_option(metas, accounts)
+        Self::Ix::deserialize_option(accounts)
     }
 }
 pub struct InitVesting {
