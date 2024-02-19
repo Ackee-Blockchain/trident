@@ -7,7 +7,7 @@ pub fn _register(ctx: Context<Register>) -> Result<()> {
 
     project.project_author = ctx.accounts.project_author.key();
     project.invested_amount = 0;
-    project.bump = *ctx.bumps.get("project").unwrap();
+    project.bump = ctx.bumps.project;
 
     Ok(())
 }

@@ -22,7 +22,7 @@ pub mod fuzz_example2_fuzz_instructions {
     }
     #[derive(Arbitrary, Clone)]
     pub struct InitializeData {
-        pub receiver: [u8; 32],
+        pub receiver: AccountId,
         pub amount: u64,
     }
     #[derive(Arbitrary, Clone)]
@@ -44,11 +44,16 @@ pub mod fuzz_example2_fuzz_instructions {
         type IxSnapshot = InitializeSnapshot<'info>;
         fn get_data(
             &self,
-            _client: &mut impl FuzzClient,
-            _fuzz_accounts: &mut FuzzAccounts,
+            client: &mut impl FuzzClient,
+            fuzz_accounts: &mut FuzzAccounts,
         ) -> Result<Self::IxData, FuzzingError> {
+            let receiver = fuzz_accounts.receiver.get_or_create_account(
+                self.data.receiver,
+                client,
+                10 * LAMPORTS_PER_SOL,
+            );
             let data = fuzz_example2::instruction::Initialize {
-                receiver: Pubkey::new_from_array(self.data.receiver),
+                receiver: receiver.pubkey(),
                 amount: 100,
             };
             Ok(data)
@@ -64,13 +69,19 @@ pub mod fuzz_example2_fuzz_instructions {
                 10 * LAMPORTS_PER_SOL,
             );
 
+            let receiver = fuzz_accounts.receiver.get_or_create_account(
+                self.data.receiver,
+                client,
+                10 * LAMPORTS_PER_SOL,
+            );
+
             let escrow = fuzz_accounts
                 .escrow
                 .get_or_create_account(
                     self.accounts.escrow,
                     &[
                         author.pubkey().as_ref(),
-                        self.data.receiver.as_ref(),
+                        receiver.pubkey().as_ref(),
                         ESCROW_SEED.as_ref(),
                     ],
                     &fuzz_example2::ID,
@@ -134,20 +145,20 @@ pub mod fuzz_example2_fuzz_instructions {
             pre_ix: Self::IxSnapshot,
             post_ix: Self::IxSnapshot,
             _ix_data: Self::IxData,
-        ) -> Result<(), &'static str> {
+        ) -> Result<(), FuzzingError> {
             if let Some(escrow_pre) = pre_ix.escrow {
                 // we can unwrap the receiver account because it has to be initialized before the instruction
                 // execution and it is not supposed to be closed after the instruction execution either
-                let receiver = pre_ix.receiver.unwrap();
+                let receiver = pre_ix.receiver;
                 let receiver_lamports_before = receiver.lamports();
-                let receiver_lamports_after = post_ix.receiver.unwrap().lamports();
+                let receiver_lamports_after = post_ix.receiver.lamports();
 
                 // If the Receiver (i.e. Signer in the Context) and stored Receiver inside Escrow Account,
                 // do not match, however the receiver`s balance increased, we found an Error
                 if receiver.key() != escrow_pre.receiver.key()
                     && receiver_lamports_before < receiver_lamports_after
                 {
-                    return Err("Un-authorized withdrawal");
+                    return Err(FuzzingError::BalanceMismatch);
                 }
             }
 

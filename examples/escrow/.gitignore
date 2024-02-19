@@ -5,4 +5,3 @@ target
 **/*.rs.bk
 node_modules
 test-ledger
-hfuzz_target
