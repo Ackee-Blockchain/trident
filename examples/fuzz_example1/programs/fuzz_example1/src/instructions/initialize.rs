@@ -7,7 +7,7 @@ pub fn _initialize(ctx: Context<Initialize>) -> Result<()> {
 
     state.author = ctx.accounts.author.key();
     state.total_invested = 0;
-    state.bump = *ctx.bumps.get("state").unwrap();
+    state.bump = ctx.bumps.state;
     Ok(())
 }
 
