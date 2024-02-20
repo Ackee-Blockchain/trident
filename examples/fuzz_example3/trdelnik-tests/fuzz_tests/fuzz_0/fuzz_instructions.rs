@@ -1,17 +1,17 @@
 pub mod fuzz_example3_fuzz_instructions {
     use crate::accounts_snapshots::*;
     use trdelnik_client::{fuzzing::*, solana_sdk::native_token::LAMPORTS_PER_SOL};
-    #[derive(Arbitrary, Clone, DisplayIx, FuzzTestExecutor, FuzzDeserialize)]
+    #[derive(Arbitrary, DisplayIx, FuzzTestExecutor, FuzzDeserialize)]
     pub enum FuzzInstruction {
         InitVesting(InitVesting),
         WithdrawUnlocked(WithdrawUnlocked),
     }
-    #[derive(Arbitrary, Clone)]
+    #[derive(Arbitrary, Debug)]
     pub struct InitVesting {
         pub accounts: InitVestingAccounts,
         pub data: InitVestingData,
     }
-    #[derive(Arbitrary, Clone)]
+    #[derive(Arbitrary, Debug)]
     pub struct InitVestingAccounts {
         pub sender: AccountId,
         pub sender_token_account: AccountId,
@@ -21,7 +21,7 @@ pub mod fuzz_example3_fuzz_instructions {
         pub token_program: AccountId,
         pub system_program: AccountId,
     }
-    #[derive(Arbitrary, Clone)]
+    #[derive(Arbitrary, Debug)]
     pub struct InitVestingData {
         pub recipient: AccountId,
         #[arbitrary(with = |u: &mut arbitrary::Unstructured| u.int_in_range(1..=1_000_000))]
@@ -35,12 +35,12 @@ pub mod fuzz_example3_fuzz_instructions {
         #[arbitrary(with = |u: &mut arbitrary::Unstructured| u.int_in_range(1..=1000))]
         pub interval: u64,
     }
-    #[derive(Arbitrary, Clone)]
+    #[derive(Arbitrary, Debug)]
     pub struct WithdrawUnlocked {
         pub accounts: WithdrawUnlockedAccounts,
         pub data: WithdrawUnlockedData,
     }
-    #[derive(Arbitrary, Clone)]
+    #[derive(Arbitrary, Debug)]
     pub struct WithdrawUnlockedAccounts {
         pub recipient: AccountId,
         pub recipient_token_account: AccountId,
@@ -51,7 +51,7 @@ pub mod fuzz_example3_fuzz_instructions {
         pub token_program: AccountId,
         pub system_program: AccountId,
     }
-    #[derive(Arbitrary, Clone)]
+    #[derive(Arbitrary, Debug)]
     pub struct WithdrawUnlockedData {}
     impl<'info> IxOps<'info> for InitVesting {
         type IxData = fuzz_example3::instruction::InitVesting;

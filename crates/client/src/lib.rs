@@ -23,8 +23,8 @@ pub mod fuzzing {
     pub use super::{
         anchor_lang, anchor_lang::system_program::ID as SYSTEM_PROGRAM_ID,
         anchor_lang::InstructionData, anchor_lang::ToAccountInfo, anchor_lang::ToAccountMetas,
-        fuzz_trd, solana_sdk::account::Account, solana_sdk::transaction::Transaction, Instruction,
-        Keypair, Pubkey, Signer, TempClone,
+        fuzz_trd, show_account, solana_sdk::account::Account, solana_sdk::transaction::Transaction,
+        Instruction, Keypair, Pubkey, Signer, TempClone,
     };
     pub use anchor_client::anchor_lang::solana_program::account_info::AccountInfo;
     pub use anchor_client::anchor_lang::solana_program::hash::Hash;

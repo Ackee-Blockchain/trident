@@ -2,19 +2,19 @@ pub mod fuzz_example1_fuzz_instructions {
     use crate::accounts_snapshots::*;
     use fuzz_example1::state::{PROJECT_SEED, STATE_SEED};
     use trdelnik_client::fuzzing::*;
-    #[derive(Arbitrary, Clone, DisplayIx, FuzzTestExecutor, FuzzDeserialize)]
+    #[derive(Arbitrary, DisplayIx, FuzzTestExecutor, FuzzDeserialize)]
     pub enum FuzzInstruction {
         Initialize(Initialize),
         Register(Register),
         EndRegistrations(EndRegistrations),
         Invest(Invest),
     }
-    #[derive(Arbitrary, Clone)]
+    #[derive(Arbitrary, Debug)]
     pub struct Initialize {
         pub accounts: InitializeAccounts,
         pub data: InitializeData,
     }
-    #[derive(Arbitrary, Clone)]
+    #[derive(Arbitrary, Debug)]
     pub struct InitializeAccounts {
         #[arbitrary(with = |u: &mut arbitrary::Unstructured| u.int_in_range(0..=2))]
         pub author: AccountId,
@@ -22,14 +22,14 @@ pub mod fuzz_example1_fuzz_instructions {
         pub state: AccountId,
         pub system_program: AccountId,
     }
-    #[derive(Arbitrary, Clone)]
+    #[derive(Arbitrary, Debug)]
     pub struct InitializeData {}
-    #[derive(Arbitrary, Clone)]
+    #[derive(Arbitrary, Debug)]
     pub struct Register {
         pub accounts: RegisterAccounts,
         pub data: RegisterData,
     }
-    #[derive(Arbitrary, Clone)]
+    #[derive(Arbitrary, Debug)]
     pub struct RegisterAccounts {
         #[arbitrary(with = |u: &mut arbitrary::Unstructured| u.int_in_range(0..=2))]
         pub project_author: AccountId,
@@ -39,28 +39,28 @@ pub mod fuzz_example1_fuzz_instructions {
         pub state: AccountId,
         pub system_program: AccountId,
     }
-    #[derive(Arbitrary, Clone)]
+    #[derive(Arbitrary, Debug)]
     pub struct RegisterData {}
-    #[derive(Arbitrary, Clone)]
+    #[derive(Arbitrary, Debug)]
     pub struct EndRegistrations {
         pub accounts: EndRegistrationsAccounts,
         pub data: EndRegistrationsData,
     }
-    #[derive(Arbitrary, Clone)]
+    #[derive(Arbitrary, Debug)]
     pub struct EndRegistrationsAccounts {
         #[arbitrary(with = |u: &mut arbitrary::Unstructured| u.int_in_range(0..=2))]
         pub author: AccountId,
         #[arbitrary(with = |u: &mut arbitrary::Unstructured| u.int_in_range(0..=2))]
         pub state: AccountId,
     }
-    #[derive(Arbitrary, Clone)]
+    #[derive(Arbitrary, Debug)]
     pub struct EndRegistrationsData {}
-    #[derive(Arbitrary, Clone)]
+    #[derive(Arbitrary, Debug)]
     pub struct Invest {
         pub accounts: InvestAccounts,
         pub data: InvestData,
     }
-    #[derive(Arbitrary, Clone)]
+    #[derive(Arbitrary, Debug)]
     pub struct InvestAccounts {
         #[arbitrary(with = |u: &mut arbitrary::Unstructured| u.int_in_range(0..=2))]
         pub investor: AccountId,
@@ -70,7 +70,7 @@ pub mod fuzz_example1_fuzz_instructions {
         pub state: AccountId,
         pub system_program: AccountId,
     }
-    #[derive(Arbitrary, Clone)]
+    #[derive(Arbitrary, Debug)]
     pub struct InvestData {
         pub amount: u64,
     }

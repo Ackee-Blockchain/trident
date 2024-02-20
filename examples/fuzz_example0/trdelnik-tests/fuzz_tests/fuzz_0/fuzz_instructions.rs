@@ -1,35 +1,35 @@
 pub mod fuzz_example0_fuzz_instructions {
     use crate::accounts_snapshots::*;
     use trdelnik_client::{fuzzing::*, solana_sdk::native_token::LAMPORTS_PER_SOL};
-    #[derive(Arbitrary, Clone, DisplayIx, FuzzTestExecutor, FuzzDeserialize)]
+    #[derive(Arbitrary, DisplayIx, FuzzTestExecutor, FuzzDeserialize)]
     pub enum FuzzInstruction {
         Initialize(Initialize),
         Update(Update),
     }
-    #[derive(Arbitrary, Clone)]
+    #[derive(Arbitrary, Debug)]
     pub struct Initialize {
         pub accounts: InitializeAccounts,
         pub data: InitializeData,
     }
-    #[derive(Arbitrary, Clone)]
+    #[derive(Arbitrary, Debug)]
     pub struct InitializeAccounts {
         pub counter: AccountId,
         pub user: AccountId,
         pub system_program: AccountId,
     }
-    #[derive(Arbitrary, Clone)]
+    #[derive(Arbitrary, Debug)]
     pub struct InitializeData {}
-    #[derive(Arbitrary, Clone)]
+    #[derive(Arbitrary, Debug)]
     pub struct Update {
         pub accounts: UpdateAccounts,
         pub data: UpdateData,
     }
-    #[derive(Arbitrary, Clone)]
+    #[derive(Arbitrary, Debug)]
     pub struct UpdateAccounts {
         pub counter: AccountId,
         pub authority: AccountId,
     }
-    #[derive(Arbitrary, Clone)]
+    #[derive(Arbitrary, Debug)]
     pub struct UpdateData {
         pub input1: u8,
         pub input2: u8,
