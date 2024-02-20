@@ -59,7 +59,7 @@ async fn test_account_snapshots() {
     let codes_libs_pairs = vec![(expanded_fuzz_example3.to_string(), path)];
 
     let fuzzer_snapshots =
-        trdelnik_client::snapshot_generator::generate_snapshots_code(codes_libs_pairs).unwrap();
+        trdelnik_client::snapshot_generator::generate_snapshots_code(&codes_libs_pairs).unwrap();
     let fuzzer_snapshots =
         trdelnik_client::Commander::format_program_code(&fuzzer_snapshots).await?;
 

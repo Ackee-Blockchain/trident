@@ -1,4 +1,5 @@
 use anyhow::Error;
+use anyhow::{Context, Result};
 use clap::{Parser, Subcommand};
 use command::InitTemplate;
 use fehler::throws;
@@ -20,11 +21,11 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Command {
-    /// Create a `program_client` crate
+    /// Create or update a `program_client` crate
     Build {
         /// Anchor project root
-        #[clap(short, long, default_value = "./")]
-        root: String,
+        #[clap(short, long)]
+        root: Option<String>,
     },
     /// Get information about a keypair
     KeyPair {
@@ -34,8 +35,8 @@ enum Command {
     /// Run program Integration tests
     Test {
         /// Anchor project root
-        #[clap(short, long, default_value = "./")]
-        root: String,
+        #[clap(short, long)]
+        root: Option<String>,
     },
     /// Run and debug Fuzz tests
     Fuzz {
@@ -76,4 +77,31 @@ pub async fn start() {
         Command::Init { template } => command::init(template).await?,
         Command::Clean => command::clean().await?,
     }
+}
+
+// Climbs each parent directory until we find target.
+fn _discover(target: &str) -> Result<Option<String>> {
+    let _cwd = std::env::current_dir()?;
+    let mut cwd_opt = Some(_cwd.as_path());
+
+    while let Some(cwd) = cwd_opt {
+        for f in std::fs::read_dir(cwd)
+            .with_context(|| format!("Error reading the directory with path: {}", cwd.display()))?
+        {
+            let p = f
+                .with_context(|| {
+                    format!("Error reading the directory with path: {}", cwd.display())
+                })?
+                .path();
+            if let Some(filename) = p.file_name() {
+                if filename.to_str() == Some(target) {
+                    return Ok(Some(cwd.to_string_lossy().to_string()));
+                }
+            }
+        }
+
+        cwd_opt = cwd.parent();
+    }
+
+    Ok(None)
 }
