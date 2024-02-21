@@ -405,7 +405,7 @@ impl Commander {
         let program_idls_codes = self.program_packages().map(|package| async move {
             let name = package.name;
             let output = Command::new("cargo")
-                .arg("+nightly")
+                .arg("+nightly-2023-12-28")
                 .arg("rustc")
                 .args(["--package", &name])
                 .arg("--profile=check")
@@ -508,7 +508,7 @@ impl Commander {
     #[throws]
     pub async fn parse_program_client_imports(&self) -> Vec<syn::ItemUse> {
         let output = Command::new("cargo")
-            .arg("+nightly")
+            .arg("+nightly-2023-12-28")
             .arg("rustc")
             .args(["--package", "program_client"])
             .arg("--profile=check")

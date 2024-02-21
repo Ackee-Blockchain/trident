@@ -60,12 +60,12 @@ proc-macro2 = { workspace = true }
 honggfuzz = { version = "0.5.55", optional = true }
 arbitrary = { version = "1.3.0", features = ["derive"] }
 # solana-program-test = { version = "=1.17.16", optional = true }
-solana-program-test-anchor-fix = {version = "1.17.9", optional = true}
+solana-program-test-anchor-fix = { version = "1.17.9", optional = true }
 quinn-proto = { version = "0.10.6", optional = true }
-solana-program-runtime = { version = "=1.17.16", optional = true }
+solana-program-runtime = { version = "<1.18", optional = true }
 shellexpand = { workspace = true }
 trdelnik-derive-displayix = { path = "./derive/display_ix" }
 trdelnik-derive-fuzz-deserialize = { path = "./derive/fuzz_deserialize" }
 trdelnik-derive-fuzz-test-executor = { path = "./derive/fuzz_test_executor" }
 pathdiff = "0.2.1"
-solana-banks-client = "1.16.19"
+solana-banks-client = "<1.18"
