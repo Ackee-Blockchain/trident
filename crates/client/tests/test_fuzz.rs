@@ -18,9 +18,10 @@ async fn test_fuzz_instructions() {
         "/tests/test_data/expected_source_codes/expected_fuzz_instructions.rs"
     ));
 
-    let program_idl =
-        trdelnik_client::idl::parse_to_idl_program(PROGRAM_NAME.to_owned(), expanded_fuzz_example3)
-            .await?;
+    let program_idl = trdelnik_client::idl::parse_to_idl_program(
+        PROGRAM_NAME.to_owned(),
+        expanded_fuzz_example3,
+    )?;
 
     let idl = trdelnik_client::idl::Idl {
         programs: vec![program_idl],

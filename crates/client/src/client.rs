@@ -36,8 +36,7 @@ use std::{thread::sleep, time::Duration};
 // @TODO: Make compatible with the latest Anchor deps.
 // https://github.com/project-serum/anchor/pull/1307#issuecomment-1022592683
 
-const RETRY_LOCALNET_EVERY_MILLIS: u64 = 500;
-const DEFAULT_KEYPAIR_PATH: &str = "~/.config/solana/id.json";
+use crate::constants::*;
 
 type Payer = Rc<Keypair>;
 

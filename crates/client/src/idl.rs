@@ -188,32 +188,32 @@ pub struct Idl {
     pub programs: Vec<IdlProgram>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct IdlName {
     pub snake_case: String,
     pub upper_camel_case: String,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct IdlProgram {
     pub name: IdlName,
     pub id: String,
     pub instruction_account_pairs: Vec<(IdlInstruction, IdlAccountGroup)>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct IdlInstruction {
     pub name: IdlName,
     pub parameters: Vec<(String, String)>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct IdlAccountGroup {
     pub name: IdlName,
     pub accounts: Vec<(String, String)>,
 }
 
-pub async fn parse_to_idl_program(name: String, code: &str) -> Result<IdlProgram, Error> {
+pub fn parse_to_idl_program(name: String, code: &str) -> Result<IdlProgram, Error> {
     let mut static_program_id = None::<syn::ItemStatic>;
     let mut mod_private = None::<syn::ItemMod>;
     let mut mod_instruction = None::<syn::ItemMod>;
@@ -638,7 +638,7 @@ pub async fn parse_to_idl_program(name: String, code: &str) -> Result<IdlProgram
     Ok(IdlProgram {
         name: IdlName {
             upper_camel_case: name.to_upper_camel_case(),
-            snake_case: name,
+            snake_case: name.to_snake_case(),
         },
         id: program_id_bytes.into_token_stream().to_string(),
         instruction_account_pairs,
