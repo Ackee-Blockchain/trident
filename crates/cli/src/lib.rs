@@ -1,7 +1,7 @@
 use anyhow::Error;
 use anyhow::{Context, Result};
 use clap::{Parser, Subcommand};
-use command::InitTemplate;
+use command::TestsType;
 use fehler::throws;
 
 // subcommand functions to call and nested subcommands
@@ -55,9 +55,9 @@ enum Command {
     },
     /// Initialize test environment
     Init {
-        /// Generates Tests (Fuzz, PoC) based on the provided template option.
+        /// Specifies the types of tests for which the frameworks should be initialized.
         #[clap(default_value = "both")]
-        template: InitTemplate,
+        tests_type: TestsType,
     },
     /// Removes target contents except for KeyPair and removes hfuzz_target folder
     Clean,
@@ -74,7 +74,7 @@ pub async fn start() {
         Command::Fuzz { root, subcmd } => command::fuzz(root, subcmd).await?,
         Command::Localnet => command::localnet().await?,
         Command::Explorer { subcmd } => command::explorer(subcmd).await?,
-        Command::Init { template } => command::init(template).await?,
+        Command::Init { tests_type } => command::init(tests_type).await?,
         Command::Clean => command::clean().await?,
     }
 }
