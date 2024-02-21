@@ -3,10 +3,7 @@ use crate::{
     idl::{self, Idl},
     Client,
 };
-use cargo_metadata::camino::Utf8PathBuf;
-use cargo_metadata::{MetadataCommand, Package};
 use fehler::{throw, throws};
-use futures::future::try_join_all;
 use log::debug;
 use solana_sdk::signer::keypair::Keypair;
 use std::path::PathBuf;
@@ -19,7 +16,6 @@ use tokio::{
     process::{Child, Command},
     signal,
 };
-use toml::Value;
 
 #[derive(Error, Debug)]
 pub enum Error {
@@ -49,6 +45,8 @@ pub enum Error {
     NotInitialized,
     #[error("the crash file does not exist")]
     CrashFileNotFound,
+    #[error("The Solana project does not contain any programs")]
+    NoProgramsFound,
 }
 
 /// Localnet (the validator process) handle.
@@ -282,16 +280,17 @@ impl Commander {
 
         eprintln!("cannot execute \"cargo hfuzz run-debug\" command");
     }
-
-    /// Returns an [Iterator] of program [Package]s read from `Cargo.toml` files.
-    pub fn program_packages(&self) -> impl Iterator<Item = Package> {
-        let cargo_toml_data = MetadataCommand::new()
+    pub fn program_packages() -> impl Iterator<Item = cargo_metadata::Package> {
+        let cargo_toml_data = cargo_metadata::MetadataCommand::new()
             .no_deps()
             .exec()
             .expect("Cargo.toml reading failed");
 
         cargo_toml_data.packages.into_iter().filter(|package| {
-            // @TODO less error-prone test if the package is a _program_?
+            // TODO less error-prone test if the package is a _program_?
+            // This will only consider Packages where path:
+            // /home/xyz/xyz/trdelnik/trdelnik/examples/example_project/programs/package1
+            // NOTE we can obtain more important information here, only to remember
             if let Some("programs") = package.manifest_path.iter().nth_back(2) {
                 return true;
             }
@@ -299,87 +298,175 @@ impl Commander {
         })
     }
 
-    /// Updates the `program_client` dependencies.
-    ///
-    /// It's used internally by the [`#[trdelnik_test]`](trdelnik_test::trdelnik_test) macro.
     #[throws]
-    pub async fn get_programs_deps(&self) -> Vec<Value> {
-        // let trdelnik_dep = r#"trdelnik-client = "0.5.0""#.parse().unwrap();
-        // @TODO replace the line above with the specific version or commit hash
-        // when Trdelnik is released or when its repo is published.
-        // Or use both variants - path for Trdelnik repo/dev and version/commit for users.
-        // Some related snippets:
-        //
-        // println!("Trdelnik Version: {}", std::env!("VERGEN_BUILD_SEMVER"));
-        // println!("Trdelnik Commit: {}", std::env!("VERGEN_GIT_SHA"));
-        // https://docs.rs/vergen/latest/vergen/#environment-variables
-        //
-        // `trdelnik = "0.1.0"`
-        // `trdelnik = { git = "https://github.com/Ackee-Blockchain/trdelnik.git", rev = "cf867aea87e67d7be029982baa39767f426e404d" }`
+    pub async fn collect_program_packages() -> Vec<cargo_metadata::Package> {
+        let packages: Vec<cargo_metadata::Package> = Commander::program_packages().collect();
+        if packages.is_empty() {
+            throw!(Error::NoProgramsFound)
+        } else {
+            packages
+        }
+    }
+    fn expand_progress_bar(
+        package_name: &str,
+        mutex: &std::sync::Arc<std::sync::atomic::AtomicBool>,
+    ) {
+        let progress_bar = indicatif::ProgressBar::new_spinner();
+        progress_bar.set_style(
+            indicatif::ProgressStyle::default_spinner()
+                .template("{spinner} {wide_msg}")
+                .unwrap(),
+        );
 
-        let absolute_root = fs::canonicalize(self.root.as_ref()).await?;
+        let msg = format!("Expanding: {package_name}... this may take a while");
+        progress_bar.set_message(msg);
+        while mutex.load(std::sync::atomic::Ordering::SeqCst) {
+            progress_bar.inc(1);
+            std::thread::sleep(std::time::Duration::from_millis(100));
+        }
 
-        let program_deps = self
-            .program_packages()
-            .map(|package| {
-                let name = package.name;
-                let path = package
-                    .manifest_path
-                    .parent()
-                    .unwrap()
-                    .strip_prefix(&absolute_root)
-                    .unwrap();
-                format!(r#"{name} = {{ path = "../{path}", features = ["no-entrypoint"] }}"#)
-                    .parse()
-                    .unwrap()
-            })
-            .collect();
-        program_deps
+        progress_bar.finish_and_clear();
+    }
+    #[throws]
+    pub async fn expand_program_packages(
+        packages: &[cargo_metadata::Package],
+    ) -> (Idl, Vec<(String, cargo_metadata::camino::Utf8PathBuf)>) {
+        let shared_mutex = std::sync::Arc::new(std::sync::Mutex::new(Vec::new()));
+        let shared_mutex_fuzzer = std::sync::Arc::new(std::sync::Mutex::new(Vec::new()));
 
-        // @TODO remove renamed or deleted programs from deps?
+        for package in packages.iter() {
+            let mutex = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(true));
+            let c_mutex = std::sync::Arc::clone(&mutex);
+
+            let name = package.name.clone();
+
+            let mut libs = package.targets.iter().filter(|&t| t.is_lib());
+            let lib_path = libs
+                .next()
+                .ok_or(Error::ReadProgramCodeFailed(
+                    "Cannot find program library path.".into(),
+                ))?
+                .src_path
+                .clone();
+
+            let c_shared_mutex = std::sync::Arc::clone(&shared_mutex);
+            let c_shared_mutex_fuzzer = std::sync::Arc::clone(&shared_mutex_fuzzer);
+
+            let cargo_thread = std::thread::spawn(move || -> Result<(), Error> {
+                let output = Self::expand_package(&name);
+
+                if output.status.success() {
+                    let code = String::from_utf8(output.stdout).unwrap();
+
+                    let idl_program = idl::parse_to_idl_program(name, &code)?;
+                    let mut vec = c_shared_mutex.lock().unwrap();
+                    let mut vec_fuzzer = c_shared_mutex_fuzzer.lock().unwrap();
+
+                    vec.push(idl_program);
+                    vec_fuzzer.push((code, lib_path));
+
+                    c_mutex.store(false, std::sync::atomic::Ordering::SeqCst);
+                    Ok(())
+                } else {
+                    let error_text = String::from_utf8(output.stderr).unwrap();
+                    c_mutex.store(false, std::sync::atomic::Ordering::SeqCst);
+                    Err(Error::ReadProgramCodeFailed(error_text))
+                }
+            });
+
+            Self::expand_progress_bar(&package.name, &mutex);
+            cargo_thread.join().unwrap()?;
+        }
+        let idl_programs = shared_mutex.lock().unwrap().to_vec();
+        let codes_libs_pairs = shared_mutex_fuzzer.lock().unwrap().to_vec();
+
+        if idl_programs.is_empty() {
+            throw!(Error::NoProgramsFound);
+        } else {
+            (
+                Idl {
+                    programs: idl_programs,
+                },
+                codes_libs_pairs,
+            )
+        }
+    }
+    fn expand_package(package_name: &str) -> std::process::Output {
+        std::process::Command::new("cargo")
+            .arg("+nightly")
+            .arg("rustc")
+            .args(["--package", package_name])
+            .arg("--profile=check")
+            .arg("--")
+            .arg("-Zunpretty=expanded")
+            .output()
+            .unwrap()
     }
 
-    /// Updates the `program_client` `lib.rs`.
-    ///
-    /// It's used internally by the [`#[trdelnik_test]`](trdelnik_test::trdelnik_test) macro.
+    /// Returns `use` modules / statements
+    /// The goal of this method is to find all `use` statements defined by the user in the `.program_client`
+    /// crate. It solves the problem with regenerating the program client and removing imports defined by
+    /// the user.
     #[throws]
-    pub async fn get_programs_source_codes(&self) -> (Idl, Vec<(String, Utf8PathBuf)>) {
-        let program_idls_codes = self.program_packages().map(|package| async move {
-            let name = package.name;
-            let output = Command::new("cargo")
-                .arg("+nightly-2023-12-28")
-                .arg("rustc")
-                .args(["--package", &name])
-                .arg("--profile=check")
-                .arg("--")
-                .arg("-Zunpretty=expanded")
-                .output()
-                .await?;
+    pub async fn expand_program_client() -> Vec<syn::ItemUse> {
+        let shared_mutex = std::sync::Arc::new(std::sync::Mutex::new(String::new()));
+
+        let mutex = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(true));
+        let c_mutex = std::sync::Arc::clone(&mutex);
+
+        let c_shared_mutex = std::sync::Arc::clone(&shared_mutex);
+
+        let cargo_thread = std::thread::spawn(move || -> Result<(), Error> {
+            let output = Self::expand_package("program_client");
+
             if output.status.success() {
-                let code = String::from_utf8(output.stdout)?;
-                let mut libs = package.targets.iter().filter(|&t| t.is_lib());
-                let lib_path = libs
-                    .next()
-                    .ok_or(Error::ReadProgramCodeFailed(
-                        "Cannot find program library path.".into(),
-                    ))?
-                    .src_path
-                    .clone();
-                Ok((
-                    idl::parse_to_idl_program(name, &code).await?,
-                    (code, lib_path),
-                ))
+                let mut code = c_shared_mutex.lock().unwrap();
+                code.push_str(&String::from_utf8(output.stdout)?);
+
+                c_mutex.store(false, std::sync::atomic::Ordering::SeqCst);
+                Ok(())
             } else {
-                let error_text = String::from_utf8(output.stderr)?;
-                Err(Error::ReadProgramCodeFailed(error_text))
+                // command failed leave unmodified
+                c_mutex.store(false, std::sync::atomic::Ordering::SeqCst);
+                Ok(())
             }
         });
-        let (program_idls, codes_libs_pairs): (Vec<_>, Vec<_>) =
-            try_join_all(program_idls_codes).await?.into_iter().unzip();
-        let idl = Idl {
-            programs: program_idls,
-        };
-        (idl, codes_libs_pairs)
+
+        Self::expand_progress_bar("program_client", &mutex);
+
+        cargo_thread.join().unwrap()?;
+
+        let code = shared_mutex.lock().unwrap();
+        let code = code.as_str();
+        let mut use_modules: Vec<syn::ItemUse> = vec![];
+        if code.is_empty() {
+            use_modules.push(syn::parse_quote! { use trdelnik_client::*; })
+        } else {
+            Self::get_use_statements(code, &mut use_modules)?;
+            if use_modules.is_empty() {
+                use_modules.push(syn::parse_quote! { use trdelnik_client::*; })
+            }
+        }
+        use_modules
+    }
+
+    #[throws]
+    pub fn get_use_statements(code: &str, use_modules: &mut Vec<syn::ItemUse>) {
+        for item in syn::parse_file(code).unwrap().items.into_iter() {
+            if let syn::Item::Mod(module) = item {
+                let modules = module
+                    .content
+                    .ok_or("account mod: empty content")
+                    .unwrap()
+                    .1
+                    .into_iter();
+                for module in modules {
+                    if let syn::Item::Use(u) = module {
+                        use_modules.push(u);
+                    }
+                }
+            }
+        }
     }
 
     /// Formats program code.
@@ -418,44 +505,6 @@ impl Commander {
         LocalnetHandle {
             solana_test_validator_process: process,
         }
-    }
-
-    /// Returns `use` modules / statements
-    /// The goal of this method is to find all `use` statements defined by the user in the `.program_client`
-    /// crate. It solves the problem with regenerating the program client and removing imports defined by
-    /// the user.
-    #[throws]
-    pub async fn parse_program_client_imports(&self) -> Vec<syn::ItemUse> {
-        let output = Command::new("cargo")
-            .arg("+nightly-2023-12-28")
-            .arg("rustc")
-            .args(["--package", "program_client"])
-            .arg("--profile=check")
-            .arg("--")
-            .arg("-Zunpretty=expanded")
-            .output()
-            .await?;
-        let code = String::from_utf8(output.stdout)?;
-        let mut use_modules: Vec<syn::ItemUse> = vec![];
-        for item in syn::parse_file(code.as_str()).unwrap().items.into_iter() {
-            if let syn::Item::Mod(module) = item {
-                let modules = module
-                    .content
-                    .ok_or("account mod: empty content")
-                    .unwrap()
-                    .1
-                    .into_iter();
-                for module in modules {
-                    if let syn::Item::Use(u) = module {
-                        use_modules.push(u);
-                    }
-                }
-            }
-        }
-        if use_modules.is_empty() {
-            use_modules.push(syn::parse_quote! { use trdelnik_client::*; })
-        }
-        use_modules
     }
 }
 
