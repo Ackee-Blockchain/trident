@@ -7,6 +7,8 @@ use std::{
 use thiserror::Error;
 use tokio::{fs, process::Command};
 
+use crate::constants::*;
+
 #[derive(Error, Debug)]
 pub enum Error {
     #[error("{0:?}")]
@@ -44,19 +46,16 @@ impl Cleaner {
     #[throws]
     async fn clean_hfuzz_target(&self, root: &PathBuf) {
         let hfuzz_target_path = Path::new(root)
-            .join(crate::test_generator::TESTS_WORKSPACE)
-            .join(crate::test_generator::FUZZ_TEST_DIRECTORY)
-            .join(crate::test_generator::FUZZING)
-            .join(crate::test_generator::HFUZZ_TARGET);
+            .join(TESTS_WORKSPACE_DIRECTORY)
+            .join(FUZZ_TEST_DIRECTORY)
+            .join(FUZZING)
+            .join(HFUZZ_TARGET);
         if hfuzz_target_path.exists() {
             fs::remove_dir_all(hfuzz_target_path).await?;
         } else {
             println!(
                 "skipping {}/{}/{}/{} directory: not found",
-                crate::test_generator::TESTS_WORKSPACE,
-                crate::test_generator::FUZZ_TEST_DIRECTORY,
-                crate::test_generator::FUZZING,
-                crate::test_generator::HFUZZ_TARGET
+                TESTS_WORKSPACE_DIRECTORY, FUZZ_TEST_DIRECTORY, FUZZING, HFUZZ_TARGET
             )
         }
     }

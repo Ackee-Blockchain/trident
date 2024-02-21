@@ -98,3 +98,43 @@ pub use cleaner::*;
 pub use trdelnik_derive_displayix::DisplayIx;
 pub use trdelnik_derive_fuzz_deserialize::FuzzDeserialize;
 pub use trdelnik_derive_fuzz_test_executor::FuzzTestExecutor;
+
+mod constants {
+    // program_client
+    pub const PROGRAM_CLIENT_DIRECTORY: &str = ".program_client";
+    pub const LIB: &str = "lib.rs";
+    pub const SRC_DIRECTORY: &str = "src";
+
+    // tomls
+    pub const CARGO_TOML: &str = "Cargo.toml";
+    pub const TRDELNIK_TOML: &str = "Trdelnik.toml";
+    pub const ANCHOR_TOML: &str = "Anchor.toml";
+
+    // tests
+    pub const TESTS_WORKSPACE_DIRECTORY: &str = "trdelnik-tests";
+
+    // poc
+    pub const POC_TEST_DIRECTORY: &str = "poc_tests";
+    pub const TESTS_DIRECTORY: &str = "tests";
+    pub const POC_TEST: &str = "test.rs";
+
+    // fuzz
+    pub const ACCOUNTS_SNAPSHOTS_FILE_NAME: &str = "accounts_snapshots.rs";
+    pub const FUZZ_INSTRUCTIONS_FILE_NAME: &str = "fuzz_instructions.rs";
+    pub const FUZZ_TEST_DIRECTORY: &str = "fuzz_tests";
+    pub const FUZZING: &str = "fuzzing";
+    pub const FUZZ_TEST: &str = "test_fuzz.rs";
+    pub const HFUZZ_TARGET: &str = "hfuzz_target";
+    pub const CARGO_TARGET_DIR_DEFAULT: &str = "trdelnik-tests/fuzz_tests/fuzzing/hfuzz_target";
+    pub const HFUZZ_WORKSPACE_DEFAULT: &str = "trdelnik-tests/fuzz_tests/fuzzing/hfuzz_workspace";
+    pub const CARGO_TARGET_DIR_ENV: &str = "CARGO_TARGET_DIR";
+    pub const HFUZZ_WORKSPACE_ENV: &str = "HFUZZ_WORKSPACE";
+
+    // workspace
+    pub const GIT_IGNORE: &str = ".gitignore";
+    pub const MANIFEST_PATH: &str = env!("CARGO_MANIFEST_DIR");
+
+    // client
+    pub const RETRY_LOCALNET_EVERY_MILLIS: u64 = 500;
+    pub const DEFAULT_KEYPAIR_PATH: &str = "~/.config/solana/id.json";
+}

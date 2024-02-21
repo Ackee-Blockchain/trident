@@ -21,7 +21,7 @@ pub async fn generate_program_client() {
     ));
 
     let program_idl =
-        trdelnik_client::idl::parse_to_idl_program("escrow".to_owned(), expanded_escrow).await?;
+        trdelnik_client::idl::parse_to_idl_program("escrow".to_owned(), expanded_escrow)?;
 
     let idl = trdelnik_client::idl::Idl {
         programs: vec![program_idl],

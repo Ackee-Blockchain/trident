@@ -12,9 +12,9 @@ pub fn generate_source_code(idl: &Idl, use_modules: &[syn::ItemUse]) -> String {
         .programs
         .iter()
         .map(|idl_program| {
-            let program_name = idl_program.name.snake_case.replace('-', "_");
+            let program_name = &idl_program.name.snake_case;
             let instruction_module_name = format_ident!("{}_instruction", program_name);
-            let module_name: syn::Ident = parse_str(&program_name).unwrap();
+            let module_name: syn::Ident = parse_str(program_name).unwrap();
             let pubkey_bytes: syn::ExprArray = parse_str(&idl_program.id).unwrap();
 
             let instructions = idl_program

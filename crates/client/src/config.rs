@@ -4,14 +4,7 @@ use serde::Deserialize;
 use std::{collections::HashMap, env, fs, io, path::PathBuf};
 use thiserror::Error;
 
-pub const CARGO_TOML: &str = "Cargo.toml";
-pub const TRDELNIK_TOML: &str = "Trdelnik.toml";
-pub const ANCHOR_TOML: &str = "Anchor.toml";
-pub const CARGO_TARGET_DIR_DEFAULT: &str = "trdelnik-tests/fuzz_tests/fuzzing/hfuzz_target";
-pub const HFUZZ_WORKSPACE_DEFAULT: &str = "trdelnik-tests/fuzz_tests/fuzzing/hfuzz_workspace";
-
-pub const CARGO_TARGET_DIR_ENV: &str = "CARGO_TARGET_DIR";
-pub const HFUZZ_WORKSPACE_ENV: &str = "HFUZZ_WORKSPACE";
+use crate::constants::*;
 
 #[derive(Error, Debug)]
 pub enum Error {

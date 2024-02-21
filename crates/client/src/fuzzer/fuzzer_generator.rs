@@ -11,9 +11,9 @@ pub fn generate_source_code(idl: &Idl) -> String {
         .programs
         .iter()
         .map(|idl_program| {
-            let program_name = idl_program.name.snake_case.replace('-', "_");
+            let program_name = &idl_program.name.snake_case;
             let fuzz_instructions_module_name = format_ident!("{}_fuzz_instructions", program_name);
-            let module_name: syn::Ident = parse_str(&program_name).unwrap();
+            let module_name: syn::Ident = parse_str(program_name).unwrap();
 
             let instructions = idl_program
                 .instruction_account_pairs
