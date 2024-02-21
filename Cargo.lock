@@ -6003,6 +6003,7 @@ dependencies = [
  "futures",
  "heck 0.4.1",
  "honggfuzz",
+ "indicatif",
  "lazy_static",
  "log",
  "macrotest",
