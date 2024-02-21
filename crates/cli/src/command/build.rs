@@ -4,7 +4,7 @@ use trdelnik_client::*;
 
 use crate::_discover;
 
-use super::init::CARGO_TOML;
+use super::fuzz::TRDELNIK_TOML;
 
 #[throws]
 pub async fn build(root: Option<String>) {
@@ -15,10 +15,10 @@ pub async fn build(root: Option<String>) {
     let root = match root {
         Some(r) => r,
         _ => {
-            if let Some(r) = _discover(CARGO_TOML)? {
+            if let Some(r) = _discover(TRDELNIK_TOML)? {
                 r
             } else {
-                bail!("It does not seem that Solana Project is initialized because the Cargo.toml file was not found in any parent directory!");
+                bail!("It does not seem that Trdelnik is initialized because the Trdelnik.toml file was not found in any parent directory!");
             }
         }
     };
