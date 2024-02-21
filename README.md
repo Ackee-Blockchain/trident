@@ -26,11 +26,11 @@ Trdelník is Rust based testing framework providing several convenient developer
 - Trdelnik explorer - exploring ledger changes.
 
 ## Dependencies
-
-- Install [Rust](https://www.rust-lang.org/tools/install) (`nightly` release)
-- Install [Solana tool suite](https://docs.solana.com/cli/install-solana-cli-tools) (`stable` release)
+Check [supported versions](#supported-versions) section for further details.
+- Install [Rust](https://www.rust-lang.org/tools/install)
+- Install [Solana tool suite](https://docs.solana.com/cli/install-solana-cli-tools)
 - Install [Anchor](https://book.anchor-lang.com/chapter_2/installation.html)
-- Optionally install [Honggfuzz-rs](https://github.com/rust-fuzz/honggfuzz-rs#how-to-use-this-crate) for fuzz testing
+- Install [Honggfuzz-rs](https://github.com/rust-fuzz/honggfuzz-rs#how-to-use-this-crate) for fuzz testing
 
 ## Installation
 
@@ -215,14 +215,13 @@ async fn init_fixture() -> Fixture {
 
 - We support `Anchor` and `Solana` versions specified in the table below.
 
-| Trdelnik CLI |  Anchor   |   Solana |
-|--------------|:---------:|---------:|
-| `latest`     | `~0.28.*` | `=1.16.6` |
-| `v0.4.0`     | `~0.27.*` | `>=1.15` |
-| `v0.3.0`     | `~0.25.*` | `>=1.10` |
-| `v0.2.0`     | `~0.24.*` |  `>=1.9` |
-
-- _We are exploring a new versions of Anchor, please make sure you only use the supported versions. We are working on it :muscle:_
+| Trdelnik CLI |  Anchor   |   Solana  |   Solana CLI   |          Rust          |
+|--------------|:---------:|----------:|---------------:|:-----------------------|
+| `v0.6.0`     | `~0.29.*` | `<1.18 `  |   `>1.18`      |  `nightly-2023-12-28`  |
+| `v0.5.0`     | `~0.28.*` | `=1.16.6` |                |                        |
+| `v0.4.0`     | `~0.27.*` | `>=1.15`  |                |                        |
+| `v0.3.0`     | `~0.25.*` | `>=1.10`  |                |                        |
+| `v0.2.0`     | `~0.24.*` |  `>=1.9`  |                |                        |
 
 ### Configuration
 
@@ -238,7 +237,7 @@ The configuration variables can be edited in the `Trdelnik.toml` file that'll be
   - [x] Trdelnik client available for testing
 - [x] Q2/22 Trdelnik explorer available
 - [x] Q2/22 Trdelnik client and explorer introduced at Solana Hacker House Barcelona
-- [ ] Q3/23 Trdelnik fuzz introduced at Solana Hacker House Berlin
+- [X] Q3/23 Trdelnik fuzz introduced at Solana Hacker House Berlin
 
 ## Awards
 
