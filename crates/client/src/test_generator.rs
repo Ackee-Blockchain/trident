@@ -7,13 +7,12 @@ use crate::{
 };
 use cargo_metadata::{camino::Utf8PathBuf, Package};
 use fehler::{throw, throws};
+use std::{fs::File, io::prelude::*};
 use std::{
-    env,
     fs::OpenOptions,
     io,
     path::{Path, PathBuf},
 };
-use std::{fs::File, io::prelude::*};
 use syn::ItemUse;
 use thiserror::Error;
 use tokio::fs;
@@ -102,62 +101,66 @@ impl TestGenerator {
     #[throws]
     pub async fn generate_both(&mut self) {
         // expands programs within programs folder
-        self.expand_programs_data().await?;
+        self.expand_programs().await?;
         // expands program_client and obtains
         // use statements
         // if program_client is not yet initialized
         // use statements are set to default
         self.expand_program_client().await?;
-        self.create_program_client_crate().await?;
-        self.create_trdelnik_tests_crate().await?;
+        // add/update program_client
+        self.add_program_client().await?;
+        // add poc test
         self.add_new_poc_test().await?;
+        // add fuzz test
         self.add_new_fuzz_test().await?;
+        // add trdelnik.toml
         self.create_trdelnik_manifest().await?;
-        self.update_gitignore("hfuzz_target")?;
+        // update gitignore
+        self.update_gitignore(CARGO_TARGET_DIR_DEFAULT)?;
     }
 
     /// Generates fuzz tests along with the necessary setup.
     #[throws]
     pub async fn generate_fuzz(&mut self) {
-        self.expand_programs_data().await?;
-        self.expand_program_client().await?;
-        self.create_trdelnik_tests_crate().await?;
+        // expand programs
+        self.expand_programs().await?;
+        // generate fuzz test
         self.add_new_fuzz_test().await?;
+        // add trdelnik.toml
         self.create_trdelnik_manifest().await?;
-        self.update_gitignore("trdelnik-tests/fuzz_tests/fuzzing/hfuzz_target")?;
+        // update gitignore
+        self.update_gitignore(CARGO_TARGET_DIR_DEFAULT)?;
     }
     /// Generates proof of concept (POC) tests along with the necessary setup.
     #[throws]
     pub async fn generate_poc(&mut self) {
-        self.expand_programs_data().await?;
+        // expand programs
+        self.expand_programs().await?;
+        // expand program_client
         self.expand_program_client().await?;
-        self.create_program_client_crate().await?;
-        self.create_trdelnik_tests_crate().await?;
+        // add/update program_client
+        self.add_program_client().await?;
+        // add poc test
         self.add_new_poc_test().await?;
+        // add trdelnik.toml
         self.create_trdelnik_manifest().await?;
     }
     #[throws]
     pub async fn build(&mut self) {
-        self.expand_programs_data().await?;
-        self.create_program_client_crate().await?;
-    }
-    /// ## Adds new Fuzz test template to the trdelnik-tests folder
-    #[throws]
-    pub async fn add_fuzz_test(&mut self) {
-        self.packages = Commander::collect_program_packages().await?;
-        (self.idl, self.codes_libs_pairs) =
-            Commander::expand_program_packages(&self.packages).await?;
-        self.add_new_fuzz_test().await?;
+        // expand programs
+        self.expand_programs().await?;
+        // expand program_client
+        self.expand_program_client().await?;
+        // add/update program_client
+        self.add_program_client().await?;
     }
     /// Gathers and expands program data necessary for generating tests.
     #[throws]
-    async fn expand_programs_data(&mut self) {
+    async fn expand_programs(&mut self) {
         self.packages = Commander::collect_program_packages().await?;
         (self.idl, self.codes_libs_pairs) =
             Commander::expand_program_packages(&self.packages).await?;
-        self.use_tokens = Commander::expand_program_client().await?;
     }
-    /// Gathers and expands program data necessary for generating tests.
     #[throws]
     async fn expand_program_client(&mut self) {
         self.use_tokens = Commander::expand_program_client().await?;
@@ -178,8 +181,8 @@ impl TestGenerator {
         let cargo_path = construct_path!(poc_dir_path, CARGO_TOML);
         let poc_test_path = construct_path!(new_poc_test_dir, POC_TEST);
 
-        self.create_directory(&poc_dir_path).await?;
-        self.create_directory(&new_poc_test_dir).await?;
+        // self.create_directory(&poc_dir_path).await?;
+        self.create_directory_all(&new_poc_test_dir).await?;
         let cargo_toml_content =
             load_template("/src/templates/trdelnik-tests/Cargo_poc.toml.tmpl")?;
         self.create_file(&cargo_path, &cargo_toml_content).await?;
@@ -200,55 +203,9 @@ impl TestGenerator {
         self.add_program_dependencies(&poc_dir_path, "dev-dependencies", None)
             .await?;
     }
-
-    /// Creates the `Trdelnik.toml` file
-    #[throws]
-    async fn create_trdelnik_manifest(&self) {
-        let trdelnik_toml_path = construct_path!(self.root, TRDELNIK_TOML);
-        let trdelnik_toml_content = load_template("/src/templates/Trdelnik.toml.tmpl")?;
-        self.create_file(&trdelnik_toml_path, &trdelnik_toml_content)
-            .await?;
-    }
-
-    /// Creates the `trdelnik-tests` folder
-    #[throws]
-    async fn create_trdelnik_tests_crate(&self) {
-        let workspace_path = construct_path!(self.root, TESTS_WORKSPACE_DIRECTORY);
-        self.create_directory(&workspace_path).await?;
-    }
-    #[throws]
-    async fn add_workspace_member(&self, member: &str) {
-        let cargo = construct_path!(self.root, CARGO_TOML);
-        let mut content: Value = fs::read_to_string(&cargo).await?.parse()?;
-        let new_member = Value::String(String::from(member));
-
-        let members = content
-            .as_table_mut()
-            .ok_or(Error::CannotParseCargoToml)?
-            .entry("workspace")
-            .or_insert(Value::Table(Table::default()))
-            .as_table_mut()
-            .ok_or(Error::CannotParseCargoToml)?
-            .entry("members")
-            .or_insert(Value::Array(vec![new_member.clone()]))
-            .as_array_mut()
-            .ok_or(Error::CannotParseCargoToml)?;
-
-        match members.iter().find(|&x| x.eq(&new_member)) {
-            Some(_) => {
-                println!("\x1b[93mSkipping\x1b[0m: {CARGO_TOML}, already contains {member}.")
-            }
-            None => {
-                members.push(new_member);
-                println!("\x1b[92mSuccesfully\x1b[0m updated: {CARGO_TOML} with {member} member.");
-            }
-        };
-        fs::write(cargo, content.to_string()).await?;
-    }
-
     /// ## Creates program client folder and generates source code
     #[throws]
-    async fn create_program_client_crate(&self) {
+    async fn add_program_client(&self) {
         let cargo_path = construct_path!(self.root, PROGRAM_CLIENT_DIRECTORY, CARGO_TOML);
         let src_path = construct_path!(self.root, PROGRAM_CLIENT_DIRECTORY, SRC_DIRECTORY);
         let crate_path = construct_path!(self.root, PROGRAM_CLIENT_DIRECTORY);
@@ -327,11 +284,8 @@ impl TestGenerator {
 
         let fuzz_test_path = new_fuzz_test_dir.join(FUZZ_TEST);
 
-        let fuzz_test_content = include_str!(concat!(
-            env!("CARGO_MANIFEST_DIR"),
-            "/src/templates/trdelnik-tests/test_fuzz.rs"
-        ))
-        .to_string();
+        let fuzz_test_content = load_template("/src/templates/trdelnik-tests/test_fuzz.rs")?;
+
         let use_entry = format!("use {}::entry;\n", program_name);
         let use_instructions = format!("use {}::ID as PROGRAM_ID;\n", program_name);
         let use_fuzz_instructions = format!(
@@ -362,12 +316,10 @@ impl TestGenerator {
         self.create_file(&accounts_snapshots_path, &fuzzer_snapshots)
             .await?;
 
-        let cargo_toml_content = include_str!(concat!(
-            env!("CARGO_MANIFEST_DIR"),
-            "/src/templates/trdelnik-tests/Cargo_fuzz.toml.tmpl"
-        ));
+        let cargo_toml_content =
+            load_template("/src/templates/trdelnik-tests/Cargo_fuzz.toml.tmpl")?;
 
-        self.create_file(&fuzz_tests_manifest_path, cargo_toml_content)
+        self.create_file(&fuzz_tests_manifest_path, &cargo_toml_content)
             .await?;
 
         self.add_bin_target(&fuzz_tests_manifest_path, &new_fuzz_test, &new_bin_target)
@@ -381,9 +333,47 @@ impl TestGenerator {
         .await?;
     }
 
+    /// Creates the `Trdelnik.toml` file
+    #[throws]
+    async fn create_trdelnik_manifest(&self) {
+        let trdelnik_toml_path = construct_path!(self.root, TRDELNIK_TOML);
+        let trdelnik_toml_content = load_template("/src/templates/Trdelnik.toml.tmpl")?;
+        self.create_file(&trdelnik_toml_path, &trdelnik_toml_content)
+            .await?;
+    }
+    #[throws]
+    async fn add_workspace_member(&self, member: &str) {
+        let cargo = construct_path!(self.root, CARGO_TOML);
+        let mut content: Value = fs::read_to_string(&cargo).await?.parse()?;
+        let new_member = Value::String(String::from(member));
+
+        let members = content
+            .as_table_mut()
+            .ok_or(Error::CannotParseCargoToml)?
+            .entry("workspace")
+            .or_insert(Value::Table(Table::default()))
+            .as_table_mut()
+            .ok_or(Error::CannotParseCargoToml)?
+            .entry("members")
+            .or_insert(Value::Array(vec![new_member.clone()]))
+            .as_array_mut()
+            .ok_or(Error::CannotParseCargoToml)?;
+
+        match members.iter().find(|&x| x.eq(&new_member)) {
+            Some(_) => {
+                println!("\x1b[93mSkipping\x1b[0m: {CARGO_TOML}, already contains {member}.")
+            }
+            None => {
+                members.push(new_member);
+                println!("\x1b[92mSuccesfully\x1b[0m updated: {CARGO_TOML} with {member} member.");
+                fs::write(cargo, content.to_string()).await?;
+            }
+        };
+    }
+
     /// ## Creates a new directory and all missing parent directories on the specified path
     #[throws]
-    async fn create_directory_all<'a>(&self, path: &'a PathBuf) {
+    async fn create_directory_all(&self, path: &PathBuf) {
         match path.exists() {
             true => {}
             false => {
@@ -393,7 +383,7 @@ impl TestGenerator {
     }
     /// ## Creates directory with specified path
     #[throws]
-    async fn create_directory<'a>(&self, path: &'a Path) {
+    async fn create_directory(&self, path: &PathBuf) {
         match path.exists() {
             true => {}
             false => {
@@ -404,7 +394,7 @@ impl TestGenerator {
     /// ##  Creates a new file with a given content on the specified path
     /// - Skip if file already exists
     #[throws]
-    async fn create_file<'a>(&self, path: &'a Path, content: &str) {
+    async fn create_file(&self, path: &PathBuf, content: &str) {
         let file = path.strip_prefix(&self.root).unwrap().to_str().unwrap();
 
         match path.exists() {
@@ -420,7 +410,7 @@ impl TestGenerator {
     /// ## Updates a file with a given content on the specified path
     /// - Skip if file does not exists
     #[throws]
-    async fn update_file<'a>(&self, path: &'a Path, content: &str) {
+    async fn update_file(&self, path: &PathBuf, content: &str) {
         let file = path.strip_prefix(&self.root).unwrap().to_str().unwrap();
         match path.exists() {
             true => {

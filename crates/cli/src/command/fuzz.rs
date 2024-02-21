@@ -68,7 +68,7 @@ pub async fn fuzz(root: Option<String>, subcmd: FuzzCommand) {
             // generate generator with root so that we do not need to again
             // look for root within the generator
             let mut generator = TestGenerator::new_with_root(root);
-            generator.add_fuzz_test().await?;
+            generator.generate_fuzz().await?;
         }
     };
 }
