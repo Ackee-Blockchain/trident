@@ -21,5 +21,6 @@ pub async fn test(root: Option<String>) {
         }
     };
     let commander = Commander::with_root(root);
+    commander.build_anchor_project().await?;
     commander.run_tests().await?;
 }

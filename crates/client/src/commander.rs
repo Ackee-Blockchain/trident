@@ -110,15 +110,10 @@ impl Commander {
         Self { root: root.into() }
     }
 
-    /// Builds programs (smart contracts).
     #[throws]
-    pub async fn build_programs(&self) {
-        let success = Command::new("cargo")
-            .arg("build-bpf")
-            .arg("--")
-            // prevent prevent dependency loop:
-            // program tests -> program_client -> program
-            .args(["-Z", "avoid-dev-deps"])
+    pub async fn build_anchor_project(&self) {
+        let success = Command::new("anchor")
+            .arg("build")
             .spawn()?
             .wait()
             .await?
@@ -127,7 +122,6 @@ impl Commander {
             throw!(Error::BuildProgramsFailed);
         }
     }
-
     /// Runs standard Rust tests.
     ///
     /// _Note_: The [--nocapture](https://doc.rust-lang.org/cargo/commands/cargo-test.html#display-options) argument is used
