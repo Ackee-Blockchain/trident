@@ -7,10 +7,9 @@ use anchor_client::{
     solana_client::rpc_config::RpcTransactionConfig,
     solana_sdk::{
         account::Account,
-        bpf_loader,
+        bpf_loader_upgradeable,
         commitment_config::CommitmentConfig,
         instruction::Instruction,
-        loader_instruction,
         pubkey::Pubkey,
         signature::read_keypair_file,
         signer::{keypair::Keypair, Signer},
@@ -20,6 +19,7 @@ use anchor_client::{
     Client as AnchorClient, ClientError as Error, Cluster, Program,
 };
 
+use anchor_lang::prelude::UpgradeableLoaderState;
 use borsh::BorshDeserialize;
 use fehler::{throw, throws};
 use futures::stream::{self, StreamExt};
@@ -46,7 +46,6 @@ pub struct Client {
     payer: Keypair,
     anchor_client: AnchorClient<Payer>,
 }
-
 /// Implement Default trait for Client, which reads keypair from default path for `solana-keygen new`
 impl Default for Client {
     fn default() -> Self {
@@ -406,7 +405,7 @@ impl Client {
 
         // TODO: This will fail on devnet where airdrops are limited to 1 SOL
 
-        self.airdrop(self.payer().pubkey(), 5_000_000_000)
+        self.airdrop(self.payer().pubkey(), 5_000_000_000_000)
             .await
             .expect("airdropping for deployment failed");
 
@@ -442,8 +441,10 @@ impl Client {
     #[throws]
     async fn deploy(&self, program_keypair: Keypair, program_data: Vec<u8>) {
         const PROGRAM_DATA_CHUNK_SIZE: usize = 900;
+        let buffer_account = Keypair::new();
 
         let program_data_len = program_data.len();
+        let size_of_buffer = UpgradeableLoaderState::size_of_buffer(program_data_len);
 
         let rpc_client = self
             .anchor_client
@@ -462,17 +463,30 @@ impl Client {
             .await
             .unwrap();
 
-        let create_account_ix: Instruction = system_instruction::create_account(
+        let min_balance_for_rent_exemption_buffer = rpc_client
+            .get_minimum_balance_for_rent_exemption(size_of_buffer)
+            .await
+            .unwrap();
+
+        let create_account_ixs = bpf_loader_upgradeable::create_buffer(
             &self.payer.pubkey(),
-            &program_keypair.pubkey(),
-            min_balance_for_rent_exemption,
-            program_data_len as u64,
-            &bpf_loader::id(),
-        );
-        system_program
-            .request()
-            .instruction(create_account_ix)
-            .signer(&program_keypair)
+            &buffer_account.pubkey(),
+            &self.payer.pubkey(),
+            min_balance_for_rent_exemption_buffer,
+            program_data_len,
+        )
+        .unwrap();
+
+        debug!("number of ixs = {}", create_account_ixs.len());
+
+        let mut ix_builder = system_program.request();
+        for ix in create_account_ixs {
+            ix_builder = ix_builder.instruction(ix);
+        }
+
+        ix_builder
+            .signer(&buffer_account)
+            .signer(&self.payer)
             .send()
             .await
             .unwrap();
@@ -483,9 +497,9 @@ impl Client {
         let mut futures_vec = Vec::new();
 
         for chunk in program_data.chunks(PROGRAM_DATA_CHUNK_SIZE) {
-            let loader_write_ix = loader_instruction::write(
-                &program_keypair.pubkey(),
-                &bpf_loader::id(),
+            let loader_write_ix = bpf_loader_upgradeable::write(
+                &buffer_account.pubkey(),
+                &self.payer.pubkey(),
                 offset as u32,
                 chunk.to_vec(),
             );
@@ -494,7 +508,7 @@ impl Client {
                 system_program
                     .request()
                     .instruction(loader_write_ix)
-                    .signer(&program_keypair)
+                    .signer(&self.payer)
                     .send()
                     .await
                     .unwrap();
@@ -506,13 +520,25 @@ impl Client {
             .collect::<Vec<_>>()
             .await;
 
-        debug!("finalize program");
+        debug!("deploy program");
 
-        let loader_finalize_ix =
-            loader_instruction::finalize(&program_keypair.pubkey(), &bpf_loader::id());
-        system_program
-            .request()
-            .instruction(loader_finalize_ix)
+        let deploy_ixs = bpf_loader_upgradeable::deploy_with_max_program_len(
+            &self.payer.pubkey(),
+            &program_keypair.pubkey(),
+            &buffer_account.pubkey(),
+            &self.payer.pubkey(),
+            min_balance_for_rent_exemption,
+            program_data_len,
+        )
+        .unwrap();
+
+        let mut ix_builder = system_program.request();
+        for ix in deploy_ixs {
+            ix_builder = ix_builder.instruction(ix);
+        }
+
+        ix_builder
+            .signer(&self.payer)
             .signer(&program_keypair)
             .send()
             .await
@@ -691,7 +717,7 @@ impl Client {
                     .get_minimum_balance_for_rent_exemption(data.len())
                     .await?,
                 data.len() as u64,
-                &bpf_loader::id(),
+                &bpf_loader_upgradeable::id(),
             )],
             [account],
         )
@@ -701,9 +727,9 @@ impl Client {
         for chunk in data.chunks(DATA_CHUNK_SIZE) {
             debug!("writing bytes {} to {}", offset, offset + chunk.len());
             self.send_transaction(
-                &[loader_instruction::write(
+                &[bpf_loader_upgradeable::write(
                     &account.pubkey(),
-                    &bpf_loader::id(),
+                    &bpf_loader_upgradeable::id(),
                     offset as u32,
                     chunk.to_vec(),
                 )],

@@ -230,7 +230,7 @@ impl Fixture {
     #[throws]
     async fn deploy(&mut self) {
         self.client
-            .airdrop(self.alice_wallet.pubkey(), 5_000_000_000)
+            .airdrop(self.alice_wallet.pubkey(), 5_000_000_000_000)
             .await?;
         self.client
             .deploy_by_name(&self.program.clone(), "escrow")
