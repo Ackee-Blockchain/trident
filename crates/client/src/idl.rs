@@ -183,7 +183,7 @@ impl<'ast> syn::visit::Visit<'ast> for FullPathFinder {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Idl {
     pub programs: Vec<IdlProgram>,
 }

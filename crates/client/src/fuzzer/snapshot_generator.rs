@@ -14,7 +14,7 @@ use syn::{parse_quote, Attribute, Fields, GenericArgument, Item, ItemStruct, Pat
 
 use anchor_lang::anchor_syn::parser::accounts::parse_account_field;
 
-pub fn generate_snapshots_code(code_path: Vec<(String, Utf8PathBuf)>) -> Result<String, String> {
+pub fn generate_snapshots_code(code_path: &[(String, Utf8PathBuf)]) -> Result<String, String> {
     let code = code_path.iter().map(|(code, path)| {
         let mut mod_program = None::<syn::ItemMod>;
         let mut file = File::open(path).map_err(|e| e.to_string())?;
