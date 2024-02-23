@@ -24,50 +24,49 @@ pretty_assertions = "1.1.0"
 macrotest = "1.0.9"
 
 [dependencies]
-trdelnik-derive-displayix           = { path = "./derive/display_ix" }
-trdelnik-derive-fuzz-deserialize    = { path = "./derive/fuzz_deserialize" }
-trdelnik-derive-fuzz-test-executor  = { path = "./derive/fuzz_test_executor" }
-trdelnik-test                       = { workspace = true }
+trdelnik-derive-displayix = { path = "./derive/display_ix" }
+trdelnik-derive-fuzz-deserialize = { path = "./derive/fuzz_deserialize" }
+trdelnik-derive-fuzz-test-executor = { path = "./derive/fuzz_test_executor" }
+trdelnik-test = { workspace = true }
 # INFO: This is a hack! Anchor-spl is here as dependency only to activate the idl-build feature, so that
 # users do not have to do it manually in their program's Cargo.toml
-anchor-spl                          = { version = "0.29.0", features = ["idl-build"] }
-anchor-lang                         = { version = "0.29.0", features = ["idl-build"] }
-solana-sdk                          = { workspace = true }
-solana-cli-output                   = { workspace = true }
-solana-transaction-status           = { workspace = true }
-solana-account-decoder              = { workspace = true }
-anchor-client                       = { workspace = true }
-spl-token                           = { workspace = true }
-spl-associated-token-account        = { workspace = true }
-tokio                               = { workspace = true }
-rand                                = { workspace = true }
-serde_json                          = { workspace = true }
-serde                               = { workspace = true }
-bincode                             = { workspace = true }
-borsh                               = { workspace = true }
-futures                             = { workspace = true }
-fehler                              = { workspace = true }
-thiserror                           = { workspace = true }
-ed25519-dalek                       = { workspace = true }
-serial_test                         = { workspace = true }
-anyhow                              = { workspace = true }
-cargo_metadata                      = { workspace = true }
-syn                                 = { workspace = true }
-quote                               = { workspace = true }
-heck                                = { workspace = true }
-toml                                = { workspace = true }
-log                                 = { workspace = true }
-rstest                              = { workspace = true }
-lazy_static                         = { workspace = true }
-proc-macro2                         = { workspace = true }
-arbitrary                           = { version = "1.3.0", features = ["derive"] }
-honggfuzz                           = { version = "0.5.55", optional = true }
+anchor-spl = { version = "0.29.0", features = ["idl-build"] }
+anchor-lang = { version = "0.29.0", features = ["idl-build"] }
+solana-sdk = { workspace = true }
+solana-cli-output = { workspace = true }
+solana-transaction-status = { workspace = true }
+solana-account-decoder = { workspace = true }
+anchor-client = { workspace = true }
+spl-token = { workspace = true }
+spl-associated-token-account = { workspace = true }
+tokio = { workspace = true }
+rand = { workspace = true }
+serde_json = { workspace = true }
+serde = { workspace = true }
+bincode = { workspace = true }
+borsh = { workspace = true }
+futures = { workspace = true }
+fehler = { workspace = true }
+thiserror = { workspace = true }
+ed25519-dalek = { workspace = true }
+serial_test = { workspace = true }
+anyhow = { workspace = true }
+cargo_metadata = { workspace = true }
+syn = { workspace = true }
+quote = { workspace = true }
+heck = { workspace = true }
+toml = { workspace = true }
+log = { workspace = true }
+rstest = { workspace = true }
+lazy_static = { workspace = true }
+proc-macro2 = { workspace = true }
+honggfuzz = { version = "0.5.55", optional = true }
+arbitrary = { version = "1.3.0", features = ["derive"] }
+solana-program-test-anchor-fix = { version = "1.17.9", optional = true }
 # solana-program-test = { version = "=1.17.16", optional = true }
 quinn-proto = { version = "0.10.6", optional = true }
 solana-program-runtime = { version = "<1.18", optional = true }
 shellexpand = { workspace = true }
-
 pathdiff = "0.2.1"
 solana-banks-client = "<1.18"
 indicatif = "0.17.8"
-solana-program-test-anchor-fix      = {version = "1.17.9", optional = true}

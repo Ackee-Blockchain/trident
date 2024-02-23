@@ -282,16 +282,13 @@ impl Commander {
 
         cargo_toml_data.packages.into_iter().filter(|package| {
             // TODO less error-prone test if the package is a _program_?
-            // This will only consider Packages where path:
-            // /home/xyz/xyz/trdelnik/trdelnik/examples/example_project/programs/package1
-            // NOTE we can obtain more important information here, only to remember
             if let Some("programs") = package.manifest_path.iter().nth_back(2) {
                 return true;
             }
             false
         })
     }
-
+    /// Collects and returns a list of program packages using cargo metadata.
     #[throws]
     pub async fn collect_program_packages() -> Vec<cargo_metadata::Package> {
         let packages: Vec<cargo_metadata::Package> = Commander::program_packages().collect();
@@ -301,6 +298,18 @@ impl Commander {
             packages
         }
     }
+    /// Displays a progress spinner for a package expansion process.
+    ///
+    /// This function creates and manages a spinner-style progress bar using the `indicatif`
+    /// crate to visually represent the progress of expanding a specified package.
+    /// The progress bar continues to spin as long as a shared atomic boolean, wrapped in an `Arc`,
+    /// is set to `true`. Once the boolean is flipped to `false`, indicating the expansion process is complete,
+    /// the spinner is cleared from the terminal.
+    ///
+    /// # Parameters
+    /// - `package_name`: A string slice (`&str`) representing the name of the package being expanded.
+    /// This name is displayed within the progress bar's message to indicate which package is currently being processed.
+    /// - `mutex`: A reference to an `Arc<AtomicBool>` that acts as a flag for the progress bar's activity.
     fn expand_progress_bar(
         package_name: &str,
         mutex: &std::sync::Arc<std::sync::atomic::AtomicBool>,
@@ -312,7 +321,7 @@ impl Commander {
                 .unwrap(),
         );
 
-        let msg = format!("Expanding: {package_name}... this may take a while");
+        let msg = format!("\x1b[92mExpanding\x1b[0m: {package_name}... this may take a while");
         progress_bar.set_message(msg);
         while mutex.load(std::sync::atomic::Ordering::SeqCst) {
             progress_bar.inc(1);
@@ -321,6 +330,27 @@ impl Commander {
 
         progress_bar.finish_and_clear();
     }
+    /// Expands program packages, extracting IDL and codes_libs pairs.
+    ///
+    /// This function iterates over a slice of `cargo_metadata::Package` objects,
+    /// initiating an expansion process for each.
+    /// The expansion involves parsing the package to extract IDL and determining the path to the code.
+    /// It utilizes multithreading to handle package expansions and concurrently progress bar.
+    ///
+    /// # Parameters
+    /// - `packages`: A slice of `cargo_metadata::Package`, representing the packages to be processed.
+    ///
+    /// # Returns
+    /// A tuple containing:
+    /// - An `Idl` object aggregating all IDL programs extracted from the packages.
+    /// - A vector of tuples, each consisting of a `String` (representing code) and a `cargo_metadata::camino::Utf8PathBuf`
+    ///  (representing the path to the library code) for each package.
+    ///
+    /// # Errors
+    /// Returns an error if:
+    /// - The library path for a package cannot be found (`Error::ReadProgramCodeFailed`).
+    /// - The expansion of a package fails due to issues in processing its code or IDL (`Error::ReadProgramCodeFailed`).
+    /// - No programs are found after processing all packages (`Error::NoProgramsFound`).
     #[throws]
     pub async fn expand_program_packages(
         packages: &[cargo_metadata::Package],
@@ -385,9 +415,22 @@ impl Commander {
             )
         }
     }
+    /// Executes a cargo command to expand the Rust source code of a specified package.
+    ///
+    /// This function leverages the `cargo +nightly` command to compile a given package with the `rustc` compiler,
+    /// specifically using the `-Zunpretty=expanded` option to output the expanded form of the Rust source code.
+    /// This operation is performed under the `check` profile, which checks the code for errors without producing
+    /// executable artifacts. The function is designed to provide insights into the macro-expanded source code
+    ///
+    /// # Parameters
+    /// - `package_name`: A string slice (`&str`) representing the name of the package to be expanded.
+    ///
+    /// # Returns
+    /// - Returns a `std::process::Output` object containing the outcome of the cargo command execution. This includes
+    ///   the expanded source code in the command's stdout, along with any stderr output and the exit status.
     fn expand_package(package_name: &str) -> std::process::Output {
         std::process::Command::new("cargo")
-            .arg("+nightly")
+            .arg("+nightly-2023-12-28")
             .arg("rustc")
             .args(["--package", package_name])
             .arg("--profile=check")
@@ -397,12 +440,23 @@ impl Commander {
             .unwrap()
     }
 
-    /// Returns `use` modules / statements
-    /// The goal of this method is to find all `use` statements defined by the user in the `.program_client`
-    /// crate. It solves the problem with regenerating the program client and removing imports defined by
-    /// the user.
+    /// Retrieves Rust `use` statements from the expanded source code of the "program_client" package.
+    ///
+    /// This function initiates an expansion of the "program_client" package to obtain
+    /// the macro-expanded source code. It then parses this source to extract all `use` statement declarations,
+    /// returning them as a vector of `syn::ItemUse`. If no `use` statements are found, a default import for
+    /// `trdelnik_client::*` is included in the returned vector to ensure the caller has at least one valid import.
+    ///
+    /// # Returns
+    /// A `Vec<syn::ItemUse>` containing the parsed `use` statements from the "program_client" package's source code.
+    /// If no `use` statements are found, the vector contains a default `use trdelnik_client::*;` statement.
+    ///
+    /// # Errors
+    /// - Returns an `Error` if the package expansion fails, either due to command execution failure or issues
+    ///   parsing the expanded code into a UTF-8 string.
+    /// - Propagates errors encountered while acquiring locks on shared state or parsing `use` statements from the code.
     #[throws]
-    pub async fn expand_program_client() -> Vec<syn::ItemUse> {
+    pub async fn get_program_client_imports() -> Vec<syn::ItemUse> {
         let shared_mutex = std::sync::Arc::new(std::sync::Mutex::new(String::new()));
 
         let mutex = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(true));
@@ -433,13 +487,9 @@ impl Commander {
         let code = shared_mutex.lock().unwrap();
         let code = code.as_str();
         let mut use_modules: Vec<syn::ItemUse> = vec![];
-        if code.is_empty() {
+        Self::get_use_statements(code, &mut use_modules)?;
+        if use_modules.is_empty() {
             use_modules.push(syn::parse_quote! { use trdelnik_client::*; })
-        } else {
-            Self::get_use_statements(code, &mut use_modules)?;
-            if use_modules.is_empty() {
-                use_modules.push(syn::parse_quote! { use trdelnik_client::*; })
-            }
         }
         use_modules
     }
