@@ -132,7 +132,6 @@ mod constants {
 
     // workspace
     pub const GIT_IGNORE: &str = ".gitignore";
-    pub const MANIFEST_PATH: &str = env!("CARGO_MANIFEST_DIR");
 
     // client
     pub const RETRY_LOCALNET_EVERY_MILLIS: u64 = 500;
