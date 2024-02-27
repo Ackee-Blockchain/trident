@@ -209,3 +209,4 @@ impl<'info> WithdrawUnlockedSnapshot<'info> {
         })
     }
 }
+pub type WithdrawDummySnapshot<'info> = WithdrawUnlockedSnapshot<'info>;
