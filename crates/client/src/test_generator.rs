@@ -84,6 +84,13 @@ macro_rules! construct_path {
     };
 }
 
+/// Includes a file as a string at compile time.
+macro_rules! load_template {
+    ($file:expr) => {
+        include_str!(concat!(env!("CARGO_MANIFEST_DIR"), $file))
+    };
+}
+
 /// Represents a generator for creating tests.
 ///
 /// This struct is designed to hold all necessary information for generating
@@ -358,10 +365,10 @@ impl TestGenerator {
         // self.create_directory(&poc_dir_path).await?;
         self.create_directory_all(&new_poc_test_dir).await?;
         let cargo_toml_content =
-            load_template("/src/templates/trdelnik-tests/Cargo_poc.toml.tmpl")?;
-        self.create_file(&cargo_path, &cargo_toml_content).await?;
+            load_template!("/src/templates/trdelnik-tests/Cargo_poc.toml.tmpl");
+        self.create_file(&cargo_path, cargo_toml_content).await?;
 
-        let poc_test_content = load_template("/src/templates/trdelnik-tests/test.rs")?;
+        let poc_test_content = load_template!("/src/templates/trdelnik-tests/test.rs");
         let test_content = poc_test_content.replace("###PROGRAM_NAME###", program_name);
         let use_instructions = format!("use program_client::{}_instruction::*;\n", program_name);
         let template = format!("{use_instructions}{test_content}");
@@ -437,7 +444,7 @@ impl TestGenerator {
 
         let fuzz_test_path = new_fuzz_test_dir.join(FUZZ_TEST);
 
-        let fuzz_test_content = load_template("/src/templates/trdelnik-tests/test_fuzz.rs")?;
+        let fuzz_test_content = load_template!("/src/templates/trdelnik-tests/test_fuzz.rs");
 
         let use_entry = format!("use {}::entry;\n", program_name);
         let use_instructions = format!("use {}::ID as PROGRAM_ID;\n", program_name);
@@ -470,9 +477,9 @@ impl TestGenerator {
             .await?;
 
         let cargo_toml_content =
-            load_template("/src/templates/trdelnik-tests/Cargo_fuzz.toml.tmpl")?;
+            load_template!("/src/templates/trdelnik-tests/Cargo_fuzz.toml.tmpl");
 
-        self.create_file(&fuzz_tests_manifest_path, &cargo_toml_content)
+        self.create_file(&fuzz_tests_manifest_path, cargo_toml_content)
             .await?;
 
         self.add_bin_target(&fuzz_tests_manifest_path, &new_fuzz_test, &new_bin_target)
@@ -504,10 +511,10 @@ impl TestGenerator {
         self.create_directory_all(&src_path).await?;
 
         // load template
-        let cargo_toml_content = load_template("/src/templates/program_client/Cargo.toml.tmpl")?;
+        let cargo_toml_content = load_template!("/src/templates/program_client/Cargo.toml.tmpl");
 
         // if path exists the file will not be overwritten
-        self.create_file(&cargo_path, &cargo_toml_content).await?;
+        self.create_file(&cargo_path, cargo_toml_content).await?;
 
         self.add_program_dependencies(&crate_path, "dependencies", Some(vec!["no-entrypoint"]))
             .await?;
@@ -527,8 +534,8 @@ impl TestGenerator {
     #[throws]
     async fn create_trdelnik_manifest(&self) {
         let trdelnik_toml_path = construct_path!(self.root, TRDELNIK_TOML);
-        let trdelnik_toml_content = load_template("/src/templates/Trdelnik.toml.tmpl")?;
-        self.create_file(&trdelnik_toml_path, &trdelnik_toml_content)
+        let trdelnik_toml_content = load_template!("/src/templates/Trdelnik.toml.tmpl");
+        self.create_file(&trdelnik_toml_path, trdelnik_toml_content)
             .await?;
     }
     /// Adds a new member to the Cargo workspace manifest (`Cargo.toml`).
@@ -796,12 +803,4 @@ impl TestGenerator {
         }
         fs::write(cargo_path, cargo_toml_content.to_string()).await?;
     }
-}
-
-pub fn load_template(file_path: &str) -> Result<String, std::io::Error> {
-    let mut _path = String::from(MANIFEST_PATH);
-    _path.push_str(file_path);
-    let full_path = Path::new(&_path);
-
-    std::fs::read_to_string(full_path)
 }
