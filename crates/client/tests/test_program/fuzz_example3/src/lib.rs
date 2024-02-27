@@ -24,7 +24,11 @@ pub mod fuzz_example3 {
         _init_vesting(ctx, recipient, amount, start_at, end_at, interval)
     }
 
-    pub fn withdraw_unlocked(ctx: Context<WithdrawUnlocked>) -> Result<()> {
+    pub fn withdraw_unlocked(ctx: Context<Withdraw>) -> Result<()> {
         _withdraw_unlocked(ctx)
+    }
+
+    pub fn withdraw_dummy(ctx: Context<Withdraw>) -> Result<()> {
+        Ok(())
     }
 }

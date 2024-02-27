@@ -3,7 +3,7 @@ use anchor_spl::token::{transfer, Mint, Token, TokenAccount, Transfer};
 
 use crate::{state::Escrow, VestingError};
 
-pub fn _withdraw_unlocked(ctx: Context<WithdrawUnlocked>) -> Result<()> {
+pub fn _withdraw_unlocked(ctx: Context<Withdraw>) -> Result<()> {
     let escrow = &mut ctx.accounts.escrow;
 
     let current_time = Clock::get()?.unix_timestamp as u64;
@@ -13,7 +13,7 @@ pub fn _withdraw_unlocked(ctx: Context<WithdrawUnlocked>) -> Result<()> {
 
     let seeds = &[
         b"ESCROW_PDA_AUTHORITY".as_ref(),
-        &[*ctx.bumps.get("escrow_pda_authority").unwrap()],
+        &[ctx.bumps.escrow_pda_authority],
     ];
 
     transfer(
@@ -35,7 +35,7 @@ pub fn _withdraw_unlocked(ctx: Context<WithdrawUnlocked>) -> Result<()> {
 }
 
 #[derive(Accounts)]
-pub struct WithdrawUnlocked<'info> {
+pub struct Withdraw<'info> {
     #[account(mut)]
     pub recipient: Signer<'info>,
 
