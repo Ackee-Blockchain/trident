@@ -118,6 +118,8 @@ pub fn generate_source_code(idl: &Idl) -> String {
                     |mut instructions_ixops_impl, (idl_instruction, idl_account_group)| {
                         let instruction_name: syn::Ident =
                             format_ident!("{}", &idl_instruction.name.upper_camel_case);
+                        let ctx_name: syn::Ident =
+                            format_ident!("{}", &idl_account_group.name.upper_camel_case);
 
                         let ix_snapshot: syn::Ident =
                             format_ident!("{}Snapshot", &idl_instruction.name.upper_camel_case);
@@ -165,7 +167,7 @@ pub fn generate_source_code(idl: &Idl) -> String {
                                 fuzz_accounts: &mut FuzzAccounts,
                                 ) -> Result<(Vec<Keypair>, Vec<AccountMeta>), FuzzingError> {
                                     let signers = vec![todo!()];
-                                    let acc_meta = #module_name::accounts::#instruction_name {
+                                    let acc_meta = #module_name::accounts::#ctx_name {
                                         #(#accounts),*
                                     }
                                     .to_account_metas(None);
@@ -223,12 +225,6 @@ pub fn generate_source_code(idl: &Idl) -> String {
                     #[derive(Default)]
                     pub struct FuzzAccounts {
                         #(#sorted_fuzz_accounts: AccountsStorage<todo!()>),*
-                    }
-
-                    impl FuzzAccounts {
-                        pub fn new() -> Self {
-                            Default::default()
-                        }
                     }
                 }
             };

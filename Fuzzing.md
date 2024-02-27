@@ -203,9 +203,6 @@ impl FuzzDataBuilder<FuzzInstruction> for MyFuzzData {
 ## Current known limitations
 This section summarizes some known limitations in the current development stage. Further development will be focused on resolving these limitations.
 
-- Only AccountInfo, Signer, Account<T> and Program<T> types are supported.
-- The name of the instruction and context must correspond where the instruction name should be in snake_case and the context struct name in CamelCase).
-    - ex.: `initialize_escrow` for instruction and `InitializeEscrow` for corresponding Context struct.
 - Only fuzzing of one program without CPIs to other custom programs is supported.
 - Remaining accounts in check methods are not supported.
 

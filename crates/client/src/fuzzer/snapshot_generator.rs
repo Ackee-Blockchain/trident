@@ -2,10 +2,12 @@
 // The parsing of individual Anchor accounts is done using Anchor syn parser:
 // https://github.com/coral-xyz/anchor/blob/master/lang/syn/src/parser/accounts/mod.rs
 
+use std::collections::HashMap;
 use std::{error::Error, fs::File, io::Read};
 
 use anchor_lang::anchor_syn::{AccountField, Ty};
 use cargo_metadata::camino::Utf8PathBuf;
+use heck::ToUpperCamelCase;
 use proc_macro2::{Ident, Span, TokenStream};
 use quote::{format_ident, quote, ToTokens};
 use syn::parse::{Error as ParseError, Result as ParseResult};
@@ -42,14 +44,17 @@ pub fn generate_snapshots_code(code_path: &[(String, Utf8PathBuf)]) -> Result<St
 
         let ix_ctx_pairs = get_ix_ctx_pairs(&items)?;
 
-        let (structs, impls) = get_snapshot_structs_and_impls(code, &ix_ctx_pairs)?;
+        let (structs, impls, type_aliases) = get_snapshot_structs_and_impls(code, &ix_ctx_pairs)?;
 
         let use_statements = quote! {
             use trdelnik_client::anchor_lang::{prelude::*, self};
             use trdelnik_client::fuzzing::FuzzingError;
         }
         .into_token_stream();
-        Ok(format!("{}{}{}", use_statements, structs, impls))
+        Ok(format!(
+            "{}{}{}{}",
+            use_statements, structs, impls, type_aliases
+        ))
     });
 
     code.into_iter().collect()
@@ -60,44 +65,61 @@ pub fn generate_snapshots_code(code_path: &[(String, Utf8PathBuf)]) -> Result<St
 fn get_snapshot_structs_and_impls(
     code: &str,
     ix_ctx_pairs: &[(Ident, GenericArgument)],
-) -> Result<(String, String), String> {
+) -> Result<(String, String, String), String> {
     let mut structs = String::new();
     let mut impls = String::new();
+    let mut type_aliases = String::new();
     let parse_result = syn::parse_file(code).map_err(|e| e.to_string())?;
-    for pair in ix_ctx_pairs {
-        let mut ty = None;
-        if let GenericArgument::Type(syn::Type::Path(tp)) = &pair.1 {
-            ty = tp.path.get_ident().cloned();
-            // TODO add support for types with fully qualified path such as ix::Initialize
+    let mut unique_ctxs: HashMap<GenericArgument, String> = HashMap::new();
+    for (ix, ctx) in ix_ctx_pairs {
+        let mut ctx_ident = None;
+        let ix_name = ix.to_string().to_upper_camel_case();
+        if let GenericArgument::Type(syn::Type::Path(tp)) = ctx {
+            ctx_ident = tp.path.get_ident().cloned();
         }
-        let ty = ty.ok_or(format!("malformed parameters of {} instruction", pair.0))?;
+        let ctx_ident =
+            ctx_ident.ok_or(format!("malformed parameters of {} instruction", ix_name))?;
 
-        // recursively find the context struct and create a new version with wrapped fields into Option
-        if let Some(ctx) = find_ctx_struct(&parse_result.items, &ty) {
-            let fields_parsed = if let Fields::Named(f) = ctx.fields.clone() {
-                let field_deser: ParseResult<Vec<AccountField>> =
-                    f.named.iter().map(parse_account_field).collect();
-                field_deser
-            } else {
-                Err(ParseError::new(
-                    ctx.fields.span(),
-                    "Context struct parse errror.",
-                ))
+        // If ctx is in the HashMap, we do not need to generate deserialization code again, we can only create a type alias
+        match unique_ctxs.get(ctx) {
+            Some(unique_ix) => {
+                let ix_snapshot_name = format_ident!("{}Snapshot", ix_name);
+                let base_ix_snapshot_name = format_ident!("{}Snapshot", unique_ix);
+                let type_alias =
+                    quote! {pub type #ix_snapshot_name<'info> = #base_ix_snapshot_name<'info>;};
+                type_aliases = format!("{}{}", type_aliases, type_alias.into_token_stream());
             }
-            .map_err(|e| e.to_string())?;
+            None => {
+                // recursively find the context struct and create a new version with wrapped fields into Option
+                if let Some(ctx) = find_ctx_struct(&parse_result.items, &ctx_ident) {
+                    let fields_parsed = if let Fields::Named(f) = ctx.fields.clone() {
+                        let field_deser: ParseResult<Vec<AccountField>> =
+                            f.named.iter().map(parse_account_field).collect();
+                        field_deser
+                    } else {
+                        Err(ParseError::new(
+                            ctx.fields.span(),
+                            "Context struct parse errror.",
+                        ))
+                    }
+                    .map_err(|e| e.to_string())?;
 
-            let wrapped_struct = create_snapshot_struct(ctx, &fields_parsed).unwrap();
-            let deser_code =
-                deserialize_ctx_struct_anchor(ctx, &fields_parsed).map_err(|e| e.to_string())?;
-            // let deser_code = deserialize_ctx_struct(ctx).unwrap();
-            structs = format!("{}{}", structs, wrapped_struct.into_token_stream());
-            impls = format!("{}{}", impls, deser_code.into_token_stream());
-        } else {
-            return Err(format!("The Context struct {} was not found", ty));
-        }
+                    let wrapped_struct =
+                        create_snapshot_struct(&ix_name, ctx, &fields_parsed).unwrap();
+                    let deser_code = deserialize_ctx_struct_anchor(&ix_name, &fields_parsed)
+                        .map_err(|e| e.to_string())?;
+                    // let deser_code = deserialize_ctx_struct(ctx).unwrap();
+                    structs = format!("{}{}", structs, wrapped_struct.into_token_stream());
+                    impls = format!("{}{}", impls, deser_code.into_token_stream());
+                } else {
+                    return Err(format!("The Context struct {} was not found", ctx_ident));
+                }
+                unique_ctxs.insert(ctx.clone(), ix_name);
+            }
+        };
     }
 
-    Ok((structs, impls))
+    Ok((structs, impls, type_aliases))
 }
 
 /// Iterates through items and finds functions with the Context<_> parameter. Returns pairs with the function name and the Context's inner type.
@@ -184,10 +206,11 @@ fn is_optional(parsed_field: &AccountField) -> bool {
 
 /// Creates new Snapshot struct from the context struct. Removes Box<> types.
 fn create_snapshot_struct(
+    ix_name: &str,
     orig_struct: &ItemStruct,
     parsed_fields: &[AccountField],
 ) -> Result<TokenStream, Box<dyn Error>> {
-    let struct_name = format_ident!("{}Snapshot", orig_struct.ident);
+    let struct_name = format_ident!("{}Snapshot", ix_name);
     let wrapped_fields = match orig_struct.fields.clone() {
         Fields::Named(named) => {
             let field_wrappers =
@@ -272,10 +295,10 @@ fn extract_inner_type(field_type: &Type) -> Option<&Type> {
 
 /// Generates code to deserialize the snapshot structs.
 fn deserialize_ctx_struct_anchor(
-    snapshot_struct: &ItemStruct,
+    snapshot_struct: &str,
     parsed_fields: &[AccountField],
 ) -> Result<TokenStream, Box<dyn Error>> {
-    let impl_name = format_ident!("{}Snapshot", snapshot_struct.ident);
+    let impl_name = format_ident!("{}Snapshot", snapshot_struct);
     let names_deser_pairs: Result<Vec<(TokenStream, TokenStream)>, _> = parsed_fields
         .iter()
         .map(|parsed_f| match parsed_f {
