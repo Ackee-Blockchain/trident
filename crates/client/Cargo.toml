@@ -31,7 +31,7 @@ trdelnik-test = { workspace = true }
 # INFO: This is a hack! Anchor-spl is here as dependency only to activate the idl-build feature, so that
 # users do not have to do it manually in their program's Cargo.toml
 anchor-spl = { version = "0.29.0", features = ["idl-build"] }
-anchor-lang = { version = "0.29.0", features = ["idl-build"] }
+anchor-lang = { version = "0.29.0", features = ["idl-build", "init-if-needed"] }
 solana-sdk = { workspace = true }
 solana-cli-output = { workspace = true }
 solana-transaction-status = { workspace = true }
@@ -52,7 +52,7 @@ ed25519-dalek = { workspace = true }
 serial_test = { workspace = true }
 anyhow = { workspace = true }
 cargo_metadata = { workspace = true }
-syn = { workspace = true }
+syn = { workspace = true, features = ["visit"] }
 quote = { workspace = true }
 heck = { workspace = true }
 toml = { workspace = true }
