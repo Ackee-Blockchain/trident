@@ -163,8 +163,7 @@ impl TestGenerator {
         commander.build_anchor_project().await?;
         // expands programs within programs folder
         self.expand_programs().await?;
-        // expands program_client and obtains
-        // use statements
+        // obtain use statements
         // if program_client is not yet initialized
         // use statements are set to default
         self.get_program_client_imports().await?;
@@ -205,7 +204,9 @@ impl TestGenerator {
         commander.build_anchor_project().await?;
         // expand programs
         self.expand_programs().await?;
-        // expand program_client
+        // obtain use statements
+        // if program_client is not yet initialized
+        // use statements are set to default
         self.get_program_client_imports().await?;
         // initialize program client if it is not yet initialized
         self.init_program_client().await?;
@@ -246,7 +247,9 @@ impl TestGenerator {
         commander.build_anchor_project().await?;
         // expand programs
         self.expand_programs().await?;
-        // expand program_client
+        // obtain use statements
+        // if program_client is not yet initialized
+        // use statements are set to default
         self.get_program_client_imports().await?;
         // add/update program_client
         self.add_program_client().await?;
@@ -260,10 +263,21 @@ impl TestGenerator {
         (self.idl, self.codes_libs_pairs) =
             Commander::expand_program_packages(&self.packages).await?;
     }
-    /// Expand .program_client source code and obtain its use statements.
+    /// Get user specified use statements from .program_client lib.
     #[throws]
     async fn get_program_client_imports(&mut self) {
-        self.use_tokens = Commander::get_program_client_imports().await?;
+        let lib_path = construct_path!(self.root, PROGRAM_CLIENT_DIRECTORY, SRC_DIRECTORY, LIB);
+        if lib_path.exists() {
+            let code = fs::read_to_string(lib_path).await.unwrap_or_else(|_e| {
+                println!("Unable to read .program_client, use statements set to default.");
+                String::default()
+            });
+            Commander::get_use_statements(&code, &mut self.use_tokens)?;
+        }
+        if self.use_tokens.is_empty() {
+            self.use_tokens
+                .push(syn::parse_quote! { use trdelnik_client::*; })
+        }
     }
 
     /// Checks if the whole folder structure for .program_client is already
