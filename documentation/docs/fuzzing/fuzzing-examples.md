@@ -1,0 +1,4 @@
+- [Fuzz test example 0](https://github.com/Ackee-Blockchain/trdelnik/tree/develop/examples/fuzz_example0)
+- [Fuzz test example 1](https://github.com/Ackee-Blockchain/trdelnik/tree/develop/examples/fuzz_example1)
+- [Fuzz test example 2](https://github.com/Ackee-Blockchain/trdelnik/tree/develop/examples/fuzz_example2)
+- [Fuzz test example 3](https://github.com/Ackee-Blockchain/trdelnik/tree/develop/examples/fuzz_example3)
