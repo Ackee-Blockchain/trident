@@ -378,22 +378,30 @@ impl Commander {
 
             let cargo_thread = std::thread::spawn(move || -> Result<(), Error> {
                 let output = Self::expand_package(&name);
+                // release progress bar loop here as the expansion is the longest part
+                // further we cannot release after parsing as parsing can panic which will not
+                // release the lock
+                c_mutex.store(false, std::sync::atomic::Ordering::SeqCst);
+                let output = output.expect("Program expansion failed");
 
                 if output.status.success() {
-                    let code = String::from_utf8(output.stdout).unwrap();
+                    let code = String::from_utf8(output.stdout).expect("Reading stdout failed");
 
                     let idl_program = idl::parse_to_idl_program(name, &code)?;
-                    let mut vec = c_shared_mutex.lock().unwrap();
-                    let mut vec_fuzzer = c_shared_mutex_fuzzer.lock().unwrap();
+                    let mut vec = c_shared_mutex
+                        .lock()
+                        .expect("Acquire IdlProgram lock failed");
+                    let mut vec_fuzzer = c_shared_mutex_fuzzer
+                        .lock()
+                        .expect("Acquire Fuzzer data lock failed");
 
                     vec.push(idl_program);
                     vec_fuzzer.push((code, lib_path));
 
-                    c_mutex.store(false, std::sync::atomic::Ordering::SeqCst);
                     Ok(())
                 } else {
-                    let error_text = String::from_utf8(output.stderr).unwrap();
-                    c_mutex.store(false, std::sync::atomic::Ordering::SeqCst);
+                    let error_text =
+                        String::from_utf8(output.stderr).expect("Reading stderr failed");
                     Err(Error::ReadProgramCodeFailed(error_text))
                 }
             });
@@ -428,7 +436,7 @@ impl Commander {
     /// # Returns
     /// - Returns a `std::process::Output` object containing the outcome of the cargo command execution. This includes
     ///   the expanded source code in the command's stdout, along with any stderr output and the exit status.
-    fn expand_package(package_name: &str) -> std::process::Output {
+    fn expand_package(package_name: &str) -> std::io::Result<std::process::Output> {
         std::process::Command::new("cargo")
             .arg("+nightly-2023-12-28")
             .arg("rustc")
@@ -437,7 +445,6 @@ impl Commander {
             .arg("--")
             .arg("-Zunpretty=expanded")
             .output()
-            .unwrap()
     }
 
     /// Retrieves Rust `use` statements from the expanded source code of the "program_client" package.
@@ -466,16 +473,21 @@ impl Commander {
 
         let cargo_thread = std::thread::spawn(move || -> Result<(), Error> {
             let output = Self::expand_package("program_client");
+            // release progress bar loop here as the expansion is the longest part
+            // further we cannot release after parsing as parsing can panic which will not
+            // release the lock
+            c_mutex.store(false, std::sync::atomic::Ordering::SeqCst);
+            let output = output.expect("Program Client expansion failed");
 
             if output.status.success() {
-                let mut code = c_shared_mutex.lock().unwrap();
+                let mut code = c_shared_mutex
+                    .lock()
+                    .expect("Acquire Program Client lock failed");
                 code.push_str(&String::from_utf8(output.stdout)?);
 
-                c_mutex.store(false, std::sync::atomic::Ordering::SeqCst);
                 Ok(())
             } else {
                 // command failed leave unmodified
-                c_mutex.store(false, std::sync::atomic::Ordering::SeqCst);
                 Ok(())
             }
         });
