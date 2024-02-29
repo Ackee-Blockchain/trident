@@ -241,9 +241,14 @@ fn create_snapshot_struct(
                                 .to_string()
                                 .replace(' ', "")
                                 .starts_with("AccountInfo<");
-                        } else {
-                            return Err(
-                                "Composite field types in context structs not supported".into()
+                        }
+                        else {
+                            println!("\x1b[1;93mWarning\x1b[0m: The context `{}` has a field named `{}` of composite type `{}`. \
+                                The automatic deserialization of composite types is currently not supported. You will have \
+                                to implement it manually in the generated `accounts_snapshots.rs` file. The field deserialization \
+                                was replaced by a `todo!()` macro. Also, you might want to adapt the corresponding FuzzInstruction \
+                                variants in `fuzz_instructions.rs` file.",
+                                orig_struct.ident, field_name.to_token_stream(), field_type.to_token_stream()
                             );
                         }
 
@@ -298,7 +303,7 @@ fn deserialize_ctx_struct_anchor(
     snapshot_name: &Ident,
     parsed_fields: &[AccountField],
 ) -> Result<TokenStream, Box<dyn Error>> {
-    let names_deser_pairs: Result<Vec<(TokenStream, TokenStream)>, _> = parsed_fields
+    let names_deser_pairs: Vec<(TokenStream, TokenStream)> = parsed_fields
         .iter()
         .map(|parsed_f| match parsed_f {
             AccountField::Field(f) => {
@@ -316,18 +321,24 @@ fn deserialize_ctx_struct_anchor(
                     }
                     None => acc_info_tokens(&field_name, is_optional),
                 };
-                Ok((
+                (
                     quote! {#field_name},
                     quote! {
                         #deser_tokens
                     },
-                ))
+                )
             }
-            AccountField::CompositeField(_) => Err("CompositeFields not supported!"),
+            AccountField::CompositeField(f) => {
+                let field_name = f.ident.clone();
+                (
+                    quote! { #field_name },
+                    quote! { let #field_name = todo!(); },
+                )
+            }
         })
         .collect();
 
-    let (names, fields_deser): (Vec<_>, Vec<_>) = names_deser_pairs?.iter().cloned().unzip();
+    let (names, fields_deser): (Vec<_>, Vec<_>) = names_deser_pairs.iter().cloned().unzip();
 
     let generated_deser_impl: syn::Item = parse_quote! {
         impl<'info> #snapshot_name<'info> {
