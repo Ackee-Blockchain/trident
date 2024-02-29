@@ -446,66 +446,6 @@ impl Commander {
             .arg("-Zunpretty=expanded")
             .output()
     }
-
-    /// Retrieves Rust `use` statements from the expanded source code of the "program_client" package.
-    ///
-    /// This function initiates an expansion of the "program_client" package to obtain
-    /// the macro-expanded source code. It then parses this source to extract all `use` statement declarations,
-    /// returning them as a vector of `syn::ItemUse`. If no `use` statements are found, a default import for
-    /// `trdelnik_client::*` is included in the returned vector to ensure the caller has at least one valid import.
-    ///
-    /// # Returns
-    /// A `Vec<syn::ItemUse>` containing the parsed `use` statements from the "program_client" package's source code.
-    /// If no `use` statements are found, the vector contains a default `use trdelnik_client::*;` statement.
-    ///
-    /// # Errors
-    /// - Returns an `Error` if the package expansion fails, either due to command execution failure or issues
-    ///   parsing the expanded code into a UTF-8 string.
-    /// - Propagates errors encountered while acquiring locks on shared state or parsing `use` statements from the code.
-    #[throws]
-    pub async fn get_program_client_imports() -> Vec<syn::ItemUse> {
-        let shared_mutex = std::sync::Arc::new(std::sync::Mutex::new(String::new()));
-
-        let mutex = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(true));
-        let c_mutex = std::sync::Arc::clone(&mutex);
-
-        let c_shared_mutex = std::sync::Arc::clone(&shared_mutex);
-
-        let cargo_thread = std::thread::spawn(move || -> Result<(), Error> {
-            let output = Self::expand_package("program_client");
-            // release progress bar loop here as the expansion is the longest part
-            // further we cannot release after parsing as parsing can panic which will not
-            // release the lock
-            c_mutex.store(false, std::sync::atomic::Ordering::SeqCst);
-            let output = output.expect("Program Client expansion failed");
-
-            if output.status.success() {
-                let mut code = c_shared_mutex
-                    .lock()
-                    .expect("Acquire Program Client lock failed");
-                code.push_str(&String::from_utf8(output.stdout)?);
-
-                Ok(())
-            } else {
-                // command failed leave unmodified
-                Ok(())
-            }
-        });
-
-        Self::expand_progress_bar("program_client", &mutex);
-
-        cargo_thread.join().unwrap()?;
-
-        let code = shared_mutex.lock().unwrap();
-        let code = code.as_str();
-        let mut use_modules: Vec<syn::ItemUse> = vec![];
-        Self::get_use_statements(code, &mut use_modules)?;
-        if use_modules.is_empty() {
-            use_modules.push(syn::parse_quote! { use trdelnik_client::*; })
-        }
-        use_modules
-    }
-
     #[throws]
     pub fn get_use_statements(code: &str, use_modules: &mut Vec<syn::ItemUse>) {
         for item in syn::parse_file(code).unwrap().items.into_iter() {
