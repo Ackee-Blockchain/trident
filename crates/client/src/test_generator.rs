@@ -269,7 +269,7 @@ impl TestGenerator {
         let lib_path = construct_path!(self.root, PROGRAM_CLIENT_DIRECTORY, SRC_DIRECTORY, LIB);
         if lib_path.exists() {
             let code = fs::read_to_string(lib_path).await.unwrap_or_else(|_e| {
-                println!("Unable to read .program_client, use statements set to default.");
+                println!("\x1b[1;93mWarning\x1b[0m: Unable to read .program_client, use statements set to default.");
                 String::default()
             });
             Commander::get_use_statements(&code, &mut self.use_tokens)?;
