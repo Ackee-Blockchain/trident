@@ -1,0 +1,131 @@
+site_name: Trdelnik
+site_url: https://ackeeblockchain.com/trdelnik/docs
+repo_url: https://github.com/Ackee-Blockchain/trdelnik
+repo_name: Ackee-Blockchain/trdelnik
+edit_uri: edit/master/docs
+site_description: Trdelník is a Rust-based testing framework providing several convenient developer tools for testing Solana programs written in Anchor.
+site_author: Ackee Blockchain
+
+
+nav:
+  - Home:
+    - Trdelnik: index.md
+    - Installation: home/home-installation.md
+    - Contributing: home/CONTRIBUTING.md
+    - License: home/LICENSE.md
+    - Code of conduct: home/CODE_OF_CONDUCT.md
+    - Changelog:
+        # index page for changelog
+        - home/changelog/index.md
+        - home/changelog/0-5-0.md
+        - home/changelog/0-4-1.md
+        - home/changelog/0-3-0.md
+        - home/changelog/0-2-0.md
+
+  - Fuzz Tests:
+    - Introduction: fuzzing/fuzzing-introduction.md
+    - Initialization:
+        - fuzzing/initialization/fuzzing-initialization-fuzz.md
+        - fuzzing/initialization/fuzzing-initialization-fuzz-add.md
+        - fuzzing/initialization/fuzzing-initialization-all.md
+    - Fuzz Test Lifecycle: fuzzing/fuzzing-lifecycle.md
+    - How-To write Fuzz Test:
+        - fuzzing/howto/fuzzing-howto-p0.md
+        - fuzzing/howto/fuzzing-howto-p1.md
+        - fuzzing/howto/fuzzing-howto-p2.md
+        - fuzzing/howto/fuzzing-howto-p3.md
+        - fuzzing/howto/fuzzing-howto-p4.md
+        - fuzzing/howto/fuzzing-howto-p5.md
+    - Run and Debug: fuzzing/fuzzing-run-debug.md
+    - Current limitations: fuzzing/fuzzing-current-limitations.md
+    - Examples: fuzzing/fuzzing-examples.md
+  - Integration Tests:
+    - Introduction: integration-tests/poc-introduction.md
+    - Initialization:
+        - integration-tests/initialization/poc-initialization-poc.md
+        - integration-tests/initialization/poc-initialization-program-client.md
+        - integration-tests/initialization/poc-initialization-all.md
+    - How-To write Integration Test:
+        - integration-tests/howto/poc-howto-p0.md
+        - integration-tests/howto/poc-howto-p1.md
+    - Run: integration-tests/poc-run.md
+    - Examples: integration-tests/poc-examples.md
+
+
+# Beware this is strongly dependent on names of folders , example:
+# images have to be stored within the docs/images folder
+theme:
+  # https://squidfunk.github.io/mkdocs-material/setup/
+  name: material
+  logo: 'images/logo.png'
+  favicon: 'images/favicon.ico'
+  custom_dir: docs/overrides
+  # https://squidfunk.github.io/mkdocs-material/setup/changing-the-colors/?h=palette+sw#color-palette-toggle
+  palette:
+    - scheme: default
+      primary: black
+      toggle:
+        icon: material/lightbulb
+        name: Switch to dark mode
+    - scheme: slate
+      primary: black
+      toggle:
+        icon: material/lightbulb-outline
+        name: Switch to light mode
+  features:
+  # https://squidfunk.github.io/mkdocs-material/setup/setting-up-navigation/#instant-loading
+    - navigation.instant
+  # https://squidfunk.github.io/mkdocs-material/setup/setting-up-navigation/#navigation-expansion
+    # - navigation.expand
+  # https://squidfunk.github.io/mkdocs-material/setup/setting-up-navigation/#back-to-top-button
+    - navigation.top
+  # https://squidfunk.github.io/mkdocs-material/setup/setting-up-navigation/#navigation-tabs
+    - navigation.tabs
+  # https://squidfunk.github.io/mkdocs-material/setup/setting-up-navigation/#section-index-pages
+    - navigation.indexes
+  # https://squidfunk.github.io/mkdocs-material/reference/code-blocks/?h=content+copy#code-copy-button
+    - content.code.copy
+
+# https://squidfunk.github.io/mkdocs-material/setup/setting-up-the-footer/?h=social#social-links
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/Ackee-Blockchain/trdelnik
+    - icon: fontawesome/brands/discord
+      link: https://discord.gg/x7qXXnGCsa
+    - icon: fontawesome/brands/twitter
+      link: https://twitter.com/ackeeblockchain
+
+# https://www.mkdocs.org/user-guide/configuration/#plugins
+plugins:
+  - search
+  - macros
+  - minify:
+      minify_html: true
+  - git-revision-date-localized:
+      type: timeago
+
+# https://squidfunk.github.io/mkdocs-material/customization/?h=extra+css#additional-css
+extra_css:
+  - stylesheets/extra.css
+
+
+markdown_extensions:
+  # https://squidfunk.github.io/mkdocs-material/reference/code-blocks/#code-blocks
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+
+exclude_docs: |
+  requirements.txt.
