@@ -36,6 +36,7 @@ nav:
         - fuzzing/howto/fuzzing-howto-p3.md
         - fuzzing/howto/fuzzing-howto-p4.md
         - fuzzing/howto/fuzzing-howto-p5.md
+        - fuzzing/howto/fuzzing-howto-p6.md
     - Run and Debug: fuzzing/fuzzing-run-debug.md
     - Current limitations: fuzzing/fuzzing-current-limitations.md
     - Examples: fuzzing/fuzzing-examples.md

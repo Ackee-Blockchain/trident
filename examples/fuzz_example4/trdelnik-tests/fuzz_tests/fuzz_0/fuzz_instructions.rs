@@ -82,18 +82,9 @@ pub mod fuzz_example4_fuzz_instructions {
             _client: &mut impl FuzzClient,
             _fuzz_accounts: &mut FuzzAccounts,
         ) -> Result<Self::IxData, FuzzingError> {
-            let input = fuzz_example4::InputUpdatePrameters {
-                input1: self.data.input.input1,
-                input2: self.data.input.input2,
-            };
-            let variant = match self.data.variant {
-                InputUpdateVariant::UpdateVariant1 => {
-                    fuzz_example4::InputUpdateVariant::UpdateVariant1
-                }
-                InputUpdateVariant::UpdateVariant2 => {
-                    fuzz_example4::InputUpdateVariant::UpdateVariant2
-                }
-            };
+            let input = self.data.input.into();
+            let variant = self.data.variant.into();
+
             let data = fuzz_example4::instruction::Update { input, variant };
             Ok(data)
         }
@@ -131,15 +122,36 @@ pub mod fuzz_example4_fuzz_instructions {
         //_system_program: AccountsStorage<todo!()>,
     }
 
-    #[derive(Arbitrary, Debug)]
+    #[derive(Arbitrary, Debug, Clone, Copy)]
     pub struct InputUpdatePrameters {
         pub input1: u8,
         pub input2: u8,
     }
 
-    #[derive(Arbitrary, Debug)]
+    #[derive(Arbitrary, Debug, Clone, Copy)]
     pub enum InputUpdateVariant {
         UpdateVariant1,
         UpdateVariant2,
+    }
+
+    impl std::convert::From<InputUpdatePrameters> for fuzz_example4::InputUpdatePrameters {
+        fn from(val: InputUpdatePrameters) -> Self {
+            fuzz_example4::InputUpdatePrameters {
+                input1: val.input1,
+                input2: val.input2,
+            }
+        }
+    }
+    impl std::convert::From<InputUpdateVariant> for fuzz_example4::InputUpdateVariant {
+        fn from(val: InputUpdateVariant) -> Self {
+            match val {
+                InputUpdateVariant::UpdateVariant1 => {
+                    fuzz_example4::InputUpdateVariant::UpdateVariant1
+                }
+                InputUpdateVariant::UpdateVariant2 => {
+                    fuzz_example4::InputUpdateVariant::UpdateVariant2
+                }
+            }
+        }
     }
 }
