@@ -2,8 +2,8 @@ In the sequence diagram below you can see a simplified fuzz test lifecycle.
 
 Some diagram states are labeled with emojis:
 
-- ⚡ Mandatory methods that must be implemented by the user.
-- 👤 Optional methods that can be implemented by the user.
+- <span class="excalidraw">⚡</span> Mandatory methods that must be implemented by the user.
+- <span class="excalidraw">👤</span> Optional methods that can be implemented by the user.
 
 ## Lifecycle
 
@@ -21,4 +21,6 @@ Some diagram states are labeled with emojis:
     5. A snapshot of all instruction accounts after the instruction execution is saved.
     6. User defined optional method `check()` is called to check accounts data and evaluate invariants.
 
-![Fuzzing lifecycle](../images/fuzzing_lifecycle.svg)
+<div class="excalidraw">
+--8<-- "docs/images/fuzzing_lifecycle.svg"
+</div>
