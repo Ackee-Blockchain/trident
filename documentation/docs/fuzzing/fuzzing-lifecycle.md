@@ -2,8 +2,8 @@ In the sequence diagram below you can see a simplified fuzz test lifecycle.
 
 Some diagram states are labeled with emojis:
 
-- 🟥 Mandatory methods that must be implemented by the user.
-- 👩‍💻 Optional methods that can be implemented by the user.
+- ⚡ Mandatory methods that must be implemented by the user.
+- 👤 Optional methods that can be implemented by the user.
 
 ## Lifecycle
 
@@ -21,41 +21,4 @@ Some diagram states are labeled with emojis:
     5. A snapshot of all instruction accounts after the instruction execution is saved.
     6. User defined optional method `check()` is called to check accounts data and evaluate invariants.
 
-<!-- https://mermaid.js.org/intro/ -->
-```mermaid
-graph TB
-    start(("1. Fuzzer Iterations = 0"))
-    check{2. Fuzzer Iterations < Max Iterations}
-    done(("Done"))
-    gen[/"3. Generate instructions"/]
-    ins("`
-    👩‍💻
-    3.1 Pre-Instructions
-    3.2 Instructions
-    3.3 Post-Instructions
-    `")
-    for{4. for Ix in Instructions}
-    get_("`
-    🟥
-    4.2 Get Ix Accounts
-    4.3 Get Ix Data
-    `")
-    create_pre_snap("4.4 Create Pre-Ix Accounts Snapshots")
-    execute("4.5 Execute Ix")
-    create_post_snap("4.6 Create Post-Ix Accounts Snapshots")
-    check_inv("`
-    👩‍💻
-    4.7 Check Invariants
-    `")
-    done_loop("Done")
-    inc(6. Fuzzer Iterations ++)
-
-    start --> check
-    check -- YES --> gen
-    gen --> ins
-    ins --> for
-    inc --> check
-    check -- NO --> done
-    for --> get_ --> create_pre_snap --> execute --> create_post_snap --> check_inv --> for
-    for --> done_loop  --> inc
-```
+![Fuzzing lifecycle](../images/fuzzing_lifecycle.svg)
