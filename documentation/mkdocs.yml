@@ -62,12 +62,12 @@ theme:
   custom_dir: docs/overrides
   # https://squidfunk.github.io/mkdocs-material/setup/changing-the-colors/?h=palette+sw#color-palette-toggle
   palette:
-    - scheme: default
+    - scheme: default # light mode scheme
       primary: black
       toggle:
         icon: material/lightbulb
         name: Switch to dark mode
-    - scheme: slate
+    - scheme: slate  # dark mode scheme
       primary: black
       toggle:
         icon: material/lightbulb-outline
