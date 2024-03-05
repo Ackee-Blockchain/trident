@@ -61,7 +61,7 @@ Inside `programs/<YOUR_PROGRAM>/Cargo.toml` file include:
 ...
 [dependencies]
 ...
-arbitrary = "1.3.0"
+arbitrary = { version = "1.3.0", features = ["derive"] }
 ...
 ```
 
@@ -81,26 +81,42 @@ You can redefine the custom type within the `fuzz_instructions.rs` file, along w
 // Redefine the Custom Type inside the fuzz_instructions.rs,
 // but this time with all of the required traits.
 #[derive(Arbitrary,Debug, Clone, Copy)]
-pub enum CustomEnumInput {
+pub enum CustomEnumInputFuzz {
     InputVariant1,
     InputVariant2,
     InputVariant3,
 }
 ```
+
+And instead of using the input argument defined within the program, you should modify it as follows:
+```rust
+#[derive(Arbitrary, Debug)]
+pub struct InitVestingData {
+    pub recipient: AccountId,
+    pub amount: u64,
+    pub start_at: u64,
+    pub end_at: u64,
+    pub interval: u64,
+    /// IMPORTANT:
+    /// redefined Custom Type
+    pub _input_variant: CustomEnumInputFuzz,
+}
+```
+
 Then, you would also need to implement the [`std::convert::From<T>`](https://doc.rust-lang.org/std/convert/trait.From.html) trait to enable conversion between the newly defined Custom Type and the Custom Type used within your program.
 ```rust
-// implement std::convert::From to convert between CustomEnumInput
+// implement std::convert::From to convert between CustomEnumInputFuzz
 // and your_program::CustomEnumInput as these are distinc Data Types.
-impl std::convert::From<CustomEnumInput> for your_program::CustomEnumInput {
-    fn from(val: CustomEnumInput) -> Self {
+impl std::convert::From<CustomEnumInputFuzz> for your_program::CustomEnumInput {
+    fn from(val: CustomEnumInputFuzz) -> Self {
         match val {
-            CustomEnumInput::InputVariant1 => {
+            CustomEnumInputFuzz::InputVariant1 => {
                 your_program::CustomEnumInput::InputVariant1
             }
-            CustomEnumInput::InputVariant2 => {
+            CustomEnumInputFuzz::InputVariant2 => {
                 your_program::CustomEnumInput::InputVariant2
             }
-            CustomEnumInput::InputVariant3 => {
+            CustomEnumInputFuzz::InputVariant3 => {
                 your_program::CustomEnumInput::InputVariant3
             }
         }
