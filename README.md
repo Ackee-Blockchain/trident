@@ -18,18 +18,23 @@
   [![Test Escrow and Turnstile](https://github.com/Ackee-Blockchain/trdelnik/actions/workflows/run_examples.yml/badge.svg)](https://github.com/Ackee-Blockchain/trdelnik/actions/workflows/run_examples.yml)
 </div>
 
-Trdelník is Rust based testing framework providing several convenient developer tools for testing Solana programs written in [Anchor](https://github.com/project-serum/anchor).
+Trdelnik is a Rust-based framework for Fuzz Tests and Integration Tests of Solana programs written in [Anchor](https://www.anchor-lang.com/), enabling automated generation of test templates and custom invariant checks to identify and prevent undesired behaviors using Rust's [Arbitrary crate](https://docs.rs/arbitrary/latest/arbitrary/) and [honggfuzz-rs](https://github.com/rust-fuzz/honggfuzz-rs).
 
-- **Trdelnik fuzz** - property-based and stateful testing;
-- Trdelnik client - build and deploy your Anchor program to a local cluster;
-- Trdelnik test - run your integration tests on a local validator;
-- Trdelnik explorer - exploring ledger changes.
 
-## Dependencies
+## Features
+
+
+
+- **Automated Test Generation**: Simplifies the testing process by automatically creating templates for fuzz and integration tests for programs written using the Anchor Framework.
+- **Dynamic Data Generation**: Increases coverage with random instruction data and pseudo-random accounts for unpredictable fuzz test scenarios.
+- **Custom Instruction Sequences**: Provides the flexibility to design specific sequences of instructions to meet particular testing needs or to focus on particular aspects of program behavior during fuzz testing.
+- **Invariant Checks**: Allows for custom pre- and post-execution invariants checks to spot vulnerabilities and unwanted behaviors.
+
+## Prerequisites
 Check [supported versions](#supported-versions) section for further details.
 - Install [Rust](https://www.rust-lang.org/tools/install)
 - Install [Solana tool suite](https://docs.solana.com/cli/install-solana-cli-tools)
-- Install [Anchor](https://book.anchor-lang.com/chapter_2/installation.html)
+- Install [Anchor](https://www.anchor-lang.com/docs/installation)
 - Install [Honggfuzz-rs](https://github.com/rust-fuzz/honggfuzz-rs#how-to-use-this-crate) for fuzz testing
 
 ## Installation
@@ -42,176 +47,34 @@ cargo install trdelnik-cli
 cargo install --version <version> trdelnik-cli
 ```
 
-## Usage
-
+In order to install [Honggfuzz-rs](https://github.com/rust-fuzz/honggfuzz-rs#how-to-use-this-crate) run:
 ```shell
-# Navigate to your project root directory.
-# Trdelnik initialization will generate `.program_client` and `trdelnik-tests` directories with all the necessary files.
+# installs hfuzz and honggfuzz subcommands in cargo
+cargo install honggfuzz
+```
+## Quick Start
+To initialize Trdelnik in your Anchor-based Solana project, begin by executing the following command from the root folder of your project:
+```bash
+# will generate test templates for fuzz and integration tests
 trdelnik init
-# Run the fuzzer on the given target.
-trdelnik fuzz run <TARGET_NAME>
-# Want more?
-trdelnik --help
 ```
-### How to write fuzz tests?
-Once you initialize Trdelnik in your Anchor project, you will find a fuzz test template in the `trdelnik-tests/fuzz_tests/fuzz_0` folder that you can modify according to your needs or create new targets. Do not forget to install honggfuzz-rs using `cargo install honggfuzz`.
-
-
-```shell
-# To run the fuzz test, execute this command from your terminal and replace <TARGET_NAME> with the name of particular fuzz test (for example: "fuzz_0")
-trdelnik fuzz run <TARGET_NAME>
-
-# To debug your fuzz target crash with parameters from a crash file
-trdelnik fuzz run-debug <TARGET_NAME> <CRASH_FILE_PATH>
+If you are interested in **specific test types**, such as **Fuzz Tests** or **Integration Tests**, run:
+```bash
+# generate fuzz tests template
+trdelnik init fuzz
 ```
-
- Under the hood Trdelnik uses [honggfuzz-rs](https://github.com/rust-fuzz/honggfuzz-rs). You can pass parameters via [environment variables](https://github.com/rust-fuzz/honggfuzz-rs#environment-variables). List of hongfuzz parameters can be found in honggfuzz [usage documentation](https://github.com/google/honggfuzz/blob/master/docs/USAGE.md#cmdline---help). For example:
- ```shell
-# Time-out: 10 secs
-# Number of concurrent fuzzing threads: 1
-# Number of fuzzing iterations: 10000
-# Display Solana logs in the terminal
-HFUZZ_RUN_ARGS="-t 10 -n 1 -N 10000 -Q" trdelnik fuzz run <TARGET_NAME>
+```bash
+# generate integration tests template
+trdelnik init poc
 ```
+Next, enter `trdelnik --help` to access basic information on usage.
 
-**For detailed fuzzing howto refer to the [Fuzzing page](Fuzzing.md).**
-
-### How to write tests?
-Trdelnik also supports writing integration tests in Rust.
-
-<div align="center">
-  <img src="https://github.com/Ackee-Blockchain/trdelnik/raw/master/assets/demo.svg" alt="Trdelnik Demo" />
-</div>
-
-```rust
-// <my_project>/trdelnik-tests/poc_tests/tests/test.rs
-// TODO: do not forget to add all necessary dependencies to the generated `trdelnik-tests/poc_tests/Cargo.toml`
-use program_client::my_instruction;
-use trdelnik_client::*;
-use my_program;
-
-#[throws]
-#[fixture]
-async fn init_fixture() -> Fixture {
-  // create a test fixture
-  let mut fixture = Fixture {
-    client: Client::new(system_keypair(0)),
-    // make sure to pass the correct name of your program
-    program: anchor_keypair("my_program_name").unwrap(),
-    state: keypair(42),
-  };
-  // deploy the program to test
-  fixture.deploy().await?;
-  // call instruction init
-  my_instruction::initialize(
-    &fixture.client,
-    fixture.state.pubkey(),
-    fixture.client.payer().pubkey(),
-    System::id(),
-    Some(fixture.state.clone()),
-  ).await?;
-  fixture
-}
-
-#[trdelnik_test]
-async fn test_happy_path(#[future] init_fixture: Result<Fixture>) {
-  let fixture = init_fixture.await?;
-  // call the instruction
-  my_instruction::do_something(
-    &fixture.client,
-    "dummy_string".to_owned(),
-    fixture.state.pubkey(),
-    None,
-  ).await?;
-  // check the test result
-  let state = fixture.get_state().await?;
-  assert_eq!(state.something_changed, "yes");
-}
-```
-
-#### Instructions with custom structures
-
-- If you want to test an instruction which has custom structure as an argument
-
-```rust
-pub struct MyStruct {
-  amount: u64,
-}
-
-// ...
-
-pub fn my_instruction(ctx: Context<Ctx>, data: MyStruct) { /* ... */ }
-```
-
-- You should add an import to the `.program_client` crate
-
-```rust
-// .program_client/src/lib.rs
-
-// DO NOT EDIT - automatically generated file
-pub mod my_program_instruction {
-  use trdelnik_client::*;
-  use my_program::MyStruct; // add this import
-
-// ...
-}
-```
-
-- This file is automatically generated but the **`use` statements won't be regenerated**
-
-#### Skipping tests
-
-- You can add the `#[ignore]` macro to skip the test.
-
-```rust
-#[trdelnik_test]
-#[ignore]
-async fn test() {}
-```
-
-#### Testing programs with associated token accounts
-
-- `Trdelnik` does not export `anchor-spl` and `spl-associated-token-account`, so you have to add it manually.
-
-```toml
-# <my-project>/trdelnik-tests/poc_tests/Cargo.toml
-# import the correct versions manually
-anchor-spl = "0.28.0"
-spl-associated-token-account = "2.0.0"
-```
-
-```rust
-// <my-project>/trdelnik-tests/poc_tests/tests/test.rs
-use anchor_spl::token::Token;
-use spl_associated_token_account;
-
-async fn init_fixture() -> Fixture {
-  // ...
-  let account = keypair(1);
-  let mint = keypair(2);
-  // constructs a token mint
-  client
-    .create_token_mint(&mint, mint.pubkey(), None, 0)
-    .await?;
-  // constructs associated token account
-  let token_account = client
-    .create_associated_token_account(&account, mint.pubkey())
-    .await?;
-  let associated_token_program = spl_associated_token_account::id();
-  // derives the associated token account address for the given wallet and mint
-  let associated_token_address = spl_associated_token_account::get_associated_token_address(&account.pubkey(), mint);
-  Fixture {
-    // ...
-    token_program: Token::id(),
-  }
-}
-```
-
-- The `trdelnik init` command generated a dummy test suite for you.
-- For more details, see the [complete test](examples/turnstile/trdelnik-tests/tests/test.rs) implementation.
+## External Documentation
+For more detailed information, visit our [documentation](http://127.0.0.1:8000/trdelnik/docs/).
 
 
-### Supported versions
+
+## Supported versions
 
 - We support `Anchor` and `Solana` versions specified in the table below.
 
@@ -223,21 +86,7 @@ async fn init_fixture() -> Fixture {
 | `v0.3.0`     | `~0.25.*` | `>=1.10`  |                        |
 | `v0.2.0`     | `~0.24.*` |  `>=1.9`  |                        |
 
-### Configuration
 
-The configuration variables can be edited in the `Trdelnik.toml` file that'll be generated in the root of the project.
-
-| Name                             | Default value | Description                                                                 |
-|----------------------------------|---------------|-----------------------------------------------------------------------------|
-| `test.validator_startup_timeout` | 10 000        | Time to wait for the `solana-test-validator` in milliseconds before failure |
-
-## Roadmap
-
-- [x] Q1/22 Trdelnik announcement at Solana Hacker House Prague
-  - [x] Trdelnik client available for testing
-- [x] Q2/22 Trdelnik explorer available
-- [x] Q2/22 Trdelnik client and explorer introduced at Solana Hacker House Barcelona
-- [X] Q3/23 Trdelnik fuzz introduced at Solana Hacker House Berlin
 
 ## Awards
 
