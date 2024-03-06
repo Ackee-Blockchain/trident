@@ -33,7 +33,7 @@ pub fn _init_vesting(
 ) -> Result<()> {
     ...
     // the Instruction Data arguments are not completely random
-    // and should the have following restrictions
+    // and should have the following restrictions
     require!(amount > 0, VestingError::InvalidAmount);
     require!(end_at > start_at, VestingError::InvalidTimeRange);
     require!(end_at - start_at > interval, VestingError::InvalidInterval);

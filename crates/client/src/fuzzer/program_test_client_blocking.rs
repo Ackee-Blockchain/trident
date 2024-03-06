@@ -163,4 +163,12 @@ impl FuzzClient for ProgramTestClientBlocking {
             .rt
             .block_on(self.ctx.banks_client.process_transaction(transaction))?)
     }
+
+    fn set_account_custom(&mut self, address: &Pubkey, account: &AccountSharedData) {
+        self.ctx.set_account(address, account);
+    }
+
+    fn get_rent(&mut self) -> Result<Rent, FuzzClientError> {
+        Ok(self.rt.block_on(self.ctx.banks_client.get_rent())?)
+    }
 }
