@@ -6,3 +6,6 @@
 
 ### Example usage of Arbitrary Trait with Custom Data type as Instruction parameter
 - [Fuzz test example 4](https://github.com/Ackee-Blockchain/trdelnik/tree/master/examples/fuzz_example4)
+
+### Example usage of limiting the Instruction data structure with the Arbitrary trait
+- [Fuzz test example 5](https://github.com/Ackee-Blockchain/trdelnik/tree/master/examples/fuzz_example5)
