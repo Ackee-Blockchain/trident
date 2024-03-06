@@ -1,8 +1,9 @@
 use anchor_client::anchor_lang::solana_program::account_info::{Account as Acc, AccountInfo};
 use anchor_client::anchor_lang::solana_program::hash::Hash;
+use anchor_lang::prelude::Rent;
 use arbitrary::Arbitrary;
 use arbitrary::Unstructured;
-use solana_sdk::account::Account;
+use solana_sdk::account::{Account, AccountSharedData};
 use solana_sdk::instruction::AccountMeta;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
@@ -156,11 +157,15 @@ pub trait FuzzDeserialize<'info> {
     ) -> Result<Self::Ix, FuzzingError>;
 }
 
+/// A trait providing methods to read and write (manipulate) accounts
 pub trait FuzzClient {
-    // TODO add method to add another program
-    // TODO add methods to modify current accounts
-    // TODO check if self must be mutable
+    /// Create an empty account and add lamports to it
     fn set_account(&mut self, lamports: u64) -> Keypair;
+
+    /// Create or overwrite a custom account, subverting normal runtime checks.
+    fn set_account_custom(&mut self, address: &Pubkey, account: &AccountSharedData);
+
+    /// Create an SPL token account
     #[allow(clippy::too_many_arguments)]
     fn set_token_account(
         &mut self,
@@ -172,23 +177,34 @@ pub trait FuzzClient {
         delegated_amount: u64,
         close_authority: Option<Pubkey>,
     ) -> Pubkey;
+
+    /// Create an SPL mint account
     fn set_mint_account(
         &mut self,
         decimals: u8,
         owner: &Pubkey,
         freeze_authority: Option<Pubkey>,
     ) -> Pubkey;
+
+    /// Get the Keypair of the client's payer account
     fn payer(&self) -> Keypair;
 
-    fn get_account(&mut self, key: &Pubkey) -> Result<Option<Account>, FuzzClientError>; // TODO support dynamic errors
-                                                                                         // TODO add interface to modify existing accounts
+    /// Get the account at the given address
+    fn get_account(&mut self, key: &Pubkey) -> Result<Option<Account>, FuzzClientError>;
+
+    /// Get accounts based on the supplied meta information
     fn get_accounts(
         &mut self,
         metas: &[AccountMeta],
     ) -> Result<Vec<Option<Account>>, FuzzClientErrorWithOrigin>;
 
+    /// Get last blockhash
     fn get_last_blockhash(&self) -> Hash;
 
+    /// Get the cluster rent
+    fn get_rent(&mut self) -> Result<Rent, FuzzClientError>;
+
+    /// Send a transaction and return until the transaction has been finalized or rejected.
     fn process_transaction(
         &mut self,
         transaction: impl Into<VersionedTransaction>,

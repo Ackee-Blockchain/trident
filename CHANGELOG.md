@@ -10,6 +10,7 @@ incremented upon a breaking change and the patch version will be incremented for
 
 ## [Unreleased]
 ### Added
+- feat/allow direct accounts manipulation and storage ([#142](https://github.com/Ackee-Blockchain/trdelnik/pull/142))
 - feat/support of non-corresponding instruction and context names ([#130](https://github.com/Ackee-Blockchain/trdelnik/pull/130))
 - feat/refactored and improved program flow during init and build, added activity indicator ([#129](https://github.com/Ackee-Blockchain/trdelnik/pull/129))
 - feat/allow solana versions up to v1.17.* and pin Rust 1.77 nightly compiler ([#128](https://github.com/Ackee-Blockchain/trdelnik/pull/128))

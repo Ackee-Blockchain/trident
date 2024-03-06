@@ -5,7 +5,7 @@ use solana_sdk::{pubkey::Pubkey, signature::Keypair};
 use crate::{data_builder::FuzzClient, AccountId};
 
 pub struct PdaStore {
-    pubkey: Pubkey,
+    pub pubkey: Pubkey,
     pub seeds: Vec<Vec<u8>>,
 }
 impl PdaStore {
@@ -28,7 +28,7 @@ pub struct ProgramStore {
 
 pub struct AccountsStorage<T> {
     accounts: HashMap<AccountId, T>,
-    pub max_accounts: u8,
+    _max_accounts: u8,
 }
 
 impl<T> AccountsStorage<T> {
@@ -36,12 +36,18 @@ impl<T> AccountsStorage<T> {
         let accounts: HashMap<AccountId, T> = HashMap::new();
         Self {
             accounts,
-            max_accounts,
+            _max_accounts: max_accounts,
         }
     }
 
+    /// Gets a reference to the account with the given account ID
     pub fn get(&self, account_id: AccountId) -> Option<&T> {
         self.accounts.get(&account_id)
+    }
+
+    /// Returns a mutable reference to the underlying HashMap that stores accounts with IDs as keys
+    pub fn storage(&mut self) -> &mut HashMap<AccountId, T> {
+        &mut self.accounts
     }
 }
 
