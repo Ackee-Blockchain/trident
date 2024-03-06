@@ -3,7 +3,7 @@
 If you use Custom Types as Instruction data arguments, you may encounter a problem that the Custom Type does not implement
 
 - [Debug](https://doc.rust-lang.org/std/fmt/trait.Debug.html) trait
-- [Arbitrary](https://docs.rs/arbitrary/latest/arbitrary/) trait
+- [Arbitrary](https://docs.rs/arbitrary/latest/arbitrary/trait.Arbitrary.html) trait
 
 For example:
 ```rust
