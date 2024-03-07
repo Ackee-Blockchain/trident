@@ -1,10 +1,10 @@
-# Fuzz Test Example for Trdelnik Fuzzer
+# Fuzz Test Example for Trident Fuzzer
 
 ---
 
 ## Program and Errors Description
 
-- This example is a modification of the [fuzz_example3](https://github.com/Ackee-Blockchain/trdelnik/tree/master/examples/fuzz_example3) that demonstrates the limiting of Instruction Data parameters with **Arbitrary** trait.
+- This example is a modification of the [fuzz_example3](https://github.com/Ackee-Blockchain/trident/tree/master/examples/fuzz_example3) that demonstrates the limiting of Instruction Data parameters with **Arbitrary** trait.
 
 - ### Initialize
     - Within the Initialize instruction, we initialize a new Escrow Transaction. The entered amount (as instruction input) is locked within the Escrow Token Account for a specified amount of time (also as instruction input). Later, this amount can be partially or fully unlocked based on the current time during Withdrawal.

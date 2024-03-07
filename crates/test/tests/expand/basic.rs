@@ -1,4 +1,4 @@
-#[trdelnik_test::trdelnik_test]
+#[trident_test::trident_test]
 async fn test_turnstile() {
     init_client().await?;
     let mut turnstile = Turnstile {

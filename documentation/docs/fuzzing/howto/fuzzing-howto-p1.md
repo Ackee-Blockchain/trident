@@ -3,7 +3,7 @@
 
 Always generating only random accounts would **in most cases lead to a situation where the fuzzer would be stuck because the accounts would be almost every time rejected by your Anchor program**. Therefore it is necessary to specify, what accounts should be used and also limit the number of newly created accounts to reduce the space complexity.
 
-- Go to the `trdelnik-tests/fuzz_tests/<FUZZ_TEST_NAME>/fuzz_instructions.rs` file and complete the pre-generated `FuzzAccounts` structure. It contains all accounts used in your program. You have to determine if the account is a:
+- Go to the `trident-tests/fuzz_tests/<FUZZ_TEST_NAME>/fuzz_instructions.rs` file and complete the pre-generated `FuzzAccounts` structure. It contains all accounts used in your program. You have to determine if the account is a:
     - Signer
     - PDA
     - Token Account

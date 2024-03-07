@@ -1,5 +1,5 @@
 <div align="center">
-  <img height="250" width="250" src="https://github.com/Ackee-Blockchain/trdelnik/raw/master/assets/Badge_Trdelnik.png" alt="Trdelnik Logo"/>
+  <img height="250" width="250" src="images/Badge_Trdelnik.png" alt="Trident Logo"/>
 </div>
 
 
@@ -7,7 +7,7 @@
 
 developed by [Ackee Blockchain](https://ackeeblockchain.com)
 
-Trdelník is a Rust-based testing framework providing several convenient developer tools for testing Solana programs written in [Anchor](https://www.anchor-lang.com/).
+Trident is a Rust-based testing framework providing several convenient developer tools for testing Solana programs written in [Anchor](https://www.anchor-lang.com/).
 
 - **{{ config.site_name }} fuzz** - property-based and stateful testing;
 - **{{ config.site_name }} test** - run your integration tests on a local validator;

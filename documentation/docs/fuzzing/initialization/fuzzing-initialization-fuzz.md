@@ -2,13 +2,13 @@
 
 If you are interested only in generating templates for fuzz tests run
 ```bash
-trdelnik init fuzz
+trident init fuzz
 ```
 
 The command will generate the following folder structure:
 ```bash
 project-root
-├── trdelnik-tests
+├── trident-tests
 │   ├── fuzz_tests # fuzz tests folder
 │   │   ├── fuzz_0 # particular fuzz test
 │   │   │   ├── accounts_snapshots.rs # generated accounts deserialization methods
@@ -18,6 +18,6 @@ project-root
 │   │   ├── fuzz_X # possible multiple fuzz tests
 │   │   ├── fuzzing # compilations and crashes folder
 │   │   └── Cargo.toml
-├── Trdelnik.toml
+├── Trident.toml
 └── ...
 ```

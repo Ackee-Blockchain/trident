@@ -1,10 +1,10 @@
 # Init Fixture
 
 ```rust
-// <my_project>/trdelnik-tests/poc_tests/tests/test.rs
-// TODO: do not forget to add all necessary dependencies to the generated `trdelnik-tests/poc_tests/Cargo.toml`
+// <my_project>/trident-tests/poc_tests/tests/test.rs
+// TODO: do not forget to add all necessary dependencies to the generated `trident-tests/poc_tests/Cargo.toml`
 use program_client::my_instruction;
-use trdelnik_client::*;
+use trident_client::*;
 use my_program;
 
 #[throws]
@@ -30,7 +30,7 @@ async fn init_fixture() -> Fixture {
   fixture
 }
 
-#[trdelnik_test]
+#[trident_test]
 async fn test_happy_path(#[future] init_fixture: Result<Fixture>) {
   let fixture = init_fixture.await?;
   // call the instruction

@@ -1,16 +1,16 @@
 # Testing programs with associated token accounts
 
-- `Trdelnik` does not export `anchor-spl` and `spl-associated-token-account`, so you have to add it manually.
+- `Trident` does not export `anchor-spl` and `spl-associated-token-account`, so you have to add it manually.
 
 ```toml
-# <my-project>/trdelnik-tests/poc_tests/Cargo.toml
+# <my-project>/trident-tests/poc_tests/Cargo.toml
 # import the correct versions manually
 anchor-spl = "0.29.0"
 spl-associated-token-account = "2.0.0"
 ```
 
 ```rust
-// <my-project>/trdelnik-tests/poc_tests/tests/test.rs
+// <my-project>/trident-tests/poc_tests/tests/test.rs
 use anchor_spl::token::Token;
 use spl_associated_token_account;
 

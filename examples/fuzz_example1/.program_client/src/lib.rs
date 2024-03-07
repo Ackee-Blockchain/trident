@@ -1,6 +1,6 @@
 // DO NOT EDIT - automatically generated file (except `use` statements inside the `*_instruction` module
 pub mod fuzz_example1_instruction {
-    use trdelnik_client::*;
+    use trident_client::*;
     pub static PROGRAM_ID: Pubkey = Pubkey::new_from_array([
         102u8, 14u8, 37u8, 223u8, 213u8, 157u8, 223u8, 31u8, 244u8, 37u8, 118u8, 158u8, 9u8, 208u8,
         160u8, 222u8, 23u8, 8u8, 210u8, 4u8, 175u8, 165u8, 252u8, 222u8, 56u8, 103u8, 180u8, 216u8,

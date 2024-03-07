@@ -44,7 +44,7 @@ pub enum Error {
     ParsingCargoTomlDependenciesFailed,
     #[error("fuzzing failed")]
     FuzzingFailed,
-    #[error("Trdelnik it not correctly initialized! The trdelnik-tests folder in the root of your project does not exist")]
+    #[error("Trident it not correctly initialized! The trident-tests folder in the root of your project does not exist")]
     NotInitialized,
     #[error("the crash file does not exist")]
     CrashFileNotFound,
@@ -176,7 +176,7 @@ impl Commander {
 
         if let Ok(crash_files) = get_crash_files(&crash_dir, &ext) {
             if !crash_files.is_empty() {
-                println!("{ERROR} The crash directory {} already contains crash files from previous runs. \n\nTo run Trdelnik fuzzer with exit code, you must either (backup and) remove the old crash files or alternatively change the crash folder using for example the --crashdir option and the HFUZZ_RUN_ARGS env variable such as:\nHFUZZ_RUN_ARGS=\"--crashdir ./new_crash_dir\"", crash_dir.to_string_lossy());
+                println!("{ERROR} The crash directory {} already contains crash files from previous runs. \n\nTo run Trident fuzzer with exit code, you must either (backup and) remove the old crash files or alternatively change the crash folder using for example the --crashdir option and the HFUZZ_RUN_ARGS env variable such as:\nHFUZZ_RUN_ARGS=\"--crashdir ./new_crash_dir\"", crash_dir.to_string_lossy());
                 process::exit(1);
             }
         }
@@ -594,7 +594,7 @@ fn get_crash_files(
 #[cfg(test)]
 mod tests {
     use super::*;
-    pub const HFUZZ_WORKSPACE_DEFAULT: &str = "trdelnik-tests/fuzz_tests/fuzzing/hfuzz_workspace";
+    pub const HFUZZ_WORKSPACE_DEFAULT: &str = "trident-tests/fuzz_tests/fuzzing/hfuzz_workspace";
     #[test]
     fn test_cmd_options_parsing() {
         let mut command = String::from("-Q -v --extension fuzz");

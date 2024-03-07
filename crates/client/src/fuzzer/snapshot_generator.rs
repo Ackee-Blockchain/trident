@@ -66,8 +66,8 @@ pub fn generate_snapshots_code(programs_data: &[ProgramData]) -> Result<String, 
         let program_name_ident = format_ident!("{}", program_data.program_idl.name.snake_case);
 
         let use_statements = quote! {
-            use trdelnik_client::anchor_lang::{prelude::*, self};
-            use trdelnik_client::fuzzing::FuzzingError;
+            use trident_client::anchor_lang::{prelude::*, self};
+            use trident_client::fuzzing::FuzzingError;
             use #program_name_ident::ID as PROGRAM_ID;
         }
         .into_token_stream();
@@ -526,7 +526,7 @@ fn deserialize_account_tokens(
             // TODO It would be helpful to do something like line below.
             // where we propagate anchor error
             // However I suggest that this is not possible right now as for
-            // fuzz_example3 the anchor_lang has version 0.28.0. However trdelnik
+            // fuzz_example3 the anchor_lang has version 0.28.0. However trident
             // uses 0.29.0 I think this is the reason why the '?' operator cannot propagate
             // the error even though I implemnted From<anchor_lang::error::Error> trait
             // that i

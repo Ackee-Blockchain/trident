@@ -1,5 +1,5 @@
 [package]
-name = "trdelnik-derive-displayix"
+name = "trident-derive-displayix"
 version = "0.0.1"
 rust-version = "1.60"
 edition = "2021"

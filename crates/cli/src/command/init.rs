@@ -1,7 +1,7 @@
 use anyhow::{bail, Error};
 use clap::ValueEnum;
 use fehler::throws;
-use trdelnik_client::TestGenerator;
+use trident_client::TestGenerator;
 
 use crate::_discover;
 

@@ -1,24 +1,24 @@
 <div align="center">
-  <img height="250" width="250" src="https://github.com/Ackee-Blockchain/trdelnik/raw/master/assets/Badge_Trdelnik.png" alt="Trdelnik Logo"/>
+  <img height="250" width="250" src="documentation/docs/images/Badge_Trdelnik.png" alt="Trident Logo"/>
 
-  # Trdelník
+  # Trident
 
   <a href="https://discord.gg/x7qXXnGCsa">
-    <img src="https://discordapp.com/api/guilds/867746290678104064/widget.png?style=banner2" width="250" title="AckeeBlockchain/Trdelnik discord" alt="Ackee Blockchain Discord invitation">
+    <img src="https://discordapp.com/api/guilds/867746290678104064/widget.png?style=banner2" width="250" title="AckeeBlockchain/Trident discord" alt="Ackee Blockchain Discord invitation">
   </a>
 
   developed by [Ackee Blockchain](https://ackeeblockchain.com)
 
-  [![Crates.io](https://img.shields.io/crates/v/trdelnik-cli?label=CLI)](https://crates.io/crates/trdelnik-cli)
-  [![Crates.io](https://img.shields.io/crates/v/trdelnik-test?label=Test)](https://crates.io/crates/trdelnik-test)
-  [![Crates.io](https://img.shields.io/crates/v/trdelnik-client?label=Client)](https://crates.io/crates/trdelnik-client)
-  [![Crates.io](https://img.shields.io/crates/v/trdelnik-explorer?label=Explorer)](https://crates.io/crates/trdelnik-explorer)
+  [![Crates.io](https://img.shields.io/crates/v/trident-cli?label=CLI)](https://crates.io/crates/trident-cli)
+  [![Crates.io](https://img.shields.io/crates/v/trident-test?label=Test)](https://crates.io/crates/trident-test)
+  [![Crates.io](https://img.shields.io/crates/v/trident-client?label=Client)](https://crates.io/crates/trident-client)
+  [![Crates.io](https://img.shields.io/crates/v/trident-explorer?label=Explorer)](https://crates.io/crates/trident-explorer)
   <br />
-  [![lint](https://github.com/Ackee-Blockchain/trdelnik/actions/workflows/lint.yml/badge.svg)](https://github.com/Ackee-Blockchain/trdelnik/actions/workflows/lint.yml)
-  [![Test Escrow and Turnstile](https://github.com/Ackee-Blockchain/trdelnik/actions/workflows/run_examples.yml/badge.svg)](https://github.com/Ackee-Blockchain/trdelnik/actions/workflows/run_examples.yml)
+  [![lint](https://github.com/Ackee-Blockchain/trident/actions/workflows/lint.yml/badge.svg)](https://github.com/Ackee-Blockchain/trident/actions/workflows/lint.yml)
+  [![Test Escrow and Turnstile](https://github.com/Ackee-Blockchain/trident/actions/workflows/run_examples.yml/badge.svg)](https://github.com/Ackee-Blockchain/trident/actions/workflows/run_examples.yml)
 </div>
 
-Trdelnik is a Rust-based framework for Fuzz Tests and Integration Tests of Solana programs written in [Anchor](https://www.anchor-lang.com/), enabling automated generation of test templates and custom invariant checks to identify and prevent undesired behaviors using Rust's [Arbitrary crate](https://docs.rs/arbitrary/latest/arbitrary/) and [honggfuzz-rs](https://github.com/rust-fuzz/honggfuzz-rs).
+Trident is a Rust-based framework for Fuzz Tests and Integration Tests of Solana programs written in [Anchor](https://www.anchor-lang.com/), enabling automated generation of test templates and custom invariant checks to identify and prevent undesired behaviors using Rust's [Arbitrary crate](https://docs.rs/arbitrary/latest/arbitrary/) and [honggfuzz-rs](https://github.com/rust-fuzz/honggfuzz-rs).
 
 
 ## Features
@@ -40,11 +40,11 @@ Check [supported versions](#supported-versions) section for further details.
 ## Installation
 
 ```shell
-cargo install trdelnik-cli
+cargo install trident-cli
 
 # or the specific version
 
-cargo install --version <version> trdelnik-cli
+cargo install --version <version> trident-cli
 ```
 
 In order to install [Honggfuzz-rs](https://github.com/rust-fuzz/honggfuzz-rs#how-to-use-this-crate) run:
@@ -53,24 +53,24 @@ In order to install [Honggfuzz-rs](https://github.com/rust-fuzz/honggfuzz-rs#how
 cargo install honggfuzz
 ```
 ## Quick Start
-To initialize Trdelnik in your Anchor-based Solana project, begin by executing the following command from the root folder of your project:
+To initialize Trident in your Anchor-based Solana project, begin by executing the following command from the root folder of your project:
 ```bash
 # will generate test templates for fuzz and integration tests
-trdelnik init
+trident init
 ```
 If you are interested in **specific test types**, such as **Fuzz Tests** or **Integration Tests**, run:
 ```bash
 # generate fuzz tests template
-trdelnik init fuzz
+trident init fuzz
 ```
 ```bash
 # generate integration tests template
-trdelnik init poc
+trident init poc
 ```
-Next, enter `trdelnik --help` to access basic information on usage.
+Next, enter `trident --help` to access basic information on usage.
 
 ## External Documentation
-For more detailed information, visit our [documentation](http://127.0.0.1:8000/trdelnik/docs/).
+For more detailed information, visit our [documentation](http://127.0.0.1:8000/trident/docs/).
 
 
 
@@ -78,7 +78,7 @@ For more detailed information, visit our [documentation](http://127.0.0.1:8000/t
 
 - We support `Anchor` and `Solana` versions specified in the table below.
 
-| Trdelnik CLI |  Anchor   |   Solana  |          Rust          |
+| Trident CLI |  Anchor   |   Solana  |          Rust          |
 |--------------|:---------:|----------:|:-----------------------|
 | `v0.6.0`     | `~0.29.*` | `<1.18 `  |  `nightly-2023-12-28`  |
 | `v0.5.0`     | `~0.28.*` | `=1.16.6` |                        |
@@ -94,11 +94,11 @@ For more detailed information, visit our [documentation](http://127.0.0.1:8000/t
 
 ## Contribution
 
-Thank you for your interest in contributing to Trdelník! Please see the [CONTRIBUTING.md](./CONTRIBUTING.md) to learn how.
+Thank you for your interest in contributing to Trident! Please see the [CONTRIBUTING.md](./CONTRIBUTING.md) to learn how.
 
 ## License
 
-This project is licensed under the [MIT license](https://github.com/Ackee-Blockchain/trdelnik/blob/master/LICENSE).
+This project is licensed under the [MIT license](https://github.com/Ackee-Blockchain/trident/blob/master/LICENSE).
 
 ## University and investment partners
 

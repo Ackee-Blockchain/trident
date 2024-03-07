@@ -1,15 +1,15 @@
-site_name: Trdelnik
-site_url: https://ackeeblockchain.com/trdelnik/docs
-repo_url: https://github.com/Ackee-Blockchain/trdelnik
-repo_name: Ackee-Blockchain/trdelnik
+site_name: Trident
+site_url: https://ackeeblockchain.com/trident/docs
+repo_url: https://github.com/Ackee-Blockchain/trident
+repo_name: Ackee-Blockchain/trident
 edit_uri: edit/master/docs
-site_description: Trdelník is a Rust-based testing framework providing several convenient developer tools for testing Solana programs written in Anchor.
+site_description: Trident is a Rust-based testing framework providing several convenient developer tools for testing Solana programs written in Anchor.
 site_author: Ackee Blockchain
 
 
 nav:
   - Home:
-    - Trdelnik: index.md
+    - Trident: index.md
     - Installation: home/home-installation.md
     - Contributing: home/CONTRIBUTING.md
     - License: home/LICENSE.md
@@ -92,7 +92,7 @@ theme:
 extra:
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/Ackee-Blockchain/trdelnik
+      link: https://github.com/Ackee-Blockchain/trident
     - icon: fontawesome/brands/discord
       link: https://discord.gg/x7qXXnGCsa
     - icon: fontawesome/brands/twitter

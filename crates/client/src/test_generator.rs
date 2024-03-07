@@ -61,7 +61,7 @@ pub enum Error {
 /// Basic usage:
 ///
 /// ```
-/// # #[macro_use] extern crate trdelnik_client;
+/// # #[macro_use] extern crate trident_client;
 /// # fn main() {
 /// use std::path::PathBuf;
 ///
@@ -175,8 +175,8 @@ impl TestGenerator {
         self.init_poc_tests().await?;
         // initialize fuzz tests if thay are not yet initialized
         self.init_fuzz_tests().await?;
-        // add trdelnik.toml
-        self.create_trdelnik_manifest().await?;
+        // add trident.toml
+        self.create_trident_manifest().await?;
         // update gitignore
         self.update_gitignore(CARGO_TARGET_DIR_DEFAULT)?;
     }
@@ -192,8 +192,8 @@ impl TestGenerator {
         self.expand_programs().await?;
         // initialize fuzz tests if thay are not yet initialized
         self.init_fuzz_tests().await?;
-        // add trdelnik.toml
-        self.create_trdelnik_manifest().await?;
+        // add trident.toml
+        self.create_trident_manifest().await?;
         // update gitignore
         self.update_gitignore(CARGO_TARGET_DIR_DEFAULT)?;
     }
@@ -214,14 +214,14 @@ impl TestGenerator {
         self.init_program_client().await?;
         // initialize poc tests if thay are not yet initialized
         self.init_poc_tests().await?;
-        // add trdelnik.toml
-        self.create_trdelnik_manifest().await?;
+        // add trident.toml
+        self.create_trident_manifest().await?;
     }
 
     /// Adds new fuzz test. This means create new directory within the
-    /// trdelnik-tests/fuzz_tests directory, generate necessary files
+    /// trident-tests/fuzz_tests directory, generate necessary files
     /// for fuzzing (instructions and snapshots) and modify
-    /// trdelnik-tests/fuzz_tests/Cargo.toml with the new generated
+    /// trident-tests/fuzz_tests/Cargo.toml with the new generated
     /// fuzz test binary.
     #[throws]
     pub async fn add_fuzz_test(&mut self) {
@@ -233,8 +233,8 @@ impl TestGenerator {
         self.expand_programs().await?;
         // initialize fuzz tests if thay are not yet initialized
         self.add_new_fuzz_test().await?;
-        // add trdelnik.toml
-        self.create_trdelnik_manifest().await?;
+        // add trident.toml
+        self.create_trident_manifest().await?;
         // update gitignore
         self.update_gitignore(CARGO_TARGET_DIR_DEFAULT)?;
     }
@@ -279,7 +279,7 @@ impl TestGenerator {
         }
         if self.use_tokens.is_empty() {
             self.use_tokens
-                .push(syn::parse_quote! { use trdelnik_client::*; })
+                .push(syn::parse_quote! { use trident_client::*; })
         }
     }
 
@@ -359,7 +359,7 @@ impl TestGenerator {
     }
 
     /// Adds new PoC Test (This will Generate only one PoC Test file).
-    /// If not present create trdelnik-tests directory.
+    /// If not present create trident-tests directory.
     /// If not present create poc_tests directory.
     /// If not present create tests directory.
     /// If not present generate PoC test file.
@@ -386,11 +386,10 @@ impl TestGenerator {
 
         // self.create_directory(&poc_dir_path).await?;
         self.create_directory_all(&new_poc_test_dir).await?;
-        let cargo_toml_content =
-            load_template!("/src/templates/trdelnik-tests/Cargo_poc.toml.tmpl");
+        let cargo_toml_content = load_template!("/src/templates/trident-tests/Cargo_poc.toml.tmpl");
         self.create_file(&cargo_path, cargo_toml_content).await?;
 
-        let poc_test_content = load_template!("/src/templates/trdelnik-tests/test.rs");
+        let poc_test_content = load_template!("/src/templates/trident-tests/test.rs");
         let test_content = poc_test_content.replace("###PROGRAM_NAME###", program_name);
         let use_instructions = format!("use program_client::{}_instruction::*;\n", program_name);
         let template = format!("{use_instructions}{test_content}");
@@ -408,7 +407,7 @@ impl TestGenerator {
     }
 
     /// Adds new Fuzz Test.
-    /// If not present create trdelnik-tests directory.
+    /// If not present create trident-tests directory.
     /// If not present create fuzz_tests directory.
     /// Obtain name for the new fuzz test and generate new fuzz test
     /// directory inside fuzz_tests folder.
@@ -472,7 +471,7 @@ impl TestGenerator {
 
         let fuzz_test_path = new_fuzz_test_dir.join(FUZZ_TEST);
 
-        let fuzz_test_content = load_template!("/src/templates/trdelnik-tests/test_fuzz.rs");
+        let fuzz_test_content = load_template!("/src/templates/trident-tests/test_fuzz.rs");
 
         let use_entry = format!("use {}::entry;\n", program_name);
         let use_instructions = format!("use {}::ID as PROGRAM_ID;\n", program_name);
@@ -505,7 +504,7 @@ impl TestGenerator {
             .await?;
 
         let cargo_toml_content =
-            load_template!("/src/templates/trdelnik-tests/Cargo_fuzz.toml.tmpl");
+            load_template!("/src/templates/trident-tests/Cargo_fuzz.toml.tmpl");
 
         self.create_file(&fuzz_tests_manifest_path, cargo_toml_content)
             .await?;
@@ -558,12 +557,12 @@ impl TestGenerator {
         }
     }
 
-    /// If not present create Trdelnik manifest with the templte.
+    /// If not present create Trident manifest with the templte.
     #[throws]
-    async fn create_trdelnik_manifest(&self) {
-        let trdelnik_toml_path = construct_path!(self.root, TRDELNIK_TOML);
-        let trdelnik_toml_content = load_template!("/src/templates/Trdelnik.toml.tmpl");
-        self.create_file(&trdelnik_toml_path, trdelnik_toml_content)
+    async fn create_trident_manifest(&self) {
+        let trident_toml_path = construct_path!(self.root, TRIDENT_TOML);
+        let trident_toml_content = load_template!("/src/templates/Trident.toml.tmpl");
+        self.create_file(&trident_toml_path, trident_toml_content)
             .await?;
     }
     /// Adds a new member to the Cargo workspace manifest (`Cargo.toml`).

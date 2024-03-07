@@ -1,9 +1,9 @@
-# Fuzz Test Example for Trdelnik Fuzzer
+# Fuzz Test Example for Trident Fuzzer
 
 ---
 
 ## Program and Errors Description
-- This example is a modification of the [fuzz_example0](https://github.com/Ackee-Blockchain/trdelnik/tree/develop/examples/fuzz_example0) that demonstrates the usage of Custom Types as Instruction Data parameters with **Arbitrary** and **Debug** traits.
+- This example is a modification of the [fuzz_example0](https://github.com/Ackee-Blockchain/trident/tree/develop/examples/fuzz_example0) that demonstrates the usage of Custom Types as Instruction Data parameters with **Arbitrary** and **Debug** traits.
 
 - ### Initialize
     - In this function, we initialize a Counter Account, set the count to zero, and assign Authority to the Signer.

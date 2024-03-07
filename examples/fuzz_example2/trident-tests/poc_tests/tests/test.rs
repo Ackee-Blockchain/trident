@@ -1,0 +1,47 @@
+use program_client::fuzz_example2_instruction::*;
+use fehler::throws;
+use trident_client::{anyhow::Result, *};
+
+// @todo: create and deploy your fixture
+#[throws]
+#[fixture]
+async fn init_fixture() -> Fixture {
+    let mut fixture = Fixture::new();
+    // @todo: here you can call your <program>::initialize instruction
+    fixture.deploy().await?;
+    fixture
+}
+
+#[trident_test]
+async fn test_happy_path(#[future] init_fixture: Result<Fixture>) {
+    // @todo: add your happy path test scenario and the other test cases
+    let default_fixture = Fixture::new();
+    let fixture = init_fixture.await?;
+    assert_eq!(fixture.program, default_fixture.program);
+}
+
+// @todo: design and implement all the logic you need for your fixture(s)
+struct Fixture {
+    client: Client,
+    program: Keypair,
+    state: Keypair,
+}
+impl Fixture {
+    fn new() -> Self {
+        Fixture {
+            client: Client::default(),
+            program: anchor_keypair("fuzz_example2").unwrap(),
+            state: keypair(42),
+        }
+    }
+
+    #[throws]
+    async fn deploy(&mut self) {
+        self.client
+            .airdrop(self.client.payer().pubkey(), 5_000_000_000)
+            .await?;
+        self.client
+            .deploy_by_name(&self.program.clone(), "fuzz_example2")
+            .await?;
+    }
+}

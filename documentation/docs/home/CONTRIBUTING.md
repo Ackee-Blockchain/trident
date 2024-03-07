@@ -63,7 +63,7 @@ In general, we follow the [Fork-and-pull Git workflow](https://github.com/susam/
 So, to wrap it up:
 
 - Follow our naming and commit conventions
-  - Use the emojis from [gitmoji](https://gitmoji.dev/) at the beginning of the commit message, [see our commit messages](https://github.com/Ackee-Blockchain/trdelnik/commits/master)
+  - Use the emojis from [gitmoji](https://gitmoji.dev/) at the beginning of the commit message, [see our commit messages](https://github.com/Ackee-Blockchain/trident/commits/master)
   - Add link to the issue at the end of the commit message
   - For example: `✨ split test command into build and test - #1, #2`
 - Do not modify files that are not related to the issue you are working on

@@ -4,7 +4,7 @@
 
 You are required to define, how these accounts should be created and which accounts should be passed to an instruction. It is done using the `IxOps` trait and its method `get_accounts`.
 
-- Go to the `trdelnik-tests/fuzz_tests/<FUZZ_TEST_NAME>/fuzz_instructions.rs` file and complete the pre-generated `get_accounts` methods for each instruction such as:
+- Go to the `trident-tests/fuzz_tests/<FUZZ_TEST_NAME>/fuzz_instructions.rs` file and complete the pre-generated `get_accounts` methods for each instruction such as:
 
 ```rust
 fn get_accounts(

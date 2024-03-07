@@ -238,7 +238,7 @@ macro_rules! fuzz_trd {
 /// # Examples
 ///
 /// ```rust,ignore
-/// use trdelnik_client::fuzzing::show_account;
+/// use trident_client::fuzzing::show_account;
 ///
 /// #[derive(Debug)]
 /// #[account]

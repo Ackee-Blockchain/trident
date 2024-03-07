@@ -3,7 +3,7 @@ use fehler::throws;
 use log::debug;
 use std::{borrow::Cow, mem};
 
-/// `Tester` is used primarily by [`#[trdelnik_test]`](trdelnik_test::trdelnik_test) macro.
+/// `Tester` is used primarily by [`#[trident_test]`](trident_test::trident_test) macro.
 ///
 /// There should be no need to use `Tester` directly.
 #[derive(Default)]

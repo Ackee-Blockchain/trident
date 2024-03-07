@@ -1,6 +1,6 @@
 use anyhow::Error;
 use fehler::throws;
-use trdelnik_client::Cleaner;
+use trident_client::Cleaner;
 
 #[throws]
 pub async fn clean() {
