@@ -1,9 +1,10 @@
+use crate::PROGRAM_ID;
 use trdelnik_client::anchor_lang::{self, prelude::*};
 use trdelnik_client::fuzzing::FuzzingError;
 pub struct InitVestingSnapshot<'info> {
     pub sender: Signer<'info>,
     pub sender_token_account: Account<'info, TokenAccount>,
-    pub escrow: Option<Account<'info, Escrow>>,
+    pub escrow: Option<Account<'info, fuzz_example3::state::Escrow>>,
     pub escrow_token_account: Account<'info, TokenAccount>,
     pub mint: Account<'info, Mint>,
     pub token_program: Program<'info, Token>,
@@ -12,7 +13,7 @@ pub struct InitVestingSnapshot<'info> {
 pub struct WithdrawUnlockedSnapshot<'info> {
     pub recipient: Signer<'info>,
     pub recipient_token_account: Account<'info, TokenAccount>,
-    pub escrow: Option<Account<'info, Escrow>>,
+    pub escrow: Option<Account<'info, fuzz_example3::state::Escrow>>,
     pub escrow_token_account: Account<'info, TokenAccount>,
     pub escrow_pda_authority: &'info AccountInfo<'info>,
     pub mint: Account<'info, Mint>,
@@ -45,22 +46,24 @@ impl<'info> InitVestingSnapshot<'info> {
                 .map_err(|_| {
                     FuzzingError::CannotDeserializeAccount("sender_token_account".to_string())
                 })?;
-        let escrow: Option<anchor_lang::accounts::account::Account<Escrow>> = accounts_iter
-            .next()
-            .ok_or(FuzzingError::NotEnoughAccounts("escrow".to_string()))?
-            .as_ref()
-            .map(|acc| {
-                if acc.key() != PROGRAM_ID {
-                    anchor_lang::accounts::account::Account::try_from(acc)
-                        .map_err(|_| FuzzingError::CannotDeserializeAccount("escrow".to_string()))
-                } else {
-                    Err(FuzzingError::OptionalAccountNotProvided(
-                        "escrow".to_string(),
-                    ))
-                }
-            })
-            .transpose()
-            .unwrap_or(None);
+        let escrow: Option<anchor_lang::accounts::account::Account<fuzz_example3::state::Escrow>> =
+            accounts_iter
+                .next()
+                .ok_or(FuzzingError::NotEnoughAccounts("escrow".to_string()))?
+                .as_ref()
+                .map(|acc| {
+                    if acc.key() != PROGRAM_ID {
+                        anchor_lang::accounts::account::Account::try_from(acc).map_err(|_| {
+                            FuzzingError::CannotDeserializeAccount("escrow".to_string())
+                        })
+                    } else {
+                        Err(FuzzingError::OptionalAccountNotProvided(
+                            "escrow".to_string(),
+                        ))
+                    }
+                })
+                .transpose()
+                .unwrap_or(None);
         let escrow_token_account: anchor_lang::accounts::account::Account<TokenAccount> =
             accounts_iter
                 .next()
@@ -135,22 +138,24 @@ impl<'info> WithdrawUnlockedSnapshot<'info> {
                 .map_err(|_| {
                     FuzzingError::CannotDeserializeAccount("recipient_token_account".to_string())
                 })?;
-        let escrow: Option<anchor_lang::accounts::account::Account<Escrow>> = accounts_iter
-            .next()
-            .ok_or(FuzzingError::NotEnoughAccounts("escrow".to_string()))?
-            .as_ref()
-            .map(|acc| {
-                if acc.key() != PROGRAM_ID {
-                    anchor_lang::accounts::account::Account::try_from(acc)
-                        .map_err(|_| FuzzingError::CannotDeserializeAccount("escrow".to_string()))
-                } else {
-                    Err(FuzzingError::OptionalAccountNotProvided(
-                        "escrow".to_string(),
-                    ))
-                }
-            })
-            .transpose()
-            .unwrap_or(None);
+        let escrow: Option<anchor_lang::accounts::account::Account<fuzz_example3::state::Escrow>> =
+            accounts_iter
+                .next()
+                .ok_or(FuzzingError::NotEnoughAccounts("escrow".to_string()))?
+                .as_ref()
+                .map(|acc| {
+                    if acc.key() != PROGRAM_ID {
+                        anchor_lang::accounts::account::Account::try_from(acc).map_err(|_| {
+                            FuzzingError::CannotDeserializeAccount("escrow".to_string())
+                        })
+                    } else {
+                        Err(FuzzingError::OptionalAccountNotProvided(
+                            "escrow".to_string(),
+                        ))
+                    }
+                })
+                .transpose()
+                .unwrap_or(None);
         let escrow_token_account: anchor_lang::accounts::account::Account<TokenAccount> =
             accounts_iter
                 .next()

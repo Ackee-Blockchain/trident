@@ -16,8 +16,16 @@ use syn::{parse_quote, Attribute, Fields, GenericArgument, Item, ItemStruct, Pat
 
 use anchor_lang::anchor_syn::parser::accounts::parse_account_field;
 
-pub fn generate_snapshots_code(code_path: &[(String, Utf8PathBuf)]) -> Result<String, String> {
-    let code = code_path.iter().map(|(code, path)| {
+use regex::Regex;
+
+use crate::idl::{find_item_path, IdlProgram};
+
+use crate::constants::*;
+
+pub fn generate_snapshots_code(
+    code_path: &[(String, Utf8PathBuf, IdlProgram)],
+) -> Result<String, String> {
+    let code = code_path.iter().map(|(code, path, idlprogram)| {
         let mut mod_program = None::<syn::ItemMod>;
         let mut file = File::open(path).map_err(|e| e.to_string())?;
         let mut content = String::new();
@@ -44,11 +52,13 @@ pub fn generate_snapshots_code(code_path: &[(String, Utf8PathBuf)]) -> Result<St
 
         let ix_ctx_pairs = get_ix_ctx_pairs(&items)?;
 
-        let (structs, impls, type_aliases) = get_snapshot_structs_and_impls(code, &ix_ctx_pairs)?;
+        let (structs, impls, type_aliases) =
+            get_snapshot_structs_and_impls(code, &ix_ctx_pairs, &idlprogram.name.snake_case)?;
 
         let use_statements = quote! {
             use trdelnik_client::anchor_lang::{prelude::*, self};
             use trdelnik_client::fuzzing::FuzzingError;
+            use crate::PROGRAM_ID;
         }
         .into_token_stream();
         Ok(format!(
@@ -65,6 +75,7 @@ pub fn generate_snapshots_code(code_path: &[(String, Utf8PathBuf)]) -> Result<St
 fn get_snapshot_structs_and_impls(
     code: &str,
     ix_ctx_pairs: &[(Ident, GenericArgument)],
+    name: &String,
 ) -> Result<(String, String, String), String> {
     let mut structs = String::new();
     let mut impls = String::new();
@@ -104,12 +115,21 @@ fn get_snapshot_structs_and_impls(
                     .map_err(|e| e.to_string())?;
 
                     let ix_snapshot_name = format_ident!("{}Snapshot", ix_name);
-                    let wrapped_struct =
-                        create_snapshot_struct(&ix_snapshot_name, ctx_struct_item, &fields_parsed)
-                            .unwrap();
-                    let deser_code =
-                        deserialize_ctx_struct_anchor(&ix_snapshot_name, &fields_parsed)
-                            .map_err(|e| e.to_string())?;
+                    let wrapped_struct = create_snapshot_struct(
+                        &ix_snapshot_name,
+                        ctx_struct_item,
+                        &fields_parsed,
+                        &parse_result,
+                        name,
+                    )
+                    .unwrap();
+                    let deser_code = deserialize_ctx_struct_anchor(
+                        &ix_snapshot_name,
+                        &fields_parsed,
+                        &parse_result,
+                        name,
+                    )
+                    .map_err(|e| e.to_string())?;
                     structs = format!("{}{}", structs, wrapped_struct.into_token_stream());
                     impls = format!("{}{}", impls, deser_code.into_token_stream());
                     unique_ctxs.insert(ctx.clone(), ix_snapshot_name);
@@ -210,6 +230,8 @@ fn create_snapshot_struct(
     snapshot_name: &Ident,
     orig_struct: &ItemStruct,
     parsed_fields: &[AccountField],
+    parse_result: &syn::File,
+    name: &String,
 ) -> Result<TokenStream, Box<dyn Error>> {
     let wrapped_fields = match orig_struct.fields.clone() {
         Fields::Named(named) => {
@@ -243,7 +265,7 @@ fn create_snapshot_struct(
                                 .starts_with("AccountInfo<");
                         }
                         else {
-                            println!("\x1b[1;93mWarning\x1b[0m: The context `{}` has a field named `{}` of composite type `{}`. \
+                            println!("{WARNING} The context `{}` has a field named `{}` of composite type `{}`. \
                                 The automatic deserialization of composite types is currently not supported. You will have \
                                 to implement it manually in the generated `accounts_snapshots.rs` file. The field deserialization \
                                 was replaced by a `todo!()` macro. Also, you might want to adapt the corresponding FuzzInstruction \
@@ -256,9 +278,15 @@ fn create_snapshot_struct(
                             (true, true) => {
                                 Ok(quote! {pub #field_name: Option<&'info #field_type>,})
                             }
-                            (true, _) => Ok(quote! {pub #field_name: Option<#field_type>,}),
+                            (true, _) => {
+                                let field_type = construct_full_path(&field_type.to_token_stream(),parse_result,name).unwrap_or(field_type.clone());
+                                Ok(quote! {pub #field_name: Option<#field_type>,})
+                            },
                             (_, true) => Ok(quote! {pub #field_name: &'info #field_type,}),
-                            _ => Ok(quote! {pub #field_name: #field_type,}),
+                            _ => {
+                                let field_type = construct_full_path(&field_type.to_token_stream(),parse_result,name).unwrap_or(field_type.clone());
+                                Ok(quote! {pub #field_name: #field_type,})
+                            },
                         }
                     });
 
@@ -302,6 +330,8 @@ fn extract_inner_type(field_type: &Type) -> Option<&Type> {
 fn deserialize_ctx_struct_anchor(
     snapshot_name: &Ident,
     parsed_fields: &[AccountField],
+    parse_result: &syn::File,
+    program_name: &String,
 ) -> Result<TokenStream, Box<dyn Error>> {
     let names_deser_pairs: Vec<(TokenStream, TokenStream)> = parsed_fields
         .iter()
@@ -315,6 +345,8 @@ fn deserialize_ctx_struct_anchor(
                         is_optional,
                         return_type,
                         deser_method,
+                        parse_result,
+                        program_name,
                     ),
                     None if matches!(&f.ty, Ty::UncheckedAccount) => {
                         acc_unchecked_tokens(&field_name, is_optional)
@@ -443,7 +475,16 @@ fn deserialize_account_tokens(
     is_optional: bool,
     return_type: TokenStream,
     deser_method: TokenStream,
+    parse_result: &syn::File,
+    program_name: &String,
 ) -> TokenStream {
+    let return_type = if let Some(with_full_path) =
+        construct_full_path(&return_type, parse_result, program_name)
+    {
+        with_full_path.to_token_stream()
+    } else {
+        return_type
+    };
     if is_optional {
         let name_str = name.to_string();
         // TODO make this more idiomatic
@@ -537,4 +578,79 @@ fn has_program_attribute(attrs: &Vec<Attribute>) -> bool {
         }
     }
     false
+}
+
+/// Constructs a full path for a given field type within the parsed syntax tree of a Rust file.
+///
+/// This function is designed to work with the `Account` and `AccountLoader` structs from the
+/// `anchor_lang` crate, resolving their types to fully qualified paths based on the syntax tree
+/// provided. It utilizes regular expressions to match against the struct and function syntax for
+/// these specific types.
+///
+/// # Arguments
+///
+/// * `field_type` - A reference to the token stream representing the type of a field.
+/// * `parse_result` - A reference to the parsed file (`syn::File`) containing the Rust source code.
+/// * `name` - A reference to a string representing the name of the program.
+///
+/// # Returns
+///
+/// An `Option<Type>` which is:
+/// - `Some(Type)` where `Type` is the modified type with its path fully qualified, if the type matches
+///   the `Account` or `AccountLoader` struct syntax and a corresponding item is found.
+/// - `None` if no matching type is found or the type cannot be parsed.
+///
+/// # Example
+///
+/// Suppose you have a field type `Account<'info, UserData>`, and `UserData` is defined within
+/// the file being analyzed. This function will replace `UserData` with its fully qualified path
+/// based on the analysis of `parse_result`, helping with tasks like code generation or analysis
+/// where fully qualified paths are required.
+fn construct_full_path(
+    field_type: &TokenStream,
+    parse_result: &syn::File,
+    name: &String,
+) -> Option<Type> {
+    // Combine regex patterns to match both struct and function syntax for Account and AccountLoader
+    // this can be obviously extended if needed for further types.
+    let regex_patterns = [
+        (
+            r"^Account<'info,\s*(.*?)>$",
+            r"anchor_lang::accounts::account::Account<([^>]+)>",
+        ),
+        (
+            r"^AccountLoader<'info,\s*(.*?)>$",
+            r"anchor_lang::accounts::account_loader::AccountLoader<([^>]+)>",
+        ),
+    ];
+
+    // remove spaces in the field_type expression.
+    let type_as_string = field_type.to_token_stream().to_string().replace(' ', "");
+
+    regex_patterns
+        .iter()
+        .find_map(|(struct_pattern, fn_pattern)| {
+            // construct regular expressions
+            let struct_re = Regex::new(struct_pattern).unwrap();
+            let fn_re = Regex::new(fn_pattern).unwrap();
+
+            // check if either of expression matches
+            struct_re
+                .captures(&type_as_string)
+                .or_else(|| fn_re.captures(&type_as_string))
+                .and_then(|caps| {
+                    let data_account = caps[1].to_string();
+                    // there may be inner data account specified as crate::abcd::XYZ
+                    // so due to this we extract the last part, or use whole as default.
+                    let data_account = data_account.split("::").last().unwrap_or(&data_account);
+                    // try to obtain full path
+                    find_item_path(data_account, parse_result).map(|full_path| {
+                        let full_final_path = format!("{name}{full_path}");
+                        let type_with_full_path =
+                            type_as_string.replace(data_account, &full_final_path);
+                        syn::parse_str::<Type>(&type_with_full_path).ok()
+                    })
+                })
+        })
+        .flatten()
 }

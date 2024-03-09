@@ -1,6 +1,7 @@
 use crate::config::Config;
+use crate::idl::IdlProgram;
 use crate::{
-    idl::{self, Idl},
+    idl::{self},
     Client,
 };
 use fehler::{throw, throws};
@@ -16,6 +17,8 @@ use tokio::{
     process::{Child, Command},
     signal,
 };
+
+use crate::constants::*;
 
 #[derive(Error, Debug)]
 pub enum Error {
@@ -173,7 +176,7 @@ impl Commander {
 
         if let Ok(crash_files) = get_crash_files(&crash_dir, &ext) {
             if !crash_files.is_empty() {
-                println!("Error: The crash directory {} already contains crash files from previous runs. \n\nTo run Trdelnik fuzzer with exit code, you must either (backup and) remove the old crash files or alternatively change the crash folder using for example the --crashdir option and the HFUZZ_RUN_ARGS env variable such as:\nHFUZZ_RUN_ARGS=\"--crashdir ./new_crash_dir\"", crash_dir.to_string_lossy());
+                println!("{ERROR} The crash directory {} already contains crash files from previous runs. \n\nTo run Trdelnik fuzzer with exit code, you must either (backup and) remove the old crash files or alternatively change the crash folder using for example the --crashdir option and the HFUZZ_RUN_ARGS env variable such as:\nHFUZZ_RUN_ARGS=\"--crashdir ./new_crash_dir\"", crash_dir.to_string_lossy());
                 process::exit(1);
             }
         }
@@ -256,7 +259,7 @@ impl Commander {
         let crash_file = std::path::Path::new(&self.root as &str).join(crash_file_path);
 
         if !crash_file.try_exists()? {
-            println!("The crash file {:?} not found!", crash_file);
+            println!("{ERROR} The crash file [{:?}] not found", crash_file);
             throw!(Error::CrashFileNotFound);
         }
 
@@ -321,7 +324,7 @@ impl Commander {
                 .unwrap(),
         );
 
-        let msg = format!("\x1b[92mExpanding\x1b[0m: {package_name}... this may take a while");
+        let msg = format!("{EXPANDING_PROGRESS_BAR} [{package_name}] ... this may take a while");
         progress_bar.set_message(msg);
         while mutex.load(std::sync::atomic::Ordering::SeqCst) {
             progress_bar.inc(1);
@@ -354,9 +357,8 @@ impl Commander {
     #[throws]
     pub async fn expand_program_packages(
         packages: &[cargo_metadata::Package],
-    ) -> (Idl, Vec<(String, cargo_metadata::camino::Utf8PathBuf)>) {
-        let shared_mutex = std::sync::Arc::new(std::sync::Mutex::new(Vec::new()));
-        let shared_mutex_fuzzer = std::sync::Arc::new(std::sync::Mutex::new(Vec::new()));
+    ) -> Vec<(String, cargo_metadata::camino::Utf8PathBuf, IdlProgram)> {
+        let shared_mutex_data = std::sync::Arc::new(std::sync::Mutex::new(Vec::new()));
 
         for package in packages.iter() {
             let mutex = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(true));
@@ -373,8 +375,7 @@ impl Commander {
                 .src_path
                 .clone();
 
-            let c_shared_mutex = std::sync::Arc::clone(&shared_mutex);
-            let c_shared_mutex_fuzzer = std::sync::Arc::clone(&shared_mutex_fuzzer);
+            let c_shared_mutex_data = std::sync::Arc::clone(&shared_mutex_data);
 
             let cargo_thread = std::thread::spawn(move || -> Result<(), Error> {
                 let output = Self::expand_package(&name);
@@ -388,15 +389,11 @@ impl Commander {
                     let code = String::from_utf8(output.stdout).expect("Reading stdout failed");
 
                     let idl_program = idl::parse_to_idl_program(name, &code)?;
-                    let mut vec = c_shared_mutex
+                    let mut program_data = c_shared_mutex_data
                         .lock()
-                        .expect("Acquire IdlProgram lock failed");
-                    let mut vec_fuzzer = c_shared_mutex_fuzzer
-                        .lock()
-                        .expect("Acquire Fuzzer data lock failed");
+                        .expect("Acquire Programs Data lock failed");
 
-                    vec.push(idl_program);
-                    vec_fuzzer.push((code, lib_path));
+                    program_data.push((code, lib_path, idl_program));
 
                     Ok(())
                 } else {
@@ -409,19 +406,8 @@ impl Commander {
             Self::expand_progress_bar(&package.name, &mutex);
             cargo_thread.join().unwrap()?;
         }
-        let idl_programs = shared_mutex.lock().unwrap().to_vec();
-        let codes_libs_pairs = shared_mutex_fuzzer.lock().unwrap().to_vec();
-
-        if idl_programs.is_empty() {
-            throw!(Error::NoProgramsFound);
-        } else {
-            (
-                Idl {
-                    programs: idl_programs,
-                },
-                codes_libs_pairs,
-            )
-        }
+        let programs_data = shared_mutex_data.lock().unwrap().to_vec();
+        programs_data
     }
     /// Executes a cargo command to expand the Rust source code of a specified package.
     ///

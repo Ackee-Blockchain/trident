@@ -94,6 +94,7 @@
 //! }
 //! ```
 
+use crate::constants::*;
 use heck::{ToSnakeCase, ToUpperCamelCase};
 use quote::ToTokens;
 use syn::{visit::Visit, File};
@@ -126,7 +127,7 @@ struct FullPathFinder {
     module_pub: Vec<ModPub>,
 }
 
-fn find_item_path(target_item_name: &str, syn_file: &File) -> Option<String> {
+pub fn find_item_path(target_item_name: &str, syn_file: &File) -> Option<String> {
     let mut finder = FullPathFinder {
         target_item_name: target_item_name.to_string(),
         current_module: "".to_string(),
@@ -152,7 +153,10 @@ impl<'ast> syn::visit::Visit<'ast> for FullPathFinder {
                     self.found_path = Some(format!("{}::{}", self.current_module, ident));
                     for x in &self.module_pub {
                         if !x.is_pub {
-                            println!("\nMod: \x1b[91m{}\x1b[0m is private!! \n- modify visibility to \x1b[93mpub\x1b[0m in order to use the custom type inside program_client.", x.mod_name)
+                            println!(
+                                "{WARNING} {} is private. Prefix with pub to access via fully qualified path of {}",
+                                x.mod_name,ident
+                            );
                         }
                     }
                     return;
@@ -548,7 +552,15 @@ pub fn parse_to_idl_program(name: String, code: &str) -> Result<IdlProgram, Erro
                 let parameter_name = field.ident.unwrap().to_string();
                 let parameter_id_type = field.ty.into_token_stream().to_string();
 
-                if let Some(path) = find_item_path(&parameter_id_type, &syn_file) {
+                let type_name = parameter_id_type
+                    .clone()
+                    .replace(' ', "")
+                    .split("::")
+                    .last()
+                    .unwrap_or(&parameter_id_type)
+                    .to_string();
+
+                if let Some(path) = find_item_path(&type_name, &syn_file) {
                     let name = name.to_snake_case();
                     let tmp_final_path = format!("{name}{path}");
                     (parameter_name, tmp_final_path)

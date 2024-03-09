@@ -7,36 +7,7 @@ const PROGRAM_NAME: &str = "fuzz_example3";
 
 #[throws]
 #[tokio::test]
-async fn test_fuzz_instructions() {
-    let expanded_fuzz_example3 = include_str!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/tests/test_data/expanded_source_codes/expanded_fuzz_example3.rs"
-    ));
-
-    let expected_fuzz_instructions_code = include_str!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/tests/test_data/expected_source_codes/expected_fuzz_instructions.rs"
-    ));
-
-    let program_idl = trdelnik_client::idl::parse_to_idl_program(
-        PROGRAM_NAME.to_owned(),
-        expanded_fuzz_example3,
-    )?;
-
-    let idl = trdelnik_client::idl::Idl {
-        programs: vec![program_idl],
-    };
-
-    let fuzz_instructions_code = trdelnik_client::fuzzer_generator::generate_source_code(&idl);
-    let fuzz_instructions_code =
-        trdelnik_client::Commander::format_program_code(&fuzz_instructions_code).await?;
-
-    assert_str_eq!(fuzz_instructions_code, expected_fuzz_instructions_code);
-}
-
-#[throws]
-#[tokio::test]
-async fn test_account_snapshots() {
+async fn test_snapshots_and_instructions() {
     let expanded_fuzz_example3 = include_str!(concat!(
         env!("CARGO_MANIFEST_DIR"),
         "/tests/test_data/expanded_source_codes/expanded_fuzz_example3.rs"
@@ -45,6 +16,10 @@ async fn test_account_snapshots() {
     let expected_accounts_snapshots = include_str!(concat!(
         env!("CARGO_MANIFEST_DIR"),
         "/tests/test_data/expected_source_codes/expected_accounts_snapshots.rs"
+    ));
+    let expected_fuzz_instructions_code = include_str!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/tests/test_data/expected_source_codes/expected_fuzz_instructions.rs"
     ));
 
     let mut program_path = std::env::current_dir()
@@ -57,14 +32,25 @@ async fn test_account_snapshots() {
 
     let path = Utf8PathBuf::from(program_path);
 
-    let codes_libs_pairs = vec![(expanded_fuzz_example3.to_string(), path)];
+    let program_idl = trdelnik_client::idl::parse_to_idl_program(
+        PROGRAM_NAME.to_owned(),
+        expanded_fuzz_example3,
+    )?;
+
+    let program_data = vec![(expanded_fuzz_example3.to_string(), path, program_idl)];
 
     let fuzzer_snapshots =
-        trdelnik_client::snapshot_generator::generate_snapshots_code(&codes_libs_pairs).unwrap();
+        trdelnik_client::snapshot_generator::generate_snapshots_code(&program_data).unwrap();
     let fuzzer_snapshots =
         trdelnik_client::Commander::format_program_code(&fuzzer_snapshots).await?;
 
+    let fuzz_instructions_code =
+        trdelnik_client::fuzzer_generator::generate_source_code(&program_data);
+    let fuzz_instructions_code =
+        trdelnik_client::Commander::format_program_code(&fuzz_instructions_code).await?;
+
     assert_str_eq!(fuzzer_snapshots, expected_accounts_snapshots);
+    assert_str_eq!(fuzz_instructions_code, expected_fuzz_instructions_code);
 }
 
 #[throws]

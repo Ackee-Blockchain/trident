@@ -1,4 +1,5 @@
-use crate::idl::Idl;
+use crate::idl::IdlProgram;
+use cargo_metadata::camino::Utf8PathBuf;
 use quote::{format_ident, ToTokens};
 use syn::{parse_quote, parse_str};
 
@@ -6,12 +7,15 @@ use syn::{parse_quote, parse_str};
 /// Disable regenerating the `use` statements with a used imports `use_modules`
 ///
 /// _Note_: See the crate's tests for output example.
-pub fn generate_source_code(idl: &Idl, use_modules: &[syn::ItemUse]) -> String {
+pub fn generate_source_code(
+    code_path: &[(String, Utf8PathBuf, IdlProgram)],
+    use_modules: &[syn::ItemUse],
+) -> String {
     let mut output = "// DO NOT EDIT - automatically generated file (except `use` statements inside the `*_instruction` module\n".to_owned();
-    let code = idl
-        .programs
+    // let code = code_path.into_iter().map(|(_, _, idl_program)| {});
+    let code = code_path
         .iter()
-        .map(|idl_program| {
+        .map(|(_, _, idl_program)| {
             let program_name = &idl_program.name.snake_case;
             let instruction_module_name = format_ident!("{}_instruction", program_name);
             let module_name: syn::Ident = parse_str(program_name).unwrap();

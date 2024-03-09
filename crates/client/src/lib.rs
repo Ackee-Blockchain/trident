@@ -136,4 +136,13 @@ mod constants {
     // client
     pub const RETRY_LOCALNET_EVERY_MILLIS: u64 = 500;
     pub const DEFAULT_KEYPAIR_PATH: &str = "~/.config/solana/id.json";
+
+    // Formatting
+    pub const SKIP: &str = "\x1b[33mSkip\x1b[0m";
+    pub const WARNING: &str = "\x1b[1;93mWarning\x1b[0m";
+    pub const FINISH: &str = "\x1b[92mFinished\x1b[0m";
+    pub const ERROR: &str = "\x1b[31mError\x1b[0m";
+
+    // special message for the progress bar
+    pub const EXPANDING_PROGRESS_BAR: &str = "\x1b[92mExpanding\x1b[0m";
 }

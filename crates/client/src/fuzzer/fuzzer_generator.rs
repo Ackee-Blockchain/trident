@@ -1,16 +1,16 @@
 use std::collections::HashMap;
 
-use crate::idl::Idl;
+use crate::idl::IdlProgram;
+use cargo_metadata::camino::Utf8PathBuf;
 use proc_macro2::Ident;
 use quote::{format_ident, ToTokens};
 use syn::{parse_quote, parse_str};
 
 /// Generates `fuzz_instructions.rs` from [Idl] created from Anchor programs.
-pub fn generate_source_code(idl: &Idl) -> String {
-    let code = idl
-        .programs
+pub fn generate_source_code(code_path: &[(String, Utf8PathBuf, IdlProgram)]) -> String {
+    let code = code_path
         .iter()
-        .map(|idl_program| {
+        .map(|(_, _, idl_program)| {
             let program_name = &idl_program.name.snake_case;
             let fuzz_instructions_module_name = format_ident!("{}_fuzz_instructions", program_name);
             let module_name: syn::Ident = parse_str(program_name).unwrap();
