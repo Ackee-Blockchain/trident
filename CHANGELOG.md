@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 incremented upon a breaking change and the patch version will be incremented for features.
 
 ## [dev] - Unreleased
+- feat/fuzzer-stats-logging, an optional statistics output for fuzzing session ([#144](https://github.com/Ackee-Blockchain/trident/pull/144))
 
 ## [0.6.0] - 2024-05-20
 ### Added
