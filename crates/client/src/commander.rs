@@ -1,5 +1,5 @@
 use crate::config::Config;
-use crate::idl::IdlProgram;
+use crate::test_generator::ProgramData;
 use crate::{
     idl::{self},
     Client,
@@ -355,9 +355,7 @@ impl Commander {
     /// - The expansion of a package fails due to issues in processing its code or IDL (`Error::ReadProgramCodeFailed`).
     /// - No programs are found after processing all packages (`Error::NoProgramsFound`).
     #[throws]
-    pub async fn expand_program_packages(
-        packages: &[cargo_metadata::Package],
-    ) -> Vec<(String, cargo_metadata::camino::Utf8PathBuf, IdlProgram)> {
+    pub async fn expand_program_packages(packages: &[cargo_metadata::Package]) -> Vec<ProgramData> {
         let shared_mutex_data = std::sync::Arc::new(std::sync::Mutex::new(Vec::new()));
 
         for package in packages.iter() {
@@ -367,7 +365,7 @@ impl Commander {
             let name = package.name.clone();
 
             let mut libs = package.targets.iter().filter(|&t| t.is_lib());
-            let lib_path = libs
+            let path = libs
                 .next()
                 .ok_or(Error::ReadProgramCodeFailed(
                     "Cannot find program library path.".into(),
@@ -388,12 +386,18 @@ impl Commander {
                 if output.status.success() {
                     let code = String::from_utf8(output.stdout).expect("Reading stdout failed");
 
-                    let idl_program = idl::parse_to_idl_program(name, &code)?;
-                    let mut program_data = c_shared_mutex_data
+                    let program_idl = idl::parse_to_idl_program(name, &code)?;
+                    let mut programs_data = c_shared_mutex_data
                         .lock()
                         .expect("Acquire Programs Data lock failed");
 
-                    program_data.push((code, lib_path, idl_program));
+                    let program_data = ProgramData {
+                        code,
+                        path,
+                        program_idl,
+                    };
+
+                    programs_data.push(program_data);
 
                     Ok(())
                 } else {

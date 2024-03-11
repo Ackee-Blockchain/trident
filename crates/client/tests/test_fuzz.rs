@@ -2,6 +2,7 @@ use anyhow::Error;
 use cargo_metadata::camino::Utf8PathBuf;
 use fehler::throws;
 use pretty_assertions::assert_str_eq;
+use trdelnik_client::test_generator::ProgramData;
 
 const PROGRAM_NAME: &str = "fuzz_example3";
 
@@ -37,7 +38,15 @@ async fn test_snapshots_and_instructions() {
         expanded_fuzz_example3,
     )?;
 
-    let program_data = vec![(expanded_fuzz_example3.to_string(), path, program_idl)];
+    let code = expanded_fuzz_example3.to_string();
+
+    let program_data = ProgramData {
+        code,
+        path,
+        program_idl,
+    };
+
+    let program_data = vec![program_data];
 
     let fuzzer_snapshots =
         trdelnik_client::snapshot_generator::generate_snapshots_code(&program_data).unwrap();

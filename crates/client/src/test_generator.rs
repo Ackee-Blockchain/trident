@@ -91,6 +91,13 @@ macro_rules! load_template {
     };
 }
 
+#[derive(Clone)]
+pub struct ProgramData {
+    pub code: String,
+    pub path: Utf8PathBuf,
+    pub program_idl: IdlProgram,
+}
+
 /// Represents a generator for creating tests.
 ///
 /// This struct is designed to hold all necessary information for generating
@@ -108,7 +115,7 @@ macro_rules! load_template {
 /// should be included in the generated code for .program_client.
 pub struct TestGenerator {
     pub root: PathBuf,
-    pub programs_data: Vec<(String, Utf8PathBuf, IdlProgram)>,
+    pub programs_data: Vec<ProgramData>,
     pub packages: Vec<Package>,
     pub use_tokens: Vec<ItemUse>,
 }
@@ -361,7 +368,13 @@ impl TestGenerator {
     #[throws]
     async fn add_new_poc_test(&self) {
         let program_name = if !&self.programs_data.is_empty() {
-            &self.programs_data.first().unwrap().2.name.snake_case
+            &self
+                .programs_data
+                .first()
+                .unwrap()
+                .program_idl
+                .name
+                .snake_case
         } else {
             throw!(Error::NoProgramsFound)
         };
@@ -405,7 +418,13 @@ impl TestGenerator {
     #[throws]
     pub async fn add_new_fuzz_test(&self) {
         let program_name = if !&self.programs_data.is_empty() {
-            &self.programs_data.first().unwrap().2.name.snake_case
+            &self
+                .programs_data
+                .first()
+                .unwrap()
+                .program_idl
+                .name
+                .snake_case
         } else {
             throw!(Error::NoProgramsFound)
         };

@@ -1,21 +1,21 @@
 use std::collections::HashMap;
 
-use crate::idl::IdlProgram;
-use cargo_metadata::camino::Utf8PathBuf;
+use crate::test_generator::ProgramData;
 use proc_macro2::Ident;
 use quote::{format_ident, ToTokens};
 use syn::{parse_quote, parse_str};
 
 /// Generates `fuzz_instructions.rs` from [Idl] created from Anchor programs.
-pub fn generate_source_code(code_path: &[(String, Utf8PathBuf, IdlProgram)]) -> String {
-    let code = code_path
+pub fn generate_source_code(programs_data: &[ProgramData]) -> String {
+    let code = programs_data
         .iter()
-        .map(|(_, _, idl_program)| {
-            let program_name = &idl_program.name.snake_case;
+        .map(|program_data| {
+            let program_name = &program_data.program_idl.name.snake_case;
             let fuzz_instructions_module_name = format_ident!("{}_fuzz_instructions", program_name);
             let module_name: syn::Ident = parse_str(program_name).unwrap();
 
-            let instructions = idl_program
+            let instructions = program_data
+                .program_idl
                 .instruction_account_pairs
                 .iter()
                 .fold(
@@ -34,7 +34,8 @@ pub fn generate_source_code(code_path: &[(String, Utf8PathBuf, IdlProgram)]) -> 
                 )
                 .into_iter();
 
-            let instructions_data = idl_program
+            let instructions_data = program_data
+                .program_idl
                 .instruction_account_pairs
                 .iter()
                 .fold(
@@ -110,7 +111,8 @@ pub fn generate_source_code(code_path: &[(String, Utf8PathBuf, IdlProgram)]) -> 
                 )
                 .into_iter();
 
-            let instructions_ixops_impls = idl_program
+            let instructions_ixops_impls = program_data
+                .program_idl
                 .instruction_account_pairs
                 .iter()
                 .fold(
@@ -184,21 +186,25 @@ pub fn generate_source_code(code_path: &[(String, Utf8PathBuf, IdlProgram)]) -> 
                 )
                 .into_iter();
 
-            let fuzz_accounts = idl_program.instruction_account_pairs.iter().fold(
-                HashMap::new(),
-                |mut fuzz_accounts: HashMap<Ident, String>,
-                 (_idl_instruction, idl_account_group)| {
-                    idl_account_group.accounts.iter().fold(
-                        &mut fuzz_accounts,
-                        |fuzz_accounts, (name, _ty)| {
-                            let name = format_ident!("{name}");
-                            fuzz_accounts.entry(name).or_default();
-                            fuzz_accounts
-                        },
-                    );
-                    fuzz_accounts
-                },
-            );
+            let fuzz_accounts = program_data
+                .program_idl
+                .instruction_account_pairs
+                .iter()
+                .fold(
+                    HashMap::new(),
+                    |mut fuzz_accounts: HashMap<Ident, String>,
+                     (_idl_instruction, idl_account_group)| {
+                        idl_account_group.accounts.iter().fold(
+                            &mut fuzz_accounts,
+                            |fuzz_accounts, (name, _ty)| {
+                                let name = format_ident!("{name}");
+                                fuzz_accounts.entry(name).or_default();
+                                fuzz_accounts
+                            },
+                        );
+                        fuzz_accounts
+                    },
+                );
 
             // this ensures that the order of accounts is deterministic
             // so we can use expected generated template within tests

@@ -6,7 +6,6 @@ use std::collections::HashMap;
 use std::{error::Error, fs::File, io::Read};
 
 use anchor_lang::anchor_syn::{AccountField, Ty};
-use cargo_metadata::camino::Utf8PathBuf;
 use heck::ToUpperCamelCase;
 use proc_macro2::{Ident, Span, TokenStream};
 use quote::{format_ident, quote, ToTokens};
@@ -18,16 +17,15 @@ use anchor_lang::anchor_syn::parser::accounts::parse_account_field;
 
 use regex::Regex;
 
-use crate::idl::{find_item_path, IdlProgram};
+use crate::idl::find_item_path;
 
 use crate::constants::*;
+use crate::test_generator::ProgramData;
 
-pub fn generate_snapshots_code(
-    code_path: &[(String, Utf8PathBuf, IdlProgram)],
-) -> Result<String, String> {
-    let code = code_path.iter().map(|(code, path, idlprogram)| {
+pub fn generate_snapshots_code(programs_data: &[ProgramData]) -> Result<String, String> {
+    let code = programs_data.iter().map(|program_data| {
         let mut mod_program = None::<syn::ItemMod>;
-        let mut file = File::open(path).map_err(|e| e.to_string())?;
+        let mut file = File::open(&program_data.path).map_err(|e| e.to_string())?;
         let mut content = String::new();
         file.read_to_string(&mut content)
             .map_err(|e| e.to_string())?;
@@ -52,8 +50,11 @@ pub fn generate_snapshots_code(
 
         let ix_ctx_pairs = get_ix_ctx_pairs(&items)?;
 
-        let (structs, impls, type_aliases) =
-            get_snapshot_structs_and_impls(code, &ix_ctx_pairs, &idlprogram.name.snake_case)?;
+        let (structs, impls, type_aliases) = get_snapshot_structs_and_impls(
+            &program_data.code,
+            &ix_ctx_pairs,
+            &program_data.program_idl.name.snake_case,
+        )?;
 
         let use_statements = quote! {
             use trdelnik_client::anchor_lang::{prelude::*, self};
