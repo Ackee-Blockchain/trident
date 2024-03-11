@@ -1,4 +1,4 @@
-use crate::PROGRAM_ID;
+use fuzz_example3::ID as PROGRAM_ID;
 use trdelnik_client::anchor_lang::{self, prelude::*};
 use trdelnik_client::fuzzing::FuzzingError;
 pub struct InitVestingSnapshot<'info> {

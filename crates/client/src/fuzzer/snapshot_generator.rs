@@ -56,10 +56,12 @@ pub fn generate_snapshots_code(programs_data: &[ProgramData]) -> Result<String, 
             &program_data.program_idl.name.snake_case,
         )?;
 
+        let program_name_ident = format_ident!("{}", program_data.program_idl.name.snake_case);
+
         let use_statements = quote! {
             use trdelnik_client::anchor_lang::{prelude::*, self};
             use trdelnik_client::fuzzing::FuzzingError;
-            use crate::PROGRAM_ID;
+            use #program_name_ident::ID as PROGRAM_ID;
         }
         .into_token_stream();
         Ok(format!(
