@@ -282,12 +282,12 @@ fn create_snapshot_struct(
                                 Ok(quote! {pub #field_name: Option<&'info #field_type>,})
                             }
                             (true, _) => {
-                                let field_type = construct_full_path(&field_type.to_token_stream(),parsed_file,program_name).unwrap_or(field_type.clone());
+                                let field_type = construct_full_path(&field_type.to_token_stream(), parsed_file, program_name).unwrap_or_else(|| field_type.clone());
                                 Ok(quote! {pub #field_name: Option<#field_type>,})
                             },
                             (_, true) => Ok(quote! {pub #field_name: &'info #field_type,}),
                             _ => {
-                                let field_type = construct_full_path(&field_type.to_token_stream(),parsed_file,program_name).unwrap_or(field_type.clone());
+                                let field_type = construct_full_path(&field_type.to_token_stream(), parsed_file, program_name).unwrap_or_else(|| field_type.clone());
                                 Ok(quote! {pub #field_name: #field_type,})
                             },
                         }
