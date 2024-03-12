@@ -6013,6 +6013,7 @@ dependencies = [
  "quinn-proto",
  "quote",
  "rand 0.8.5",
+ "regex",
  "rstest",
  "serde",
  "serde_json",

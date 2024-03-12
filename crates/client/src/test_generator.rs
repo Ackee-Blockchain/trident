@@ -1,7 +1,7 @@
 use crate::{
     commander::{Commander, Error as CommanderError},
     fuzzer,
-    idl::Idl,
+    idl::IdlProgram,
     program_client_generator,
     snapshot_generator::generate_snapshots_code,
 };
@@ -91,6 +91,13 @@ macro_rules! load_template {
     };
 }
 
+#[derive(Clone)]
+pub struct ProgramData {
+    pub code: String,
+    pub path: Utf8PathBuf,
+    pub program_idl: IdlProgram,
+}
+
 /// Represents a generator for creating tests.
 ///
 /// This struct is designed to hold all necessary information for generating
@@ -100,9 +107,7 @@ macro_rules! load_template {
 /// # Fields
 /// - `root`: A `PathBuf` indicating the root directory of the project for which tests are being generated.
 /// This path is used as a base for any relative paths within the project.
-/// - `idl`: An `Idl` struct. This field is used to understand the interfaces
-/// and data structures that tests may need to interact with.
-/// - `codes_libs_pairs`: A vector of tuples, each containing a `String` and a `Utf8PathBuf`.
+/// - `programs_data`: A vector of tuples, each containing a `String`, `Utf8PathBuf` and IDL Program data.
 /// Each tuple represents a pair of code and the package path associated with it.
 /// - `packages`: A vector of `Package` structs, representing the different packages
 /// that make up the project.
@@ -110,8 +115,7 @@ macro_rules! load_template {
 /// should be included in the generated code for .program_client.
 pub struct TestGenerator {
     pub root: PathBuf,
-    pub idl: Idl,
-    pub codes_libs_pairs: Vec<(String, Utf8PathBuf)>,
+    pub programs_data: Vec<ProgramData>,
     pub packages: Vec<Package>,
     pub use_tokens: Vec<ItemUse>,
 }
@@ -130,8 +134,7 @@ impl TestGenerator {
     pub fn new() -> Self {
         Self {
             root: Path::new("../../").to_path_buf(),
-            idl: Idl::default(),
-            codes_libs_pairs: Vec::default(),
+            programs_data: Vec::default(),
             packages: Vec::default(),
             use_tokens: Vec::default(),
         }
@@ -148,8 +151,7 @@ impl TestGenerator {
     pub fn new_with_root(root: String) -> Self {
         Self {
             root: Path::new(&root).to_path_buf(),
-            idl: Idl::default(),
-            codes_libs_pairs: Vec::default(),
+            programs_data: Vec::default(),
             packages: Vec::default(),
             use_tokens: Vec::default(),
         }
@@ -260,8 +262,7 @@ impl TestGenerator {
     #[throws]
     async fn expand_programs(&mut self) {
         self.packages = Commander::collect_program_packages().await?;
-        (self.idl, self.codes_libs_pairs) =
-            Commander::expand_program_packages(&self.packages).await?;
+        self.programs_data = Commander::expand_program_packages(&self.packages).await?;
     }
     /// Get user specified use statements from .program_client lib.
     #[throws]
@@ -269,7 +270,9 @@ impl TestGenerator {
         let lib_path = construct_path!(self.root, PROGRAM_CLIENT_DIRECTORY, SRC_DIRECTORY, LIB);
         if lib_path.exists() {
             let code = fs::read_to_string(lib_path).await.unwrap_or_else(|_e| {
-                println!("\x1b[1;93mWarning\x1b[0m: Unable to read .program_client, use statements set to default.");
+                println!(
+                    "{WARNING} Unable to read [.program_client], use statements set to default"
+                );
                 String::default()
             });
             Commander::get_use_statements(&code, &mut self.use_tokens)?;
@@ -290,7 +293,7 @@ impl TestGenerator {
         let lib_path = construct_path!(self.root, PROGRAM_CLIENT_DIRECTORY, SRC_DIRECTORY, LIB);
 
         if cargo_path.exists() && src_path.exists() && crate_path.exists() && lib_path.exists() {
-            println!("\x1b[93mSkipping\x1b[0m: looks like .program_client is already initialized.");
+            println!("{SKIP} looks like [.program_client] is already initialized");
         } else {
             self.add_program_client().await?;
         }
@@ -322,7 +325,7 @@ impl TestGenerator {
             directories.retain(|x| x != CARGO_TOML);
             // if folder structure exists and fuzz_tests directory is not empty we skip
             if fuzz_tests_manifest_path.exists() && !directories.is_empty() {
-                println!("\x1b[93mSkipping\x1b[0m: looks like Fuzz Tests are already initialized.");
+                println!("{SKIP} looks like [Fuzz] Tests are already initialized");
             } else {
                 self.add_new_fuzz_test().await?
             }
@@ -349,7 +352,7 @@ impl TestGenerator {
             && cargo_path.exists()
             && poc_test_path.exists()
         {
-            println!("\x1b[93mSkipping\x1b[0m: looks like PoC Tests are already initialized.");
+            println!("{SKIP} looks like [PoC] Tests are already initialized");
         } else {
             self.add_new_poc_test().await?;
         }
@@ -364,12 +367,17 @@ impl TestGenerator {
     /// If not present add poc_tests into the workspace virtual manifest as member
     #[throws]
     async fn add_new_poc_test(&self) {
-        let program_name = if !&self.idl.programs.is_empty() {
-            &self.idl.programs.first().unwrap().name.snake_case
+        let program_name = if !&self.programs_data.is_empty() {
+            &self
+                .programs_data
+                .first()
+                .unwrap()
+                .program_idl
+                .name
+                .snake_case
         } else {
             throw!(Error::NoProgramsFound)
         };
-
         let poc_dir_path =
             construct_path!(self.root, TESTS_WORKSPACE_DIRECTORY, POC_TEST_DIRECTORY);
         let new_poc_test_dir = construct_path!(poc_dir_path, TESTS_DIRECTORY);
@@ -409,8 +417,14 @@ impl TestGenerator {
     /// If not present add fuzz_tests into the workspace virtual manifest as member
     #[throws]
     pub async fn add_new_fuzz_test(&self) {
-        let program_name = if !&self.idl.programs.is_empty() {
-            &self.idl.programs.first().unwrap().name.snake_case
+        let program_name = if !&self.programs_data.is_empty() {
+            &self
+                .programs_data
+                .first()
+                .unwrap()
+                .program_idl
+                .name
+                .snake_case
         } else {
             throw!(Error::NoProgramsFound)
         };
@@ -475,7 +489,7 @@ impl TestGenerator {
 
         // create fuzz instructions file
         let fuzz_instructions_path = new_fuzz_test_dir.join(FUZZ_INSTRUCTIONS_FILE_NAME);
-        let program_fuzzer = fuzzer::fuzzer_generator::generate_source_code(&self.idl);
+        let program_fuzzer = fuzzer::fuzzer_generator::generate_source_code(&self.programs_data);
         let program_fuzzer = Commander::format_program_code(&program_fuzzer).await?;
 
         self.create_file(&fuzz_instructions_path, &program_fuzzer)
@@ -483,8 +497,8 @@ impl TestGenerator {
 
         // // create accounts_snapshots file
         let accounts_snapshots_path = new_fuzz_test_dir.join(ACCOUNTS_SNAPSHOTS_FILE_NAME);
-        let fuzzer_snapshots = generate_snapshots_code(&self.codes_libs_pairs)
-            .map_err(Error::ReadProgramCodeFailed)?;
+        let fuzzer_snapshots =
+            generate_snapshots_code(&self.programs_data).map_err(Error::ReadProgramCodeFailed)?;
         let fuzzer_snapshots = Commander::format_program_code(&fuzzer_snapshots).await?;
 
         self.create_file(&accounts_snapshots_path, &fuzzer_snapshots)
@@ -534,7 +548,7 @@ impl TestGenerator {
             .await?;
 
         let program_client =
-            program_client_generator::generate_source_code(&self.idl, &self.use_tokens);
+            program_client_generator::generate_source_code(&self.programs_data, &self.use_tokens);
         let program_client = Commander::format_program_code(&program_client).await?;
 
         if lib_path.exists() {
@@ -592,11 +606,11 @@ impl TestGenerator {
 
         match members.iter().find(|&x| x.eq(&new_member)) {
             Some(_) => {
-                println!("\x1b[93mSkipping\x1b[0m: {CARGO_TOML}, already contains {member}.")
+                println!("{SKIP} [{CARGO_TOML}], already contains [{member}]")
             }
             None => {
                 members.push(new_member);
-                println!("\x1b[92mSuccessfully\x1b[0m updated: {CARGO_TOML} with {member} member.");
+                println!("{FINISH} [{CARGO_TOML}] with [{member}]");
                 fs::write(cargo, content.to_string()).await?;
             }
         };
@@ -631,11 +645,11 @@ impl TestGenerator {
 
         match path.exists() {
             true => {
-                println!("\x1b[93mSkipping\x1b[0m: {file}, already exists.")
+                println!("{SKIP} [{file}] already exists")
             }
             false => {
                 fs::write(path, content).await?;
-                println!("\x1b[92mSuccessfully\x1b[0m created: {file}.");
+                println!("{FINISH} [{file}] created");
             }
         };
     }
@@ -647,11 +661,11 @@ impl TestGenerator {
         match path.exists() {
             true => {
                 fs::write(path, content).await?;
-                println!("\x1b[92mSuccessfully\x1b[0m updated: {file}.");
+                println!("{FINISH} [{file}] updated");
             }
             false => {
                 fs::write(path, content).await?;
-                println!("\x1b[92mSuccessfully\x1b[0m created: {file}.");
+                println!("{FINISH} [{file}] created");
             }
         };
     }
@@ -680,9 +694,7 @@ impl TestGenerator {
             for line in io::BufReader::new(file).lines().flatten() {
                 if line == ignored_path {
                     // INFO do not add the ignored path again if it is already in the .gitignore file
-                    println!(
-                        "\x1b[93mSkipping\x1b[0m: {GIT_IGNORE}, already contains {ignored_path}."
-                    );
+                    println!("{SKIP} [{GIT_IGNORE}], already contains [{ignored_path}]");
 
                     return;
                 }
@@ -694,10 +706,10 @@ impl TestGenerator {
 
             if let Ok(mut file) = file {
                 writeln!(file, "{}", ignored_path)?;
-                println!("\x1b[92mSuccessfully\x1b[0m updated: {GIT_IGNORE} with {ignored_path}.");
+                println!("{FINISH} [{GIT_IGNORE}] update with [{ignored_path}]");
             }
         } else {
-            println!("\x1b[93mSkipping\x1b[0m: {GIT_IGNORE}, not found.")
+            println!("{SKIP} [{GIT_IGNORE}], not found")
         }
     }
     /// Adds a new binary target to a Cargo.toml file.

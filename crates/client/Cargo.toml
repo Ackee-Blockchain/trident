@@ -70,3 +70,4 @@ shellexpand = { workspace = true }
 pathdiff = "0.2.1"
 solana-banks-client = "<1.18"
 indicatif = "0.17.8"
+regex = "1.10.3"

@@ -54,7 +54,7 @@ impl Cleaner {
             fs::remove_dir_all(hfuzz_target_path).await?;
         } else {
             println!(
-                "skipping {}/{}/{}/{} directory: not found",
+                "{SKIP} [{}/{}/{}/{}] directory not found",
                 TESTS_WORKSPACE_DIRECTORY, FUZZ_TEST_DIRECTORY, FUZZING, HFUZZ_TARGET
             )
         }

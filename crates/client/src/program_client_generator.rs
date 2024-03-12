@@ -1,4 +1,4 @@
-use crate::idl::Idl;
+use crate::test_generator::ProgramData;
 use quote::{format_ident, ToTokens};
 use syn::{parse_quote, parse_str};
 
@@ -6,18 +6,19 @@ use syn::{parse_quote, parse_str};
 /// Disable regenerating the `use` statements with a used imports `use_modules`
 ///
 /// _Note_: See the crate's tests for output example.
-pub fn generate_source_code(idl: &Idl, use_modules: &[syn::ItemUse]) -> String {
+pub fn generate_source_code(programs_data: &[ProgramData], use_modules: &[syn::ItemUse]) -> String {
     let mut output = "// DO NOT EDIT - automatically generated file (except `use` statements inside the `*_instruction` module\n".to_owned();
-    let code = idl
-        .programs
+    // let code = code_path.into_iter().map(|(_, _, idl_program)| {});
+    let code = programs_data
         .iter()
-        .map(|idl_program| {
-            let program_name = &idl_program.name.snake_case;
+        .map(|program_data| {
+            let program_name = &program_data.program_idl.name.snake_case;
             let instruction_module_name = format_ident!("{}_instruction", program_name);
             let module_name: syn::Ident = parse_str(program_name).unwrap();
-            let pubkey_bytes: syn::ExprArray = parse_str(&idl_program.id).unwrap();
+            let pubkey_bytes: syn::ExprArray = parse_str(&program_data.program_idl.id).unwrap();
 
-            let instructions = idl_program
+            let instructions = program_data
+                .program_idl
                 .instruction_account_pairs
                 .iter()
                 .fold(
