@@ -22,6 +22,13 @@ use crate::idl::find_item_path;
 use crate::constants::*;
 use crate::test_generator::ProgramData;
 
+const ACCOUNT_STRUCT: &str = r"Account<'info,\s*(.*?)\s*>";
+const ACCOUNT_FN: &str = r"anchor_lang::accounts::account::Account<\s*(.*?)\s*>";
+
+const ACCOUNT_LOADER_STRUCT: &str = r"AccountLoader<'info,\s*(.*?)\s*>";
+const ACCOUNT_LOADER_FN: &str =
+    r"anchor_lang::accounts::account_loader::AccountLoader<\s*(.*?)\s*>";
+
 pub fn generate_snapshots_code(programs_data: &[ProgramData]) -> Result<String, String> {
     let code = programs_data.iter().map(|program_data| {
         let mut mod_program = None::<syn::ItemMod>;
@@ -617,14 +624,8 @@ fn construct_full_path(
     // Combine regex patterns to match both struct and function syntax for Account and AccountLoader
     // this can be obviously extended if needed for further types.
     let regex_patterns = [
-        (
-            r"^Account<'info,\s*(.*?)>$",
-            r"anchor_lang::accounts::account::Account<([^>]+)>",
-        ),
-        (
-            r"^AccountLoader<'info,\s*(.*?)>$",
-            r"anchor_lang::accounts::account_loader::AccountLoader<([^>]+)>",
-        ),
+        (ACCOUNT_STRUCT, ACCOUNT_FN),
+        (ACCOUNT_LOADER_STRUCT, ACCOUNT_LOADER_FN),
     ];
 
     // remove spaces in the field_type expression.
@@ -656,4 +657,109 @@ fn construct_full_path(
                 })
         })
         .flatten()
+}
+
+#[cfg(test)]
+mod tests {
+    use regex::Regex;
+    fn extract_type(pattern: &str, text: &str) -> String {
+        let re = Regex::new(pattern).unwrap();
+        match re.captures(text) {
+            Some(caps) => caps[1].to_string(),
+            None => String::default(),
+        }
+    }
+    #[test]
+    fn test_regexp_match1() {
+        let pattern = super::ACCOUNT_STRUCT;
+        assert_eq!(extract_type(pattern, "Account<'info, Escrow>,"), "Escrow");
+        assert_eq!(
+            extract_type(pattern, "Option<account::Account<'info, Escrow>>,"),
+            "Escrow"
+        );
+        assert_eq!(
+            extract_type(pattern, "account::Account<'info, abcd::efgh::xyz::Escrow>,"),
+            "abcd::efgh::xyz::Escrow"
+        );
+        assert_eq!(
+            extract_type(
+                pattern,
+                "Account<'info,           abcd::efgh::xyz::Escrow     >    ,"
+            ),
+            "abcd::efgh::xyz::Escrow"
+        );
+    }
+    #[test]
+    fn test_regexp_match2() {
+        let pattern = super::ACCOUNT_LOADER_STRUCT;
+        assert_eq!(
+            extract_type(pattern, "AccountLoader<'info, Escrow>,"),
+            "Escrow"
+        );
+        assert_eq!(
+            extract_type(pattern, "account::AccountLoader<'info, Escrow>,"),
+            "Escrow"
+        );
+        assert_eq!(
+            extract_type(
+                pattern,
+                "AccountLoader<'info, fuzz_example3::state::Escrow>,"
+            ),
+            "fuzz_example3::state::Escrow"
+        );
+        assert_eq!(
+            extract_type(
+                pattern,
+                "AccountLoader<'info,           abcd::efgh::xyz::Escrow     >    ,"
+            ),
+            "abcd::efgh::xyz::Escrow"
+        );
+    }
+    #[test]
+    fn test_regexp_match3() {
+        let pattern = super::ACCOUNT_FN;
+        assert_eq!(
+            extract_type(pattern, "anchor_lang::accounts::account::Account<Escrow>,"),
+            "Escrow"
+        );
+        assert_eq!(
+            extract_type(
+                pattern,
+                "anchor_lang::accounts::account::Account<fuzz_example3::state::Escrow>,"
+            ),
+            "fuzz_example3::state::Escrow"
+        );
+        assert_eq!(
+            extract_type(
+                pattern,
+                "some random text before:anchor_lang::accounts::account::Account<    fuzz_example3::state::Escrow  >,some random text after:"
+            ),
+            "fuzz_example3::state::Escrow"
+        );
+    }
+    #[test]
+    fn test_regexp_match4() {
+        let pattern = super::ACCOUNT_LOADER_FN;
+        assert_eq!(
+            extract_type(
+                pattern,
+                "anchor_lang::accounts::account_loader::AccountLoader<Escrow>,"
+            ),
+            "Escrow"
+        );
+        assert_eq!(
+            extract_type(
+                pattern,
+                "anchor_lang::accounts::account_loader::AccountLoader<fuzz_example3::state::Escrow>,"
+            ),
+            "fuzz_example3::state::Escrow"
+        );
+        assert_eq!(
+            extract_type(
+                pattern,
+                "some random text before:anchor_lang::accounts::account_loader::AccountLoader<    fuzz_example3::state::Escrow  >,some random text after:"
+            ),
+            "fuzz_example3::state::Escrow"
+        );
+    }
 }
