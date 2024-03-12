@@ -78,7 +78,7 @@ pub fn generate_snapshots_code(programs_data: &[ProgramData]) -> Result<String, 
 fn get_snapshot_structs_and_impls(
     code: &str,
     ix_ctx_pairs: &[(Ident, GenericArgument)],
-    name: &String,
+    program_name: &String,
 ) -> Result<(String, String, String), String> {
     let mut structs = String::new();
     let mut impls = String::new();
@@ -123,14 +123,14 @@ fn get_snapshot_structs_and_impls(
                         ctx_struct_item,
                         &fields_parsed,
                         &parse_result,
-                        name,
+                        program_name,
                     )
                     .unwrap();
                     let deser_code = deserialize_ctx_struct_anchor(
                         &ix_snapshot_name,
                         &fields_parsed,
                         &parse_result,
-                        name,
+                        program_name,
                     )
                     .map_err(|e| e.to_string())?;
                     structs = format!("{}{}", structs, wrapped_struct.into_token_stream());
@@ -233,8 +233,8 @@ fn create_snapshot_struct(
     snapshot_name: &Ident,
     orig_struct: &ItemStruct,
     parsed_fields: &[AccountField],
-    parse_result: &syn::File,
-    name: &String,
+    parsed_file: &syn::File,
+    program_name: &String,
 ) -> Result<TokenStream, Box<dyn Error>> {
     let wrapped_fields = match orig_struct.fields.clone() {
         Fields::Named(named) => {
@@ -282,12 +282,12 @@ fn create_snapshot_struct(
                                 Ok(quote! {pub #field_name: Option<&'info #field_type>,})
                             }
                             (true, _) => {
-                                let field_type = construct_full_path(&field_type.to_token_stream(),parse_result,name).unwrap_or(field_type.clone());
+                                let field_type = construct_full_path(&field_type.to_token_stream(),parsed_file,program_name).unwrap_or(field_type.clone());
                                 Ok(quote! {pub #field_name: Option<#field_type>,})
                             },
                             (_, true) => Ok(quote! {pub #field_name: &'info #field_type,}),
                             _ => {
-                                let field_type = construct_full_path(&field_type.to_token_stream(),parse_result,name).unwrap_or(field_type.clone());
+                                let field_type = construct_full_path(&field_type.to_token_stream(),parsed_file,program_name).unwrap_or(field_type.clone());
                                 Ok(quote! {pub #field_name: #field_type,})
                             },
                         }
@@ -593,8 +593,8 @@ fn has_program_attribute(attrs: &Vec<Attribute>) -> bool {
 /// # Arguments
 ///
 /// * `field_type` - A reference to the token stream representing the type of a field.
-/// * `parse_result` - A reference to the parsed file (`syn::File`) containing the Rust source code.
-/// * `name` - A reference to a string representing the name of the program.
+/// * `parsed_file` - A reference to the parsed file (`syn::File`) containing the Rust source code.
+/// * `program_name` - A reference to a string representing the name of the program.
 ///
 /// # Returns
 ///
@@ -607,12 +607,12 @@ fn has_program_attribute(attrs: &Vec<Attribute>) -> bool {
 ///
 /// Suppose you have a field type `Account<'info, UserData>`, and `UserData` is defined within
 /// the file being analyzed. This function will replace `UserData` with its fully qualified path
-/// based on the analysis of `parse_result`, helping with tasks like code generation or analysis
+/// based on the analysis of `parsed_file`, helping with tasks like code generation or analysis
 /// where fully qualified paths are required.
 fn construct_full_path(
     field_type: &TokenStream,
-    parse_result: &syn::File,
-    name: &String,
+    parsed_file: &syn::File,
+    program_name: &String,
 ) -> Option<Type> {
     // Combine regex patterns to match both struct and function syntax for Account and AccountLoader
     // this can be obviously extended if needed for further types.
@@ -647,8 +647,8 @@ fn construct_full_path(
                     // so due to this we extract the last part, or use whole as default.
                     let data_account = data_account.split("::").last().unwrap_or(&data_account);
                     // try to obtain full path
-                    find_item_path(data_account, parse_result).map(|full_path| {
-                        let full_final_path = format!("{name}{full_path}");
+                    find_item_path(data_account, parsed_file).map(|full_path| {
+                        let full_final_path = format!("{program_name}{full_path}");
                         let type_with_full_path =
                             type_as_string.replace(data_account, &full_final_path);
                         syn::parse_str::<Type>(&type_with_full_path).ok()
