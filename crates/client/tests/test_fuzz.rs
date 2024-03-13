@@ -91,10 +91,10 @@ async fn test_fuzz_test_executor() {
 
 #[throws]
 #[tokio::test]
-async fn test_fuzz_trd() {
+async fn test_fuzz_trident() {
     // this will automatically created expanded code within the same directory
     // with ".expanded.rs" extension, if the file does not exist already.
     // Do not perform any formatting command on the expanded code
     // the test will then fail
-    macrotest::expand("tests/test_data/fuzzer_macros/fuzz_fuzz_trd.rs");
+    macrotest::expand("tests/test_data/fuzzer_macros/fuzz_fuzz_trident.rs");
 }

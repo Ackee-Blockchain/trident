@@ -1,8 +1,8 @@
-use trident_client::fuzz_trd;
+use trident_client::fuzz_trident;
 
 fn main() {
     loop {
-        fuzz_trd!(fuzz_ix: FuzzInstruction, |fuzz_data: MyFuzzData| {
+        fuzz_trident!(fuzz_ix: FuzzInstruction, |fuzz_data: MyFuzzData| {
             let mut client =
                 ProgramTestClientBlocking::new(PROGRAM_NAME, PROGRAM_ID, xyz)
                     .unwrap();

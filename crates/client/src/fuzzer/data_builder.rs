@@ -212,7 +212,7 @@ pub trait FuzzClient {
 }
 
 #[macro_export]
-macro_rules! fuzz_trd {
+macro_rules! fuzz_trident {
     ($ix:ident: $ix_dty:ident , |$buf:ident: $dty:ident| $body:block) => {
         fuzz(|$buf| {
             let mut $buf: FuzzData<$ix_dty, _> = {

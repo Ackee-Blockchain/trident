@@ -1,7 +1,7 @@
 use fuzz_example3::entry;
 use fuzz_instructions::fuzz_example3_fuzz_instructions::{FuzzInstruction, InitVesting};
 use program_client::fuzz_example3_instruction::*;
-use trident_client::{fuzz_trd, fuzzing::*};
+use trident_client::{fuzz_trident, fuzzing::*};
 mod accounts_snapshots;
 mod fuzz_instructions;
 
@@ -19,7 +19,7 @@ impl FuzzDataBuilder<FuzzInstruction> for MyFuzzData {
 
 fn main() {
     loop {
-        fuzz_trd!(fuzz_ix: FuzzInstruction, |fuzz_data: MyFuzzData| {
+        fuzz_trident!(fuzz_ix: FuzzInstruction, |fuzz_data: MyFuzzData| {
             let mut client =
                 ProgramTestClientBlocking::new(PROGRAM_NAME, PROGRAM_ID, processor!(entry))
                     .unwrap();
