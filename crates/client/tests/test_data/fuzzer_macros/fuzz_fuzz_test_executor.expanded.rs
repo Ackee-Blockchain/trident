@@ -1,4 +1,4 @@
-use trdelnik_client::FuzzTestExecutor;
+use trident_client::FuzzTestExecutor;
 pub enum FuzzInstruction {
     InitVesting(InitVesting),
     WithdrawUnlocked(WithdrawUnlocked),

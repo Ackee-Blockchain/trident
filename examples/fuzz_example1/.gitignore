@@ -6,4 +6,4 @@ target
 node_modules
 test-ledger
 .yarn
-trdelnik-tests/fuzz_tests/fuzzing/hfuzz_target
+trident-tests/fuzz_tests/fuzzing/hfuzz_target

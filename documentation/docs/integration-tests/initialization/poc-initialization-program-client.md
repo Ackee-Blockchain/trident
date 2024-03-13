@@ -4,7 +4,7 @@ By default, Integration Tests initialization generates also a `.program_client` 
 
 If you are interested in updating the `.program_client` implementation due to an update inside your program, run
 ```bash
-trdelnik build
+trident build
 ```
 
 This command will also initialize `.program_client` if the crate does not exist yet.

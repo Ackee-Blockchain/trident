@@ -89,11 +89,11 @@ struct _Fuzz {
     /// --mutations_per_run
     pub mutations_per_run: Option<u16>,
     #[serde(default)]
-    /// Target compilation directory, defaults to "trdelnik-tests/fuzz_tests/fuzzing/hfuzz_target" to not clash with cargo build's default target directory.
+    /// Target compilation directory, defaults to "trident-tests/fuzz_tests/fuzzing/hfuzz_target" to not clash with cargo build's default target directory.
     /// CARGO_TARGET_DIR env variable
     pub cargo_target_dir: Option<String>,
     #[serde(default)]
-    /// Honggfuzz working directory, defaults to "trdelnik-tests/fuzz_tests/fuzzing/hfuzz_workspace".
+    /// Honggfuzz working directory, defaults to "trident-tests/fuzz_tests/fuzzing/hfuzz_workspace".
     /// HFUZZ_WORKSPACE env variable
     pub hfuzz_workspace: Option<String>,
     #[serde(default)]
@@ -286,10 +286,9 @@ impl From<_Config> for Config {
 impl Config {
     pub fn new() -> Self {
         let root = Config::discover_root().expect("failed to find the root folder");
-        let s = fs::read_to_string(root.join(TRDELNIK_TOML).as_path())
-            .expect("failed to read the Trdelnik config file");
-        let _config: _Config =
-            toml::from_str(&s).expect("failed to parse the Trdelnik config file");
+        let s = fs::read_to_string(root.join(TRIDENT_TOML).as_path())
+            .expect("failed to read the Trident config file");
+        let _config: _Config = toml::from_str(&s).expect("failed to parse the Trident config file");
         _config.into()
     }
 

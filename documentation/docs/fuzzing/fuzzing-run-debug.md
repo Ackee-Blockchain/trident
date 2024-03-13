@@ -4,12 +4,12 @@ Once you have finished the implementation of the Fuzz Test, you can run the Test
 ```bash
 # Replace <TARGET_NAME> with the name of particular
 # fuzz test (for example: "fuzz_0")
-trdelnik fuzz run <TARGET_NAME>
+trident fuzz run <TARGET_NAME>
 ```
 
 Under the hood {{ config.site_name }} uses [honggfuzz-rs](https://github.com/rust-fuzz/honggfuzz-rs).
 
-You can pass [supported parameters](https://github.com/Ackee-Blockchain/trdelnik/blob/develop/examples/fuzz_example0/Trdelnik.toml) via the **{{ config.site_name }}.toml** configuration file. For example:
+You can pass [supported parameters](https://github.com/Ackee-Blockchain/trident/blob/develop/examples/fuzz_example0/Trident.toml) via the **{{ config.site_name }}.toml** configuration file. For example:
 
 ```toml
 # Content of {{ config.site_name }}.toml
@@ -30,11 +30,11 @@ exit_upon_crash = true
 # Maximal number of mutations per one run (default: 6)
 mutations_per_run = 6
 # Target compilation directory,
-# (default: "" ["trdelnik-tests/fuzz_tests/fuzzing/hfuzz_target"]).
+# (default: "" ["trident-tests/fuzz_tests/fuzzing/hfuzz_target"]).
 # To not clash with cargo build's default target directory.
 cargo_target_dir = ""
 # Honggfuzz working directory,
-# (default: "" ["trdelnik-tests/fuzz_tests/fuzzing/hfuzz_workspace"]).
+# (default: "" ["trident-tests/fuzz_tests/fuzzing/hfuzz_workspace"]).
 hfuzz_workspace = ""
 # Directory where crashes are saved to (default: "" [workspace directory])
 crashdir = ""
@@ -59,7 +59,7 @@ A list of hongfuzz parameters can be found in honggfuzz [usage documentation](ht
 # Number of concurrent fuzzing threads: 1
 # Number of fuzzing iterations: 10000
 # Display Solana logs in the terminal
-HFUZZ_RUN_ARGS="-t 10 -n 1 -N 10000 -Q" trdelnik fuzz run <TARGET_NAME>
+HFUZZ_RUN_ARGS="-t 10 -n 1 -N 10000 -Q" trident fuzz run <TARGET_NAME>
 ```
 
 ## Debug
@@ -67,7 +67,7 @@ To debug your program with values from a crash file:
 
 ```bash
 # fuzzer will run the <TARGET_NAME> with the specified <CRASH_FILE_PATH>
-trdelnik fuzz run-debug <TARGET_NAME> <CRASH_FILE_PATH>
+trident fuzz run-debug <TARGET_NAME> <CRASH_FILE_PATH>
 # for example:
-trdelnik fuzz run-debug fuzz_0 trdelnik-tests/fuzz_tests/fuzzing/fuzz_0/cr1.fuzz
+trident fuzz run-debug fuzz_0 trident-tests/fuzz_tests/fuzzing/fuzz_0/cr1.fuzz
 ```

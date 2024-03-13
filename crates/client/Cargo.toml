@@ -1,11 +1,11 @@
 [package]
-name = "trdelnik-client"
+name = "trident-client"
 version = "0.5.0"
 edition = "2021"
-repository = "https://github.com/Ackee-Blockchain/trdelnik"
+repository = "https://github.com/Ackee-Blockchain/trident"
 license-file = "../../LICENSE"
 readme = "../../README.md"
-description = "The trdelnik_client crate helps you build and deploy an Anchor program to a local cluster and run a test suite against it."
+description = "The trident_client crate helps you build and deploy an Anchor program to a local cluster and run a test suite against it."
 
 [features]
 fuzzing = [
@@ -24,10 +24,10 @@ pretty_assertions = "1.1.0"
 macrotest = "1.0.9"
 
 [dependencies]
-trdelnik-derive-displayix = { path = "./derive/display_ix" }
-trdelnik-derive-fuzz-deserialize = { path = "./derive/fuzz_deserialize" }
-trdelnik-derive-fuzz-test-executor = { path = "./derive/fuzz_test_executor" }
-trdelnik-test = { workspace = true }
+trident-derive-displayix = { path = "./derive/display_ix" }
+trident-derive-fuzz-deserialize = { path = "./derive/fuzz_deserialize" }
+trident-derive-fuzz-test-executor = { path = "./derive/fuzz_test_executor" }
+trident-test = { workspace = true }
 # INFO: This is a hack! Anchor-spl is here as dependency only to activate the idl-build feature, so that
 # users do not have to do it manually in their program's Cargo.toml
 anchor-spl = { version = "0.29.0", features = ["idl-build"] }

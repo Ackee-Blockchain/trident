@@ -1,7 +1,7 @@
-//! Trdelnik is a suite of tools and libraries for testing, auditing and developing
+//! Trident is a suite of tools and libraries for testing, auditing and developing
 //! [Solana](https://solana.com/) / [Anchor](https://book.anchor-lang.com/chapter_1/what_is_anchor.html) programs (smart contracts).
 //!
-//! Trdelnik could be useful for writing Rust dApps, too.
+//! Trident could be useful for writing Rust dApps, too.
 
 pub use anchor_client::{
     self,
@@ -23,8 +23,8 @@ pub mod fuzzing {
     pub use super::{
         anchor_lang, anchor_lang::system_program::ID as SYSTEM_PROGRAM_ID,
         anchor_lang::InstructionData, anchor_lang::ToAccountInfo, anchor_lang::ToAccountMetas,
-        fuzz_trd, show_account, solana_sdk::account::Account, solana_sdk::transaction::Transaction,
-        Instruction, Keypair, Pubkey, Signer, TempClone,
+        fuzz_trident, show_account, solana_sdk::account::Account,
+        solana_sdk::transaction::Transaction, Instruction, Keypair, Pubkey, Signer, TempClone,
     };
     pub use anchor_client::anchor_lang::solana_program::account_info::AccountInfo;
     pub use anchor_client::anchor_lang::solana_program::hash::Hash;
@@ -46,9 +46,9 @@ pub mod fuzzing {
     pub use super::fuzzer::snapshot::Snapshot;
     pub use super::fuzzer::*;
     pub use std::cell::RefCell;
-    pub use trdelnik_derive_displayix::DisplayIx;
-    pub use trdelnik_derive_fuzz_deserialize::FuzzDeserialize;
-    pub use trdelnik_derive_fuzz_test_executor::FuzzTestExecutor;
+    pub use trident_derive_displayix::DisplayIx;
+    pub use trident_derive_fuzz_deserialize::FuzzDeserialize;
+    pub use trident_derive_fuzz_test_executor::FuzzTestExecutor;
 }
 
 pub use futures::{self, FutureExt};
@@ -57,7 +57,7 @@ pub use serial_test;
 pub use solana_transaction_status::EncodedConfirmedTransactionWithStatusMeta;
 pub use tokio;
 
-pub use trdelnik_test::trdelnik_test;
+pub use trident_test::trident_test;
 
 mod config;
 
@@ -94,10 +94,10 @@ pub use error_reporter::*;
 pub mod cleaner;
 pub use cleaner::*;
 
-// This is a workaround for tests: https://github.com/Ackee-Blockchain/trdelnik/pull/112#issuecomment-1924920952
-pub use trdelnik_derive_displayix::DisplayIx;
-pub use trdelnik_derive_fuzz_deserialize::FuzzDeserialize;
-pub use trdelnik_derive_fuzz_test_executor::FuzzTestExecutor;
+// This is a workaround for tests: https://github.com/Ackee-Blockchain/trident/pull/112#issuecomment-1924920952
+pub use trident_derive_displayix::DisplayIx;
+pub use trident_derive_fuzz_deserialize::FuzzDeserialize;
+pub use trident_derive_fuzz_test_executor::FuzzTestExecutor;
 
 mod constants {
     // program_client
@@ -107,11 +107,11 @@ mod constants {
 
     // tomls
     pub const CARGO_TOML: &str = "Cargo.toml";
-    pub const TRDELNIK_TOML: &str = "Trdelnik.toml";
+    pub const TRIDENT_TOML: &str = "Trident.toml";
     pub const ANCHOR_TOML: &str = "Anchor.toml";
 
     // tests
-    pub const TESTS_WORKSPACE_DIRECTORY: &str = "trdelnik-tests";
+    pub const TESTS_WORKSPACE_DIRECTORY: &str = "trident-tests";
 
     // poc
     pub const POC_TEST_DIRECTORY: &str = "poc_tests";
@@ -125,8 +125,8 @@ mod constants {
     pub const FUZZING: &str = "fuzzing";
     pub const FUZZ_TEST: &str = "test_fuzz.rs";
     pub const HFUZZ_TARGET: &str = "hfuzz_target";
-    pub const CARGO_TARGET_DIR_DEFAULT: &str = "trdelnik-tests/fuzz_tests/fuzzing/hfuzz_target";
-    pub const HFUZZ_WORKSPACE_DEFAULT: &str = "trdelnik-tests/fuzz_tests/fuzzing/hfuzz_workspace";
+    pub const CARGO_TARGET_DIR_DEFAULT: &str = "trident-tests/fuzz_tests/fuzzing/hfuzz_target";
+    pub const HFUZZ_WORKSPACE_DEFAULT: &str = "trident-tests/fuzz_tests/fuzzing/hfuzz_workspace";
     pub const CARGO_TARGET_DIR_ENV: &str = "CARGO_TARGET_DIR";
     pub const HFUZZ_WORKSPACE_ENV: &str = "HFUZZ_WORKSPACE";
 

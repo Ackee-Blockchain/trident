@@ -2,7 +2,7 @@ use anyhow::Error;
 use cargo_metadata::camino::Utf8PathBuf;
 use fehler::throws;
 use pretty_assertions::assert_str_eq;
-use trdelnik_client::test_generator::ProgramData;
+use trident_client::test_generator::ProgramData;
 
 const PROGRAM_NAME: &str = "fuzz_example3";
 
@@ -33,10 +33,8 @@ async fn test_snapshots_and_instructions() {
 
     let path = Utf8PathBuf::from(program_path);
 
-    let program_idl = trdelnik_client::idl::parse_to_idl_program(
-        PROGRAM_NAME.to_owned(),
-        expanded_fuzz_example3,
-    )?;
+    let program_idl =
+        trident_client::idl::parse_to_idl_program(PROGRAM_NAME.to_owned(), expanded_fuzz_example3)?;
 
     let code = expanded_fuzz_example3.to_string();
 
@@ -49,14 +47,14 @@ async fn test_snapshots_and_instructions() {
     let program_data = vec![program_data];
 
     let fuzzer_snapshots =
-        trdelnik_client::snapshot_generator::generate_snapshots_code(&program_data).unwrap();
+        trident_client::snapshot_generator::generate_snapshots_code(&program_data).unwrap();
     let fuzzer_snapshots =
-        trdelnik_client::Commander::format_program_code(&fuzzer_snapshots).await?;
+        trident_client::Commander::format_program_code(&fuzzer_snapshots).await?;
 
     let fuzz_instructions_code =
-        trdelnik_client::fuzzer_generator::generate_source_code(&program_data);
+        trident_client::fuzzer_generator::generate_source_code(&program_data);
     let fuzz_instructions_code =
-        trdelnik_client::Commander::format_program_code(&fuzz_instructions_code).await?;
+        trident_client::Commander::format_program_code(&fuzz_instructions_code).await?;
 
     assert_str_eq!(fuzzer_snapshots, expected_accounts_snapshots);
     assert_str_eq!(fuzz_instructions_code, expected_fuzz_instructions_code);
@@ -93,10 +91,10 @@ async fn test_fuzz_test_executor() {
 
 #[throws]
 #[tokio::test]
-async fn test_fuzz_trd() {
+async fn test_fuzz_trident() {
     // this will automatically created expanded code within the same directory
     // with ".expanded.rs" extension, if the file does not exist already.
     // Do not perform any formatting command on the expanded code
     // the test will then fail
-    macrotest::expand("tests/test_data/fuzzer_macros/fuzz_fuzz_trd.rs");
+    macrotest::expand("tests/test_data/fuzzer_macros/fuzz_fuzz_trident.rs");
 }

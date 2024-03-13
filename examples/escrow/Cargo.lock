@@ -2281,9 +2281,9 @@ checksum = "b5e6163cb8c49088c2c36f57875e58ccd8c87c7427f7fbd50ea6710b2f3f2e8f"
 
 [[package]]
 name = "memchr"
-version = "2.5.0"
+version = "2.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2dffe52ecf27772e601905b7522cb4ef790d2cc203488bbd0e2fe85fcb74566d"
+checksum = "523dc4f511e55ab87b694dc30d0f820d60906ef06413f93d4d7a1385599cc149"
 
 [[package]]
 name = "memmap2"
@@ -2760,7 +2760,7 @@ dependencies = [
  "escrow",
  "fehler",
  "program_client",
- "trdelnik-client",
+ "trident-client",
 ]
 
 [[package]]
@@ -2832,7 +2832,7 @@ name = "program_client"
 version = "0.1.0"
 dependencies = [
  "escrow",
- "trdelnik-client",
+ "trident-client",
 ]
 
 [[package]]
@@ -3057,9 +3057,9 @@ dependencies = [
 
 [[package]]
 name = "regex"
-version = "1.9.1"
+version = "1.10.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b2eae68fc220f7cf2532e4494aded17545fce192d59cd996e0fe7887f4ceb575"
+checksum = "b62dbe01f0b06f9d8dc7d49e05a0785f153b00b2c227856282f671e0318c9b15"
 dependencies = [
  "aho-corasick",
  "memchr",
@@ -3069,9 +3069,9 @@ dependencies = [
 
 [[package]]
 name = "regex-automata"
-version = "0.3.4"
+version = "0.4.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b7b6d6190b7594385f61bd3911cd1be99dfddcfc365a4160cc2ab5bff4aed294"
+checksum = "86b83b8b9847f9bf95ef68afb0b8e6cdb80f498442f5179a29fad448fcc1eaea"
 dependencies = [
  "aho-corasick",
  "memchr",
@@ -3080,9 +3080,9 @@ dependencies = [
 
 [[package]]
 name = "regex-syntax"
-version = "0.7.4"
+version = "0.8.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e5ea92a5b6195c6ef2a0295ea818b312502c6fc94dde986c5553242e18fd4ce2"
+checksum = "c08c74e62047bb2de4ff487b251e4a92e24f48745648451635cec7d591162d9f"
 
 [[package]]
 name = "relative-path"
@@ -5170,7 +5170,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "trdelnik-client"
+name = "trident-client"
 version = "0.5.0"
 dependencies = [
  "anchor-client",
@@ -5192,6 +5192,7 @@ dependencies = [
  "proc-macro2",
  "quote",
  "rand 0.8.5",
+ "regex",
  "rstest",
  "serde",
  "serde_json",
@@ -5208,14 +5209,14 @@ dependencies = [
  "thiserror",
  "tokio",
  "toml",
- "trdelnik-derive-displayix",
- "trdelnik-derive-fuzz-deserialize",
- "trdelnik-derive-fuzz-test-executor",
- "trdelnik-test",
+ "trident-derive-displayix",
+ "trident-derive-fuzz-deserialize",
+ "trident-derive-fuzz-test-executor",
+ "trident-test",
 ]
 
 [[package]]
-name = "trdelnik-derive-displayix"
+name = "trident-derive-displayix"
 version = "0.0.1"
 dependencies = [
  "proc-macro2",
@@ -5224,7 +5225,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "trdelnik-derive-fuzz-deserialize"
+name = "trident-derive-fuzz-deserialize"
 version = "0.0.1"
 dependencies = [
  "proc-macro2",
@@ -5233,7 +5234,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "trdelnik-derive-fuzz-test-executor"
+name = "trident-derive-fuzz-test-executor"
 version = "0.0.1"
 dependencies = [
  "proc-macro2",
@@ -5242,7 +5243,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "trdelnik-test"
+name = "trident-test"
 version = "0.3.1"
 dependencies = [
  "darling 0.13.4",

@@ -5974,7 +5974,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "trdelnik-cli"
+name = "trident-cli"
 version = "0.5.0"
 dependencies = [
  "anyhow",
@@ -5982,12 +5982,12 @@ dependencies = [
  "fehler",
  "solana-sdk",
  "tokio",
- "trdelnik-client",
- "trdelnik-explorer",
+ "trident-client",
+ "trident-explorer",
 ]
 
 [[package]]
-name = "trdelnik-client"
+name = "trident-client"
 version = "0.5.0"
 dependencies = [
  "anchor-client",
@@ -6032,14 +6032,14 @@ dependencies = [
  "thiserror",
  "tokio",
  "toml",
- "trdelnik-derive-displayix",
- "trdelnik-derive-fuzz-deserialize",
- "trdelnik-derive-fuzz-test-executor",
- "trdelnik-test",
+ "trident-derive-displayix",
+ "trident-derive-fuzz-deserialize",
+ "trident-derive-fuzz-test-executor",
+ "trident-test",
 ]
 
 [[package]]
-name = "trdelnik-derive-displayix"
+name = "trident-derive-displayix"
 version = "0.0.1"
 dependencies = [
  "proc-macro2",
@@ -6048,7 +6048,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "trdelnik-derive-fuzz-deserialize"
+name = "trident-derive-fuzz-deserialize"
 version = "0.0.1"
 dependencies = [
  "proc-macro2",
@@ -6057,7 +6057,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "trdelnik-derive-fuzz-test-executor"
+name = "trident-derive-fuzz-test-executor"
 version = "0.0.1"
 dependencies = [
  "proc-macro2",
@@ -6066,7 +6066,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "trdelnik-explorer"
+name = "trident-explorer"
 version = "0.3.1"
 dependencies = [
  "base64 0.13.1",
@@ -6095,7 +6095,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "trdelnik-test"
+name = "trident-test"
 version = "0.3.1"
 dependencies = [
  "darling 0.13.4",

@@ -1802,7 +1802,6 @@ dependencies = [
 name = "fuzz_example3"
 version = "0.1.0"
 dependencies = [
- "ahash 0.8.4",
  "anchor-lang",
  "anchor-spl",
 ]
@@ -1817,7 +1816,7 @@ dependencies = [
  "fuzz_example3",
  "honggfuzz",
  "program_client",
- "trdelnik-client",
+ "trident-client",
 ]
 
 [[package]]
@@ -2933,7 +2932,7 @@ dependencies = [
  "fuzz_example3",
  "program_client",
  "rstest 0.12.0",
- "trdelnik-client",
+ "trident-client",
 ]
 
 [[package]]
@@ -3029,7 +3028,7 @@ name = "program_client"
 version = "0.1.0"
 dependencies = [
  "fuzz_example3",
- "trdelnik-client",
+ "trident-client",
 ]
 
 [[package]]
@@ -3244,9 +3243,9 @@ dependencies = [
 
 [[package]]
 name = "regex"
-version = "1.10.2"
+version = "1.10.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "380b951a9c5e80ddfd6136919eef32310721aa4aacd4889a8d39124b026ab343"
+checksum = "b62dbe01f0b06f9d8dc7d49e05a0785f153b00b2c227856282f671e0318c9b15"
 dependencies = [
  "aho-corasick",
  "memchr",
@@ -3256,9 +3255,9 @@ dependencies = [
 
 [[package]]
 name = "regex-automata"
-version = "0.4.3"
+version = "0.4.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5f804c7828047e88b2d32e2d7fe5a105da8ee3264f01902f796c8e067dc2483f"
+checksum = "86b83b8b9847f9bf95ef68afb0b8e6cdb80f498442f5179a29fad448fcc1eaea"
 dependencies = [
  "aho-corasick",
  "memchr",
@@ -5827,7 +5826,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "trdelnik-client"
+name = "trident-client"
 version = "0.5.0"
 dependencies = [
  "anchor-client",
@@ -5843,6 +5842,7 @@ dependencies = [
  "futures",
  "heck 0.4.1",
  "honggfuzz",
+ "indicatif",
  "lazy_static",
  "log",
  "pathdiff",
@@ -5850,6 +5850,7 @@ dependencies = [
  "quinn-proto",
  "quote",
  "rand 0.8.5",
+ "regex",
  "rstest 0.18.2",
  "serde",
  "serde_json",
@@ -5868,14 +5869,14 @@ dependencies = [
  "thiserror",
  "tokio",
  "toml",
- "trdelnik-derive-displayix",
- "trdelnik-derive-fuzz-deserialize",
- "trdelnik-derive-fuzz-test-executor",
- "trdelnik-test",
+ "trident-derive-displayix",
+ "trident-derive-fuzz-deserialize",
+ "trident-derive-fuzz-test-executor",
+ "trident-test",
 ]
 
 [[package]]
-name = "trdelnik-derive-displayix"
+name = "trident-derive-displayix"
 version = "0.0.1"
 dependencies = [
  "proc-macro2",
@@ -5884,7 +5885,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "trdelnik-derive-fuzz-deserialize"
+name = "trident-derive-fuzz-deserialize"
 version = "0.0.1"
 dependencies = [
  "proc-macro2",
@@ -5893,7 +5894,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "trdelnik-derive-fuzz-test-executor"
+name = "trident-derive-fuzz-test-executor"
 version = "0.0.1"
 dependencies = [
  "proc-macro2",
@@ -5902,7 +5903,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "trdelnik-test"
+name = "trident-test"
 version = "0.3.1"
 dependencies = [
  "darling 0.13.4",

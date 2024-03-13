@@ -6,7 +6,7 @@ min_version = "0.32.15"
 private = true
 namespace = "default"
 
-[tasks.trdelnik]
-description = "Run Trdelnik CLI"
+[tasks.trident]
+description = "Run Trident CLI"
 command = "cargo"
 args = ["run", "--manifest-path", "../../crates/cli/Cargo.toml", "--", "${@}"]

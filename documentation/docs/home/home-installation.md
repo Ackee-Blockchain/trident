@@ -10,11 +10,11 @@ Check [supported versions](#supported-versions) section for further details.
 ## Installation
 
 ```bash
-cargo install trdelnik-cli
+cargo install trident-cli
 
 # or the specific version
 
-cargo install --version <version> trdelnik-cli
+cargo install --version <version> trident-cli
 ```
 
 ### Supported versions

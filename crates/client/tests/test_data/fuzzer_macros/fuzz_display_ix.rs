@@ -1,4 +1,4 @@
-use trdelnik_client::DisplayIx;
+use trident_client::DisplayIx;
 #[derive(DisplayIx)]
 pub enum FuzzInstruction {
     InitVesting(InitVesting),

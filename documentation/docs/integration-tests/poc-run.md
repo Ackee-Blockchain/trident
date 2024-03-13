@@ -2,7 +2,7 @@
 Once you have finished the implementation of the Integration Test, you can run the Test as follows:
 
 ```bash
-trdelnik test
+trident test
 ```
 
 ## Skipping tests
@@ -10,7 +10,7 @@ trdelnik test
 - You can add the `#[ignore]` macro to skip the test.
 
 ```rust
-#[trdelnik_test]
+#[trident_test]
 #[ignore]
 async fn test() {}
 ```

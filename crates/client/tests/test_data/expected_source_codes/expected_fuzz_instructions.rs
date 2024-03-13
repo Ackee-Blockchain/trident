@@ -1,6 +1,6 @@
 pub mod fuzz_example3_fuzz_instructions {
     use crate::accounts_snapshots::*;
-    use trdelnik_client::fuzzing::*;
+    use trident_client::fuzzing::*;
     #[derive(Arbitrary, DisplayIx, FuzzTestExecutor, FuzzDeserialize)]
     pub enum FuzzInstruction {
         InitVesting(InitVesting),

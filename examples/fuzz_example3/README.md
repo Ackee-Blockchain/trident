@@ -1,4 +1,4 @@
-# Fuzz Test Example for Trdelnik Fuzzer
+# Fuzz Test Example for Trident Fuzzer
 
 ---
 

@@ -1,6 +1,6 @@
 use fuzz_example3::ID as PROGRAM_ID;
-use trdelnik_client::anchor_lang::{self, prelude::*};
-use trdelnik_client::fuzzing::FuzzingError;
+use trident_client::anchor_lang::{self, prelude::*};
+use trident_client::fuzzing::FuzzingError;
 pub struct InitVestingSnapshot<'info> {
     pub sender: Signer<'info>,
     pub sender_token_account: Account<'info, TokenAccount>,

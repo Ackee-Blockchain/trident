@@ -2,11 +2,11 @@ use anyhow::{bail, Error};
 
 use clap::Subcommand;
 use fehler::throws;
-use trdelnik_client::{Commander, TestGenerator};
+use trident_client::{Commander, TestGenerator};
 
 use crate::_discover;
 
-pub const TRDELNIK_TOML: &str = "Trdelnik.toml";
+pub const TRIDENT_TOML: &str = "Trident.toml";
 
 #[derive(Subcommand)]
 #[allow(non_camel_case_types)]
@@ -15,7 +15,7 @@ pub enum FuzzCommand {
     Run {
         /// Name of the fuzz target
         target: String,
-        /// Trdelnik will return exit code 1 in case of found crash files in the crash folder. This is checked before and after the fuzz test run.
+        /// Trident will return exit code 1 in case of found crash files in the crash folder. This is checked before and after the fuzz test run.
         #[arg(short, long)]
         with_exit_code: bool,
     },
@@ -35,11 +35,11 @@ pub async fn fuzz(root: Option<String>, subcmd: FuzzCommand) {
     let root = match root {
         Some(r) => r,
         _ => {
-            let root = _discover(TRDELNIK_TOML)?;
+            let root = _discover(TRIDENT_TOML)?;
             if let Some(r) = root {
                 r
             } else {
-                bail!("It does not seem that Trdelnik is initialized because the Trdelnik.toml file was not found in any parent directory!");
+                bail!("It does not seem that Trident is initialized because the Trident.toml file was not found in any parent directory!");
             }
         }
     };

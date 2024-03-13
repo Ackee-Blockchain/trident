@@ -1,2 +1,2 @@
-- [Escrow](https://github.com/Ackee-Blockchain/trdelnik/tree/develop/examples/escrow)
-- [Turnstile](https://github.com/Ackee-Blockchain/trdelnik/tree/develop/examples/turnstile)
+- [Escrow](https://github.com/Ackee-Blockchain/trident/tree/develop/examples/escrow)
+- [Turnstile](https://github.com/Ackee-Blockchain/trident/tree/develop/examples/turnstile)

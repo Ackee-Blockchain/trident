@@ -1,5 +1,5 @@
 [package]
-name = "trdelnik-derive-fuzz-test-executor"
+name = "trident-derive-fuzz-test-executor"
 version = "0.0.1"
 rust-version = "1.60"
 edition = "2021"
