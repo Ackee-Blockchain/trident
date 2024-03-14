@@ -10,6 +10,7 @@ incremented upon a breaking change and the patch version will be incremented for
 
 ## [Unreleased]
 ### Added
+- feat/possibility to implement custom transaction error handling ([#145](https://github.com/Ackee-Blockchain/trident/pull/145))
 - feat/support of automatically obtaining fully qualified paths of Data Accounts Custom types for `accounts_snapshots.rs` ([#141](https://github.com/Ackee-Blockchain/trident/pull/141))
 - feat/allow direct accounts manipulation and storage ([#142](https://github.com/Ackee-Blockchain/trident/pull/142))
 - feat/support of non-corresponding instruction and context names ([#130](https://github.com/Ackee-Blockchain/trident/pull/130))
