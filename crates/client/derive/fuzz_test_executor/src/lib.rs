@@ -37,21 +37,19 @@ pub fn fuzz_test_executor(input: TokenStream) -> TokenStream {
                         let sig: Vec<&Keypair> = signers.iter().collect();
                         transaction.sign(&sig, client.get_last_blockhash());
 
-                        let tx_res = client.process_transaction(transaction)
-                        .map_err(|e| e.with_origin(Origin::Instruction(self.to_context_string())));
+                        client.process_transaction(transaction)
+                        .map_err(|e| e.with_origin(Origin::Instruction(self.to_context_string())))?;
 
-                        if tx_res.is_ok() {
-                            snaphot.capture_after(client).unwrap();
-                            let (acc_before, acc_after) = snaphot.get_snapshot()
-                                .map_err(|e| e.with_origin(Origin::Instruction(self.to_context_string())))
-                                .expect("Snapshot deserialization expect"); // we want to panic if we cannot unwrap to cause a crash
+                        snaphot.capture_after(client).unwrap();
+                        let (acc_before, acc_after) = snaphot.get_snapshot()
+                            .map_err(|e| e.with_origin(Origin::Instruction(self.to_context_string())))
+                            .expect("Snapshot deserialization expect"); // we want to panic if we cannot unwrap to cause a crash
 
-                            if let Err(e) = ix.check(acc_before, acc_after, data).map_err(|e| e.with_origin(Origin::Instruction(self.to_context_string()))) {
-                                eprintln!(
-                                    "CRASH DETECTED! Custom check after the {} instruction did not pass!",
-                                    self.to_context_string());
-                                panic!("{}", e)
-                            }
+                        if let Err(e) = ix.check(acc_before, acc_after, data).map_err(|e| e.with_origin(Origin::Instruction(self.to_context_string()))) {
+                            eprintln!(
+                                "CRASH DETECTED! Custom check after the {} instruction did not pass!",
+                                self.to_context_string());
+                            panic!("{}", e)
                         }
                     }
                 }
@@ -64,7 +62,7 @@ pub fn fuzz_test_executor(input: TokenStream) -> TokenStream {
                        program_id: Pubkey,
                        accounts: &RefCell<FuzzAccounts>,
                        client: &mut impl FuzzClient,
-                   ) -> core::result::Result<(), Box<dyn std::error::Error + 'static>> {
+                   ) -> core::result::Result<(), FuzzClientErrorWithOrigin> {
                            match self {
                                #(#display_match_arms)*
                            }

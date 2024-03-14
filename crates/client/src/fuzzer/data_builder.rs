@@ -80,7 +80,14 @@ where
             #[cfg(fuzzing_debug)]
             eprintln!("Currently processing: {}", fuzz_ix);
 
-            fuzz_ix.run_fuzzer(program_id, &self.accounts, client)?;
+            // fuzz_ix.run_fuzzer(program_id, &self.accounts, client)?;
+            if fuzz_ix
+                .run_fuzzer(program_id, &self.accounts, client)
+                .is_err()
+            {
+                // for now skip following instructions in case of error and move to the next fuzz iteration
+                return Ok(());
+            }
         }
         Ok(())
     }
@@ -92,7 +99,7 @@ pub trait FuzzTestExecutor<T> {
         program_id: Pubkey,
         accounts: &RefCell<T>,
         client: &mut impl FuzzClient,
-    ) -> core::result::Result<(), Box<dyn Error + 'static>>;
+    ) -> core::result::Result<(), FuzzClientErrorWithOrigin>;
 }
 
 #[allow(unused_variables)]
@@ -122,7 +129,6 @@ pub trait IxOps<'info> {
     type IxData;
     type IxAccounts;
     type IxSnapshot;
-    // TODO maybe generate the From trait and return Ok(self.data.into())
     fn get_data(
         &self,
         client: &mut impl FuzzClient,
@@ -135,7 +141,6 @@ pub trait IxOps<'info> {
         fuzz_accounts: &mut Self::IxAccounts,
     ) -> Result<(Vec<Keypair>, Vec<AccountMeta>), FuzzingError>;
 
-    // TODO implement better error with source and description
     #[allow(unused_variables)]
     fn check(
         &self,
@@ -144,6 +149,15 @@ pub trait IxOps<'info> {
         ix_data: Self::IxData,
     ) -> Result<(), FuzzingError> {
         Ok(())
+    }
+
+    fn tx_error_handler(
+        &self,
+        e: FuzzClientErrorWithOrigin,
+        ix_data: Self::IxData,
+        pre_ix_acc_infos: &'info [Option<AccountInfo<'info>>]
+    ) -> Result<(), FuzzClientErrorWithOrigin> {
+        Err(e)
     }
 }
 
