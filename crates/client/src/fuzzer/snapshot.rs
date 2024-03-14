@@ -93,6 +93,11 @@ where
         }
     }
 
+    pub fn get_raw_pre_ix_accounts(&'info mut self) -> Vec<Option<AccountInfo<'info>>> {
+        Self::set_missing_accounts_to_default(&mut self.before);
+        Self::calculate_account_info(&mut self.before, self.metas)
+    }
+
     pub fn get_snapshot(&'info mut self) -> Result<(T::Ix, T::Ix), FuzzingErrorWithOrigin> {
         // When user passes an account that is not initialized, the runtime will provide
         // a default empty account to the program. If the uninitialized account is of type
