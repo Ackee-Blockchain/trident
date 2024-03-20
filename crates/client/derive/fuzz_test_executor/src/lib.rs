@@ -37,10 +37,14 @@ pub fn fuzz_test_executor(input: TokenStream) -> TokenStream {
                         let sig: Vec<&Keypair> = signers.iter().collect();
                         transaction.sign(&sig, client.get_last_blockhash());
 
-                        let raw_message = transaction.message_data();
-                        let message_hash = Message::hash_raw_message(&raw_message);
+                        let duplicate_tx = if cfg!(allow_duplicate_txs) {
+                            None
+                        } else {
+                            let message_hash = transaction.message().hash();
+                            sent_txs.insert(message_hash, ())
+                        };
 
-                        match sent_txs.insert(message_hash, ()) {
+                        match duplicate_tx {
                             Some(_) => eprintln!("\x1b[1;93mWarning\x1b[0m: Skipping duplicate instruction `{}`", self.to_context_string()),
                             None => {
                                 let tx_result = client.process_transaction(transaction)
