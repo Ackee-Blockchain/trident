@@ -41,19 +41,36 @@ impl From<_Test> for Test {
         }
     }
 }
+
+#[derive(Debug, Deserialize, Clone, Default)]
+pub struct Fuzz {
+    pub allow_duplicate_txs: bool,
+}
+#[derive(Default, Debug, Deserialize, Clone)]
+struct _Fuzz {
+    #[serde(default)]
+    pub allow_duplicate_txs: Option<bool>,
+}
+impl From<_Fuzz> for Fuzz {
+    fn from(_t: _Fuzz) -> Self {
+        Self {
+            allow_duplicate_txs: _t.allow_duplicate_txs.unwrap_or(false),
+        }
+    }
+}
 #[derive(Debug, Deserialize, Clone)]
-pub struct FuzzArg {
+pub struct HonggFuzzArg {
     pub short_opt: Option<String>,
     pub long_opt: Option<String>,
     pub val: Option<String>,
 }
 #[derive(Debug, Deserialize, Clone)]
-pub struct Fuzz {
-    pub fuzz_args: Vec<FuzzArg>,
+pub struct HonggFuzz {
+    pub fuzz_args: Vec<HonggFuzzArg>,
     pub env_variables: HashMap<String, String>,
 }
 #[derive(Default, Debug, Deserialize, Clone)]
-struct _Fuzz {
+struct _HonggFuzz {
     #[serde(default)]
     /// Timeout in seconds (default: 10)
     /// -t
@@ -121,8 +138,8 @@ struct _Fuzz {
     pub save_all: Option<bool>,
 }
 
-impl From<_Fuzz> for Fuzz {
-    fn from(_f: _Fuzz) -> Self {
+impl From<_HonggFuzz> for HonggFuzz {
+    fn from(_f: _HonggFuzz) -> Self {
         let mut _self = Self {
             fuzz_args: vec![],
             env_variables: HashMap::default(),
@@ -132,20 +149,22 @@ impl From<_Fuzz> for Fuzz {
         let timeout = _f.timeout.unwrap_or(10);
         _self
             .fuzz_args
-            .push(FuzzArg::new("-t", "--timeout", &timeout.to_string()));
+            .push(HonggFuzzArg::new("-t", "--timeout", &timeout.to_string()));
 
         // iterations
         let iterations = _f.iterations.unwrap_or(0);
-        _self
-            .fuzz_args
-            .push(FuzzArg::new("-N", "--iterations", &iterations.to_string()));
+        _self.fuzz_args.push(HonggFuzzArg::new(
+            "-N",
+            "--iterations",
+            &iterations.to_string(),
+        ));
 
         // threads
         let threads = _f.threads.unwrap_or(0);
         if threads > 0 {
             _self
                 .fuzz_args
-                .push(FuzzArg::new("-n", "--threads", &threads.to_string()));
+                .push(HonggFuzzArg::new("-n", "--threads", &threads.to_string()));
         }
 
         // keep_output
@@ -153,12 +172,14 @@ impl From<_Fuzz> for Fuzz {
         if keep_output {
             _self
                 .fuzz_args
-                .push(FuzzArg::new("-Q", "--keep_output", ""));
+                .push(HonggFuzzArg::new("-Q", "--keep_output", ""));
         }
         // verbose
         let verbose = _f.verbose.unwrap_or(false);
         if verbose {
-            _self.fuzz_args.push(FuzzArg::new("-v", "--verbose", ""));
+            _self
+                .fuzz_args
+                .push(HonggFuzzArg::new("-v", "--verbose", ""));
         }
 
         // exit_upon_crash
@@ -166,11 +187,11 @@ impl From<_Fuzz> for Fuzz {
         if exit_upon_crash {
             _self
                 .fuzz_args
-                .push(FuzzArg::new("", "--exit_upon_crash", ""));
+                .push(HonggFuzzArg::new("", "--exit_upon_crash", ""));
         }
         // mutations_per_run
         let mutations_per_run = _f.mutations_per_run.unwrap_or(6);
-        _self.fuzz_args.push(FuzzArg::new(
+        _self.fuzz_args.push(HonggFuzzArg::new(
             "-r",
             "--mutations_per_run",
             &mutations_per_run.to_string(),
@@ -204,24 +225,24 @@ impl From<_Fuzz> for Fuzz {
         if !crash_dir.is_empty() {
             _self
                 .fuzz_args
-                .push(FuzzArg::new("", "--crashdir", &crash_dir));
+                .push(HonggFuzzArg::new("", "--crashdir", &crash_dir));
         }
         // extension
         let extension = _f.extension.unwrap_or_default();
         if !extension.is_empty() {
             _self
                 .fuzz_args
-                .push(FuzzArg::new("-e", "--extension", &extension));
+                .push(HonggFuzzArg::new("-e", "--extension", &extension));
         }
         // run_time
         let run_time = _f.run_time.unwrap_or(0);
         _self
             .fuzz_args
-            .push(FuzzArg::new("", "--run_time", &run_time.to_string()));
+            .push(HonggFuzzArg::new("", "--run_time", &run_time.to_string()));
 
         // max_file_size
         let max_file_size = _f.max_file_size.unwrap_or(1_048_576);
-        _self.fuzz_args.push(FuzzArg::new(
+        _self.fuzz_args.push(HonggFuzzArg::new(
             "-F",
             "--max_file_size",
             &max_file_size.to_string(),
@@ -229,13 +250,15 @@ impl From<_Fuzz> for Fuzz {
         // save_all
         let save_all = _f.save_all.unwrap_or(false);
         if save_all {
-            _self.fuzz_args.push(FuzzArg::new("-u", "--save_all", ""));
+            _self
+                .fuzz_args
+                .push(HonggFuzzArg::new("-u", "--save_all", ""));
         }
         _self
     }
 }
 
-impl FuzzArg {
+impl HonggFuzzArg {
     fn new(short_opt: &str, long_opt: &str, val: &str) -> Self {
         let short_opt = if short_opt.is_empty() {
             None
@@ -263,6 +286,7 @@ impl FuzzArg {
 #[derive(Debug, Deserialize, Clone)]
 pub struct Config {
     pub test: Test,
+    pub honggfuzz: HonggFuzz,
     pub fuzz: Fuzz,
 }
 
@@ -271,6 +295,8 @@ struct _Config {
     #[serde(default)]
     pub test: Option<_Test>,
     #[serde(default)]
+    pub honggfuzz: Option<_HonggFuzz>,
+    #[serde(default)]
     pub fuzz: Option<_Fuzz>,
 }
 
@@ -278,6 +304,7 @@ impl From<_Config> for Config {
     fn from(_c: _Config) -> Self {
         Self {
             test: _c.test.unwrap_or_default().into(),
+            honggfuzz: _c.honggfuzz.unwrap_or_default().into(),
             fuzz: _c.fuzz.unwrap_or_default().into(),
         }
     }
@@ -316,14 +343,14 @@ impl Config {
         }
         throw!(Error::BadWorkspace)
     }
-    pub fn get_fuzz_args(&self, cli_input: String) -> String {
+    pub fn get_honggfuzz_args(&self, cli_input: String) -> String {
         // Tested on a few examples, HFUZZ_RUN_ARGS give precedence to the later arguments.
         // so if HFUZZ_RUN_ARGS="-t 10 -t 15" -> timeout 15s is applied.
         // That means we do not need to parse the arguments from the CLI;
         // thus, we can simply append them at the end, and the CLI will have precedence.
 
         let mut args: Vec<String> = self
-            .fuzz
+            .honggfuzz
             .fuzz_args
             .iter()
             .map(|a| {
@@ -342,7 +369,7 @@ impl Config {
     }
     pub fn get_env_arg(&self, env_variable: &str) -> String {
         let expect = format!("{env_variable} not found");
-        self.fuzz
+        self.honggfuzz
             .env_variables
             .get(env_variable)
             .expect(&expect)
@@ -352,7 +379,7 @@ impl Config {
 
 #[cfg(test)]
 mod tests {
-    impl Default for Fuzz {
+    impl Default for HonggFuzz {
         fn default() -> Self {
             let mut env_variables: HashMap<String, String> = HashMap::default();
             env_variables.insert(
@@ -365,12 +392,12 @@ mod tests {
             );
             Self {
                 fuzz_args: vec![
-                    FuzzArg::new("-t", "--timeout", &10.to_string()),
-                    FuzzArg::new("-N", "--iterations", &0.to_string()),
-                    FuzzArg::new("-r", "--mutations_per_run", &6.to_string()),
-                    FuzzArg::new("-e", "--extension", "fuzz"),
-                    FuzzArg::new("", "--run_time", &0.to_string()),
-                    FuzzArg::new("-F", "--max_file_size", &1_048_576.to_string()),
+                    HonggFuzzArg::new("-t", "--timeout", &10.to_string()),
+                    HonggFuzzArg::new("-N", "--iterations", &0.to_string()),
+                    HonggFuzzArg::new("-r", "--mutations_per_run", &6.to_string()),
+                    HonggFuzzArg::new("-e", "--extension", "fuzz"),
+                    HonggFuzzArg::new("", "--run_time", &0.to_string()),
+                    HonggFuzzArg::new("-F", "--max_file_size", &1_048_576.to_string()),
                 ],
                 env_variables,
             }
@@ -382,10 +409,11 @@ mod tests {
     fn test_merge_and_precedence1() {
         let config = Config {
             test: Test::default(),
+            honggfuzz: HonggFuzz::default(),
             fuzz: Fuzz::default(),
         };
 
-        let env_var_string = config.get_fuzz_args(String::default());
+        let env_var_string = config.get_honggfuzz_args(String::default());
         assert_eq!(
             env_var_string,
             "-t 10 -N 0 -r 6 -e fuzz --run_time 0 -F 1048576 "
@@ -395,10 +423,11 @@ mod tests {
     fn test_merge_and_precedence2() {
         let config = Config {
             test: Test::default(),
+            honggfuzz: HonggFuzz::default(),
             fuzz: Fuzz::default(),
         };
 
-        let env_var_string = config.get_fuzz_args("-t 0 -N10 --exit_upon_crash".to_string());
+        let env_var_string = config.get_honggfuzz_args("-t 0 -N10 --exit_upon_crash".to_string());
 
         assert_eq!(
             env_var_string,
@@ -409,10 +438,11 @@ mod tests {
     fn test_merge_and_precedence3() {
         let config = Config {
             test: Test::default(),
+            honggfuzz: HonggFuzz::default(),
             fuzz: Fuzz::default(),
         };
         let env_var_string =
-            config.get_fuzz_args("-t 100 -N 5000 -Q -v --exit_upon_crash".to_string());
+            config.get_honggfuzz_args("-t 100 -N 5000 -Q -v --exit_upon_crash".to_string());
         assert_eq!(
             env_var_string,
             "-t 10 -N 0 -r 6 -e fuzz --run_time 0 -F 1048576 -t 100 -N 5000 -Q -v --exit_upon_crash"
@@ -422,10 +452,11 @@ mod tests {
     fn test_merge_and_precedence4() {
         let config = Config {
             test: Test::default(),
+            honggfuzz: HonggFuzz::default(),
             fuzz: Fuzz::default(),
         };
 
-        let env_var_string = config.get_fuzz_args("-t 10 -N 500 -Q -v --exit_upon_crash -n 15 --mutations_per_run 8 --verifier -W random_dir --crashdir random_dir5 --run_time 666".to_string());
+        let env_var_string = config.get_honggfuzz_args("-t 10 -N 500 -Q -v --exit_upon_crash -n 15 --mutations_per_run 8 --verifier -W random_dir --crashdir random_dir5 --run_time 666".to_string());
         assert_eq!(
             env_var_string,
             "-t 10 -N 0 -r 6 -e fuzz --run_time 0 -F 1048576 -t 10 -N 500 -Q -v --exit_upon_crash -n 15 --mutations_per_run 8 --verifier -W random_dir --crashdir random_dir5 --run_time 666"
@@ -435,10 +466,11 @@ mod tests {
     fn test_merge_and_precedence5() {
         let config = Config {
             test: Test::default(),
+            honggfuzz: HonggFuzz::default(),
             fuzz: Fuzz::default(),
         };
 
-        let env_var_string = config.get_fuzz_args("-t 10 -N 500 -Q -v --exit_upon_crash -n 15 --verifier -W random_dir --crashdir random_dir5 --run_time 666".to_string());
+        let env_var_string = config.get_honggfuzz_args("-t 10 -N 500 -Q -v --exit_upon_crash -n 15 --verifier -W random_dir --crashdir random_dir5 --run_time 666".to_string());
         assert_eq!(
             env_var_string,
             "-t 10 -N 0 -r 6 -e fuzz --run_time 0 -F 1048576 -t 10 -N 500 -Q -v --exit_upon_crash -n 15 --verifier -W random_dir --crashdir random_dir5 --run_time 666"
@@ -448,6 +480,7 @@ mod tests {
     fn test_obtain_env_variables() {
         let config = Config {
             test: Test::default(),
+            honggfuzz: HonggFuzz::default(),
             fuzz: Fuzz::default(),
         };
 
@@ -461,16 +494,17 @@ mod tests {
     fn test_obtain_env_variables2() {
         let mut config = Config {
             test: Test::default(),
+            honggfuzz: HonggFuzz::default(),
             fuzz: Fuzz::default(),
         };
 
         config
-            .fuzz
+            .honggfuzz
             .env_variables
             .insert(CARGO_TARGET_DIR_ENV.to_owned(), "new_value_x".to_owned());
 
         config
-            .fuzz
+            .honggfuzz
             .env_variables
             .insert(HFUZZ_WORKSPACE_ENV.to_owned(), "new_value_y".to_owned());
 
