@@ -2,7 +2,7 @@
 validator_startup_timeout = 15000
 
 
-[fuzz]
+[honggfuzz]
 # Timeout in seconds (default: 10)
 timeout = 10
 # Number of fuzzing iterations (default: 0 [no limit])
@@ -32,3 +32,7 @@ run_time = 0
 max_file_size = 1048576
 # Save all test-cases (not only the unique ones) by appending the current time-stamp to the filenames (default: false)
 save_all = false
+
+[fuzz]
+# Allow processing of duplicate transactions. Setting to true might speed up fuzzing but can cause false positive crashes (default: false)
+allow_duplicate_txs = false

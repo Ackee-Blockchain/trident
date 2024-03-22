@@ -47,6 +47,7 @@ pub mod fuzzing {
     pub use super::fuzzer::snapshot::Snapshot;
     pub use super::fuzzer::*;
     pub use std::cell::RefCell;
+    pub use std::collections::HashMap;
     pub use trident_derive_displayix::DisplayIx;
     pub use trident_derive_fuzz_deserialize::FuzzDeserialize;
     pub use trident_derive_fuzz_test_executor::FuzzTestExecutor;

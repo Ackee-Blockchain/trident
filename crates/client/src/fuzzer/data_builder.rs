@@ -9,6 +9,7 @@ use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
 use solana_sdk::transaction::VersionedTransaction;
 use std::cell::RefCell;
+use std::collections::HashMap;
 use std::error::Error;
 use std::fmt::Display;
 
@@ -69,19 +70,21 @@ where
 
         #[cfg(fuzzing_debug)]
         {
-            eprintln!("Instructions sequence:");
+            eprintln!("\x1b[34mInstructions sequence\x1b[0m:");
             for ix in self.iter() {
                 eprintln!("{}", ix);
             }
             eprintln!("------ End of Instructions sequence ------ ");
         }
 
+        let mut sent_txs: HashMap<Hash, ()> = HashMap::new();
+
         for fuzz_ix in &mut self.iter() {
             #[cfg(fuzzing_debug)]
-            eprintln!("Currently processing: {}", fuzz_ix);
+            eprintln!("\x1b[34mCurrently processing\x1b[0m: {}", fuzz_ix);
 
             if fuzz_ix
-                .run_fuzzer(program_id, &self.accounts, client)
+                .run_fuzzer(program_id, &self.accounts, client, &mut sent_txs)
                 .is_err()
             {
                 // for now skip following instructions in case of error and move to the next fuzz iteration
@@ -98,6 +101,7 @@ pub trait FuzzTestExecutor<T> {
         program_id: Pubkey,
         accounts: &RefCell<T>,
         client: &mut impl FuzzClient,
+        sent_txs: &mut HashMap<Hash, ()>,
     ) -> core::result::Result<(), FuzzClientErrorWithOrigin>;
 }
 

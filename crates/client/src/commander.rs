@@ -153,7 +153,7 @@ impl Commander {
         // arguments so we need to parse the variable content.
         let hfuzz_run_args = std::env::var("HFUZZ_RUN_ARGS").unwrap_or_default();
 
-        let fuzz_args = config.get_fuzz_args(hfuzz_run_args);
+        let fuzz_args = config.get_honggfuzz_args(hfuzz_run_args);
 
         // let cargo_target_dir = std::env::var("CARGO_TARGET_DIR").unwrap_or_default();
 
@@ -181,10 +181,20 @@ impl Commander {
             }
         }
 
+        let mut rustflags = if config.fuzz.allow_duplicate_txs {
+            "--cfg allow_duplicate_txs "
+        } else {
+            ""
+        }
+        .to_string();
+
+        rustflags.push_str(&std::env::var("RUSTFLAGS").unwrap_or_default());
+
         let mut child = Command::new("cargo")
             .env("HFUZZ_RUN_ARGS", fuzz_args)
             .env("CARGO_TARGET_DIR", cargo_target_dir)
             .env("HFUZZ_WORKSPACE", hfuzz_workspace)
+            .env("RUSTFLAGS", rustflags)
             .arg("hfuzz")
             .arg("run")
             .arg(target)
@@ -226,12 +236,22 @@ impl Commander {
         let hfuzz_workspace = std::env::var("HFUZZ_WORKSPACE")
             .unwrap_or_else(|_| config.get_env_arg("HFUZZ_WORKSPACE"));
 
-        let fuzz_args = config.get_fuzz_args(hfuzz_run_args);
+        let fuzz_args = config.get_honggfuzz_args(hfuzz_run_args);
+
+        let mut rustflags = if config.fuzz.allow_duplicate_txs {
+            "--cfg allow_duplicate_txs "
+        } else {
+            ""
+        }
+        .to_string();
+
+        rustflags.push_str(&std::env::var("RUSTFLAGS").unwrap_or_default());
 
         let mut child = Command::new("cargo")
             .env("HFUZZ_RUN_ARGS", fuzz_args)
             .env("CARGO_TARGET_DIR", cargo_target_dir)
             .env("HFUZZ_WORKSPACE", hfuzz_workspace)
+            .env("RUSTFLAGS", rustflags)
             .arg("hfuzz")
             .arg("run")
             .arg(target)
@@ -266,9 +286,19 @@ impl Commander {
         let cargo_target_dir = std::env::var("CARGO_TARGET_DIR")
             .unwrap_or_else(|_| config.get_env_arg("CARGO_TARGET_DIR"));
 
+        let mut rustflags = if config.fuzz.allow_duplicate_txs {
+            "--cfg allow_duplicate_txs "
+        } else {
+            ""
+        }
+        .to_string();
+
+        rustflags.push_str(&std::env::var("RUSTFLAGS").unwrap_or_default());
+
         // using exec rather than spawn and replacing current process to avoid unflushed terminal output after ctrl+c signal
         std::process::Command::new("cargo")
             .env("CARGO_TARGET_DIR", cargo_target_dir)
+            .env("RUSTFLAGS", rustflags)
             .arg("hfuzz")
             .arg("run-debug")
             .arg(target)
