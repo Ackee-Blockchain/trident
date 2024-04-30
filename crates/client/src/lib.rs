@@ -24,7 +24,8 @@ pub mod fuzzing {
         anchor_lang, anchor_lang::system_program::ID as SYSTEM_PROGRAM_ID,
         anchor_lang::InstructionData, anchor_lang::ToAccountInfo, anchor_lang::ToAccountMetas,
         fuzz_trident, show_account, solana_sdk::account::Account,
-        solana_sdk::transaction::Transaction, Instruction, Keypair, Pubkey, Signer, TempClone,
+        solana_sdk::entrypoint::ProcessInstruction, solana_sdk::transaction::Transaction,
+        Instruction, Keypair, Pubkey, Signer, TempClone,
     };
     pub use anchor_client::anchor_lang::solana_program::account_info::AccountInfo;
     pub use anchor_client::anchor_lang::solana_program::hash::Hash;
@@ -32,8 +33,7 @@ pub mod fuzzing {
     pub use arbitrary;
     pub use arbitrary::Arbitrary;
     pub use honggfuzz::fuzz;
-    // TODO add optional feature gated dependency
-    pub use solana_program_test_anchor_fix::{
+    pub use solana_program_test::{
         processor, tokio::runtime::Runtime, BanksClient, BanksClientError, ProgramTest,
         ProgramTestContext,
     };
@@ -43,6 +43,7 @@ pub mod fuzzing {
     pub use super::fuzzer::data_builder::build_ix_fuzz_data;
     pub use super::fuzzer::data_builder::*;
 
+    pub use super::fuzzer::program_test_client_blocking::ProgramEntry;
     pub use super::fuzzer::program_test_client_blocking::ProgramTestClientBlocking;
     pub use super::fuzzer::snapshot::Snapshot;
     pub use super::fuzzer::*;

@@ -690,7 +690,7 @@ impl TestGenerator {
         let gitignore_path = construct_path!(self.root, GIT_IGNORE);
         if gitignore_path.exists() {
             let file = File::open(&gitignore_path)?;
-            for line in io::BufReader::new(file).lines().flatten() {
+            for line in io::BufReader::new(file).lines().map_while(Result::ok) {
                 if line == ignored_path {
                     // INFO do not add the ignored path again if it is already in the .gitignore file
                     println!("{SKIP} [{GIT_IGNORE}], already contains [{ignored_path}]");
@@ -698,10 +698,7 @@ impl TestGenerator {
                     return;
                 }
             }
-            let file = OpenOptions::new()
-                .write(true)
-                .append(true)
-                .open(gitignore_path);
+            let file = OpenOptions::new().append(true).open(gitignore_path);
 
             if let Ok(mut file) = file {
                 writeln!(file, "{}", ignored_path)?;

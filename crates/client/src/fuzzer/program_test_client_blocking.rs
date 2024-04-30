@@ -2,6 +2,8 @@ use crate::fuzzing::ProgramTest;
 use crate::fuzzing::{ProgramTestContext, SYSTEM_PROGRAM_ID};
 use crate::solana_sdk::account::Account;
 use solana_program_runtime::invoke_context::BuiltinFunctionWithContext;
+use solana_sdk::account_info::AccountInfo;
+use solana_sdk::entrypoint::ProgramResult;
 use solana_sdk::{
     account::AccountSharedData, hash::Hash, instruction::AccountMeta, program_option::COption,
     program_pack::Pack, pubkey::Pubkey, rent::Rent, signature::Keypair, signature::Signer,
@@ -12,6 +14,12 @@ use tokio::runtime::Builder;
 
 use crate::data_builder::FuzzClient;
 use crate::error::*;
+
+pub type ProgramEntry = for<'info> fn(
+    program_id: &Pubkey,
+    accounts: &'info [AccountInfo<'info>],
+    instruction_data: &[u8],
+) -> ProgramResult;
 
 pub struct ProgramTestClientBlocking {
     ctx: ProgramTestContext,
@@ -30,6 +38,26 @@ impl ProgramTestClientBlocking {
         let ctx = rt.block_on(program_test.start_with_context());
         Ok(Self { ctx, rt })
     }
+}
+
+/// Converts Anchor 0.29.0 and higher entrypoint into the runtime's entrypoint style
+///
+/// Starting Anchor 0.29.0 the accounts are passed by reference https://github.com/coral-xyz/anchor/pull/2656
+/// and the lifetime requirements are `accounts: &'a [AccountInfo<'a>]` instead of `accounts: &'a [AccountInfo<'b>]`.
+/// The new requirements require the slice of AccountInfos and the contained Accounts to have the same lifetime but
+/// the previous version is more general. The compiler implies that `'b` must live at least as long as `'a` or longer.
+///
+/// The transaction data is serialized and again deserialized to the `&[AccountInfo<_>]` slice just before invoking
+/// the entry point and the modified account data is copied to the original accounts just after the the entry point.
+/// After that the `&[AccountInfo<_>]` slice goes out of scope entirely and therefore `'a` == `'b`. So it _SHOULD_ be
+/// safe to do this conversion in this testing scenario.
+///
+/// Do not use this conversion in any on-chain programs!
+#[macro_export]
+macro_rules! convert_entry {
+    ($entry:expr) => {
+        unsafe { core::mem::transmute::<ProgramEntry, ProcessInstruction>($entry) }
+    };
 }
 
 impl FuzzClient for ProgramTestClientBlocking {

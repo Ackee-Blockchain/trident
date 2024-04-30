@@ -458,7 +458,7 @@ impl Commander {
     ///   the expanded source code in the command's stdout, along with any stderr output and the exit status.
     fn expand_package(package_name: &str) -> std::io::Result<std::process::Output> {
         std::process::Command::new("cargo")
-            .arg("+nightly-2023-12-28")
+            .arg("+nightly")
             .arg("rustc")
             .args(["--package", package_name])
             .arg("--profile=check")

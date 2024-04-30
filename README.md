@@ -78,9 +78,9 @@ For more detailed information, visit our [documentation](http://127.0.0.1:8000/t
 
 - We support `Anchor` and `Solana` versions specified in the table below.
 
-| Trident CLI |  Anchor   |   Solana  |          Rust          |
+| Trident CLI  |  Anchor   |   Solana  |          Rust          |
 |--------------|:---------:|----------:|:-----------------------|
-| `v0.6.0`     | `~0.29.*` | `<1.18 `  |  `nightly-2023-12-28`  |
+| `v0.6.0`     | `^0.29`   | `^1.17`   |  `nightly`             |
 | `v0.5.0`     | `~0.28.*` | `=1.16.6` |                        |
 | `v0.4.0`     | `~0.27.*` | `>=1.15`  |                        |
 | `v0.3.0`     | `~0.25.*` | `>=1.10`  |                        |
