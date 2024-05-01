@@ -58,7 +58,7 @@ pub fn fuzz_test_executor(input: TokenStream) -> TokenStream {
                                 match tx_result {
                                         Ok(_) => {
                                             #[cfg(fuzzing_with_stats)]
-                                            stats_logger.increase_successfully_invoked(self.to_context_string());
+                                            stats_logger.increase_successful(self.to_context_string());
 
                                             snaphot.capture_after(client).unwrap();
                                             let (acc_before, acc_after) = snaphot.get_snapshot()
@@ -76,7 +76,10 @@ pub fn fuzz_test_executor(input: TokenStream) -> TokenStream {
                                         },
                                         Err(e) => {
                                             #[cfg(fuzzing_with_stats)]
-                                            stats_logger.output_serialized();
+                                            {
+                                                stats_logger.increase_failed(self.to_context_string());
+                                                stats_logger.output_serialized();
+                                            }
                                             let mut raw_accounts = snaphot.get_raw_pre_ix_accounts();
                                             ix.tx_error_handler(e, data, &mut raw_accounts)?
                                         }

@@ -327,28 +327,34 @@ impl Commander {
         let fuzz_end = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false));
         let fuzz_end_clone = std::sync::Arc::clone(&fuzz_end);
 
-        tokio::spawn(async move {
-            let mut stats_logger = FuzzingStatistics::new();
+        let stats_handle: tokio::task::JoinHandle<Result<FuzzingStatistics, std::io::Error>> =
+            tokio::spawn(async move {
+                let mut stats_logger = FuzzingStatistics::new();
 
-            let mut lines = reader.lines();
-            loop {
-                // Why the lock ??
-                // I`m not sure what happens if the fuzzing sessions is still active
-                // however the reader already read all the lines. I think that would bring us
-                // to the scenario where this reading task ends prematurely.
-                if fuzz_end_clone.load(std::sync::atomic::Ordering::SeqCst) {
-                    break;
+                let mut lines = reader.lines();
+                loop {
+                    let _line = lines.next_line().await;
+                    match _line {
+                        Ok(__line) => match __line {
+                            Some(content) => {
+                                stats_logger.insert_serialized(&content);
+                            }
+                            None => {
+                                if fuzz_end_clone.load(std::sync::atomic::Ordering::SeqCst) {
+                                    break;
+                                }
+                            }
+                        },
+                        Err(e) => return Err(e),
+                    }
                 }
-                while let Ok(Some(line)) = lines.next_line().await {
-                    stats_logger.insert_serialized(&line);
-                }
-            }
-            stats_logger.show_table();
-        });
+                Ok(stats_logger)
+            });
 
         tokio::select! {
             res = child.wait() =>{
                 fuzz_end.store(true, std::sync::atomic::Ordering::SeqCst);
+
                 match res {
                     Ok(status) => {
                         if !status.success() {
@@ -359,9 +365,21 @@ impl Commander {
                 }
             },
             _ = signal::ctrl_c() => {
-                tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
                 fuzz_end.store(true, std::sync::atomic::Ordering::SeqCst);
+                tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
+
             },
+        }
+        let stats_result = stats_handle
+            .await
+            .expect("Unable to obtain Statistics Handle");
+        match stats_result {
+            Ok(stats_result) => {
+                stats_result.show_table();
+            }
+            Err(e) => {
+                println!("Statistics thread exited with the Error: {}", e);
+            }
         }
     }
 
