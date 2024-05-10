@@ -1,55 +1,33 @@
 [workspace]
-members = ["crates/cli", "crates/client", "crates/explorer", "crates/test"]
+members = ["crates/cli", "crates/client", "crates/test", "crates/fuzz"]
 exclude = ["examples/"]
 resolver = "1"
 
 
 [workspace.dependencies]
-trident-test                   = { path = "./crates/test", version = "0.3.2" }
-trident-client                 = { path = "./crates/client", version = "0.6.0" }
-trident-explorer               = { path = "./crates/explorer", version = "0.3.2" }
-anchor-client                   = { version=">=0.29.0", features = ["async"]}
-solana-sdk                      = "1.16"
-solana-cli-output               = "1.16"
-solana-transaction-status       = "1.16"
-solana-account-decoder          = "1.16"
-solana-cli-config               = "1.16"
-solana-client                   = "1.16"
-solana-program                  = "1.16"
-solana-logger                   = "1.16"
-solana-vote-program             = "1.16"
-spl-token                       = "4.0.0"
-spl-memo                        = "4.0.0"
-spl-associated-token-account    = "2.0.0"
-tokio                           = { version = "1", default-features = false }
-rand                            = "0.8.5"
-serde_json                      = "1.0.72"
-serde                           = { version = "1.0.136", default-features = false }
-bincode                         = "1.3.3"
-borsh                           = "0.10.3"
-futures                         = "0.3.18"
-fehler                          = { version = "1.0.0", default-features = false }
-thiserror                       = "1.0.30"
-ed25519-dalek                   = "1.0.1"
-serial_test                     = "2.0.0"
-anyhow                          = { version = "1.0.45", features = ["std"], default-features = false }
-cargo_metadata                  = "0.17.0"
-syn                             = { version = "1.0.109", default-features = false }
-quote                           = "1.0.14"
-heck                            = { version = "0.4.0", default-features = false }
-toml                            = { version = "0.5.8", features = ["preserve_order"] }
-log                             = "0.4"
-rstest                          = "0.18.1"
-lazy_static                     = "1.4.0"
-bs58                            = "0.5.0"
-base64                          = "0.13.0"
-pretty-hex                      = "0.3.0"
-console                         = "0.15.0"
-chrono                          = "0.4.19"
-phf                             = { version = "0.11.2", features = ["macros"] }
-num-derive                      = "0.4.0"
-num-traits                      = "0.2.14"
-proc-macro2                     = { version = "1.0.66", default-features = false }
-darling                         = "0.13.1"
-clap                            = { version = "=4.3.19", features = ["derive"] }
-shellexpand                     = "3.1.0"
+# trident crates
+trident-client = { path = "./crates/client", version = "0.6.0" }
+trident-explorer = { path = "./crates/explorer", version = "0.3.2" }
+trident-fuzz-test = { path = "./crates/fuzz", version = "0.1.0" }
+trident-integration-test = { path = "./crates/test/", version = "0.1.0" }
+
+trident-derive-displayix = { path = "./crates/fuzz/derive/display_ix", version = "0.0.1" }
+trident-derive-fuzz-deserialize = { path = "./crates/fuzz/derive/fuzz_deserialize", version = "0.0.1" }
+trident-derive-fuzz-test-executor = { path = "./crates/fuzz/derive/fuzz_test_executor", version = "0.0.1" }
+trident-test = { path = "./crates/test/derive/trident_derive_test", version = "0.3.2" }
+
+# anchor crates
+anchor-lang = { version = "0.29.0", features = ["idl-build", "init-if-needed"] }
+anchor-spl = { version = "0.29.0", features = ["idl-build"] }
+anchor-client = { version = "0.29.0", features = ["async"] }
+anchor-syn = { version = "0.29.0" }
+# solana crates
+solana-sdk = "1.16"
+solana-cli-output = "1.16"
+solana-transaction-status = "1.16"
+solana-account-decoder = "1.16"
+solana-banks-client = "1.16"
+solana-program-runtime = "1.16"
+solana-program-test = "1.16"
+spl-token = "5.0.0"
+spl-associated-token-account = "2.0.0"

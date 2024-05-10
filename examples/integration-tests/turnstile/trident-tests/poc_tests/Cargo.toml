@@ -9,6 +9,7 @@ fehler = "1.0.0"
 
 [dev-dependencies.trident-client]
 path = "../../../../../crates/client"
+features = ["poc-testing"]
 
 [dev-dependencies.program_client]
 path = "../../.program_client"

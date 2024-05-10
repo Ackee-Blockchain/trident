@@ -1,4 +1,4 @@
-use trident_client::DisplayIx;
+use trident_derive_displayix::DisplayIx;
 pub enum FuzzInstruction {
     InitVesting(InitVesting),
     WithdrawUnlocked(WithdrawUnlocked),

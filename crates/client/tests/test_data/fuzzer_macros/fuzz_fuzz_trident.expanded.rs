@@ -1,4 +1,4 @@
-use trident_client::fuzz_trident;
+use trident_client::___private::fuzz_trident;
 fn main() {
     loop {
         fuzz(|fuzz_data| {

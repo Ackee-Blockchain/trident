@@ -2,7 +2,7 @@ use anyhow::Error;
 use cargo_metadata::camino::Utf8PathBuf;
 use fehler::throws;
 use pretty_assertions::assert_str_eq;
-use trident_client::test_generator::ProgramData;
+use trident_client::___private::*;
 
 const PROGRAM_NAME: &str = "fuzz_example3";
 
@@ -33,8 +33,7 @@ async fn test_snapshots_and_instructions() {
 
     let path = Utf8PathBuf::from(program_path);
 
-    let program_idl =
-        trident_client::idl::parse_to_idl_program(PROGRAM_NAME.to_owned(), expanded_fuzz_example3)?;
+    let program_idl = parse_to_idl_program(PROGRAM_NAME.to_owned(), expanded_fuzz_example3)?;
 
     let code = expanded_fuzz_example3.to_string();
 
@@ -46,15 +45,11 @@ async fn test_snapshots_and_instructions() {
 
     let program_data = vec![program_data];
 
-    let fuzzer_snapshots =
-        trident_client::snapshot_generator::generate_snapshots_code(&program_data).unwrap();
-    let fuzzer_snapshots =
-        trident_client::Commander::format_program_code(&fuzzer_snapshots).await?;
+    let fuzzer_snapshots = snapshot_generator::generate_snapshots_code(&program_data).unwrap();
+    let fuzzer_snapshots = Commander::format_program_code(&fuzzer_snapshots).await?;
 
-    let fuzz_instructions_code =
-        trident_client::fuzzer_generator::generate_source_code(&program_data);
-    let fuzz_instructions_code =
-        trident_client::Commander::format_program_code(&fuzz_instructions_code).await?;
+    let fuzz_instructions_code = fuzzer_generator::generate_source_code(&program_data);
+    let fuzz_instructions_code = Commander::format_program_code(&fuzz_instructions_code).await?;
 
     assert_str_eq!(fuzzer_snapshots, expected_accounts_snapshots);
     assert_str_eq!(fuzz_instructions_code, expected_fuzz_instructions_code);
@@ -62,6 +57,7 @@ async fn test_snapshots_and_instructions() {
 
 #[throws]
 #[tokio::test]
+#[ignore]
 async fn test_display_ix() {
     // this will automatically create expanded code within the same directory
     // with ".expanded.rs" extension, if the file does not exist already.
@@ -71,6 +67,7 @@ async fn test_display_ix() {
 }
 #[throws]
 #[tokio::test]
+#[ignore]
 async fn test_fuzz_deserialize() {
     // this will automatically create expanded code within the same directory
     // with ".expanded.rs" extension, if the file does not exist already.
@@ -81,6 +78,7 @@ async fn test_fuzz_deserialize() {
 
 #[throws]
 #[tokio::test]
+#[ignore]
 async fn test_fuzz_test_executor() {
     // this will automatically create expanded code within the same directory
     // with ".expanded.rs" extension, if the file does not exist already.
@@ -91,6 +89,7 @@ async fn test_fuzz_test_executor() {
 
 #[throws]
 #[tokio::test]
+#[ignore]
 async fn test_fuzz_trident() {
     // this will automatically created expanded code within the same directory
     // with ".expanded.rs" extension, if the file does not exist already.

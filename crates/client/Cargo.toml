@@ -12,7 +12,17 @@ fuzzing = [
     "dep:solana-program-test",
     "dep:honggfuzz",
     "quinn-proto/arbitrary",
-    "dep:solana-program-runtime",
+    "dep:arbitrary",
+    "dep:trident-derive-displayix",
+    "dep:trident-derive-fuzz-deserialize",
+    "dep:trident-derive-fuzz-test-executor",
+]
+
+poc-testing = [
+    "dep:trident-test",
+    "dep:solana-transaction-status",
+    "dep:rstest",
+    "dep:serial_test",
 ]
 
 [build-dependencies]
@@ -23,61 +33,49 @@ pretty_assertions = "1.1.0"
 macrotest = "1.0.9"
 
 [dependencies]
-trident-derive-displayix = { path = "./derive/display_ix", version = "0.0.1" }
-trident-derive-fuzz-deserialize = { path = "./derive/fuzz_deserialize", version = "0.0.1" }
-trident-derive-fuzz-test-executor = { path = "./derive/fuzz_test_executor", version = "0.0.1" }
-trident-test = { workspace = true }
+# trident crates
+trident-fuzz-test = { workspace = true }
+trident-integration-test = { workspace = true }
+
+trident-derive-displayix = { workspace = true, optional = true }
+trident-derive-fuzz-deserialize = { workspace = true, optional = true }
+trident-derive-fuzz-test-executor = { workspace = true, optional = true }
+trident-test = { workspace = true, optional = true }
+
+# anchor crates
 # INFO: Anchor-spl is here as dependency only to activate the idl-build feature, so that
 # users do not have to do it manually in their program's Cargo.toml
-anchor-spl = { version = ">=0.29.0", features = ["idl-build"] }
-anchor-lang = { version = ">=0.29.0", features = [
-    "idl-build",
-    "init-if-needed",
-] }
-anchor-syn = { version = ">=0.29.0" }
-solana-sdk = { workspace = true }
-solana-cli-output = { workspace = true }
-solana-transaction-status = { workspace = true }
-solana-account-decoder = { workspace = true }
+anchor-spl = { workspace = true, features = ["idl-build"] }
+anchor-syn = { workspace = true }
+anchor-lang = { workspace = true }
 anchor-client = { workspace = true }
-spl-token = { workspace = true }
-spl-associated-token-account = { workspace = true }
-tokio = { workspace = true }
-rand = { workspace = true }
-serde_json = { workspace = true }
-serde = { workspace = true }
-bincode = { workspace = true }
-borsh = { workspace = true }
-futures = { workspace = true }
-fehler = { workspace = true }
-thiserror = { workspace = true }
-ed25519-dalek = { workspace = true }
-serial_test = { workspace = true }
-anyhow = { workspace = true }
-cargo_metadata = { workspace = true }
-syn = { workspace = true, features = ["visit"] }
-quote = { workspace = true }
-heck = { workspace = true }
-toml = { workspace = true }
-log = { workspace = true }
-rstest = { workspace = true }
-lazy_static = { workspace = true }
-proc-macro2 = { workspace = true }
+# solana crates
+solana-sdk = { workspace = true }
+solana-transaction-status = { workspace = true, optional = true }
+solana-program-test = { workspace = true, optional = true }
+# fuzz
 honggfuzz = { version = "0.5.55", optional = true }
-arbitrary = { version = "1.3.0", features = ["derive"] }
-solana-program-test = { version = "1.16", optional = true }
+arbitrary = { version = "1.3.0", features = ["derive"], optional = true }
 quinn-proto = { version = "0.10.6", optional = true }
-solana-program-runtime = { version = "1.16", optional = true }
-shellexpand = { workspace = true }
+# poc-test
+rstest = { version = "0.18.1", optional = true }
+serial_test = { version = "2.0.0", optional = true }
+
+# misc
+proc-macro2 = { version = "1.0.66", default-features = false }
+tokio = { version = "1", default-features = false }
+serde = { version = "1.0.136", default-features = false }
+borsh = "0.10.3"
+futures = "0.3.18"
+fehler = { version = "1.0.0", default-features = false }
+thiserror = "1.0.30"
+anyhow = { version = "1.0.45", features = ["std"], default-features = false }
+cargo_metadata = "0.17.0"
+syn = { version = "1.0.109", features = ["visit"] }
+quote = "1.0.14"
+heck = { version = "0.4.0", default-features = false }
+toml = { version = "0.5.8", features = ["preserve_order"] }
+log = "0.4"
 pathdiff = "0.2.1"
-solana-banks-client = "1.16"
 indicatif = "0.17.8"
 regex = "1.10.3"
-solana-bpf-loader-program = "1.16"
-
-
-# -----------
-solana-program = "1.16"
-solana-sdk-macro = "1.16"
-solana-system-program = "1.16"
-prettytable = "0.10.0"

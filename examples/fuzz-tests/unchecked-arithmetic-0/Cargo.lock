@@ -6003,8 +6003,6 @@ dependencies = [
  "serial_test",
  "shellexpand",
  "solana-account-decoder",
- "solana-banks-client",
- "solana-bpf-loader-program",
  "solana-cli-output",
  "solana-program",
  "solana-program-runtime",
@@ -6022,6 +6020,7 @@ dependencies = [
  "trident-derive-displayix",
  "trident-derive-fuzz-deserialize",
  "trident-derive-fuzz-test-executor",
+ "trident-fuzz",
  "trident-test",
 ]
 
@@ -6050,6 +6049,21 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 1.0.109",
+]
+
+[[package]]
+name = "trident-fuzz"
+version = "0.1.0"
+dependencies = [
+ "anchor-lang",
+ "arbitrary",
+ "solana-banks-client",
+ "solana-program-runtime",
+ "solana-program-test-anchor-fix",
+ "solana-sdk",
+ "spl-token",
+ "thiserror",
+ "tokio",
 ]
 
 [[package]]

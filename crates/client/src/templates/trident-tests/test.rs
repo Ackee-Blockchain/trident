@@ -1,5 +1,6 @@
 use fehler::throws;
-use trident_client::{anyhow::Result, *};
+use trident_client::prelude::*;
+use trident_client::test::*;
 
 // @todo: create and deploy your fixture
 #[throws]

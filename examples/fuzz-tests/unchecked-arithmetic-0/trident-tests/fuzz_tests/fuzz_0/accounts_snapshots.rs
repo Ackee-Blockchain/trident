@@ -1,5 +1,5 @@
-use trident_client::anchor_lang::{self, prelude::*};
-use trident_client::fuzzing::FuzzingError;
+use anchor_lang::prelude::*;
+use trident_client::fuzzing::{anchor_lang, FuzzingError};
 use unchecked_arithmetic_0::ID as PROGRAM_ID;
 pub struct InitializeSnapshot<'info> {
     pub counter: Option<Account<'info, unchecked_arithmetic_0::Counter>>,

@@ -1,20 +1,34 @@
 [package]
-name = "trident-test"
-version = "0.3.2"
+name = "trident-integration-test"
+version = "0.1.0"
 edition = "2021"
 repository = "https://github.com/Ackee-Blockchain/trident"
 license-file = "../../LICENSE"
 readme = "../../README.md"
-description = "The trident_test crate helps you to write Rust tests for your programs with Trident."
+description = "The Trident crate dedicated to the implementation of Integration Tests logic"
 
-[lib]
-proc-macro = true
-
-[dev-dependencies]
-macrotest = "1"
 
 [dependencies]
-syn             = { workspace = true }
-quote           = { workspace = true }
-proc-macro2     = { workspace = true }
-darling         = { workspace = true }
+# anchor
+anchor-spl = { workspace = true, features = ["idl-build"] }
+anchor-client = { workspace = true }
+anchor-lang = { workspace = true }
+#solana
+spl-token = { workspace = true }
+spl-associated-token-account = { workspace = true }
+solana-transaction-status = { workspace = true }
+solana-account-decoder = { workspace = true }
+solana-cli-output = { workspace = true }
+#misc
+proc-macro2 = { version = "1.0.66", default-features = false }
+fehler = { version = "1.0.0", default-features = false }
+futures = "0.3.18"
+borsh = "0.10.3"
+serde = { version = "1.0.136", default-features = false }
+log = "0.4"
+tokio = { version = "1", default-features = false }
+ed25519-dalek = "1.0.1"
+thiserror = "1.0.30"
+serde_json = "1.0.72"
+shellexpand = "3.1.0"
+bincode = "1.3.3"

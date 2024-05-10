@@ -1,5 +1,5 @@
-use trident_client::anchor_lang::{self, prelude::*};
-use trident_client::fuzzing::FuzzingError;
+use anchor_lang::prelude::*;
+use trident_client::fuzzing::{anchor_lang, FuzzingError};
 use unauthorized_access_2::ID as PROGRAM_ID;
 pub struct InitializeSnapshot<'info> {
     pub author: Signer<'info>,

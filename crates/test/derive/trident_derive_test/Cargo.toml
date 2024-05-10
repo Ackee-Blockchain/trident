@@ -1,0 +1,18 @@
+[package]
+name = "trident-test"
+version = "0.3.2"
+edition = "2021"
+repository = "https://github.com/Ackee-Blockchain/trident"
+license-file = "../../LICENSE"
+readme = "../../README.md"
+description = "The trident_test crate helps you to write Rust tests for your programs with Trident."
+
+
+[lib]
+proc-macro = true
+
+[dependencies]
+darling = "0.13.1"
+syn = { version = "1.0.109", default-features = false }
+quote = "1.0.14"
+macrotest = "1.0.9"

@@ -1,4 +1,4 @@
-use trident_client::FuzzDeserialize;
+use trident_derive_fuzz_deserialize::FuzzDeserialize;
 pub enum FuzzInstruction {
     InitVesting(InitVesting),
     WithdrawUnlocked(WithdrawUnlocked),

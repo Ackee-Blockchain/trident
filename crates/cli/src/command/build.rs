@@ -1,6 +1,6 @@
 use anyhow::{bail, Error};
 use fehler::throws;
-use trident_client::*;
+use trident_client::___private::*;
 
 use crate::_discover;
 

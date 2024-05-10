@@ -1,4 +1,4 @@
-use trident_client::FuzzTestExecutor;
+use trident_derive_fuzz_test_executor::FuzzTestExecutor;
 #[derive(FuzzTestExecutor)]
 pub enum FuzzInstruction {
     InitVesting(InitVesting),

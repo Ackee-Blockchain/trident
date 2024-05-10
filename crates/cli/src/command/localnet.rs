@@ -1,7 +1,7 @@
 use anyhow::Error;
 use fehler::throws;
 use tokio::signal;
-use trident_client::*;
+use trident_client::___private::*;
 
 #[throws]
 pub async fn localnet() {

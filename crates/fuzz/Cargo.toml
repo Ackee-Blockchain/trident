@@ -1,0 +1,26 @@
+[package]
+name = "trident-fuzz-test"
+version = "0.1.0"
+edition = "2021"
+repository = "https://github.com/Ackee-Blockchain/trident"
+license-file = "../../LICENSE"
+readme = "../../README.md"
+description = "The Trident crate dedicated to the implementation of Fuzz Tests logic"
+
+
+[dependencies]
+# solana related
+solana-sdk = { workspace = true }
+solana-banks-client = { workspace = true }
+solana-program-runtime = { workspace = true }
+solana-program-test = { workspace = true }
+# anchor related
+anchor-lang = { workspace = true }
+anchor-spl = { workspace = true }
+# misc
+arbitrary = { version = "1.3.0", features = ["derive"] }
+thiserror = "1.0.30"
+tokio = { version = "1", default-features = false }
+prettytable = "0.10.0"
+serde = { version = "1.0.136", default-features = false }
+serde_json = "1.0.72"

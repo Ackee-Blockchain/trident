@@ -7,7 +7,6 @@ use fehler::throws;
 // subcommand functions to call and nested subcommands
 mod command;
 // bring nested subcommand enums into scope
-use command::ExplorerCommand;
 use command::FuzzCommand;
 
 use command::KeyPairCommand;
@@ -48,11 +47,6 @@ enum Command {
     },
     /// Run local test validator
     Localnet,
-    /// The Hacker's Explorer
-    Explorer {
-        #[clap(subcommand)]
-        subcmd: ExplorerCommand,
-    },
     /// Initialize test environment
     Init {
         /// Specifies the types of tests for which the frameworks should be initialized.
@@ -73,7 +67,6 @@ pub async fn start() {
         Command::Test { root } => command::test(root).await?,
         Command::Fuzz { root, subcmd } => command::fuzz(root, subcmd).await?,
         Command::Localnet => command::localnet().await?,
-        Command::Explorer { subcmd } => command::explorer(subcmd).await?,
         Command::Init { tests_type } => command::init(tests_type).await?,
         Command::Clean => command::clean().await?,
     }

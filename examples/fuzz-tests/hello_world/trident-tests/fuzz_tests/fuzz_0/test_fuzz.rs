@@ -2,7 +2,7 @@ use fuzz_instructions::hello_world_fuzz_instructions::FuzzInstruction;
 use fuzz_instructions::hello_world_fuzz_instructions::Initialize;
 use hello_world::entry;
 use hello_world::ID as PROGRAM_ID;
-use trident_client::{convert_entry, fuzz_trident, fuzzing::*};
+use trident_client::fuzzing::*;
 mod accounts_snapshots;
 mod fuzz_instructions;
 

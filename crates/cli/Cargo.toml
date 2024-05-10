@@ -8,10 +8,9 @@ readme = "../../README.md"
 description = "Trident is Rust based testing framework providing several convenient developer tools for testing Solana programs written in Anchor."
 
 [dependencies]
-clap                = { workspace = true }
-tokio               = { workspace = true }
-anyhow              = { workspace = true }
-fehler              = { workspace = true }
-solana-sdk          = { workspace = true }
-trident-client     = { workspace = true }
-trident-explorer   = { workspace = true }
+clap = { version = "=4.3.19", features = ["derive"] }
+tokio = { version = "1", default-features = false }
+anyhow = { version = "1.0.45", features = ["std"], default-features = false }
+fehler = { version = "1.0.0", default-features = false }
+solana-sdk = { workspace = true }
+trident-client = { workspace = true }

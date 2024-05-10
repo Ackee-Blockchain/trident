@@ -1,9 +1,7 @@
 use crate::config::Config;
-use crate::test_generator::ProgramData;
-use crate::{
-    idl::{self},
-    Client,
-};
+use crate::generators::test_generator::ProgramData;
+use crate::idl;
+
 use fehler::{throw, throws};
 use log::debug;
 use solana_sdk::signer::keypair::Keypair;
@@ -17,10 +15,11 @@ use tokio::{
     process::{Child, Command},
     signal,
 };
+use trident_integration_test::client::Client;
 
 use crate::constants::*;
-use crate::fuzzing_stats::FuzzingStatistics;
 use tokio::io::AsyncBufReadExt;
+use trident_fuzz_test::fuzzing_stats::FuzzingStatistics;
 
 #[derive(Error, Debug)]
 pub enum Error {

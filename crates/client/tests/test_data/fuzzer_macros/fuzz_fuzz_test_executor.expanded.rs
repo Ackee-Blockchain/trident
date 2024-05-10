@@ -1,4 +1,9 @@
-use trident_client::FuzzTestExecutor;
+#![feature(prelude_import)]
+#[prelude_import]
+use std::prelude::rust_2021::*;
+#[macro_use]
+extern crate std;
+use trident_derive_fuzz_test_executor::FuzzTestExecutor;
 pub enum FuzzInstruction {
     InitVesting(InitVesting),
     WithdrawUnlocked(WithdrawUnlocked),
