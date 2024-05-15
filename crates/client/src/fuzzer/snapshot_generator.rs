@@ -5,7 +5,7 @@
 use std::collections::HashMap;
 use std::{error::Error, fs::File, io::Read};
 
-use anchor_lang::anchor_syn::{AccountField, Ty};
+use anchor_syn::{AccountField, Ty};
 use heck::ToUpperCamelCase;
 use proc_macro2::{Ident, Span, TokenStream};
 use quote::{format_ident, quote, ToTokens};
@@ -13,7 +13,7 @@ use syn::parse::{Error as ParseError, Result as ParseResult};
 use syn::spanned::Spanned;
 use syn::{parse_quote, Attribute, Fields, GenericArgument, Item, ItemStruct, PathArguments, Type};
 
-use anchor_lang::anchor_syn::parser::accounts::parse_account_field;
+use anchor_syn::parser::accounts::parse_account_field;
 
 use regex::Regex;
 
@@ -211,7 +211,7 @@ fn find_ctx_struct<'a>(items: &'a Vec<syn::Item>, name: &'a syn::Ident) -> Optio
     None
 }
 
-fn is_boxed(ty: &anchor_lang::anchor_syn::Ty) -> bool {
+fn is_boxed(ty: &anchor_syn::Ty) -> bool {
     match ty {
         Ty::Account(acc) => acc.boxed,
         Ty::InterfaceAccount(acc) => acc.boxed,
@@ -402,18 +402,18 @@ fn deserialize_ctx_struct_anchor(
 }
 
 /// Get the identifier (name) of the passed sysvar type.
-fn sysvar_to_ident(sysvar: &anchor_lang::anchor_syn::SysvarTy) -> String {
+fn sysvar_to_ident(sysvar: &anchor_syn::SysvarTy) -> String {
     let str = match sysvar {
-        anchor_lang::anchor_syn::SysvarTy::Clock => "Clock",
-        anchor_lang::anchor_syn::SysvarTy::Rent => "Rent",
-        anchor_lang::anchor_syn::SysvarTy::EpochSchedule => "EpochSchedule",
-        anchor_lang::anchor_syn::SysvarTy::Fees => "Fees",
-        anchor_lang::anchor_syn::SysvarTy::RecentBlockhashes => "RecentBlockhashes",
-        anchor_lang::anchor_syn::SysvarTy::SlotHashes => "SlotHashes",
-        anchor_lang::anchor_syn::SysvarTy::SlotHistory => "SlotHistory",
-        anchor_lang::anchor_syn::SysvarTy::StakeHistory => "StakeHistory",
-        anchor_lang::anchor_syn::SysvarTy::Instructions => "Instructions",
-        anchor_lang::anchor_syn::SysvarTy::Rewards => "Rewards",
+        anchor_syn::SysvarTy::Clock => "Clock",
+        anchor_syn::SysvarTy::Rent => "Rent",
+        anchor_syn::SysvarTy::EpochSchedule => "EpochSchedule",
+        anchor_syn::SysvarTy::Fees => "Fees",
+        anchor_syn::SysvarTy::RecentBlockhashes => "RecentBlockhashes",
+        anchor_syn::SysvarTy::SlotHashes => "SlotHashes",
+        anchor_syn::SysvarTy::SlotHistory => "SlotHistory",
+        anchor_syn::SysvarTy::StakeHistory => "StakeHistory",
+        anchor_syn::SysvarTy::Instructions => "Instructions",
+        anchor_syn::SysvarTy::Rewards => "Rewards",
     };
     str.into()
 }
@@ -421,7 +421,7 @@ fn sysvar_to_ident(sysvar: &anchor_lang::anchor_syn::SysvarTy) -> String {
 /// Converts passed account type to token streams. The function returns a pair of streams where the first
 /// variable in the pair is the type itself and the second is a fully qualified function to deserialize
 /// the given type.
-pub fn ty_to_tokens(ty: &anchor_lang::anchor_syn::Ty) -> Option<(TokenStream, TokenStream)> {
+pub fn ty_to_tokens(ty: &anchor_syn::Ty) -> Option<(TokenStream, TokenStream)> {
     let (return_type, deser_method) = match ty {
         Ty::AccountInfo | Ty::UncheckedAccount => return None,
         Ty::SystemAccount => (
