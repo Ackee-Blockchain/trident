@@ -5993,6 +5993,7 @@ dependencies = [
  "anchor-client",
  "anchor-lang",
  "anchor-spl",
+ "anchor-syn",
  "anyhow",
  "arbitrary",
  "bincode",
