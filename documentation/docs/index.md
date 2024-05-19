@@ -23,7 +23,7 @@ Trident is a Rust-based testing framework providing several convenient developer
 - [X] Q3/23 {{ config.site_name }} fuzz introduced at Solana Hacker House Berlin.
 - [X] Q1/24 {{ config.site_name }} ProgramTest client implemented for fuzz tests.
 - [X] Q1/24 {{ config.site_name }} Fuzz support for all Anchor Account types.
-- [X] Q1/24 {{ config.site_name }} Support for Anchor 0.29.0 and Solana < 1.18.
+- [X] Q1/24 {{ config.site_name }} Support for Anchor 0.30.0.
 - [ ] Q2/24 {{ config.site_name }} Light-Client for fuzz tests.
 
 
