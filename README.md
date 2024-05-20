@@ -53,10 +53,10 @@
 
 ## Documentation
 
-For documentation and guides, visit [ackee.xyz/trident/docs](https://ackee.xyz/trident/docs/latest/).
+For documentation and guides, visit [ackee.xyz/trident/docs](https://ackee.xyz/trident/docs/).
 
 ## Prerequisites
-Check [Supported versions](https://ackee.xyz/trident/docs/latest/home/home-installation/) section for further details.
+Check [Supported versions](https://ackee.xyz/trident/docs/home/home-installation/#supported-versions) section for further details.
 - Install [Rust](https://www.rust-lang.org/tools/install)
 - Install [Solana tool suite](https://docs.solana.com/cli/install-solana-cli-tools)
 - Install [Anchor](https://www.anchor-lang.com/docs/installation)
