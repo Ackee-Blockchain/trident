@@ -1,11 +1,11 @@
 [package]
-name = "trdelnik-cli"
-version = "0.5.0"
+name = "trident-cli"
+version = "0.6.0"
 edition = "2021"
-repository = "https://github.com/Ackee-Blockchain/trdelnik"
+repository = "https://github.com/Ackee-Blockchain/trident"
 license-file = "../../LICENSE"
 readme = "../../README.md"
-description = "Trdelník is Rust based testing framework providing several convenient developer tools for testing Solana programs written in Anchor."
+description = "Trident is Rust based testing framework providing several convenient developer tools for testing Solana programs written in Anchor."
 
 [dependencies]
 clap                = { workspace = true }
@@ -13,5 +13,5 @@ tokio               = { workspace = true }
 anyhow              = { workspace = true }
 fehler              = { workspace = true }
 solana-sdk          = { workspace = true }
-trdelnik-client     = { workspace = true }
-trdelnik-explorer   = { workspace = true }
+trident-client     = { workspace = true }
+trident-explorer   = { workspace = true }

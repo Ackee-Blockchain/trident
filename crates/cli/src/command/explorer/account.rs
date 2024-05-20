@@ -1,7 +1,7 @@
 use anyhow::Error;
 use fehler::throws;
 use solana_sdk::pubkey::Pubkey;
-use trdelnik_explorer::{
+use trident_explorer::{
     account::AccountFieldVisibility, config::ExplorerConfig, display::DisplayFormat,
     output::print_account,
 };

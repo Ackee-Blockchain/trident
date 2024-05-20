@@ -1,8 +1,8 @@
 # Contributing
 
-Welcome and thank you for considering contributing to Trdelnik open source!
+Welcome and thank you for considering contributing to Trident open source!
 
-Reading and following these guidelines will help us make the contribution process easy and effective for everyone involved. It also communicates that you agree to respect the time of developers managing and developing the Trdelnik project. In return, we will reciprocate that respect by addressing your issue, assessing changes and helping you finalize your PRs.
+Reading and following these guidelines will help us make the contribution process easy and effective for everyone involved. It also communicates that you agree to respect the time of developers managing and developing the Trident project. In return, we will reciprocate that respect by addressing your issue, assessing changes and helping you finalize your PRs.
 
 ## Table of Contents
 
@@ -35,7 +35,7 @@ So, to wrap it up:
 - Search for an existing issue before you create your own
 - Create an issue before you create a new PR
 - Describe your problems or needs as good as you can
-- If you are reporting a bug, do not forget to add steps to reproduce, versions (Rust and Trdelnik), a full error message, or describe the bad behaviour that happened
+- If you are reporting a bug, do not forget to add steps to reproduce, versions (Rust and Trident), a full error message, or describe the bad behaviour that happened
 - If possible, do your own investigation and describe how to fix the problem / what is the problem / how to implement it or improve it
 
 ### PRs
@@ -63,7 +63,7 @@ In general, we follow the [Fork-and-pull Git workflow](https://github.com/susam/
 So, to wrap it up:
 
 - Follow our naming and commit conventions
-  - Use the emojis from [gitmoji](https://gitmoji.dev/) at the beginning of the commit message, [see our commit messages](https://github.com/Ackee-Blockchain/trdelnik/commits/master)
+  - Use the emojis from [gitmoji](https://gitmoji.dev/) at the beginning of the commit message, [see our commit messages](https://github.com/Ackee-Blockchain/trident/commits/master)
   - Add link to the issue at the end of the commit message
   - For example: `✨ split test command into build and test - #1, #2`
 - Do not modify files that are not related to the issue you are working on

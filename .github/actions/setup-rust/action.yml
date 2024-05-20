@@ -17,6 +17,9 @@ runs:
         rustup default nightly
         rustup component add rustfmt clippy
       shell: bash
+    - name: Install Cargo Expand
+      run: cargo install --locked cargo-expand
+      shell: bash
     - name: Get rustc version
       id: rust-version
       run: echo "::set-output name=RUSTC_HASH::$(rustc -V | cut -d " " -f 3 | tail -c +2)"

@@ -2,7 +2,7 @@ use anyhow::Error;
 use clap::Subcommand;
 use fehler::throws;
 use solana_sdk::{pubkey::Pubkey, signature::Signature};
-use trdelnik_explorer::display::DisplayFormat;
+use trident_explorer::display::DisplayFormat;
 
 mod account;
 mod program;

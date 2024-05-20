@@ -94,11 +94,18 @@
 //! }
 //! ```
 
+use crate::constants::*;
 use heck::{ToSnakeCase, ToUpperCamelCase};
 use quote::ToTokens;
+use syn::{visit::Visit, File};
 use thiserror::Error;
 
-static ACCOUNT_MOD_PREFIX: &str = "__client_accounts_";
+const ACCOUNT_MOD_PREFIX: &str = "__client_accounts_";
+const MOD_PRIVATE: &str = "__private";
+const MOD_INSTRUCTION: &str = "instruction";
+const MOD_GLOBAL: &str = "__global";
+const ID_IDENT: &str = "ID";
+const ACCOUNTS_IDENT: &str = "__accounts";
 
 #[derive(Error, Debug)]
 pub enum Error {
@@ -108,50 +115,124 @@ pub enum Error {
     MissingOrInvalidProgramItems(&'static str),
 }
 
-#[derive(Debug)]
+struct ModPub {
+    pub mod_name: String,
+    pub is_pub: bool,
+}
+
+struct FullPathFinder {
+    target_item_name: String,
+    current_module: String,
+    found_path: Option<String>,
+    module_pub: Vec<ModPub>,
+}
+
+pub fn find_item_path(target_item_name: &str, syn_file: &File) -> Option<String> {
+    let mut finder = FullPathFinder {
+        target_item_name: target_item_name.to_string(),
+        current_module: "".to_string(),
+        found_path: None,
+        module_pub: vec![],
+    };
+    finder.visit_file(syn_file);
+    finder.found_path
+}
+
+impl<'ast> syn::visit::Visit<'ast> for FullPathFinder {
+    fn visit_item(&mut self, item: &'ast syn::Item) {
+        if let Some(_found_path) = &self.found_path {
+            return;
+        }
+
+        // INFO this will only look for enum or struct
+        match item {
+            syn::Item::Enum(syn::ItemEnum { ident, .. })
+            | syn::Item::Struct(syn::ItemStruct { ident, .. }) => {
+                if *ident == self.target_item_name {
+                    // Found the target item, construct the full path.
+                    self.found_path = Some(format!("{}::{}", self.current_module, ident));
+                    for x in &self.module_pub {
+                        if !x.is_pub {
+                            println!(
+                                "{WARNING} {} is private. Prefix with pub to access via fully qualified path of {}",
+                                x.mod_name,ident
+                            );
+                        }
+                    }
+                    return;
+                }
+            }
+
+            _ => {}
+        }
+
+        syn::visit::visit_item(self, item);
+    }
+
+    fn visit_item_mod(&mut self, module: &'ast syn::ItemMod) {
+        let old_module = self.current_module.clone();
+        self.current_module = format!("{}::{}", self.current_module, module.ident);
+
+        let is_pub = matches!(module.vis, syn::Visibility::Public(_));
+
+        self.module_pub.push(ModPub {
+            mod_name: module.ident.to_string(),
+            is_pub,
+        });
+
+        syn::visit::visit_item_mod(self, module);
+
+        self.module_pub.pop();
+        self.current_module = old_module;
+    }
+}
+
+#[derive(Debug, Default)]
 pub struct Idl {
     pub programs: Vec<IdlProgram>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct IdlName {
     pub snake_case: String,
     pub upper_camel_case: String,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct IdlProgram {
     pub name: IdlName,
     pub id: String,
     pub instruction_account_pairs: Vec<(IdlInstruction, IdlAccountGroup)>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct IdlInstruction {
     pub name: IdlName,
     pub parameters: Vec<(String, String)>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct IdlAccountGroup {
     pub name: IdlName,
     pub accounts: Vec<(String, String)>,
 }
 
-pub async fn parse_to_idl_program(name: String, code: &str) -> Result<IdlProgram, Error> {
+pub fn parse_to_idl_program(name: String, code: &str) -> Result<IdlProgram, Error> {
     let mut static_program_id = None::<syn::ItemStatic>;
     let mut mod_private = None::<syn::ItemMod>;
     let mut mod_instruction = None::<syn::ItemMod>;
     let mut account_mods = Vec::<syn::ItemMod>::new();
 
-    for item in syn::parse_file(code)?.items.into_iter() {
+    let syn_file = syn::parse_file(code)?;
+
+    for item in syn_file.items.iter() {
         match item {
-            syn::Item::Static(item_static) if item_static.ident == "ID" => {
-                static_program_id = Some(item_static);
+            syn::Item::Static(item_static) if item_static.ident == ID_IDENT => {
+                static_program_id = Some(item_static.clone());
             }
             syn::Item::Mod(item_mod) => match item_mod.ident.to_string().as_str() {
-                "__private" => mod_private = Some(item_mod),
-                "instruction" => mod_instruction = Some(item_mod),
+                MOD_PRIVATE => mod_private = Some(item_mod.clone()),
+                MOD_INSTRUCTION => mod_instruction = Some(item_mod.clone()),
                 _ => set_account_modules(&mut account_mods, item_mod),
             },
             _ => (),
@@ -167,27 +248,19 @@ pub async fn parse_to_idl_program(name: String, code: &str) -> Result<IdlProgram
     ))?;
 
     // ------ get program id ------
-
+    // Obtain Program ID
+    //
     // input example:
+    //
     // ```
+    //
     // pub static ID: anchor_lang::solana_program::pubkey::Pubkey =
-    //     anchor_lang::solana_program::pubkey::Pubkey::new_from_array([216u8, 55u8,
-    //                                                                  200u8, 93u8,
-    //                                                                  189u8, 81u8,
-    //                                                                  94u8, 109u8,
-    //                                                                  14u8, 249u8,
-    //                                                                  244u8, 106u8,
-    //                                                                  68u8, 214u8,
-    //                                                                  222u8, 190u8,
-    //                                                                  9u8, 25u8,
-    //                                                                  199u8, 75u8,
-    //                                                                  79u8, 230u8,
-    //                                                                  94u8, 137u8,
-    //                                                                  51u8, 187u8,
-    //                                                                  193u8, 48u8,
-    //                                                                  87u8, 222u8,
-    //                                                                  175u8,
-    //                                                                  163u8]);
+    // anchor_lang::solana_program::pubkey::Pubkey::new_from_array([
+    //     222u8, 219u8, 96u8, 222u8, 150u8, 129u8, 32u8, 71u8, 184u8, 221u8, 54u8, 221u8, 224u8,
+    //     97u8, 103u8, 133u8, 11u8, 126u8, 234u8, 11u8, 186u8, 25u8, 119u8, 161u8, 48u8, 137u8, 77u8,
+    //     249u8, 144u8, 153u8, 133u8, 92u8,
+    // ]);
+    //
     // ```
 
     let program_id_bytes = {
@@ -210,27 +283,63 @@ pub async fn parse_to_idl_program(name: String, code: &str) -> Result<IdlProgram
     };
 
     // ------ get instruction_item_fns ------
-
+    // Obtain Instructions as whole, parse at next step
+    //
     // input example:
+    //
     // ```
+    //
     // mod __private {
+    //     use super::*;
+    //     #[doc = r" __global mod defines wrapped handlers for global instructions."]
     //     pub mod __global {
     //         use super::*;
     //         #[inline(never)]
-    //         pub fn initialize(program_id: &Pubkey, accounts: &[AccountInfo],
-    //                           ix_data: &[u8]) -> ProgramResult {
-    //             let ix =
-    //                 instruction::Initialize::deserialize(&mut &ix_data[..]).map_err(|_|
-    //                                                                                     anchor_lang::__private::ErrorCode::InstructionDidNotDeserialize)?;
-    //             let instruction::Initialize = ix;
-    //             let mut remaining_accounts: &[AccountInfo] = accounts;
-    //             let mut accounts =
-    //                 Initialize::try_accounts(program_id, &mut remaining_accounts,
-    //                                          ix_data)?;
-    //             turnstile::initialize(Context::new(program_id, &mut accounts,
-    //                                                remaining_accounts))?;
-    //             accounts.exit(program_id)
+    //         pub fn init_vesting(
+    //             __program_id: &Pubkey,
+    //             __accounts: &[AccountInfo],
+    //             __ix_data: &[u8],
+    //         ) -> anchor_lang::Result<()> {
+    //             ::solana_program::log::sol_log("Instruction: InitVesting");
+    //             let ix = instruction::InitVesting::deserialize(&mut &__ix_data[..])
+    //                 .map_err(|_| anchor_lang::error::ErrorCode::InstructionDidNotDeserialize)?;
+    //             let instruction::InitVesting {
+    //                 recipient,
+    //                 amount,
+    //                 start_at,
+    //                 end_at,
+    //                 interval,
+    //                 input_option,
+    //             } = ix;
+    //             let mut __bumps = std::collections::BTreeMap::new();
+    //             let mut __reallocs = std::collections::BTreeSet::new();
+    //             let mut __remaining_accounts: &[AccountInfo] = __accounts;
+    //             let mut __accounts = InitVesting::try_accounts(
+    //                 __program_id,
+    //                 &mut __remaining_accounts,
+    //                 __ix_data,
+    //                 &mut __bumps,
+    //                 &mut __reallocs,
+    //             )?;
+    //             let result = fuzz_example3::init_vesting(
+    //                 anchor_lang::context::Context::new(
+    //                     __program_id,
+    //                     &mut __accounts,
+    //                     __remaining_accounts,
+    //                     __bumps,
+    //                 ),
+    //                 recipient,
+    //                 amount,
+    //                 start_at,
+    //                 end_at,
+    //                 interval,
+    //                 input_option,
+    //             )?;
+    //             __accounts.exit(__program_id)
     //         }
+    //     }
+    // }
+    //
     // ```
 
     let instruction_item_fns = {
@@ -241,7 +350,7 @@ pub async fn parse_to_idl_program(name: String, code: &str) -> Result<IdlProgram
         let item_mod_global = items
             .into_iter()
             .find_map(|item| match item {
-                syn::Item::Mod(item_mod) if item_mod.ident == "__global" => Some(item_mod),
+                syn::Item::Mod(item_mod) if item_mod.ident == MOD_GLOBAL => Some(item_mod),
                 _ => None?,
             })
             .ok_or(Error::MissingOrInvalidProgramItems(
@@ -258,23 +367,64 @@ pub async fn parse_to_idl_program(name: String, code: &str) -> Result<IdlProgram
     };
 
     // ------ get instruction + account group names ------
-
+    // This will obtain:
+    // IdlInstruction
+    //      - name
+    //      - empty parameters vector
+    // IdlAccountGroup (Which is actually Context from Anchor perspective)
+    //      - name
+    //      - empty accounts vector
     // input example:
+    //
     // ```
-    //         pub fn initialize(program_id: &Pubkey, accounts: &[AccountInfo],
-    //                           ix_data: &[u8]) -> ProgramResult {
-    //             let ix =
-    //                 instruction::Initialize::deserialize(&mut &ix_data[..]).map_err(|_|
-    //                                                                                     anchor_lang::__private::ErrorCode::InstructionDidNotDeserialize)?;
-    //             let instruction::Initialize = ix;
-    //             let mut remaining_accounts: &[AccountInfo] = accounts;
-    //             let mut accounts =
-    //                 Initialize::try_accounts(program_id, &mut remaining_accounts,
-    //                                          ix_data)?;
-    //             turnstile::initialize(Context::new(program_id, &mut accounts,
-    //                                                remaining_accounts))?;
-    //             accounts.exit(program_id)
+    //
+    //         pub fn init_vesting(
+    //             __program_id: &Pubkey,
+    //             __accounts: &[AccountInfo],
+    //             __ix_data: &[u8],
+    //         ) -> anchor_lang::Result<()> {
+    //             ::solana_program::log::sol_log("Instruction: InitVesting");
+    //             let ix = instruction::InitVesting::deserialize(&mut &__ix_data[..])
+    //                 .map_err(|_| anchor_lang::error::ErrorCode::InstructionDidNotDeserialize)?;
+    //             let instruction::InitVesting {
+    //                 recipient,
+    //                 amount,
+    //                 start_at,
+    //                 end_at,
+    //                 interval,
+    //                 input_option,
+    //             } = ix;
+    //             let mut __bumps = std::collections::BTreeMap::new();
+    //             let mut __reallocs = std::collections::BTreeSet::new();
+    //             let mut __remaining_accounts: &[AccountInfo] = __accounts;
+    //
+    // *** we are looking for this part ***
+    //
+    //             let mut __accounts = InitVesting::try_accounts(
+    //                 __program_id,
+    //                 &mut __remaining_accounts,
+    //                 __ix_data,
+    //                 &mut __bumps,
+    //                 &mut __reallocs,
+    //             )?;
+    // *************************************
+    //             let result = fuzz_example3::init_vesting(
+    //                 anchor_lang::context::Context::new(
+    //                     __program_id,
+    //                     &mut __accounts,
+    //                     __remaining_accounts,
+    //                     __bumps,
+    //                 ),
+    //                 recipient,
+    //                 amount,
+    //                 start_at,
+    //                 end_at,
+    //                 interval,
+    //                 input_option,
+    //             )?;
+    //             __accounts.exit(__program_id)
     //         }
+    //
     // ```
 
     let mut instruction_account_pairs = Vec::new();
@@ -283,29 +433,29 @@ pub async fn parse_to_idl_program(name: String, code: &str) -> Result<IdlProgram
         .map(|item_fn| {
             // stmt example: `let mut accounts = UpdateState::try_accounts(program_id, &mut remaining_accounts, ix_data)?;`
             let account_group_name = item_fn.block.stmts.into_iter().find_map(|stmt| {
-            let local = if let syn::Stmt::Local(local) = stmt {
-                local
-            } else {
-                None?
-            };
-            if !matches!(&local.pat, syn::Pat::Ident(pat_ident) if pat_ident.ident == "__accounts") {
-                None?
-            }
-            let init_expr = *local.init?.1;
-            let expr_try_expr = match init_expr {
-                syn::Expr::Try(expr_try) => *expr_try.expr,
-                _ => None?
-            };
-            let expr_call_func = match expr_try_expr {
-                syn::Expr::Call(expr_call) => *expr_call.func,
-                _ => None?
-            };
-            let account_group_name = match expr_call_func {
-                syn::Expr::Path(expr_path) => expr_path.path.segments.into_iter().next()?.ident,
-                _ => None?
-            };
-            Some(account_group_name.to_string())
-        })?;
+                let local = if let syn::Stmt::Local(local) = stmt {
+                    local
+                } else {
+                    None?
+                };
+                if !matches!(&local.pat, syn::Pat::Ident(pat_ident) if pat_ident.ident == ACCOUNTS_IDENT) {
+                    None?
+                }
+                let init_expr = *local.init?.1;
+                let expr_try_expr = match init_expr {
+                    syn::Expr::Try(expr_try) => *expr_try.expr,
+                    _ => None?,
+                };
+                let expr_call_func = match expr_try_expr {
+                    syn::Expr::Call(expr_call) => *expr_call.func,
+                    _ => None?,
+                };
+                let account_group_name = match expr_call_func {
+                    syn::Expr::Path(expr_path) => expr_path.path.segments.into_iter().next()?.ident,
+                    _ => None?,
+                };
+                Some(account_group_name.to_string())
+            })?;
 
             let instruction_name = item_fn.sig.ident.to_string();
             let idl_instruction = IdlInstruction {
@@ -336,20 +486,35 @@ pub async fn parse_to_idl_program(name: String, code: &str) -> Result<IdlProgram
         })?;
 
     // ------ get instruction parameters ------
-
+    // This will obtain input parameters for every instruction
+    // For custom types such as Struct or Enum, which can be also at instruction
+    // input, we look for fully qualified path such as:
+    // fuzz_example3::instructions::initialize::CustomInputOption
+    //
     // input example:
+    //
     // ```
+    //
     // pub mod instruction {
     //     use super::*;
-    //     pub mod state {
-    //         use super::*;
+    //     #[doc = r" Instruction."]
+    //     pub struct InitVesting {
+    //         pub recipient: Pubkey,
+    //         pub amount: u64,
+    //         pub start_at: u64,
+    //         pub end_at: u64,
+    //         pub interval: u64,
+    //         pub input_option: CustomInputOption,
     //     }
-    // // **
-    //     pub struct Initialize;
-    // // **
-    //     pub struct Coin {
-    //         pub dummy_arg: String,
-    //     }
+    //      ...
+    //      ...
+    //      ...
+    //      pub struct WithdrawUnlocked;
+    //      ...
+    //      ...
+    //      ...
+    // }
+    //
     // ```
 
     let mut instruction_mod_items = mod_instruction
@@ -386,23 +551,47 @@ pub async fn parse_to_idl_program(name: String, code: &str) -> Result<IdlProgram
             .map(|field| {
                 let parameter_name = field.ident.unwrap().to_string();
                 let parameter_id_type = field.ty.into_token_stream().to_string();
-                (parameter_name, parameter_id_type)
+
+                let type_name = parameter_id_type
+                    .clone()
+                    .replace(' ', "")
+                    .split("::")
+                    .last()
+                    .unwrap_or(&parameter_id_type)
+                    .to_string();
+
+                if let Some(path) = find_item_path(&type_name, &syn_file) {
+                    let name = name.to_snake_case();
+                    let tmp_final_path = format!("{name}{path}");
+                    (parameter_name, tmp_final_path)
+                } else {
+                    (parameter_name, parameter_id_type)
+                }
             })
             .collect();
     }
 
     // ------ get accounts ------
-
+    // This will obtain corresponding Context for every Instruction
     // input example:
+    //
     // ```
-    // pub(crate) mod __client_accounts_initialize {
+    //
+    // pub(crate) mod __client_accounts_init_vesting {
     //     use super::*;
     //     use anchor_lang::prelude::borsh;
-    //     pub struct Initialize {
-    //         pub state: anchor_lang::solana_program::pubkey::Pubkey,
-    //         pub user: anchor_lang::solana_program::pubkey::Pubkey,
+    //     #[doc = " Generated client accounts for [`InitVesting`]."]
+    //     pub struct InitVesting {
+    //         pub sender: anchor_lang::solana_program::pubkey::Pubkey,
+    //         pub sender_token_account: anchor_lang::solana_program::pubkey::Pubkey,
+    //         pub escrow: anchor_lang::solana_program::pubkey::Pubkey,
+    //         pub escrow_token_account: anchor_lang::solana_program::pubkey::Pubkey,
+    //         pub mint: anchor_lang::solana_program::pubkey::Pubkey,
+    //         pub token_program: anchor_lang::solana_program::pubkey::Pubkey,
     //         pub system_program: anchor_lang::solana_program::pubkey::Pubkey,
     //     }
+    // }
+    //
     // ```
 
     for account_mod_item in account_mods {
@@ -461,30 +650,31 @@ pub async fn parse_to_idl_program(name: String, code: &str) -> Result<IdlProgram
     Ok(IdlProgram {
         name: IdlName {
             upper_camel_case: name.to_upper_camel_case(),
-            snake_case: name,
+            snake_case: name.to_snake_case(),
         },
         id: program_id_bytes.into_token_stream().to_string(),
         instruction_account_pairs,
     })
 }
 
-fn set_account_modules(account_modules: &mut Vec<syn::ItemMod>, item_module: syn::ItemMod) {
+fn set_account_modules(account_modules: &mut Vec<syn::ItemMod>, item_module: &syn::ItemMod) {
     if item_module
         .ident
         .to_string()
         .starts_with(ACCOUNT_MOD_PREFIX)
     {
-        account_modules.push(item_module);
+        account_modules.push(item_module.clone());
         return;
     }
-    let modules = item_module
+    let modules = &item_module
         .content
+        .as_ref()
         .ok_or(Error::MissingOrInvalidProgramItems(
             "account mod: empty content",
         ))
         .unwrap()
         .1;
-    for module in modules {
+    for module in modules.iter() {
         if let syn::Item::Mod(nested_module) = module {
             set_account_modules(account_modules, nested_module);
         }

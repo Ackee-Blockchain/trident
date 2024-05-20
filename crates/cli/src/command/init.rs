@@ -1,9 +1,39 @@
-use anyhow::Error;
+use anyhow::{bail, Error};
+use clap::ValueEnum;
 use fehler::throws;
-use trdelnik_client::TestGenerator;
+use trident_client::TestGenerator;
+
+use crate::_discover;
+
+pub const ANCHOR_TOML: &str = "Anchor.toml";
+
+#[derive(ValueEnum, Clone)]
+pub enum TestsType {
+    Both,
+    Fuzz,
+    Poc,
+}
 
 #[throws]
-pub async fn init(skip_fuzzer: bool) {
-    let generator = TestGenerator::new();
-    generator.generate(skip_fuzzer).await?;
+pub async fn init(tests_type: TestsType) {
+    // look for Anchor.toml
+    let root = if let Some(r) = _discover(ANCHOR_TOML)? {
+        r
+    } else {
+        bail!("It does not seem that Anchor is initialized because the Anchor.toml file was not found in any parent directory!");
+    };
+
+    let mut generator: TestGenerator = TestGenerator::new_with_root(root);
+
+    match tests_type {
+        TestsType::Poc => {
+            generator.generate_poc().await?;
+        }
+        TestsType::Both => {
+            generator.generate_both().await?;
+        }
+        TestsType::Fuzz => {
+            generator.generate_fuzz().await?;
+        }
+    };
 }

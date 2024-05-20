@@ -507,7 +507,6 @@ fn check_num_token_accounts(accounts: &[u8], num: usize) -> Result<(), ParseInst
 #[cfg(test)]
 mod test {
     use super::*;
-    use solana_account_decoder::parse_token::pubkey_from_spl_token;
     use solana_sdk::{instruction::CompiledInstruction, pubkey::Pubkey};
     use spl_token::{
         instruction::*,
@@ -531,14 +530,6 @@ mod test {
             accounts: instruction.accounts.clone(),
             data: instruction.data.clone(),
         }
-    }
-
-    fn convert_account_keys(message: &Message) -> Vec<Pubkey> {
-        message
-            .account_keys
-            .iter()
-            .map(pubkey_from_spl_token)
-            .collect()
     }
 
     fn make_coerced_message(
@@ -573,7 +564,7 @@ mod test {
         let message = make_coerced_message(initialize_mint_ix, program_id);
         let compiled_instruction = convert_compiled_instruction(&message.instructions[0]);
         assert_eq!(
-            parse_token(&compiled_instruction, &convert_account_keys(&message)).unwrap(),
+            parse_token(&compiled_instruction, &message.account_keys).unwrap(),
             ParsedInstructionEnum {
                 instruction_type: "initializeMint".to_string(),
                 info: json!({
@@ -597,7 +588,7 @@ mod test {
         let message = make_coerced_message(initialize_mint_ix, program_id);
         let compiled_instruction = convert_compiled_instruction(&message.instructions[0]);
         assert_eq!(
-            parse_token(&compiled_instruction, &convert_account_keys(&message)).unwrap(),
+            parse_token(&compiled_instruction, &message.account_keys).unwrap(),
             ParsedInstructionEnum {
                 instruction_type: "initializeMint".to_string(),
                 info: json!({
@@ -622,7 +613,7 @@ mod test {
         let message = make_coerced_message(initialize_account_ix, program_id);
         let compiled_instruction = convert_compiled_instruction(&message.instructions[0]);
         assert_eq!(
-            parse_token(&compiled_instruction, &convert_account_keys(&message)).unwrap(),
+            parse_token(&compiled_instruction, &message.account_keys).unwrap(),
             ParsedInstructionEnum {
                 instruction_type: "initializeAccount".to_string(),
                 info: json!({
@@ -645,7 +636,7 @@ mod test {
         let message = make_coerced_message(initialize_account_ix, program_id);
         let compiled_instruction = convert_compiled_instruction(&message.instructions[0]);
         assert_eq!(
-            parse_token(&compiled_instruction, &convert_account_keys(&message)).unwrap(),
+            parse_token(&compiled_instruction, &message.account_keys).unwrap(),
             ParsedInstructionEnum {
                 instruction_type: "initializeAccount2".to_string(),
                 info: json!({

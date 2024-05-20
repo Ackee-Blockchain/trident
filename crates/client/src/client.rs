@@ -1,4 +1,4 @@
-use crate::{config::CONFIG, Reader, TempClone};
+use crate::{config::Config, Reader, TempClone};
 use anchor_client::{
     anchor_lang::{
         prelude::System, solana_program::program_pack::Pack, AccountDeserialize, Id,
@@ -7,11 +7,11 @@ use anchor_client::{
     solana_client::rpc_config::RpcTransactionConfig,
     solana_sdk::{
         account::Account,
-        bpf_loader,
+        bpf_loader_upgradeable,
         commitment_config::CommitmentConfig,
         instruction::Instruction,
-        loader_instruction,
         pubkey::Pubkey,
+        signature::read_keypair_file,
         signer::{keypair::Keypair, Signer},
         system_instruction,
         transaction::Transaction,
@@ -19,6 +19,7 @@ use anchor_client::{
     Client as AnchorClient, ClientError as Error, Cluster, Program,
 };
 
+use anchor_lang::prelude::UpgradeableLoaderState;
 use borsh::BorshDeserialize;
 use fehler::{throw, throws};
 use futures::stream::{self, StreamExt};
@@ -27,17 +28,15 @@ use serde::de::DeserializeOwned;
 use solana_account_decoder::parse_token::UiTokenAmount;
 use solana_cli_output::display::println_transaction;
 use solana_transaction_status::{EncodedConfirmedTransactionWithStatusMeta, UiTransactionEncoding};
-// The deprecated `create_associated_token_account` function is used because of different versions
-// of some crates are required in this `client` crate and `anchor-spl` crate
-#[allow(deprecated)]
-use spl_associated_token_account::{create_associated_token_account, get_associated_token_address};
+use spl_associated_token_account::get_associated_token_address;
+use spl_associated_token_account::instruction::create_associated_token_account;
 use std::{mem, rc::Rc};
 use std::{thread::sleep, time::Duration};
 
 // @TODO: Make compatible with the latest Anchor deps.
 // https://github.com/project-serum/anchor/pull/1307#issuecomment-1022592683
 
-const RETRY_LOCALNET_EVERY_MILLIS: u64 = 500;
+use crate::constants::*;
 
 type Payer = Rc<Keypair>;
 
@@ -45,6 +44,21 @@ type Payer = Rc<Keypair>;
 pub struct Client {
     payer: Keypair,
     anchor_client: AnchorClient<Payer>,
+}
+/// Implement Default trait for Client, which reads keypair from default path for `solana-keygen new`
+impl Default for Client {
+    fn default() -> Self {
+        let payer = read_keypair_file(&*shellexpand::tilde(DEFAULT_KEYPAIR_PATH))
+            .unwrap_or_else(|_| panic!("Default keypair {DEFAULT_KEYPAIR_PATH} not found."));
+        Self {
+            payer: payer.clone(),
+            anchor_client: AnchorClient::new_with_options(
+                Cluster::Localnet,
+                Rc::new(payer),
+                CommitmentConfig::confirmed(),
+            ),
+        }
+    }
 }
 
 impl Client {
@@ -80,6 +94,8 @@ impl Client {
     /// Set `retry` to `true` when you want to wait for up to 15 seconds until
     /// the localnet is running (until 30 retries with 500ms delays are performed).
     pub async fn is_localnet_running(&self, retry: bool) -> bool {
+        let config = Config::new();
+
         let rpc_client = self
             .anchor_client
             .program(System::id())
@@ -87,7 +103,7 @@ impl Client {
             .async_rpc();
 
         for _ in 0..(if retry {
-            CONFIG.test.validator_startup_timeout / RETRY_LOCALNET_EVERY_MILLIS
+            config.test.validator_startup_timeout / RETRY_LOCALNET_EVERY_MILLIS
         } else {
             1
         }) {
@@ -182,7 +198,7 @@ impl Client {
     /// # Example
     ///
     /// ```rust,ignore
-    /// use trdelnik_client::*;
+    /// use trident_client::*;
     ///
     /// pub async fn initialize(
     ///     client: &Client,
@@ -388,7 +404,7 @@ impl Client {
 
         // TODO: This will fail on devnet where airdrops are limited to 1 SOL
 
-        self.airdrop(self.payer().pubkey(), 5_000_000_000)
+        self.airdrop(self.payer().pubkey(), 5_000_000_000_000)
             .await
             .expect("airdropping for deployment failed");
 
@@ -424,8 +440,10 @@ impl Client {
     #[throws]
     async fn deploy(&self, program_keypair: Keypair, program_data: Vec<u8>) {
         const PROGRAM_DATA_CHUNK_SIZE: usize = 900;
+        let buffer_account = Keypair::new();
 
         let program_data_len = program_data.len();
+        let size_of_buffer = UpgradeableLoaderState::size_of_buffer(program_data_len);
 
         let rpc_client = self
             .anchor_client
@@ -444,17 +462,30 @@ impl Client {
             .await
             .unwrap();
 
-        let create_account_ix: Instruction = system_instruction::create_account(
+        let min_balance_for_rent_exemption_buffer = rpc_client
+            .get_minimum_balance_for_rent_exemption(size_of_buffer)
+            .await
+            .unwrap();
+
+        let create_account_ixs = bpf_loader_upgradeable::create_buffer(
             &self.payer.pubkey(),
-            &program_keypair.pubkey(),
-            min_balance_for_rent_exemption,
-            program_data_len as u64,
-            &bpf_loader::id(),
-        );
-        system_program
-            .request()
-            .instruction(create_account_ix)
-            .signer(&program_keypair)
+            &buffer_account.pubkey(),
+            &self.payer.pubkey(),
+            min_balance_for_rent_exemption_buffer,
+            program_data_len,
+        )
+        .unwrap();
+
+        debug!("number of ixs = {}", create_account_ixs.len());
+
+        let mut ix_builder = system_program.request();
+        for ix in create_account_ixs {
+            ix_builder = ix_builder.instruction(ix);
+        }
+
+        ix_builder
+            .signer(&buffer_account)
+            .signer(&self.payer)
             .send()
             .await
             .unwrap();
@@ -465,9 +496,9 @@ impl Client {
         let mut futures_vec = Vec::new();
 
         for chunk in program_data.chunks(PROGRAM_DATA_CHUNK_SIZE) {
-            let loader_write_ix = loader_instruction::write(
-                &program_keypair.pubkey(),
-                &bpf_loader::id(),
+            let loader_write_ix = bpf_loader_upgradeable::write(
+                &buffer_account.pubkey(),
+                &self.payer.pubkey(),
                 offset as u32,
                 chunk.to_vec(),
             );
@@ -476,7 +507,7 @@ impl Client {
                 system_program
                     .request()
                     .instruction(loader_write_ix)
-                    .signer(&program_keypair)
+                    .signer(&self.payer)
                     .send()
                     .await
                     .unwrap();
@@ -488,13 +519,25 @@ impl Client {
             .collect::<Vec<_>>()
             .await;
 
-        debug!("finalize program");
+        debug!("deploy program");
 
-        let loader_finalize_ix =
-            loader_instruction::finalize(&program_keypair.pubkey(), &bpf_loader::id());
-        system_program
-            .request()
-            .instruction(loader_finalize_ix)
+        let deploy_ixs = bpf_loader_upgradeable::deploy_with_max_program_len(
+            &self.payer.pubkey(),
+            &program_keypair.pubkey(),
+            &buffer_account.pubkey(),
+            &self.payer.pubkey(),
+            min_balance_for_rent_exemption,
+            program_data_len,
+        )
+        .unwrap();
+
+        let mut ix_builder = system_program.request();
+        for ix in deploy_ixs {
+            ix_builder = ix_builder.instruction(ix);
+        }
+
+        ix_builder
+            .signer(&self.payer)
             .signer(&program_keypair)
             .send()
             .await
@@ -646,11 +689,11 @@ impl Client {
     #[throws]
     pub async fn create_associated_token_account(&self, owner: &Keypair, mint: Pubkey) -> Pubkey {
         self.send_transaction(
-            #[allow(deprecated)]
             &[create_associated_token_account(
                 &self.payer().pubkey(),
                 &owner.pubkey(),
                 &mint,
+                &spl_token::ID,
             )],
             &[],
         )
@@ -673,7 +716,7 @@ impl Client {
                     .get_minimum_balance_for_rent_exemption(data.len())
                     .await?,
                 data.len() as u64,
-                &bpf_loader::id(),
+                &bpf_loader_upgradeable::id(),
             )],
             [account],
         )
@@ -683,9 +726,9 @@ impl Client {
         for chunk in data.chunks(DATA_CHUNK_SIZE) {
             debug!("writing bytes {} to {}", offset, offset + chunk.len());
             self.send_transaction(
-                &[loader_instruction::write(
+                &[bpf_loader_upgradeable::write(
                     &account.pubkey(),
-                    &bpf_loader::id(),
+                    &bpf_loader_upgradeable::id(),
                     offset as u32,
                     chunk.to_vec(),
                 )],

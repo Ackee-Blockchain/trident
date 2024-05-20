@@ -1,11 +1,11 @@
 [package]
-name = "trdelnik-explorer"
-version = "0.3.1"
+name = "trident-explorer"
+version = "0.3.2"
 edition = "2021"
-repository = "https://github.com/Ackee-Blockchain/trdelnik"
+repository = "https://github.com/Ackee-Blockchain/trident"
 license-file = "../../LICENSE"
 readme = "../../README.md"
-description = "Trdelnik explorer for Solana."
+description = "Trident explorer for Solana."
 
 [dependencies]
 solana-cli-config               = { workspace = true }

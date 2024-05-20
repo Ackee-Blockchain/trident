@@ -1,0 +1,32 @@
+name: Build documentation
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      - uses: ./.github/actions/setup-documentation/
+      - name: Fetch documentation branch
+        run: git fetch origin documentation:documentation --depth=1
+      - name: Build documentation
+        working-directory: ./documentation
+        run: |
+          git config --global user.email "trident@ackeeblockchain.com"
+          git config --global user.name "Trident bot"
+          mike deploy -b documentation latest
+      - name: Checkout documentation branch
+        run: git checkout -f documentation
+      - name: Push documentation
+        uses: ad-m/github-push-action@master
+        with:
+          branch: documentation

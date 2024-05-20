@@ -7,8 +7,8 @@ on:
 name: Test Escrow and Turnstile
 
 env:
-  SOLANA_CLI_VERSION: 1.16.6
-  ANCHOR_VERSION: 0.28.0
+  SOLANA_CLI_VERSION: 1.18.12
+  ANCHOR_VERSION: 0.29.0
 
 jobs:
   test_escrow:
@@ -22,11 +22,11 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         name: Cache Rust and it's packages
       - name: Build Escrow
-        working-directory: examples/escrow
+        working-directory: examples/integration-tests/escrow
         run: anchor build
       - name: Test Escrow
-        working-directory: examples/escrow
-        run: cargo run --manifest-path ../../Cargo.toml test
+        working-directory: examples/integration-tests/escrow
+        run: cargo run --manifest-path ../../../Cargo.toml test
   test_turnstile:
     runs-on: ubuntu-20.04
     steps:
@@ -38,8 +38,8 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         name: Cache Rust and it's packages
       - name: Build Turnstile
-        working-directory: examples/turnstile
+        working-directory: examples/integration-tests/turnstile
         run: anchor build
       - name: Test Turnstile
-        working-directory: examples/turnstile
-        run: cargo run --manifest-path ../../Cargo.toml test
+        working-directory: examples/integration-tests/turnstile
+        run: cargo run --manifest-path ../../../Cargo.toml test
