@@ -83,6 +83,8 @@ Provides the flexibility to design specific sequences of instructions to meet pa
 
 ### Invariant Checks
 Allows for custom invariants checks to spot vulnerabilities and unwanted behaviors.
+</p>
+
 <br />
 
 ## Community
