@@ -1,37 +1,62 @@
-<div align="center">
-  <img height="250" width="250" src="documentation/docs/images/trident-badge.png" alt="Trident Logo"/>
+<p align="center">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://abchprod.wpengine.com/wp-content/uploads/2024/05/Trident-Github.png?raw=true">
+      <img alt="Trident Github" src="https://abchprod.wpengine.com/wp-content/uploads/2024/05/Trident-Github.png?raw=true" width="auto">
+    </picture>
+  </a>
+</p>
 
-  # Trident
+<p align="left">
+  <img height="100" width="100" src="https://abchprod.wpengine.com/wp-content/uploads/2024/05/Trident-Color.png" alt="Trident"/>
 
-  <a href="https://discord.gg/x7qXXnGCsa">
-    <img src="https://discordapp.com/api/guilds/867746290678104064/widget.png?style=banner2" width="250" title="AckeeBlockchain/Trident discord" alt="Ackee Blockchain Discord invitation">
+# Trident
+
+<p align="left">
+  Rust-based framework to Fuzz and Integration test Solana programs to help you ship secure code.
+<p>
+
+<p align="left">
+<a href="https://discord.com/invite/867746290678104064" target="_blank" rel="noopener noreferrer">
+   <picture>
+     <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/discord/867746290678104064?colorA=21262d&colorB=0000FF&style=flat">
+     <img src="https://img.shields.io/discord/867746290678104064?colorA=f6f8fa&colorB=0000FF&style=flat" alt="Chat">
+   </picture>
+ </a>
+ <a href="https://crates.io/crates/trident-cli" target="_blank" rel="noopener noreferrer">
+   <picture>
+     <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/crates/v/trident-cli?colorA=21262d&colorB=21262d&style=flat">
+     <img src="https://img.shields.io/crates/v/trident-cli?colorA=f6f8fa&colorB=f6f8fa&style=flat" alt="Version">
+   </picture>
+ </a>
+ <a href="https://github.com/Ackee-Blockchain/trident/blob/master/LICENSE" target="_blank" rel="noopener noreferrer">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/npm/l/@coinbase/onchainkit?colorA=21262d&colorB=21262d&style=flat">
+      <img src="https://img.shields.io/npm/l/@coinbase/onchainkit?colorA=f6f8fa&colorB=f6f8fa&style=flat" alt="MIT License">
+    </picture>
+  </a>
+  <a href="https://github.com/Ackee-Blockchain/trident/actions/workflows/lint.yml" target="_blank" rel="noopener noreferrer">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/actions/workflow/status/Ackee-Blockchain/trident/lint.yml?label=Lint&colorA=21262d&style=flat">
+      <img src="https://img.shields.io/github/actions/workflow/status/Ackee-Blockchain/trident/lint.yml?label=Lint&colorA=f6f8fa&style=flat" alt="Lint">
+    </picture>
+  </a>
+  <a href="https://github.com/Ackee-Blockchain/trident/actions/workflows/run_examples.yml" target="_blank" rel="noopener noreferrer">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/actions/workflow/status/Ackee-Blockchain/trident/run_examples.yml?label=Test%20Escrow%20and%20Turnstile&colorA=21262d&style=flat">
+      <img src="https://img.shields.io/github/actions/workflow/status/Ackee-Blockchain/trident/run_examples.yml?label=Test%20Escrow%20and%20Turnstile&colorA=f6f8fa&style=flat" alt="Test Escrow and Turnstile">
+    </picture>
   </a>
 
-  developed by [Ackee Blockchain](https://ackeeblockchain.com)
+</p>
 
-  [![Crates.io](https://img.shields.io/crates/v/trident-cli?label=CLI)](https://crates.io/crates/trident-cli)
-  [![Crates.io](https://img.shields.io/crates/v/trident-test?label=Test)](https://crates.io/crates/trident-test)
-  [![Crates.io](https://img.shields.io/crates/v/trident-client?label=Client)](https://crates.io/crates/trident-client)
-  [![Crates.io](https://img.shields.io/crates/v/trident-explorer?label=Explorer)](https://crates.io/crates/trident-explorer)
-  <br />
-  [![lint](https://github.com/Ackee-Blockchain/trident/actions/workflows/lint.yml/badge.svg)](https://github.com/Ackee-Blockchain/trident/actions/workflows/lint.yml)
-  [![Test Escrow and Turnstile](https://github.com/Ackee-Blockchain/trident/actions/workflows/run_examples.yml/badge.svg)](https://github.com/Ackee-Blockchain/trident/actions/workflows/run_examples.yml)
-</div>
+<br />
 
-Trident is a Rust-based framework for Fuzz Tests and Integration Tests of Solana programs written in [Anchor](https://www.anchor-lang.com/), enabling automated generation of test templates and custom invariant checks to identify and prevent undesired behaviors using Rust's [Arbitrary crate](https://docs.rs/arbitrary/latest/arbitrary/) and [honggfuzz-rs](https://github.com/rust-fuzz/honggfuzz-rs).
+## Documentation
 
-
-## Features
-
-
-
-- **Automated Test Generation**: Simplifies the testing process by automatically creating templates for fuzz and integration tests for programs written using the Anchor Framework.
-- **Dynamic Data Generation**: Increases coverage with random instruction data and pseudo-random accounts for unpredictable fuzz test scenarios.
-- **Custom Instruction Sequences**: Provides the flexibility to design specific sequences of instructions to meet particular testing needs or to focus on particular aspects of program behavior during fuzz testing.
-- **Invariant Checks**: Allows for custom pre- and post-execution invariants checks to spot vulnerabilities and unwanted behaviors.
+For documentation and guides, visit [ackee.xyz/trident/docs](https://ackee.xyz/trident/docs/latest/).
 
 ## Prerequisites
-Check [supported versions](#supported-versions) section for further details.
+Check [Supported versions](https://ackee.xyz/trident/docs/latest/home/home-installation/) section for further details.
 - Install [Rust](https://www.rust-lang.org/tools/install)
 - Install [Solana tool suite](https://docs.solana.com/cli/install-solana-cli-tools)
 - Install [Anchor](https://www.anchor-lang.com/docs/installation)
@@ -41,62 +66,39 @@ Check [supported versions](#supported-versions) section for further details.
 
 ```shell
 cargo install trident-cli
-
-# or the specific version
-
-cargo install --version <version> trident-cli
 ```
+</p>
 
-In order to install [Honggfuzz-rs](https://github.com/rust-fuzz/honggfuzz-rs#how-to-use-this-crate) run:
-```shell
-# installs hfuzz and honggfuzz subcommands in cargo
-cargo install honggfuzz
-```
-## Quick Start
-To initialize Trident in your Anchor-based Solana project, begin by executing the following command from the root folder of your project:
-```bash
-# will generate test templates for fuzz and integration tests
-trident init
-```
-If you are interested in **specific test types**, such as **Fuzz Tests** or **Integration Tests**, run:
-```bash
-# generate fuzz tests template
-trident init fuzz
-```
-```bash
-# generate integration tests template
-trident init poc
-```
-Next, enter `trident --help` to access basic information on usage.
+<br />
 
-## External Documentation
-For more detailed information, visit our [documentation](http://127.0.0.1:8000/trident/docs/).
+## Features
 
+### Automated Test Generation
+Simplifies the testing process by automatically creating templates for fuzz and integration tests for programs written using the [Anchor Framework](https://project-serum.github.io/anchor/).
 
+### Dynamic Data Generation
+Increases coverage with random instruction data and pseudo-random accounts for unpredictable fuzz test scenarios.
 
-## Supported versions
+### Custom Instruction Sequences
+Provides the flexibility to design specific sequences of instructions to meet particular testing needs or to focus on particular aspects of program behavior during fuzz testing.
 
-- We support `Anchor` and `Solana` versions specified in the table below.
+### Invariant Checks
+Allows for custom pre- and post-execution invariants checks to spot vulnerabilities and unwanted behaviors.
 
-| Trident CLI  |  Anchor                 |   Solana  |          Rust          |
-|--------------|:-----------------------:|----------:|:-----------------------|
-| `v0.6.0`     | `>=0.29` <sup>1</sup>   | `^1.17`   |  `nightly`             |
-| `v0.5.0`     | `~0.28.*`               | `=1.16.6` |                        |
-| `v0.4.0`     | `~0.27.*`               | `>=1.15`  |                        |
-| `v0.3.0`     | `~0.25.*`               | `>=1.10`  |                        |
-| `v0.2.0`     | `~0.24.*`               |  `>=1.9`  |                        |
+<br />
 
-1. To use Trident with Anchor 0.29.0, run the following commands from your project's root directory after Trident initialization:
-```bash
-cargo update anchor-client@0.30.0 --precise 0.29.0
-cargo update anchor-spl@0.30.0 --precise 0.29.0
-```
+## Community
 
+Check out the following places for more Trident-related content:
 
+- Follow on [Twitter/X](https://twitter.com/TridentSolana) & [Warpcast](https://warpcast.com/~/channel/trident) for project updates
+- Join the discussions on our Trident [warpcast channel](https://warpcast.com/~/channel/trident) or our [discord channel](https://discord.gg/wyBW9Q23aJ)
 
-## Awards
+## Grants
 
-**Marinade Community Prize** - winner of the [Marinade grant](https://solana.blog/riptide-hackathon-winners/) for the 2022 Solana Riptide Hackathon.
+Solana Foundation             |  Marinade
+:-------------------------:|:-------------------------:
+[![](https://abchprod.wpengine.com/wp-content/uploads/2024/05/Solana-Foundation.png)](https://solana.org/)  |  [![](https://abchprod.wpengine.com/wp-content/uploads/2024/05/Marinade.png)](https://solana.blog/riptide-hackathon-winners/)
 
 ## Contribution
 
@@ -105,10 +107,3 @@ Thank you for your interest in contributing to Trident! Please see the [CONTRIBU
 ## License
 
 This project is licensed under the [MIT license](https://github.com/Ackee-Blockchain/trident/blob/master/LICENSE).
-
-## University and investment partners
-
-- [The Solana Foundation](https://solana.org/)
-- [Czech Technical University in Prague](https://www.cvut.cz/en)
-- [Ackee](https://www.ackee.cz/)
-- [Rockaway Blockchain Fund](https://rbf.capital/)
