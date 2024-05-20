@@ -1,5 +1,5 @@
 <div align="center">
-  <img height="250" width="250" src="documentation/docs/images/Badge_Trdelnik.png" alt="Trident Logo"/>
+  <img height="250" width="250" src="documentation/docs/images/trident-badge.png" alt="Trident Logo"/>
 
   # Trident
 
@@ -108,6 +108,7 @@ This project is licensed under the [MIT license](https://github.com/Ackee-Blockc
 
 ## University and investment partners
 
-- [Czech technical university in Prague](https://www.cvut.cz/en)
+- [The Solana Foundation](https://solana.org/)
+- [Czech Technical University in Prague](https://www.cvut.cz/en)
 - [Ackee](https://www.ackee.cz/)
 - [Rockaway Blockchain Fund](https://rbf.capital/)

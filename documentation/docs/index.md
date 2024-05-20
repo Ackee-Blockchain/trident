@@ -1,5 +1,5 @@
 <div align="center">
-  <img height="250" width="250" src="images/Badge_Trdelnik.png" alt="Trident Logo"/>
+  <img height="250" width="250" src="images/trident-badge.png" alt="Trident Logo"/>
 </div>
 
 
@@ -34,6 +34,7 @@ Trident is a Rust-based testing framework providing several convenient developer
 
 ## University and investment partners
 
+- [The Solana Foundation](https://solana.org/)
 - [Czech Technical University in Prague](https://www.cvut.cz/en)
 - [Ackee](https://www.ackee.cz/)
 - [Rockaway Blockchain Fund](https://rbf.capital/)
