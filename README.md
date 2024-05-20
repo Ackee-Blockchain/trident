@@ -77,14 +77,13 @@ cargo install trident-cli
 Simplifies the testing process by automatically creating templates for fuzz and integration tests for programs written using the [Anchor Framework](https://project-serum.github.io/anchor/).
 
 ### Dynamic Data Generation
-Increases coverage with random instruction data and pseudo-random accounts for unpredictable fuzz test scenarios.
+Increases test coverage with random instruction data and pseudo-random accounts for unpredictable fuzz test scenarios.
 
 ### Custom Instruction Sequences
 Provides the flexibility to design specific sequences of instructions to meet particular testing needs or to focus on particular aspects of program behavior during fuzz testing.
 
 ### Invariant Checks
-Allows for custom pre- and post-execution invariants checks to spot vulnerabilities and unwanted behaviors.
-
+Allows for custom invariants checks to spot vulnerabilities and unwanted behaviors.
 <br />
 
 ## Community
