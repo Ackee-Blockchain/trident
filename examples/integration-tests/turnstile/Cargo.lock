@@ -5253,11 +5253,12 @@ dependencies = [
 
 [[package]]
 name = "trident-client"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "anchor-client",
  "anchor-lang",
  "anchor-spl",
+ "anchor-syn",
  "anyhow",
  "arbitrary",
  "bincode",
@@ -5330,7 +5331,7 @@ dependencies = [
 
 [[package]]
 name = "trident-test"
-version = "0.3.1"
+version = "0.3.2"
 dependencies = [
  "darling 0.13.4",
  "proc-macro2",
