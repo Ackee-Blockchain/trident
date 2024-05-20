@@ -1,40 +1,11 @@
-<div align="center">
-  <img height="250" width="250" src="images/trident-badge.png" alt="Trident Logo"/>
-</div>
-
-
 # {{ config.site_name }}
+Trident is a Rust-based framework to fuzz and integration test Solana programs to help you ship secure code.
 
-developed by [Ackee Blockchain](https://ackeeblockchain.com)
+# Features
 
-Trident is a Rust-based testing framework providing several convenient developer tools for testing Solana programs written in [Anchor](https://www.anchor-lang.com/).
+- **Automated Test Generation**: Simplifies the testing process by automatically creating templates for fuzz and integration tests for programs written using the Anchor Framework.
 
-- **{{ config.site_name }} fuzz** - property-based and stateful testing;
-- **{{ config.site_name }} test** - run your integration tests on a local validator;
-- {{ config.site_name }} explorer - exploring ledger changes.
-    - Currently, not in active development
+- **Dynamic Data Generation**: Increases test coverage with random instruction data and pseudo-random accounts for unpredictable fuzz test scenarios.
 
-## Roadmap
-
-- [x] Q1/22 {{ config.site_name }} announcement at Solana Hacker House Prague.
-    - [x] {{ config.site_name }} client available for testing.
-- [x] Q2/22 {{ config.site_name }} explorer available.
-- [x] Q2/22 {{ config.site_name }} client and explorer introduced at Solana Hacker House Barcelona.
-- [X] Q3/23 {{ config.site_name }} fuzz introduced at Solana Hacker House Berlin.
-- [X] Q1/24 {{ config.site_name }} ProgramTest client implemented for fuzz tests.
-- [X] Q1/24 {{ config.site_name }} Fuzz support for all Anchor Account types.
-- [X] Q1/24 {{ config.site_name }} Support for Anchor 0.30.0.
-- [ ] Q2/24 {{ config.site_name }} Light-Client for fuzz tests.
-
-
-## Awards
-
-**Marinade Community Prize** - winner of the [Marinade grant](https://solana.blog/riptide-hackathon-winners/) for the 2022 Solana Riptide Hackathon.
-
-
-## University and investment partners
-
-- [The Solana Foundation](https://solana.org/)
-- [Czech Technical University in Prague](https://www.cvut.cz/en)
-- [Ackee](https://www.ackee.cz/)
-- [Rockaway Blockchain Fund](https://rbf.capital/)
+- **Custom Instruction Sequences**: Provides the flexibility to design specific sequences of instructions to meet particular testing needs or to focus on particular aspects of program behavior during fuzz testing.
+Invariant Checks: Allows for custom invariants checks to spot vulnerabilities and unwanted behaviors.
