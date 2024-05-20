@@ -3,6 +3,9 @@ name = "trident-derive-fuzz-test-executor"
 version = "0.0.1"
 rust-version = "1.60"
 edition = "2021"
+license-file = "../../../../LICENSE"
+readme = "../../../../README.md"
+description = "trident-derive-fuzz-test-executor"
 
 [lib]
 proc-macro = true
