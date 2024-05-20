@@ -1,6 +1,6 @@
 [package]
 name = "trident-test"
-version = "0.3.1"
+version = "0.3.2"
 edition = "2021"
 repository = "https://github.com/Ackee-Blockchain/trident"
 license-file = "../../LICENSE"

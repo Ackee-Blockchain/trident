@@ -5975,7 +5975,7 @@ dependencies = [
 
 [[package]]
 name = "trident-cli"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "anyhow",
  "clap 4.3.19",
@@ -5988,7 +5988,7 @@ dependencies = [
 
 [[package]]
 name = "trident-client"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "anchor-client",
  "anchor-lang",
@@ -6072,7 +6072,7 @@ dependencies = [
 
 [[package]]
 name = "trident-explorer"
-version = "0.3.1"
+version = "0.3.2"
 dependencies = [
  "base64 0.13.1",
  "bincode",
@@ -6101,7 +6101,7 @@ dependencies = [
 
 [[package]]
 name = "trident-test"
-version = "0.3.1"
+version = "0.3.2"
 dependencies = [
  "darling 0.13.4",
  "macrotest",
