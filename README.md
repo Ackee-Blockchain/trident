@@ -46,7 +46,6 @@
       <img src="https://img.shields.io/github/actions/workflow/status/Ackee-Blockchain/trident/run_examples.yml?label=Test%20Escrow%20and%20Turnstile&colorA=f6f8fa&style=flat" alt="Test Escrow and Turnstile">
     </picture>
   </a>
-
 </p>
 
 <br />
