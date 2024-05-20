@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 incremented upon a breaking change and the patch version will be incremented for features.
 
 ## [Unreleased]
+
+## [0.6.0] - 2024-05-20
 ### Added
 - feat/anchor 0.30.0 support ([#148](https://github.com/Ackee-Blockchain/trident/pull/148))
 - fix/allow to process duplicate transactions ([#147](https://github.com/Ackee-Blockchain/trident/pull/147))
