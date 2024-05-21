@@ -4,6 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches:
+      - develop
       - master
 
 jobs:
@@ -21,9 +22,9 @@ jobs:
       - name: Build documentation
         working-directory: ./documentation
         run: |
-          git config --global user.email "trident@ackeeblockchain.com"
+          git config --global user.email "trident@ackee.xyz"
           git config --global user.name "Trident bot"
-          mike deploy -b documentation latest
+          mike deploy -b documentation dev
       - name: Checkout documentation branch
         run: git checkout -f documentation
       - name: Push documentation

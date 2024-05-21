@@ -98,6 +98,8 @@ extra:
       link: https://discord.gg/x7qXXnGCsa
     - icon: fontawesome/brands/twitter
       link: https://twitter.com/ackeeblockchain
+  version:
+    provider: mike
 
 # https://www.mkdocs.org/user-guide/configuration/#plugins
 plugins:
