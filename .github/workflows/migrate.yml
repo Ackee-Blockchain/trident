@@ -1,0 +1,23 @@
+name: Migrate Pipeline
+on:
+  push:
+    branches:
+      - documentation
+
+jobs:
+  build:
+    name: Migrate docs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Push to ABCH web
+        id: publish_docs
+        uses: Ackee-Blockchain/github-action-push-to-another-repository@1.0.0
+        with:
+          source-directory: .
+          destination-github-username: 'Ackee-Blockchain'
+          destination-repository-name: 'firebase-abch-web'
+          target-branch: trident-docs-sync
+          target-directory: 'public/trident/docs'
