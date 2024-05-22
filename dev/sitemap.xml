@@ -91,21 +91,6 @@
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://ackee.xyz/trident/docs/dev/home/CODE_OF_CONDUCT/</loc>
-         <lastmod>2024-05-22</lastmod>
-         <changefreq>daily</changefreq>
-    </url>
-    <url>
-         <loc>https://ackee.xyz/trident/docs/dev/home/CONTRIBUTING/</loc>
-         <lastmod>2024-05-22</lastmod>
-         <changefreq>daily</changefreq>
-    </url>
-    <url>
-         <loc>https://ackee.xyz/trident/docs/dev/home/LICENSE/</loc>
-         <lastmod>2024-05-22</lastmod>
-         <changefreq>daily</changefreq>
-    </url>
-    <url>
          <loc>https://ackee.xyz/trident/docs/dev/home/home-installation/</loc>
          <lastmod>2024-05-22</lastmod>
          <changefreq>daily</changefreq>
