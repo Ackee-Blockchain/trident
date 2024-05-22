@@ -1,3 +1,5 @@
+# Installation
+
 ## Dependencies
 
 Check [supported versions](#supported-versions) section for further details.

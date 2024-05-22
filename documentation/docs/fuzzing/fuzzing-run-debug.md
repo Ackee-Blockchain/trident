@@ -1,3 +1,5 @@
+# Run and Debug
+
 ## Run
 Once you have finished the implementation of the Fuzz Test, you can run the Test as follows:
 

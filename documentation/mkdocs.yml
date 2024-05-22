@@ -8,43 +8,40 @@ site_author: Ackee Blockchain
 
 
 nav:
-  - Home:
-    - Trident: index.md
-    - Installation: home/home-installation.md
-    - Contributing: home/CONTRIBUTING.md
-    - License: home/LICENSE.md
-    - Code of conduct: home/CODE_OF_CONDUCT.md
-  - Fuzz Tests:
-    - Introduction: fuzzing/fuzzing-introduction.md
-    - Initialization:
-        - fuzzing/initialization/fuzzing-initialization-fuzz.md
-        - fuzzing/initialization/fuzzing-initialization-fuzz-add.md
-        - fuzzing/initialization/fuzzing-initialization-all.md
-    - Fuzz Test Lifecycle: fuzzing/fuzzing-lifecycle.md
-    - How-To write Fuzz Test:
-        - fuzzing/howto/fuzzing-howto-p0.md
-        - fuzzing/howto/fuzzing-howto-p1.md
-        - fuzzing/howto/fuzzing-howto-p2.md
-        - fuzzing/howto/fuzzing-howto-p3.md
-        - fuzzing/howto/fuzzing-howto-p4.md
-        - fuzzing/howto/fuzzing-howto-p5.md
-        - fuzzing/howto/fuzzing-howto-p6.md
-        - fuzzing/howto/fuzzing-howto-p7.md
-    - Run and Debug: fuzzing/fuzzing-run-debug.md
-    - Current limitations: fuzzing/fuzzing-current-limitations.md
-    - Examples: fuzzing/fuzzing-examples.md
-  - Integration Tests:
-    - Introduction: integration-tests/poc-introduction.md
-    - Initialization:
-        - integration-tests/initialization/poc-initialization-poc.md
-        - integration-tests/initialization/poc-initialization-program-client.md
-        - integration-tests/initialization/poc-initialization-all.md
-    - How-To write Integration Test:
-        - integration-tests/howto/poc-howto-p0.md
-        - integration-tests/howto/poc-howto-p1.md
-    - Run: integration-tests/poc-run.md
-    - Examples: integration-tests/poc-examples.md
-
+  - Trident:
+    - index.md
+    - home/home-installation.md
+    - Fuzz Tests:
+      - fuzzing/fuzzing-introduction.md
+      - Initialization:
+          - fuzzing/initialization/fuzzing-initialization-fuzz.md
+          - fuzzing/initialization/fuzzing-initialization-fuzz-add.md
+          - fuzzing/initialization/fuzzing-initialization-all.md
+      - fuzzing/fuzzing-lifecycle.md
+      - How-To write Fuzz Test:
+          - fuzzing/howto/fuzzing-howto-p0.md
+          - fuzzing/howto/fuzzing-howto-p1.md
+          - fuzzing/howto/fuzzing-howto-p2.md
+          - fuzzing/howto/fuzzing-howto-p3.md
+          - fuzzing/howto/fuzzing-howto-p4.md
+          - fuzzing/howto/fuzzing-howto-p5.md
+          - fuzzing/howto/fuzzing-howto-p6.md
+          - fuzzing/howto/fuzzing-howto-p7.md
+      - fuzzing/fuzzing-run-debug.md
+      - fuzzing/fuzzing-current-limitations.md
+      - fuzzing/fuzzing-examples.md
+    - Integration Tests:
+      - integration-tests/poc-introduction.md
+      - Initialization:
+          - integration-tests/initialization/poc-initialization-poc.md
+          - integration-tests/initialization/poc-initialization-program-client.md
+          - integration-tests/initialization/poc-initialization-all.md
+      - How-To write Integration Test:
+          - integration-tests/howto/poc-howto-p0.md
+          - integration-tests/howto/poc-howto-p1.md
+      - integration-tests/poc-run.md
+      - integration-tests/poc-examples.md
+  - CHANGELOG.md
 
 # Beware this is strongly dependent on names of folders , example:
 # images have to be stored within the docs/images folder
@@ -67,14 +64,14 @@ theme:
         icon: material/lightbulb-outline
         name: Switch to light mode
   features:
-  # https://squidfunk.github.io/mkdocs-material/setup/setting-up-navigation/#instant-loading
-    - navigation.instant
-  # https://squidfunk.github.io/mkdocs-material/setup/setting-up-navigation/#navigation-expansion
-    # - navigation.expand
-  # https://squidfunk.github.io/mkdocs-material/setup/setting-up-navigation/#back-to-top-button
-    - navigation.top
   # https://squidfunk.github.io/mkdocs-material/setup/setting-up-navigation/#navigation-tabs
     - navigation.tabs
+  # https://squidfunk.github.io/mkdocs-material/setup/setting-up-navigation/#navigation-expansion
+    - navigation.expand
+  # https://squidfunk.github.io/mkdocs-material/setup/setting-up-navigation/#navigation-sections
+    - navigation.sections
+  # https://squidfunk.github.io/mkdocs-material/setup/setting-up-navigation/#back-to-top-button
+    - navigation.top
   # https://squidfunk.github.io/mkdocs-material/setup/setting-up-navigation/#section-index-pages
     - navigation.indexes
   # https://squidfunk.github.io/mkdocs-material/reference/code-blocks/?h=content+copy#code-copy-button
@@ -89,6 +86,7 @@ extra:
       link: https://discord.gg/x7qXXnGCsa
     - icon: fontawesome/brands/twitter
       link: https://twitter.com/ackeeblockchain
+# https://squidfunk.github.io/mkdocs-material/setup/setting-up-versioning/
   version:
     provider: mike
 
