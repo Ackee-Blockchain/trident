@@ -15,6 +15,8 @@ jobs:
       - name: Push to ABCH web
         id: publish_docs
         uses: Ackee-Blockchain/github-action-push-to-another-repository@1.0.0
+        env:
+          SSH_DEPLOY_KEY: ${{ secrets.SSH_MIGRATE_DOC_KEY }}
         with:
           source-directory: .
           destination-github-username: 'Ackee-Blockchain'
