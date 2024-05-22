@@ -7,7 +7,7 @@
 .md-typeset h4,
 .md-typeset h5,
 .md-typeset h6 {
-    font-family: 'Inter';
+    font-family: 'Inter', serif;
 }
 
 /*
@@ -21,7 +21,7 @@
 
 /* Update font of basic text*/
 body {
-    font-family: 'Inter';
+    font-family: 'Inter', serif;
 }
 
 /*
