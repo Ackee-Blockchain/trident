@@ -32,4 +32,5 @@ jobs:
       - name: Push documentation
         uses: ad-m/github-push-action@master
         with:
+          ssh: true
           branch: documentation
