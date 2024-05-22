@@ -1,5 +1,14 @@
-@import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+
+
+.md-typeset h1,
+.md-typeset h2,
+.md-typeset h3,
+.md-typeset h4,
+.md-typeset h5,
+.md-typeset h6 {
+    font-family: 'Inter', serif;
+}
 
 /*
     update colour of comments in code block
@@ -10,22 +19,15 @@
     --md-code-hl-comment-color: #09902d;
 }
 
-/* Update font and font size of "# Title 1" */
-.md-typeset h1 {
-    font-size: 32px;
-    font-family: 'Merriweather', serif;
-    padding: 12px;
-    margin-bottom: 20px;
-}
-
 /* Update font of basic text*/
 body {
-    font-family: 'Source Sans Pro', sans-serif;
+    font-family: 'Inter', serif;
 }
 
 /*
     rotate hue so that the image will be modified based on the background
 */
-[data-md-color-scheme="default"] .excalidraw svg, [data-md-color-scheme="default"] span.excalidraw {
+[data-md-color-scheme="default"] .excalidraw svg,
+[data-md-color-scheme="default"] span.excalidraw {
     filter: invert(1) hue-rotate(90deg);
 }

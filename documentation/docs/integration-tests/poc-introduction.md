@@ -1,4 +1,4 @@
-# Integration Tests
+# Introduction
 {{ config.site_name }} supports writing Integration Tests in Rust.
 
 <div>

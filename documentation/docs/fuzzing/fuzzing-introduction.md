@@ -1,8 +1,8 @@
-# Fuzzing
+# Introduction
 
 Fuzzing is a software testing technique that involves providing invalid, unexpected, or random data as inputs to a computer program. The aim is to uncover bugs and vulnerabilities that might not be detected with conventional testing strategies.
 
-# Introduction
+# {{ config.site_name }}
 
 The `{{ config.site_name }}` testing framework equips developers with tools to efficiently develop fuzz tests for Anchor-based programs. It streamlines the fuzz testing process through automation and comprehensive support:
 
