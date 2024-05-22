@@ -1,3 +1,5 @@
+# Fuzzing Examples
+
 ### Hello World! Example
 - [hello_world](https://github.com/Ackee-Blockchain/trident/tree/master/examples/fuzz-tests/hello_world)
 
