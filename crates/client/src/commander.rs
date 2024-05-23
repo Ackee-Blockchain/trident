@@ -223,7 +223,7 @@ impl Commander {
                     "The crash directory {} contains new fuzz test crashes. Exiting!",
                     crash_dir.to_string_lossy()
                 );
-                process::exit(1);
+                process::exit(99);
             }
         }
     }
@@ -292,7 +292,7 @@ impl Commander {
             res = child.wait() =>
                 match res {
                     Ok(status) => if !status.success() {
-                        println!("Honggfuzz exited with an error!");
+                        throw!(Error::FuzzingFailed);
                     },
                     Err(_) => throw!(Error::FuzzingFailed),
             },
@@ -358,7 +358,7 @@ impl Commander {
                 match res {
                     Ok(status) => {
                         if !status.success() {
-                            println!("Honggfuzz exited with an error!");
+                            throw!(Error::FuzzingFailed);
                         }
                     },
                     Err(_) => throw!(Error::FuzzingFailed),
@@ -367,7 +367,6 @@ impl Commander {
             _ = signal::ctrl_c() => {
                 fuzz_end.store(true, std::sync::atomic::Ordering::SeqCst);
                 tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
-
             },
         }
         let stats_result = stats_handle

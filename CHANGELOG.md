@@ -9,7 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 incremented upon a breaking change and the patch version will be incremented for features.
 
 ## [dev] - Unreleased
-- del/remove Trident explorer  ([#171](https://github.com/Ackee-Blockchain/trident/pull/171))
+- fix/in case of fuzzing failure throw error instead of only printing message([#167](https://github.com/Ackee-Blockchain/trident/pull/167))
+- del/remove Trident explorer ([#171](https://github.com/Ackee-Blockchain/trident/pull/171))
 - fix/snapshot's zeroed account as optional ([#170](https://github.com/Ackee-Blockchain/trident/pull/170))
 - feat/fuzzer-stats-logging, an optional statistics output for fuzzing session ([#144](https://github.com/Ackee-Blockchain/trident/pull/144))
 
