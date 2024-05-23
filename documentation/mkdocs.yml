@@ -51,13 +51,17 @@ theme:
   logo: 'images/logo.png'
   favicon: 'images/favicon.ico'
   custom_dir: docs/overrides
+  font:
+    text: Inter
   # https://squidfunk.github.io/mkdocs-material/setup/changing-the-colors/?h=palette+sw#color-palette-toggle
   palette:
+    # Palette toggle for light mode
     - scheme: default # light mode scheme
       primary: black
       toggle:
         icon: material/lightbulb
         name: Switch to dark mode
+    # Palette toggle for dark mode
     - scheme: slate  # dark mode scheme
       primary: black
       toggle:
@@ -68,14 +72,16 @@ theme:
     - navigation.tabs
   # https://squidfunk.github.io/mkdocs-material/setup/setting-up-navigation/#navigation-expansion
     - navigation.expand
-  # https://squidfunk.github.io/mkdocs-material/setup/setting-up-navigation/#navigation-sections
-    - navigation.sections
   # https://squidfunk.github.io/mkdocs-material/setup/setting-up-navigation/#back-to-top-button
     - navigation.top
   # https://squidfunk.github.io/mkdocs-material/setup/setting-up-navigation/#section-index-pages
     - navigation.indexes
   # https://squidfunk.github.io/mkdocs-material/reference/code-blocks/?h=content+copy#code-copy-button
     - content.code.copy
+  # https://squidfunk.github.io/mkdocs-material/setup/setting-up-navigation/#navigation-sections
+    - navigation.sections
+  # may be used 
+    # - navigation.footer
 
 # https://squidfunk.github.io/mkdocs-material/setup/setting-up-the-footer/?h=social#social-links
 extra:
@@ -83,9 +89,9 @@ extra:
     - icon: fontawesome/brands/github
       link: https://github.com/Ackee-Blockchain/trident
     - icon: fontawesome/brands/discord
-      link: https://discord.gg/x7qXXnGCsa
+      link: https://discord.gg/urRbxVcMrB
     - icon: fontawesome/brands/twitter
-      link: https://twitter.com/ackeeblockchain
+      link: https://x.com/TridentSolana
 # https://squidfunk.github.io/mkdocs-material/setup/setting-up-versioning/
   version:
     provider: mike
@@ -117,11 +123,6 @@ markdown_extensions:
   - pymdownx.superfences
   - pymdownx.tasklist:
       custom_checkbox: true
-  - pymdownx.superfences:
-      custom_fences:
-        - name: mermaid
-          class: mermaid
-          format: !!python/name:pymdownx.superfences.fence_code_format
 
 exclude_docs: |
   requirements.txt.
