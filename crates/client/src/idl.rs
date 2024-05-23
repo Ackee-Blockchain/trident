@@ -547,9 +547,10 @@ pub fn parse_to_idl_program(name: String, code: &str) -> Result<IdlProgram, Erro
                 };
                 Some(fields.into_iter())
             })
-            .ok_or(Error::MissingOrInvalidProgramItems(
-                "instruction struct".to_string(),
-            ))?;
+            .ok_or(Error::MissingOrInvalidProgramItems(format!(
+                "instruction struct: missing struct for item {}",
+                instruction_struct_name,
+            )))?;
 
         idl_instruction.parameters = instruction_item_struct_fields
             .map(|field| {
