@@ -1,0 +1,23 @@
+name: "Setup Honggfuzz"
+description: "Setup Honggfuzz"
+
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/cache@v3
+      name: Cache Honggfuzz
+      id: cache-honggfuzz
+      with:
+        path: |
+          ~/.cache/honggfuzz/
+          ~/.local/share/honggfuzz/
+        key: honggfuzz-${{ runner.os }}-v0000-${{ env.HONGGFUZZ_VERSION }}
+    - name: Install honggfuzz
+      run: cargo install honggfuzz --version ${{ env.HONGGFUZZ_VERSION }}
+      shell: bash
+    - name: Install binutils-dev
+      run: sudo apt-get install binutils-dev
+      shell: bash
+    - name: Install libunwind-dev
+      run: sudo apt-get install libunwind-dev
+      shell: bash
