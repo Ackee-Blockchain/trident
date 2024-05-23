@@ -1,0 +1,25 @@
+name: Test Fuzz Tests
+
+on:
+  workflow_dispatch:
+  pull_request:
+
+env:
+  SOLANA_CLI_VERSION: 1.18.12
+  ANCHOR_VERSION: 0.29.0
+  HONGGFUZZ_VERSION: 0.5.55
+
+jobs:
+  run_fuzz_example:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/setup-rust/
+      - uses: ./.github/actions/setup-solana/
+      - uses: ./.github/actions/setup-honggfuzz/
+        id: rust-setup
+      - uses: Swatinem/rust-cache@v2
+        name: Cache Rust and it's packages
+      - name: Test Fuzz
+        working-directory: examples/fuzz-tests/unchecked-arithmetic-0
+        run: cargo run --manifest-path ../../../Cargo.toml fuzz run fuzz_0
