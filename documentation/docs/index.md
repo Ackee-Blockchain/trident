@@ -1,8 +1,6 @@
 # {{ config.site_name }}
 Trident is a Rust-based framework to fuzz and integration test Solana programs to help you ship secure code.
 
-{{ config.site_name }} is a Rust-based framework to fuzz and integration test Solana programs to help you ship secure code.
-
 # Features
 
 - **Automated Test Generation**: Simplifies the testing process by automatically creating templates for fuzz and integration tests for programs written using the Anchor Framework.
