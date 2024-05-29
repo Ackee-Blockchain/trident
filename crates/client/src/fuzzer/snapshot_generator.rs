@@ -232,7 +232,7 @@ fn is_optional(parsed_field: &AccountField) -> bool {
         AccountField::CompositeField(f) => &f.constraints,
     };
 
-    constraints.init.is_some() || constraints.is_close() || is_optional
+    constraints.init.is_some() || constraints.is_close() || is_optional || constraints.is_zeroed()
 }
 
 /// Creates new Snapshot struct from the context struct. Removes Box<> types.
