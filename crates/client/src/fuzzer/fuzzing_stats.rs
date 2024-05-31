@@ -30,26 +30,16 @@ impl FuzzingStatistics {
         println!("{}", serialized);
     }
 
-    /// Increments the invocation count for a given instruction.
-    /// # Arguments
-    /// * `instruction` - The instruction to increment the count for.
-    pub fn increase_invoked(&mut self, instruction: String) {
-        self.instructions
-            .entry(instruction)
-            .and_modify(|iterations_stats| iterations_stats.invoked += 1)
-            .or_insert(IterationStats {
-                invoked: 1,
-                successful: 0,
-                failed: 0,
-            });
-    }
     /// Increments the successful invocation count for a given instruction.
     /// # Arguments
     /// * `instruction` - The instruction to increment the successful count for.
     pub fn increase_successful(&mut self, instruction: String) {
         self.instructions
             .entry(instruction)
-            .and_modify(|iterations_stats| iterations_stats.successful += 1)
+            .and_modify(|iterations_stats| {
+                iterations_stats.successful += 1;
+                iterations_stats.invoked += 1;
+            })
             .or_insert(
                 // this should not occure as instruction has to be invoked
                 // and then successfully_invoked
@@ -63,7 +53,10 @@ impl FuzzingStatistics {
     pub fn increase_failed(&mut self, instruction: String) {
         self.instructions
             .entry(instruction)
-            .and_modify(|iterations_stats| iterations_stats.failed += 1)
+            .and_modify(|iterations_stats| {
+                iterations_stats.failed += 1;
+                iterations_stats.invoked += 1;
+            })
             .or_insert(
                 // this should not occure as instruction has to be invoked
                 // and then unsuccessfully_invoked

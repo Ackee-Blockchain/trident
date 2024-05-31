@@ -15,9 +15,6 @@ pub fn fuzz_test_executor(input: TokenStream) -> TokenStream {
                     #enum_name::#variant_name (ix) => {
                         #[cfg(fuzzing_with_stats)]
                         let mut stats_logger = FuzzingStatistics::new();
-                        #[cfg(fuzzing_with_stats)]
-                        stats_logger.increase_invoked(self.to_context_string());
-
 
                         let (mut signers, metas) = ix.get_accounts(client, &mut accounts.borrow_mut())
                             .map_err(|e| e.with_origin(Origin::Instruction(self.to_context_string())))
@@ -58,15 +55,16 @@ pub fn fuzz_test_executor(input: TokenStream) -> TokenStream {
                                 match tx_result {
                                         Ok(_) => {
                                             #[cfg(fuzzing_with_stats)]
-                                            stats_logger.increase_successful(self.to_context_string());
+                                            {
+                                                stats_logger.increase_successful(self.to_context_string());
+                                                stats_logger.output_serialized();
+                                            }
 
                                             snaphot.capture_after(client).unwrap();
                                             let (acc_before, acc_after) = snaphot.get_snapshot()
                                                 .map_err(|e| e.with_origin(Origin::Instruction(self.to_context_string())))
                                                 .expect("Snapshot deserialization expect"); // we want to panic if we cannot unwrap to cause a crash
 
-                                            #[cfg(fuzzing_with_stats)]
-                                            stats_logger.output_serialized();
                                             if let Err(e) = ix.check(acc_before, acc_after, data).map_err(|e| e.with_origin(Origin::Instruction(self.to_context_string()))) {
                                                 eprintln!(
                                                     "\x1b[31mCRASH DETECTED!\x1b[0m Custom check after the {} instruction did not pass!",
