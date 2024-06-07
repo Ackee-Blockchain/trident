@@ -13,9 +13,6 @@ pub fn fuzz_test_executor(input: TokenStream) -> TokenStream {
                 let variant_name = &variant.ident;
                 quote! {
                     #enum_name::#variant_name (ix) => {
-                        #[cfg(fuzzing_with_stats)]
-                        let mut stats_logger = FuzzingStatistics::new();
-
                         let (mut signers, metas) = ix.get_accounts(client, &mut accounts.borrow_mut())
                             .map_err(|e| e.with_origin(Origin::Instruction(self.to_context_string())))
                             .expect("Accounts calculation expect");
@@ -50,15 +47,17 @@ pub fn fuzz_test_executor(input: TokenStream) -> TokenStream {
                         match duplicate_tx {
                             Some(_) => eprintln!("\x1b[1;93mWarning\x1b[0m: Skipping duplicate instruction `{}`", self.to_context_string()),
                             None => {
+                                #[cfg(fuzzing_with_stats)]
+                                let mut stats_logger = FuzzingStatistics::new();
+                                #[cfg(fuzzing_with_stats)]
+                                stats_logger.increase_invoked(self.to_context_string());
+
                                 let tx_result = client.process_transaction(transaction)
                                 .map_err(|e| e.with_origin(Origin::Instruction(self.to_context_string())));
                                 match tx_result {
                                         Ok(_) => {
                                             #[cfg(fuzzing_with_stats)]
-                                            {
-                                                stats_logger.increase_successful(self.to_context_string());
-                                                stats_logger.output_serialized();
-                                            }
+                                            stats_logger.increase_successful(self.to_context_string());
 
                                             snaphot.capture_after(client).unwrap();
                                             let (acc_before, acc_after) = snaphot.get_snapshot()
@@ -66,11 +65,19 @@ pub fn fuzz_test_executor(input: TokenStream) -> TokenStream {
                                                 .expect("Snapshot deserialization expect"); // we want to panic if we cannot unwrap to cause a crash
 
                                             if let Err(e) = ix.check(acc_before, acc_after, data).map_err(|e| e.with_origin(Origin::Instruction(self.to_context_string()))) {
+                                                #[cfg(fuzzing_with_stats)]
+                                                {
+                                                    stats_logger.increase_failed_check(self.to_context_string());
+                                                    stats_logger.output_serialized();
+                                                }
                                                 eprintln!(
                                                     "\x1b[31mCRASH DETECTED!\x1b[0m Custom check after the {} instruction did not pass!",
                                                     self.to_context_string());
                                                 panic!("{}", e)
                                             }
+                                            #[cfg(fuzzing_with_stats)]
+                                            stats_logger.output_serialized();
+
                                         },
                                         Err(e) => {
                                             #[cfg(fuzzing_with_stats)]

@@ -69,7 +69,7 @@ HFUZZ_RUN_ARGS="-t 10 -n 1 -N 10000 -Q" trident fuzz run <TARGET_NAME>
 ### Fuzzing statistics
 Sometimes, it's useful to know how often a particular instruction has been invoked and how many times it has succeeded or failed. To display these statistics when fuzzing is finished or interrupted, set the `fuzzing_with_stats` option to `true` in the `[fuzz]` section of the Trident.toml configuration file. Please note that this option is disabled by default because it impacts performance.
 
-The statistics show the total number of invocations for each instruction, which is the sum of successful and failed invocations. Successful invocations are those that return an `Ok()` result. Currently, we do not log whether the invariant checks also passed. Failed invocations are those that return an `Err()` result. Unhandled panics are not logged, as this would require setting a custom panic hook and intervening with Honggfuzz, which detects panics as crashes.
+The statistics show the total number of invocations for each instruction, which is the sum of successful and failed invocations. Successful invocations are those that return an `Ok()` result. Failed invocations are those that return an `Err()` result. Additionally, the statistics also show as `Check Failed` the number of successful invocations that did not pass the user-defined invariants check. Note that unhandled panics are currently logged only as crashes and are not displayed in the fuzzing statistics table.
 
 Keep in mind that the number of fuzz iterations does not directly correspond to the total number of invocations. In one fuzz iteration, the fuzzer might be unable to deserialize fuzz data into instructions, causing the entire iteration to be skipped.
 
