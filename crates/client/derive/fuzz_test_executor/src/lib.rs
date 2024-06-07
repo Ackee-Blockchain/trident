@@ -47,27 +47,47 @@ pub fn fuzz_test_executor(input: TokenStream) -> TokenStream {
                         match duplicate_tx {
                             Some(_) => eprintln!("\x1b[1;93mWarning\x1b[0m: Skipping duplicate instruction `{}`", self.to_context_string()),
                             None => {
+                                #[cfg(fuzzing_with_stats)]
+                                let mut stats_logger = FuzzingStatistics::new();
+                                #[cfg(fuzzing_with_stats)]
+                                stats_logger.increase_invoked(self.to_context_string());
+
                                 let tx_result = client.process_transaction(transaction)
                                 .map_err(|e| e.with_origin(Origin::Instruction(self.to_context_string())));
-
                                 match tx_result {
-                                    Ok(_) => {
-                                        snaphot.capture_after(client).unwrap();
-                                        let (acc_before, acc_after) = snaphot.get_snapshot()
-                                            .map_err(|e| e.with_origin(Origin::Instruction(self.to_context_string())))
-                                            .expect("Snapshot deserialization expect"); // we want to panic if we cannot unwrap to cause a crash
+                                        Ok(_) => {
+                                            #[cfg(fuzzing_with_stats)]
+                                            stats_logger.increase_successful(self.to_context_string());
 
-                                        if let Err(e) = ix.check(acc_before, acc_after, data).map_err(|e| e.with_origin(Origin::Instruction(self.to_context_string()))) {
-                                            eprintln!(
-                                                "\x1b[31mCRASH DETECTED!\x1b[0m Custom check after the {} instruction did not pass!",
-                                                self.to_context_string());
-                                            panic!("{}", e)
+                                            snaphot.capture_after(client).unwrap();
+                                            let (acc_before, acc_after) = snaphot.get_snapshot()
+                                                .map_err(|e| e.with_origin(Origin::Instruction(self.to_context_string())))
+                                                .expect("Snapshot deserialization expect"); // we want to panic if we cannot unwrap to cause a crash
+
+                                            if let Err(e) = ix.check(acc_before, acc_after, data).map_err(|e| e.with_origin(Origin::Instruction(self.to_context_string()))) {
+                                                #[cfg(fuzzing_with_stats)]
+                                                {
+                                                    stats_logger.increase_failed_check(self.to_context_string());
+                                                    stats_logger.output_serialized();
+                                                }
+                                                eprintln!(
+                                                    "\x1b[31mCRASH DETECTED!\x1b[0m Custom check after the {} instruction did not pass!",
+                                                    self.to_context_string());
+                                                panic!("{}", e)
+                                            }
+                                            #[cfg(fuzzing_with_stats)]
+                                            stats_logger.output_serialized();
+
+                                        },
+                                        Err(e) => {
+                                            #[cfg(fuzzing_with_stats)]
+                                            {
+                                                stats_logger.increase_failed(self.to_context_string());
+                                                stats_logger.output_serialized();
+                                            }
+                                            let mut raw_accounts = snaphot.get_raw_pre_ix_accounts();
+                                            ix.tx_error_handler(e, data, &mut raw_accounts)?
                                         }
-                                    },
-                                    Err(e) => {
-                                        let mut raw_accounts = snaphot.get_raw_pre_ix_accounts();
-                                        ix.tx_error_handler(e, data, &mut raw_accounts)?
-                                    }
                                 }
                             }
                         }
