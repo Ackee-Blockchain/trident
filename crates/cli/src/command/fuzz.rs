@@ -2,7 +2,7 @@ use anyhow::{bail, Error};
 
 use clap::Subcommand;
 use fehler::throws;
-use trident_client::{Commander, TestGenerator};
+use trident_client::___private::{Commander, TestGenerator};
 
 use crate::_discover;
 

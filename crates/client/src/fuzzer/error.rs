@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use solana_banks_client::BanksClientError;
 use solana_sdk::pubkey::Pubkey;
 use std::fmt::{Debug, Display};

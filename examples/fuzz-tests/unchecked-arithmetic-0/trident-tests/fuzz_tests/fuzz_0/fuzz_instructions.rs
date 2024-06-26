@@ -1,6 +1,8 @@
 pub mod unchecked_arithmetic_0_fuzz_instructions {
     use crate::accounts_snapshots::*;
-    use trident_client::{fuzzing::*, solana_sdk::native_token::LAMPORTS_PER_SOL};
+    use solana_sdk::native_token::LAMPORTS_PER_SOL;
+    use solana_sdk::system_program::ID as SYSTEM_PROGRAM_ID;
+    use trident_client::fuzzing::*;
     #[derive(Arbitrary, DisplayIx, FuzzTestExecutor, FuzzDeserialize)]
     pub enum FuzzInstruction {
         Initialize(Initialize),

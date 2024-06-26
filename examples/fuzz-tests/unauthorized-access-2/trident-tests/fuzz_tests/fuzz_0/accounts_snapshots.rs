@@ -1,6 +1,6 @@
-use trident_client::anchor_lang::{self, prelude::*};
-use trident_client::fuzzing::FuzzingError;
 use unauthorized_access_2::ID as PROGRAM_ID;
+use trident_client::fuzzing::{anchor_lang, FuzzingError};
+use anchor_lang::prelude::*;
 pub struct InitializeSnapshot<'info> {
     pub author: Signer<'info>,
     pub escrow: Option<Account<'info, unauthorized_access_2::state::Escrow>>,

@@ -1,6 +1,7 @@
 // DO NOT EDIT - automatically generated file (except `use` statements inside the `*_instruction` module
 pub mod escrow_instruction {
-    use trident_client::*;
+    use trident_client::prelude::*;
+    use trident_client::test::*;
     pub static PROGRAM_ID: Pubkey = Pubkey::new_from_array([
         5u8, 214u8, 204u8, 101u8, 166u8, 163u8, 239u8, 244u8, 13u8, 110u8, 64u8, 106u8, 230u8,
         81u8, 141u8, 186u8, 208u8, 155u8, 78u8, 83u8, 194u8, 215u8, 103u8, 17u8, 94u8, 15u8, 137u8,

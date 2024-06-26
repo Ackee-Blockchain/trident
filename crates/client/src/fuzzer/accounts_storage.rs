@@ -1,8 +1,9 @@
+#![allow(dead_code)]
 use std::collections::HashMap;
 
 use solana_sdk::{pubkey::Pubkey, signature::Keypair};
 
-use crate::{data_builder::FuzzClient, AccountId};
+use crate::fuzzer::{data_builder::FuzzClient, AccountId};
 
 pub struct PdaStore {
     pub pubkey: Pubkey,

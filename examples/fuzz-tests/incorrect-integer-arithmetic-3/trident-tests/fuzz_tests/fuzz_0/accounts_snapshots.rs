@@ -1,7 +1,7 @@
 use anchor_spl::token::{Mint, Token, TokenAccount};
 use incorrect_integer_arithmetic_3::ID as PROGRAM_ID;
-use trident_client::anchor_lang::{self, prelude::*};
-use trident_client::fuzzing::FuzzingError;
+use trident_client::fuzzing::{anchor_lang, FuzzingError};
+use anchor_lang::prelude::*;
 pub struct InitVestingSnapshot<'info> {
     pub sender: Signer<'info>,
     pub sender_token_account: Account<'info, TokenAccount>,
