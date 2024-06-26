@@ -1,5 +1,5 @@
 [workspace]
-members = ["crates/cli", "crates/client", "crates/explorer", "crates/test"]
+members = ["crates/cli", "crates/client", "crates/test"]
 exclude = ["examples/"]
 resolver = "1"
 
@@ -7,19 +7,13 @@ resolver = "1"
 [workspace.dependencies]
 trident-test                   = { path = "./crates/test", version = "0.3.2" }
 trident-client                 = { path = "./crates/client", version = "0.6.0" }
-trident-explorer               = { path = "./crates/explorer", version = "0.3.2" }
 anchor-client                   = { version=">=0.29.0", features = ["async"]}
 solana-sdk                      = "1.16"
 solana-cli-output               = "1.16"
 solana-transaction-status       = "1.16"
 solana-account-decoder          = "1.16"
-solana-cli-config               = "1.16"
-solana-client                   = "1.16"
 solana-program                  = "1.16"
-solana-logger                   = "1.16"
-solana-vote-program             = "1.16"
 spl-token                       = "4.0.0"
-spl-memo                        = "4.0.0"
 spl-associated-token-account    = "2.0.0"
 tokio                           = { version = "1", default-features = false }
 rand                            = "0.8.5"
@@ -43,12 +37,6 @@ rstest                          = "0.18.1"
 lazy_static                     = "1.4.0"
 bs58                            = "0.5.0"
 base64                          = "0.13.0"
-pretty-hex                      = "0.3.0"
-console                         = "0.15.0"
-chrono                          = "0.4.19"
-phf                             = { version = "0.11.2", features = ["macros"] }
-num-derive                      = "0.4.0"
-num-traits                      = "0.2.14"
 proc-macro2                     = { version = "1.0.66", default-features = false }
 darling                         = "0.13.1"
 clap                            = { version = "=4.3.19", features = ["derive"] }
