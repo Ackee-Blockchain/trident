@@ -65,22 +65,22 @@ pub fn trident_test(args: TokenStream, input: TokenStream) -> TokenStream {
         // Note: The line `#(#input_fn_attrs)*` has to be above the line with the code
         // `#[trident_client::tokio::test...` to make macros like `#[rstest]` work -
         // see https://github.com/la10736/rstest#inject-test-attribute
-        #[trident_client::rstest]
-        #[trident_client::tokio::test(flavor = "multi_thread")]
-        #[trident_client::serial_test::serial]
-        async fn #input_fn_name(#input_fn_inputs) -> trident_client::anyhow::Result<()> {
-            let mut tester = trident_client::Tester::with_root(#root);
+        #[trident_client::test::rstest]
+        #[trident_client::test::tokio::test(flavor = "multi_thread")]
+        #[trident_client::test::serial_test::serial]
+        async fn #input_fn_name(#input_fn_inputs) -> trident_client::test::anyhow::Result<()> {
+            let mut tester = trident_client::test::Tester::with_root(#root);
             let localnet_handle = tester.before().await?;
             let test = async {
                 #input_fn_body
-                Ok::<(), trident_client::anyhow::Error>(())
+                Ok::<(), trident_client::test::anyhow::Error>(())
             };
             let result = std::panic::AssertUnwindSafe(test).catch_unwind().await;
             tester.after(localnet_handle).await?;
             assert!(result.is_ok());
             let final_result = result.unwrap();
             if let Err(error) = final_result {
-                trident_client::error_reporter::report_error(&error);
+                trident_client::test::report_error(&error);
                 return Err(error);
             }
             Ok(())

@@ -1,9 +1,10 @@
-use crate::fuzzing::ProgramTest;
-use crate::fuzzing::{ProgramTestContext, SYSTEM_PROGRAM_ID};
-use crate::solana_sdk::account::Account;
 use solana_program_runtime::invoke_context::BuiltinFunctionWithContext;
+use solana_program_test::ProgramTest;
+use solana_program_test::ProgramTestContext;
+use solana_sdk::account::Account;
 use solana_sdk::account_info::AccountInfo;
 use solana_sdk::entrypoint::ProgramResult;
+use solana_sdk::system_program::ID as SYSTEM_PROGRAM_ID;
 use solana_sdk::{
     account::AccountSharedData, hash::Hash, instruction::AccountMeta, program_option::COption,
     program_pack::Pack, pubkey::Pubkey, rent::Rent, signature::Keypair, signature::Signer,
@@ -12,8 +13,8 @@ use solana_sdk::{
 use spl_token::state::Mint;
 use tokio::runtime::Builder;
 
-use crate::data_builder::FuzzClient;
-use crate::error::*;
+use crate::fuzzer::data_builder::FuzzClient;
+use crate::fuzzer::error::*;
 
 pub type ProgramEntry = for<'info> fn(
     program_id: &Pubkey,

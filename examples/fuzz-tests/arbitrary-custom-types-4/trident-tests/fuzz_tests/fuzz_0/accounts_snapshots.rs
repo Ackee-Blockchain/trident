@@ -1,6 +1,6 @@
+use anchor_lang::prelude::*;
 use arbitrary_custom_types_4::ID as PROGRAM_ID;
-use trident_client::anchor_lang::{self, prelude::*};
-use trident_client::fuzzing::FuzzingError;
+use trident_client::fuzzing::{anchor_lang, FuzzingError};
 pub struct InitializeSnapshot<'info> {
     pub counter: Option<Account<'info, arbitrary_custom_types_4::Counter>>,
     pub user: Signer<'info>,
