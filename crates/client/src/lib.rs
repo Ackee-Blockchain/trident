@@ -3,105 +3,123 @@
 //!
 //! Trident could be useful for writing Rust dApps, too.
 
-pub use anchor_client::{
-    self,
-    anchor_lang::{self, prelude::System, Id, InstructionData, ToAccountMetas},
-    solana_sdk::{
-        self,
-        instruction::Instruction,
-        pubkey::Pubkey,
-        signature::Signature,
-        signer::{keypair::Keypair, Signer},
-    },
-    ClientError,
-};
-pub use anyhow::{self, Error};
-
+/// Aimed for the fuzz tests
 #[cfg(feature = "fuzzing")]
 pub mod fuzzing {
-    pub use self::anchor_lang::solana_program::instruction::AccountMeta;
-    pub use super::{
-        anchor_lang, anchor_lang::system_program::ID as SYSTEM_PROGRAM_ID,
-        anchor_lang::InstructionData, anchor_lang::ToAccountInfo, anchor_lang::ToAccountMetas,
-        fuzz_trident, show_account, solana_sdk::account::Account,
-        solana_sdk::entrypoint::ProcessInstruction, solana_sdk::transaction::Transaction,
-        Instruction, Keypair, Pubkey, Signer, TempClone,
-    };
-    pub use anchor_client::anchor_lang::solana_program::account_info::AccountInfo;
-    pub use anchor_client::anchor_lang::solana_program::hash::Hash;
+    /// anchor_lang
+    pub use anchor_lang;
+    pub use anchor_lang::solana_program::hash::Hash;
+    pub use anchor_lang::InstructionData;
     pub use anchor_lang::Key;
+    pub use anchor_lang::ToAccountInfo;
+    pub use anchor_lang::ToAccountMetas;
+
+    /// solana_sdk
+    pub use solana_sdk;
+    pub use solana_sdk::account_info::AccountInfo;
+    pub use solana_sdk::entrypoint::ProcessInstruction;
+    pub use solana_sdk::instruction::AccountMeta;
+    pub use solana_sdk::instruction::Instruction;
+    pub use solana_sdk::pubkey::Pubkey;
+    pub use solana_sdk::signer::keypair::Keypair;
+    pub use solana_sdk::signer::Signer;
+    pub use solana_sdk::transaction::Transaction;
+
+    /// arbitrary and honggfuzz
     pub use arbitrary;
     pub use arbitrary::Arbitrary;
     pub use honggfuzz::fuzz;
-    pub use solana_program_test::{
-        processor, tokio::runtime::Runtime, BanksClient, BanksClientError, ProgramTest,
-        ProgramTestContext,
-    };
 
-    pub use super::error::*;
-    pub use super::fuzzer::accounts_storage::*;
-    pub use super::fuzzer::data_builder::build_ix_fuzz_data;
-    pub use super::fuzzer::data_builder::*;
-    pub use super::fuzzing_stats::FuzzingStatistics;
-
-    pub use super::fuzzer::program_test_client_blocking::ProgramEntry;
-    pub use super::fuzzer::program_test_client_blocking::ProgramTestClientBlocking;
-    pub use super::fuzzer::snapshot::Snapshot;
-    pub use super::fuzzer::*;
-    pub use std::cell::RefCell;
-    pub use std::collections::HashMap;
+    /// trident derive
     pub use trident_derive_displayix::DisplayIx;
     pub use trident_derive_fuzz_deserialize::FuzzDeserialize;
     pub use trident_derive_fuzz_test_executor::FuzzTestExecutor;
+
+    /// trident macros
+    pub use super::fuzzer::*;
+    pub use crate::convert_entry;
+    pub use crate::fuzz_trident;
+    pub use crate::show_account;
+
+    pub use super::fuzzer::program_test_client_blocking::ProgramEntry;
+    pub use solana_program_test::processor;
+
+    /// trident methods
+    pub use super::fuzzer::accounts_storage::*;
+    pub use super::fuzzer::data_builder::build_ix_fuzz_data;
+    pub use super::fuzzer::data_builder::*;
+    pub use super::fuzzer::error::*;
+    pub use super::fuzzer::fuzzing_stats::FuzzingStatistics;
+    pub use super::fuzzer::program_test_client_blocking::ProgramTestClientBlocking;
+    pub use super::fuzzer::snapshot::Snapshot;
+    pub use super::temp_clone::*;
+
+    pub use std::cell::RefCell;
+    pub use std::collections::HashMap;
 }
 
-pub use futures::{self, FutureExt};
-pub use rstest::*;
-pub use serial_test;
-pub use solana_transaction_status::EncodedConfirmedTransactionWithStatusMeta;
-pub use tokio;
+/// Aimed for the integration tests
+pub mod test {
+    pub use super::client::*;
+    pub use super::error_reporter::report_error;
+    pub use super::keys::*;
+    pub use super::tester::Tester;
+    pub use anyhow::{self, Error, Result};
+    pub use futures::{self, FutureExt};
+    pub use rstest::*;
+    pub use serial_test;
+    pub use solana_transaction_status::EncodedConfirmedTransactionWithStatusMeta;
+    pub use tokio;
+    pub use trident_test::trident_test;
+}
 
-pub use trident_test::trident_test;
+/// Aimed for general usage
+pub mod prelude {
+    pub use super::temp_clone::*;
+    pub use anchor_client::ClientError;
+    pub use anchor_lang;
+    pub use anchor_lang::InstructionData;
+    pub use anchor_lang::ToAccountMetas;
+    pub use solana_sdk;
+    pub use solana_sdk::instruction::Instruction;
+    pub use solana_sdk::pubkey::Pubkey;
+    pub use solana_sdk::signer::keypair::Keypair;
+    pub use solana_sdk::signer::Signer;
+}
 
-mod config;
-
+mod cleaner;
 mod client;
-pub use client::Client;
-pub use client::PrintableTransaction;
-
-mod reader;
-pub use reader::Reader;
-
 mod commander;
-pub use commander::{Commander, LocalnetHandle};
-
-mod tester;
-pub use tester::Tester;
-
-mod temp_clone;
-pub use temp_clone::TempClone;
-
-mod keys;
-pub use keys::*;
-
+mod config;
+mod error_reporter;
 mod fuzzer;
-pub use fuzzer::*;
-pub mod idl;
-pub mod program_client_generator;
+mod idl;
+mod keys;
+mod program_client_generator;
+mod reader;
+mod temp_clone;
+mod test_generator;
+mod tester;
 
-pub mod test_generator;
-pub use test_generator::TestGenerator;
-
-pub mod error_reporter;
-pub use error_reporter::*;
-
-pub mod cleaner;
-pub use cleaner::*;
-
-// This is a workaround for tests: https://github.com/Ackee-Blockchain/trident/pull/112#issuecomment-1924920952
-pub use trident_derive_displayix::DisplayIx;
-pub use trident_derive_fuzz_deserialize::FuzzDeserialize;
-pub use trident_derive_fuzz_test_executor::FuzzTestExecutor;
+pub mod ___private {
+    pub use super::cleaner::*;
+    pub use super::client::*;
+    pub use super::commander::Commander;
+    pub use super::commander::Error;
+    pub use super::commander::LocalnetHandle;
+    pub use super::error_reporter::*;
+    pub use super::fuzzer::fuzzer_generator;
+    pub use super::fuzzer::snapshot_generator;
+    pub use super::idl::*;
+    pub use super::keys::*;
+    pub use super::program_client_generator::*;
+    pub use super::reader::*;
+    pub use super::temp_clone::TempClone;
+    pub use super::test_generator::ProgramData;
+    pub use super::test_generator::TestGenerator;
+    pub use super::tester::*;
+    // pub use trident_fuzz_test::fuzz_trident;
+}
 
 mod constants {
     // program_client

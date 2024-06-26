@@ -1,9 +1,9 @@
 use anchor_spl::token;
 use fehler::throws;
 use program_client::*;
-// use program_client::escrow_instruction;
-use trident_client::{anyhow::Result, *};
 
+use trident_client::prelude::*;
+use trident_client::test::*;
 #[throws]
 #[fixture]
 async fn init_fixture() -> Fixture {
@@ -77,7 +77,7 @@ async fn test_happy_path1(#[future] init_fixture: Result<Fixture>) {
         fixture.alice_token_a_account,
         fixture.alice_token_b_account,
         fixture.escrow_account.pubkey(),
-        System::id(),
+        solana_sdk::system_program::ID,
         token::ID,
         [fixture.alice_wallet.clone(), fixture.escrow_account.clone()],
     )
@@ -150,7 +150,7 @@ async fn test_happy_path2(#[future] init_fixture: Result<Fixture>) {
         fixture.alice_token_a_account,
         fixture.alice_token_b_account,
         fixture.escrow_account.pubkey(),
-        System::id(),
+        solana_sdk::system_program::ID,
         token::ID,
         [fixture.alice_wallet.clone(), fixture.escrow_account.clone()],
     )

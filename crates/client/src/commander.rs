@@ -1,9 +1,7 @@
+use crate::___private::Client;
 use crate::config::Config;
+use crate::idl::{self};
 use crate::test_generator::ProgramData;
-use crate::{
-    idl::{self},
-    Client,
-};
 use fehler::{throw, throws};
 use log::debug;
 use solana_sdk::signer::keypair::Keypair;
@@ -19,7 +17,7 @@ use tokio::{
 };
 
 use crate::constants::*;
-use crate::fuzzing_stats::FuzzingStatistics;
+use crate::fuzzer::fuzzing_stats::FuzzingStatistics;
 use tokio::io::AsyncBufReadExt;
 
 #[derive(Error, Debug)]

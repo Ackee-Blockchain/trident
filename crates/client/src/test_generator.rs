@@ -3,8 +3,9 @@ use crate::{
     fuzzer,
     idl::IdlProgram,
     program_client_generator,
-    snapshot_generator::generate_snapshots_code,
 };
+
+use crate::fuzzer::snapshot_generator::generate_snapshots_code;
 use cargo_metadata::{camino::Utf8PathBuf, Package};
 use fehler::{throw, throws};
 use std::{fs::File, io::prelude::*};
@@ -279,7 +280,9 @@ impl TestGenerator {
         }
         if self.use_tokens.is_empty() {
             self.use_tokens
-                .push(syn::parse_quote! { use trident_client::*; })
+                .push(syn::parse_quote! {use trident_client::prelude::*;});
+            self.use_tokens
+                .push(syn::parse_quote! {use trident_client::test::*;});
         }
     }
 

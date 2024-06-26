@@ -1,4 +1,4 @@
-use trident_client::{convert_entry, fuzz_trident, fuzzing::*};
+use trident_client::fuzzing::*;
 mod accounts_snapshots;
 mod fuzz_instructions;
 

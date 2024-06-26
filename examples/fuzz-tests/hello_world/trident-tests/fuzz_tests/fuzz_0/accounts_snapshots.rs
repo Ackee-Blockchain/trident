@@ -1,6 +1,7 @@
+use anchor_lang::prelude::*;
 use hello_world::ID as PROGRAM_ID;
-use trident_client::anchor_lang::{self, prelude::*};
-use trident_client::fuzzing::FuzzingError;
+use trident_client::fuzzing::{anchor_lang, FuzzingError};
+
 pub struct InitializeSnapshot<'info> {
     pub author: Signer<'info>,
     pub hello_world_account: Option<Account<'info, hello_world::StoreHelloWorld>>,

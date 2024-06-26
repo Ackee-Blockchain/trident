@@ -4,8 +4,8 @@ use anchor_client::anchor_lang::solana_program::account_info::Account as Acc;
 use anchor_client::anchor_lang::solana_program::account_info::AccountInfo;
 use solana_sdk::{account::Account, instruction::AccountMeta};
 
-use crate::data_builder::{FuzzClient, FuzzDeserialize};
-use crate::error::*;
+use crate::fuzzer::data_builder::{FuzzClient, FuzzDeserialize};
+use crate::fuzzer::error::*;
 pub struct Snapshot<'info, T> {
     before: Vec<Option<Account>>,
     before_acc_inf: Vec<Option<AccountInfo<'info>>>,

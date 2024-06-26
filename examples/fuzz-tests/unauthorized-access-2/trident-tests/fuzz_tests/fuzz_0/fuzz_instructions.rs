@@ -1,6 +1,8 @@
 pub mod unauthorized_access_2_fuzz_instructions {
     use crate::accounts_snapshots::*;
-    use trident_client::{fuzzing::*, solana_sdk::native_token::LAMPORTS_PER_SOL};
+    use solana_sdk::native_token::LAMPORTS_PER_SOL;
+    use solana_sdk::system_program::ID as SYSTEM_PROGRAM_ID;
+    use trident_client::fuzzing::*;
     use unauthorized_access_2::ESCROW_SEED;
     #[derive(Arbitrary, DisplayIx, FuzzTestExecutor, FuzzDeserialize)]
     pub enum FuzzInstruction {

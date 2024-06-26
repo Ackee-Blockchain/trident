@@ -66,8 +66,8 @@ pub fn generate_snapshots_code(programs_data: &[ProgramData]) -> Result<String, 
         let program_name_ident = format_ident!("{}", program_data.program_idl.name.snake_case);
 
         let use_statements = quote! {
-            use trident_client::anchor_lang::{prelude::*, self};
-            use trident_client::fuzzing::FuzzingError;
+            use anchor_lang::prelude::*;
+            use trident_client::fuzzing::{anchor_lang, FuzzingError};
             use #program_name_ident::ID as PROGRAM_ID;
         }
         .into_token_stream();

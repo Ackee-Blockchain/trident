@@ -1,6 +1,7 @@
 use fehler::throws;
-use program_client::turnstile_instruction;
-use trident_client::{anyhow::Result, *};
+use program_client::*;
+use trident_client::prelude::*;
+use trident_client::test::*;
 
 #[throws]
 #[fixture]
@@ -35,7 +36,7 @@ async fn init_fixture() -> Fixture {
         &fixture.client,
         fixture.state.pubkey(),
         fixture.user_initializer.pubkey(),
-        System::id(),
+        solana_sdk::system_program::ID,
         [fixture.state.clone(), fixture.user_initializer.clone()],
     )
     .await?;

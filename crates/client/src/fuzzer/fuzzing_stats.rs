@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use prettytable::{row, Table};
 use std::collections::HashMap;
 
