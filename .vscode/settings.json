@@ -3,7 +3,6 @@
         // autodiscovery is disabled, must list all crates
         "crates/cli/Cargo.toml",
         "crates/client/Cargo.toml",
-        "crates/explorer/Cargo.toml",
         "crates/test/Cargo.toml",
     ],
     "rust-analyzer.diagnostics.disabled": [
