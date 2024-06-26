@@ -14,4 +14,3 @@ anyhow              = { workspace = true }
 fehler              = { workspace = true }
 solana-sdk          = { workspace = true }
 trident-client     = { workspace = true }
-trident-explorer   = { workspace = true }
