@@ -98,7 +98,7 @@ Check out the following places for more Trident-related content:
 
 Solana Foundation             |  Marinade
 :-------------------------:|:-------------------------:
-[![](https://abchprod.wpengine.com/wp-content/uploads/2024/05/Solana-Foundation.png)](https://solana.org/)  |  [![](https://abchprod.wpengine.com/wp-content/uploads/2024/05/Marinade.png)](https://solana.blog/riptide-hackathon-winners/)
+[![](https://abchprod.wpengine.com/wp-content/uploads/2024/05/Solana-Foundation.png)](https://ackee.xyz/blog/introducing-trident-the-first-open-source-fuzzer-for-solana-programs/)  |  [![](https://abchprod.wpengine.com/wp-content/uploads/2024/05/Marinade.png)](https://solana.blog/riptide-hackathon-winners/)
 
 ## Contribution
 
