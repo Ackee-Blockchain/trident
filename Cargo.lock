@@ -339,24 +339,24 @@ dependencies = [
 
 [[package]]
 name = "anstyle"
-version = "1.0.6"
+version = "1.0.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8901269c6307e8d93993578286ac0edf7f195079ffff5ebdeea6a59ffb7e36bc"
+checksum = "038dfcf04a5feb68e9c60b21c9625a54c2c0616e79b72b0fd87075a056ae1d1b"
 
 [[package]]
 name = "anstyle-parse"
-version = "0.2.3"
+version = "0.2.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c75ac65da39e5fe5ab759307499ddad880d724eed2f6ce5b5e8a26f4f387928c"
+checksum = "c03a11a9034d92058ceb6ee011ce58af4a9bf61491aa7e1e59ecd24bd40d22d4"
 dependencies = [
  "utf8parse",
 ]
 
 [[package]]
 name = "anstyle-query"
-version = "1.0.2"
+version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e28923312444cdd728e4738b3f9c9cac739500909bb3d3c94b43551b16517648"
+checksum = "ad186efb764318d35165f1758e7dcef3b10628e26d41a44bc5550652e6804391"
 dependencies = [
  "windows-sys 0.52.0",
 ]
@@ -1108,9 +1108,9 @@ checksum = "cd7cc57abe963c6d3b9d8be5b06ba7c8957a930305ca90304f24ef040aa6f961"
 
 [[package]]
 name = "colorchoice"
-version = "1.0.0"
+version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "acbf1af155f9b9ef647e42cdc158db4b64a1b61f743629225fde6f3e0be2a7c7"
+checksum = "0b6a852b24ab71dffc585bcb46eaf7959d175cb865a7152e35b348d1b2960422"
 
 [[package]]
 name = "combine"
@@ -6014,16 +6014,13 @@ dependencies = [
  "heck 0.4.1",
  "honggfuzz",
  "indicatif",
- "lazy_static",
  "log",
- "macrotest",
  "pathdiff",
  "pretty_assertions",
  "prettytable",
  "proc-macro2",
  "quinn-proto",
  "quote",
- "rand 0.8.5",
  "regex",
  "rstest",
  "serde",
@@ -6032,14 +6029,10 @@ dependencies = [
  "shellexpand",
  "solana-account-decoder",
  "solana-banks-client",
- "solana-bpf-loader-program",
  "solana-cli-output",
- "solana-program",
  "solana-program-runtime",
  "solana-program-test",
  "solana-sdk",
- "solana-sdk-macro",
- "solana-system-program",
  "solana-transaction-status",
  "spl-associated-token-account",
  "spl-token",
@@ -6086,7 +6079,6 @@ version = "0.3.2"
 dependencies = [
  "darling 0.13.4",
  "macrotest",
- "proc-macro2",
  "quote",
  "syn 1.0.109",
 ]
@@ -6229,9 +6221,9 @@ checksum = "09cc8ee72d2a9becf2f2febe0205bbed8fc6615b7cb429ad062dc7b7ddd036a9"
 
 [[package]]
 name = "utf8parse"
-version = "0.2.1"
+version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "711b9620af191e0cdc7468a8d14e709c3dcdb115b36f838e601583af800a370a"
+checksum = "06abde3611657adf66d383f00b093d7faecc7fa57071cce2578660c9f1010821"
 
 [[package]]
 name = "valuable"
