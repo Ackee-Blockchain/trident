@@ -1,11 +1,12 @@
 use crate::{
     commander::{Commander, Error as CommanderError},
-    fuzzer,
     idl::IdlProgram,
-    program_client_generator,
 };
 
-use crate::fuzzer::snapshot_generator::generate_snapshots_code;
+use crate::source_code_generators::fuzzer_generator;
+use crate::source_code_generators::program_client_generator;
+use crate::source_code_generators::snapshot_generator;
+
 use cargo_metadata::{camino::Utf8PathBuf, Package};
 use fehler::{throw, throws};
 use std::{fs::File, io::prelude::*};
@@ -491,7 +492,7 @@ impl TestGenerator {
 
         // create fuzz instructions file
         let fuzz_instructions_path = new_fuzz_test_dir.join(FUZZ_INSTRUCTIONS_FILE_NAME);
-        let program_fuzzer = fuzzer::fuzzer_generator::generate_source_code(&self.programs_data);
+        let program_fuzzer = fuzzer_generator::generate_source_code(&self.programs_data);
         let program_fuzzer = Commander::format_program_code(&program_fuzzer).await?;
 
         self.create_file(&fuzz_instructions_path, &program_fuzzer)
@@ -499,8 +500,8 @@ impl TestGenerator {
 
         // // create accounts_snapshots file
         let accounts_snapshots_path = new_fuzz_test_dir.join(ACCOUNTS_SNAPSHOTS_FILE_NAME);
-        let fuzzer_snapshots =
-            generate_snapshots_code(&self.programs_data).map_err(Error::ReadProgramCodeFailed)?;
+        let fuzzer_snapshots = snapshot_generator::generate_snapshots_code(&self.programs_data)
+            .map_err(Error::ReadProgramCodeFailed)?;
         let fuzzer_snapshots = Commander::format_program_code(&fuzzer_snapshots).await?;
 
         self.create_file(&accounts_snapshots_path, &fuzzer_snapshots)

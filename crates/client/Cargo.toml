@@ -8,12 +8,7 @@ readme = "../../README.md"
 description = "The trident_client crate helps you build and deploy an Anchor program to a local cluster and run a test suite against it."
 
 [features]
-fuzzing = [
-    "dep:solana-program-test",
-    "dep:honggfuzz",
-    "quinn-proto/arbitrary",
-    "dep:solana-program-runtime",
-]
+fuzzing = ["dep:solana-program-test", "dep:honggfuzz", "quinn-proto/arbitrary"]
 
 [build-dependencies]
 anyhow = { version = "1.0.45", features = ["std"], default-features = false }
@@ -23,11 +18,11 @@ pretty_assertions = "1.1.0"
 
 [dependencies]
 # TRIDENT
-trident-derive-displayix = { path = "./derive/display_ix", version = "0.0.1" }
-trident-derive-fuzz-deserialize = { path = "./derive/fuzz_deserialize", version = "0.0.1" }
-trident-derive-fuzz-test-executor = { path = "./derive/fuzz_test_executor", version = "0.0.1" }
+trident-derive-displayix = { path = "../fuzz/derive/display_ix", version = "0.0.1" }
+trident-derive-fuzz-deserialize = { path = "../fuzz/derive/fuzz_deserialize", version = "0.0.1" }
+trident-derive-fuzz-test-executor = { path = "../fuzz/derive/fuzz_test_executor", version = "0.0.1" }
 trident-test = { path = "../test", version = "0.3.2" }
-
+trident-fuzz = { path = "../fuzz", version = "0.1.0" }
 
 # ANCHOR
 # INFO: Anchor-spl is here as dependency only to activate the idl-build feature, so that
@@ -44,8 +39,6 @@ solana-transaction-status = { workspace = true }
 solana-account-decoder = { workspace = true }
 spl-token = { workspace = true }
 spl-associated-token-account = { workspace = true }
-solana-banks-client = { workspace = true }
-solana-program-runtime = { workspace = true, optional = true }
 solana-program-test = { workspace = true, optional = true }
 
 
@@ -80,4 +73,3 @@ quinn-proto = { version = "0.10.6", optional = true }
 pathdiff = "0.2.1"
 indicatif = "0.17.8"
 regex = "1.10.3"
-prettytable = "0.10.0"

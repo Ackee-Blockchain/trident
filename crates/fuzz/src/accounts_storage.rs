@@ -3,7 +3,7 @@ use std::collections::HashMap;
 
 use solana_sdk::{pubkey::Pubkey, signature::Keypair};
 
-use crate::fuzzer::{data_builder::FuzzClient, AccountId};
+use crate::{data_builder::FuzzClient, AccountId};
 
 pub struct PdaStore {
     pub pubkey: Pubkey,
