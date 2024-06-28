@@ -1,8 +1,8 @@
 #![allow(dead_code)]
 
-use anchor_client::anchor_lang::solana_program::account_info::{Account as Acc, AccountInfo};
-use anchor_client::anchor_lang::solana_program::hash::Hash;
 use anchor_lang::prelude::Rent;
+use anchor_lang::solana_program::account_info::{Account as Acc, AccountInfo};
+use anchor_lang::solana_program::hash::Hash;
 use arbitrary::Arbitrary;
 use arbitrary::Unstructured;
 use solana_sdk::account::{Account, AccountSharedData};
@@ -15,7 +15,7 @@ use std::collections::HashMap;
 use std::error::Error;
 use std::fmt::Display;
 
-use crate::fuzzer::error::*;
+use crate::error::*;
 
 pub struct FuzzData<T, U> {
     pub pre_ixs: Vec<T>,

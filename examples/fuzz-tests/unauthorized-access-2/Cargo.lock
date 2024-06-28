@@ -6052,14 +6052,11 @@ dependencies = [
  "heck 0.4.1",
  "honggfuzz",
  "indicatif",
- "lazy_static",
  "log",
  "pathdiff",
- "prettytable",
  "proc-macro2",
  "quinn-proto",
  "quote",
- "rand 0.8.5",
  "regex",
  "rstest",
  "serde",
@@ -6067,15 +6064,9 @@ dependencies = [
  "serial_test",
  "shellexpand",
  "solana-account-decoder",
- "solana-banks-client",
- "solana-bpf-loader-program",
  "solana-cli-output",
- "solana-program",
- "solana-program-runtime",
  "solana-program-test",
  "solana-sdk",
- "solana-sdk-macro",
- "solana-system-program",
  "solana-transaction-status",
  "spl-associated-token-account",
  "spl-token",
@@ -6086,6 +6077,7 @@ dependencies = [
  "trident-derive-displayix",
  "trident-derive-fuzz-deserialize",
  "trident-derive-fuzz-test-executor",
+ "trident-fuzz",
  "trident-test",
 ]
 
@@ -6117,11 +6109,34 @@ dependencies = [
 ]
 
 [[package]]
+name = "trident-fuzz"
+version = "0.1.0"
+dependencies = [
+ "anchor-lang",
+ "anchor-syn",
+ "arbitrary",
+ "heck 0.4.1",
+ "prettytable",
+ "proc-macro2",
+ "quote",
+ "regex",
+ "serde",
+ "serde_json",
+ "solana-banks-client",
+ "solana-program-runtime",
+ "solana-program-test",
+ "solana-sdk",
+ "spl-token",
+ "syn 1.0.109",
+ "thiserror",
+ "tokio",
+]
+
+[[package]]
 name = "trident-test"
 version = "0.3.2"
 dependencies = [
  "darling 0.13.4",
- "proc-macro2",
  "quote",
  "syn 1.0.109",
 ]

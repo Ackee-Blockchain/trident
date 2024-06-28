@@ -3,7 +3,7 @@ use arbitrary_custom_types_4::ID as PROGRAM_ID;
 use fuzz_instructions::arbitrary_custom_types_4_fuzz_instructions::FuzzInstruction;
 use fuzz_instructions::arbitrary_custom_types_4_fuzz_instructions::Initialize;
 use fuzz_instructions::arbitrary_custom_types_4_fuzz_instructions::Update;
-use trident_client::{convert_entry, fuzz_trident, fuzzing::*};
+use trident_client::fuzzing::*;
 mod accounts_snapshots;
 mod fuzz_instructions;
 

@@ -1,6 +1,6 @@
 use fuzz_instructions::unchecked_arithmetic_0_fuzz_instructions::FuzzInstruction;
 use fuzz_instructions::unchecked_arithmetic_0_fuzz_instructions::Initialize;
-use trident_client::{convert_entry, fuzz_trident, fuzzing::*};
+use trident_client::fuzzing::*;
 use unchecked_arithmetic_0::entry;
 use unchecked_arithmetic_0::ID as PROGRAM_ID;
 mod accounts_snapshots;

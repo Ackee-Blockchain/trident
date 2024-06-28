@@ -34,7 +34,10 @@ pub async fn generate_program_client() {
     let program_data = vec![program_data];
 
     let use_modules: Vec<syn::ItemUse> = vec![syn::parse_quote! { use trident_client::*; }];
-    let client_code = trident_client::___private::generate_source_code(&program_data, &use_modules);
+    let client_code = trident_client::___private::program_client_generator::generate_source_code(
+        &program_data,
+        &use_modules,
+    );
     let client_code =
         trident_client::___private::Commander::format_program_code(&client_code).await?;
 
