@@ -2,7 +2,7 @@ use fuzz_instructions::incorrect_ix_sequence_1_fuzz_instructions::FuzzInstructio
 use fuzz_instructions::incorrect_ix_sequence_1_fuzz_instructions::Initialize;
 use incorrect_ix_sequence_1::entry;
 use incorrect_ix_sequence_1::ID as PROGRAM_ID;
-use trident_client::{convert_entry, fuzz_trident, fuzzing::*};
+use trident_client::fuzzing::*;
 mod accounts_snapshots;
 mod fuzz_instructions;
 

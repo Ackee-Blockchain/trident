@@ -35,24 +35,24 @@ pub mod fuzzing {
     pub use trident_derive_fuzz_deserialize::FuzzDeserialize;
     pub use trident_derive_fuzz_test_executor::FuzzTestExecutor;
 
+    pub use trident_fuzz::convert_entry;
+    pub use trident_fuzz::fuzz_trident;
+    pub use trident_fuzz::show_account;
     /// trident macros
-    pub use super::fuzzer::*;
-    pub use crate::convert_entry;
-    pub use crate::fuzz_trident;
-    pub use crate::show_account;
+    pub use trident_fuzz::*;
 
-    pub use super::fuzzer::program_test_client_blocking::ProgramEntry;
     pub use solana_program_test::processor;
+    pub use trident_fuzz::program_test_client_blocking::ProgramEntry;
 
-    /// trident methods
-    pub use super::fuzzer::accounts_storage::*;
-    pub use super::fuzzer::data_builder::build_ix_fuzz_data;
-    pub use super::fuzzer::data_builder::*;
-    pub use super::fuzzer::error::*;
-    pub use super::fuzzer::fuzzing_stats::FuzzingStatistics;
-    pub use super::fuzzer::program_test_client_blocking::ProgramTestClientBlocking;
-    pub use super::fuzzer::snapshot::Snapshot;
     pub use super::temp_clone::*;
+    /// trident methods
+    pub use trident_fuzz::accounts_storage::*;
+    pub use trident_fuzz::data_builder::build_ix_fuzz_data;
+    pub use trident_fuzz::data_builder::*;
+    pub use trident_fuzz::error::*;
+    pub use trident_fuzz::fuzzing_stats::FuzzingStatistics;
+    pub use trident_fuzz::program_test_client_blocking::ProgramTestClientBlocking;
+    pub use trident_fuzz::snapshot::Snapshot;
 
     pub use std::cell::RefCell;
     pub use std::collections::HashMap;
@@ -92,11 +92,10 @@ mod client;
 mod commander;
 mod config;
 mod error_reporter;
-mod fuzzer;
 mod idl;
 mod keys;
-mod program_client_generator;
 mod reader;
+mod source_code_generators;
 mod temp_clone;
 mod test_generator;
 mod tester;
@@ -108,12 +107,10 @@ pub mod ___private {
     pub use super::commander::Error;
     pub use super::commander::LocalnetHandle;
     pub use super::error_reporter::*;
-    pub use super::fuzzer::fuzzer_generator;
-    pub use super::fuzzer::snapshot_generator;
     pub use super::idl::*;
     pub use super::keys::*;
-    pub use super::program_client_generator::*;
     pub use super::reader::*;
+    pub use super::source_code_generators::*;
     pub use super::temp_clone::TempClone;
     pub use super::test_generator::ProgramData;
     pub use super::test_generator::TestGenerator;

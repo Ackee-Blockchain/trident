@@ -17,8 +17,8 @@ use tokio::{
 };
 
 use crate::constants::*;
-use crate::fuzzer::fuzzing_stats::FuzzingStatistics;
 use tokio::io::AsyncBufReadExt;
+use trident_fuzz::fuzzing_stats::FuzzingStatistics;
 
 #[derive(Error, Debug)]
 pub enum Error {

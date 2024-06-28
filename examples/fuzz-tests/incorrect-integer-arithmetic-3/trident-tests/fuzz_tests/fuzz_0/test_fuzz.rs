@@ -2,7 +2,7 @@ use fuzz_instructions::incorrect_integer_arithmetic_3_fuzz_instructions::FuzzIns
 use fuzz_instructions::incorrect_integer_arithmetic_3_fuzz_instructions::InitVesting;
 use incorrect_integer_arithmetic_3::entry;
 use incorrect_integer_arithmetic_3::ID as PROGRAM_ID;
-use trident_client::{convert_entry, fuzz_trident, fuzzing::*};
+use trident_client::fuzzing::*;
 mod accounts_snapshots;
 mod fuzz_instructions;
 
