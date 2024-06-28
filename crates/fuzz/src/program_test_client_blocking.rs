@@ -13,8 +13,8 @@ use solana_sdk::{
 use spl_token::state::Mint;
 use tokio::runtime::Builder;
 
-use crate::fuzzer::data_builder::FuzzClient;
-use crate::fuzzer::error::*;
+use crate::data_builder::FuzzClient;
+use crate::error::*;
 
 pub type ProgramEntry = for<'info> fn(
     program_id: &Pubkey,

@@ -1,6 +1,6 @@
 use fuzz_instructions::unauthorized_access_2_fuzz_instructions::FuzzInstruction;
 use fuzz_instructions::unauthorized_access_2_fuzz_instructions::Initialize;
-use trident_client::{convert_entry, fuzz_trident, fuzzing::*};
+use trident_client::fuzzing::*;
 use unauthorized_access_2::entry;
 use unauthorized_access_2::ID as PROGRAM_ID;
 mod accounts_snapshots;

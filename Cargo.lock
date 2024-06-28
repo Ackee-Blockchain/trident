@@ -2120,13 +2120,13 @@ dependencies = [
 
 [[package]]
 name = "honggfuzz"
-version = "0.5.55"
+version = "0.5.56"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "848e9c511092e0daa0a35a63e8e6e475a3e8f870741448b9f6028d69b142f18e"
+checksum = "7c76b6234c13c9ea73946d1379d33186151148e0da231506b964b44f3d023505"
 dependencies = [
  "arbitrary",
  "lazy_static",
- "memmap2",
+ "memmap2 0.9.4",
  "rustc_version",
 ]
 
@@ -2545,6 +2545,15 @@ name = "memmap2"
 version = "0.5.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "83faa42c0a078c393f6b29d5db232d8be22776a891f8f56e5284faee4a20b327"
+dependencies = [
+ "libc",
+]
+
+[[package]]
+name = "memmap2"
+version = "0.9.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fe751422e4a8caa417e13c3ea66452215d7d63e19e604f4980461212f3ae1322"
 dependencies = [
  "libc",
 ]
@@ -4031,7 +4040,7 @@ dependencies = [
  "lazy_static",
  "log",
  "lz4",
- "memmap2",
+ "memmap2 0.5.10",
  "modular-bitfield",
  "num-derive 0.3.3",
  "num-traits",
@@ -4163,7 +4172,7 @@ dependencies = [
  "bv",
  "bytemuck",
  "log",
- "memmap2",
+ "memmap2 0.5.10",
  "modular-bitfield",
  "num_enum 0.6.1",
  "rand 0.8.5",
@@ -4353,7 +4362,7 @@ dependencies = [
  "im",
  "lazy_static",
  "log",
- "memmap2",
+ "memmap2 0.5.10",
  "rustc_version",
  "serde",
  "serde_bytes",
@@ -4758,7 +4767,7 @@ dependencies = [
  "log",
  "lru",
  "lz4",
- "memmap2",
+ "memmap2 0.5.10",
  "modular-bitfield",
  "num-derive 0.3.3",
  "num-traits",
@@ -4834,7 +4843,7 @@ dependencies = [
  "lazy_static",
  "libsecp256k1",
  "log",
- "memmap2",
+ "memmap2 0.5.10",
  "num-derive 0.3.3",
  "num-traits",
  "num_enum 0.6.1",
@@ -6017,7 +6026,6 @@ dependencies = [
  "log",
  "pathdiff",
  "pretty_assertions",
- "prettytable",
  "proc-macro2",
  "quinn-proto",
  "quote",
@@ -6028,9 +6036,7 @@ dependencies = [
  "serial_test",
  "shellexpand",
  "solana-account-decoder",
- "solana-banks-client",
  "solana-cli-output",
- "solana-program-runtime",
  "solana-program-test",
  "solana-sdk",
  "solana-transaction-status",
@@ -6043,6 +6049,7 @@ dependencies = [
  "trident-derive-displayix",
  "trident-derive-fuzz-deserialize",
  "trident-derive-fuzz-test-executor",
+ "trident-fuzz",
  "trident-test",
 ]
 
@@ -6071,6 +6078,30 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 1.0.109",
+]
+
+[[package]]
+name = "trident-fuzz"
+version = "0.1.0"
+dependencies = [
+ "anchor-lang",
+ "anchor-syn",
+ "arbitrary",
+ "heck 0.4.1",
+ "prettytable",
+ "proc-macro2",
+ "quote",
+ "regex",
+ "serde",
+ "serde_json",
+ "solana-banks-client",
+ "solana-program-runtime",
+ "solana-program-test",
+ "solana-sdk",
+ "spl-token",
+ "syn 1.0.109",
+ "thiserror",
+ "tokio",
 ]
 
 [[package]]
