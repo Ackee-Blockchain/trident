@@ -15,7 +15,6 @@ assert_matches = "1.4.0"
 
 [dependencies.trident-client]
 path = "../../../../../crates/client"
-features = ["fuzzing"]
 
 [dependencies.unauthorized-access-2]
 path = "../../programs/unauthorized-access-2"

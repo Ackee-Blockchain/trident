@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 incremented upon a breaking change and the patch version will be incremented for features.
 
 ## [dev] - Unreleased
+- del/remove unnecessary fuzzing feature as trident is mainly fuzzer ([#176](https://github.com/Ackee-Blockchain/trident/pull/176))
 - feat/fuzzing moved to separate crate trident-fuzz ([#175](https://github.com/Ackee-Blockchain/trident/pull/175))
 - feat/unify dependencies provided by the Trident ([#172](https://github.com/Ackee-Blockchain/trident/pull/172))
 - fix/in case of fuzzing failure throw error instead of only printing message ([#167](https://github.com/Ackee-Blockchain/trident/pull/167))

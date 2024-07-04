@@ -4,7 +4,6 @@
 //! Trident could be useful for writing Rust dApps, too.
 
 /// Aimed for the fuzz tests
-#[cfg(feature = "fuzzing")]
 pub mod fuzzing {
     /// anchor_lang
     pub use anchor_lang;

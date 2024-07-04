@@ -7,9 +7,6 @@ license-file = "../../LICENSE"
 readme = "../../README.md"
 description = "The trident_client crate helps you build and deploy an Anchor program to a local cluster and run a test suite against it."
 
-[features]
-fuzzing = ["dep:solana-program-test", "dep:honggfuzz", "quinn-proto/arbitrary"]
-
 [build-dependencies]
 anyhow = { version = "1.0.45", features = ["std"], default-features = false }
 
@@ -39,11 +36,11 @@ solana-transaction-status = { workspace = true }
 solana-account-decoder = { workspace = true }
 spl-token = { workspace = true }
 spl-associated-token-account = { workspace = true }
-solana-program-test = { workspace = true, optional = true }
+solana-program-test = { workspace = true }
 
 
 # HONGGFUZZ
-honggfuzz = { version = "0.5.55", optional = true }
+honggfuzz = { version = "0.5.55" }
 # ARBITRARY
 arbitrary = { version = "1.3.0", features = ["derive"] }
 
@@ -69,7 +66,7 @@ toml = { version = "0.5.8", features = ["preserve_order"] }
 log = "0.4"
 rstest = "0.18.1"
 proc-macro2 = { version = "1.0.66", default-features = false }
-quinn-proto = { version = "0.10.6", optional = true }
+quinn-proto = { version = "0.10.6", features = ["arbitrary"] }
 pathdiff = "0.2.1"
 indicatif = "0.17.8"
 regex = "1.10.3"
