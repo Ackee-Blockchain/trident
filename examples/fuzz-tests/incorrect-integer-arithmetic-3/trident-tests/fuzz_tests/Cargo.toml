@@ -16,7 +16,6 @@ anchor-spl = "0.29.0"
 
 [dependencies.trident-client]
 path = "../../../../../crates/client"
-features = ["fuzzing"]
 
 [dependencies.incorrect-integer-arithmetic-3]
 path = "../../programs/incorrect-integer-arithmetic-3"

@@ -15,7 +15,6 @@ assert_matches = "1.4.0"
 
 [dependencies.trident-client]
 path = "../../../../../crates/client"
-features = ["fuzzing"]
 
 [dependencies.unchecked-arithmetic-0]
 path = "../../programs/unchecked-arithmetic-0"

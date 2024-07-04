@@ -16,7 +16,6 @@ anchor-spl = "0.29.0"
 
 [dependencies.trident-client]
 path = "../../../../../crates/client"
-features = ["fuzzing"]
 
 [dependencies.arbitrary-limit-inputs-5]
 path = "../../programs/arbitrary-limit-inputs-5"
