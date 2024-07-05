@@ -6,7 +6,7 @@ validator_startup_timeout = 15000
 # Timeout in seconds (default: 10)
 timeout = 10
 # Number of fuzzing iterations (default: 0 [no limit])
-iterations = 0
+iterations = 1000
 # Number of concurrent fuzzing threads (default: 0 [number of CPUs / 2])
 threads = 0
 # Don't close children's stdin, stdout, stderr; can be noisy (default: false)
@@ -14,7 +14,7 @@ keep_output = false
 # Disable ANSI console; use simple log output (default: false)
 verbose = false
 # Exit upon seeing the first crash (default: false)
-exit_upon_crash = false
+exit_upon_crash = true
 # Maximal number of mutations per one run (default: 6)
 mutations_per_run = 6
 # Target compilation directory, (default: "" ["trident-tests/fuzz_tests/fuzzing/hfuzz_target"]).
@@ -38,4 +38,4 @@ save_all = false
 allow_duplicate_txs = false
 # Trident will show statistics after the fuzzing session. This option forces use of honggfuzz parameter
 # `keep_output` as true in order to be able to catch fuzzer stdout. (default: false)
-fuzzing_with_stats = false
+fuzzing_with_stats = true
