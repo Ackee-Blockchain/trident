@@ -8,7 +8,7 @@ pub use error::*;
 pub use instructions::*;
 pub use state::*;
 
-declare_id!("HJ2QDmpWoqFXPuQnWDDAz5fTYjVV3cwz8pNLQDmqZ9Ut");
+declare_id!("AGpdCBtXUyLWKutvMCVDeTywkxgvQVjJk54btLQNLMiZ");
 
 #[program]
 pub mod arbitrary_limit_inputs_5 {
