@@ -24,8 +24,8 @@ trident-fuzz = { path = "../fuzz", version = "0.1.0" }
 # ANCHOR
 # INFO: Anchor-spl is here as dependency only to activate the idl-build feature, so that
 # users do not have to do it manually in their program's Cargo.toml
-anchor-spl = { workspace = true, features = ["idl-build"] }
-anchor-lang = { workspace = true, features = ["idl-build", "init-if-needed"] }
+anchor-spl = { workspace = true }
+anchor-lang = { workspace = true, features = ["init-if-needed"] }
 anchor-syn = { workspace = true }
 anchor-client = { workspace = true, features = ["async"] }
 

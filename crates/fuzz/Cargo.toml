@@ -18,7 +18,7 @@ solana-program-runtime = { workspace = true }
 solana-program-test = { workspace = true }
 
 # ANCHOR
-anchor-lang = { workspace = true, features = ["idl-build", "init-if-needed"] }
+anchor-lang = { workspace = true, features = ["init-if-needed"] }
 anchor-syn = { workspace = true }
 
 

@@ -7,7 +7,7 @@ on:
 env:
   SOLANA_CLI_VERSION: 1.18.12
   ANCHOR_VERSION: 0.29.0
-  HONGGFUZZ_VERSION: 0.5.55
+  HONGGFUZZ_VERSION: 0.5.56
 
 jobs:
   run_fuzz_example:
