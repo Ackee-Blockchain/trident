@@ -1,5 +1,6 @@
 pub mod arbitrary_limit_inputs_5_fuzz_instructions {
-    use crate::accounts_snapshots::*;
+    use arbitrary_limit_inputs_5::instructions::initialize::trident_fuzz_init_vesting_snapshot::InitVestingSnapshot;
+    use arbitrary_limit_inputs_5::instructions::withdraw::trident_fuzz_withdraw_unlocked_snapshot::WithdrawUnlockedSnapshot;
     use solana_sdk::native_token::LAMPORTS_PER_SOL;
     use solana_sdk::system_program::ID as SYSTEM_PROGRAM_ID;
     use trident_client::fuzzing::*;

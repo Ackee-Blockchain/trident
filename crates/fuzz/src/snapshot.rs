@@ -98,7 +98,10 @@ where
         Self::calculate_account_info(&mut self.before, self.metas)
     }
 
-    pub fn get_snapshot(&'info mut self) -> Result<(T::Ix, T::Ix), FuzzingErrorWithOrigin> {
+    pub fn get_snapshot(
+        &'info mut self,
+        program_id: &solana_sdk::pubkey::Pubkey,
+    ) -> Result<(T::Ix, T::Ix), FuzzingErrorWithOrigin> {
         // When user passes an account that is not initialized, the runtime will provide
         // a default empty account to the program. If the uninitialized account is of type
         // AccountInfo, Signer or UncheckedAccount, Anchor will not return an error. However
@@ -114,11 +117,11 @@ where
 
         let pre_ix = self
             .ix
-            .deserialize_option(&mut self.before_acc_inf)
+            .deserialize_option(program_id, &mut self.before_acc_inf)
             .map_err(|e| e.with_context(Context::Pre))?;
         let post_ix = self
             .ix
-            .deserialize_option(&mut self.after_acc_inf)
+            .deserialize_option(program_id, &mut self.after_acc_inf)
             .map_err(|e| e.with_context(Context::Post))?;
         Ok((pre_ix, post_ix))
     }

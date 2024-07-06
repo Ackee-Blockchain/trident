@@ -63,12 +63,9 @@ pub fn generate_snapshots_code(programs_data: &[ProgramData]) -> Result<String, 
             &program_data.program_idl.name.snake_case,
         )?;
 
-        let program_name_ident = format_ident!("{}", program_data.program_idl.name.snake_case);
-
         let use_statements = quote! {
             use anchor_lang::prelude::*;
             use trident_client::fuzzing::{anchor_lang, FuzzingError};
-            use #program_name_ident::ID as PROGRAM_ID;
         }
         .into_token_stream();
         Ok(format!(
@@ -385,6 +382,7 @@ fn deserialize_ctx_struct_anchor(
     let generated_deser_impl: syn::Item = parse_quote! {
         impl<'info> #snapshot_name<'info> {
             pub fn deserialize_option(
+                _program_id: &anchor_lang::prelude::Pubkey,
                 accounts: &'info mut [Option<AccountInfo<'info>>],
             ) -> core::result::Result<Self, FuzzingError> {
                 let mut accounts_iter = accounts.iter();
@@ -504,7 +502,7 @@ fn deserialize_account_tokens(
             .ok_or(FuzzingError::NotEnoughAccounts(#name_str.to_string()))?
             .as_ref()
             .map(|acc| {
-                if acc.key() != PROGRAM_ID {
+                if acc.key() != *_program_id {
                     #deser_method(acc).map_err(|_| FuzzingError::CannotDeserializeAccount(#name_str.to_string()))
                 } else {Err(FuzzingError::OptionalAccountNotProvided(
                         #name_str.to_string(),
