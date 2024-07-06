@@ -12,6 +12,7 @@ pub struct UpdateSnapshot<'info> {
 }
 impl<'info> InitializeSnapshot<'info> {
     pub fn deserialize_option(
+        _program_id: &anchor_lang::prelude::Pubkey,
         accounts: &'info mut [Option<AccountInfo<'info>>],
     ) -> core::result::Result<Self, FuzzingError> {
         let mut accounts_iter = accounts.iter();
@@ -58,6 +59,7 @@ impl<'info> InitializeSnapshot<'info> {
 }
 impl<'info> UpdateSnapshot<'info> {
     pub fn deserialize_option(
+        _program_id: &anchor_lang::prelude::Pubkey,
         accounts: &'info mut [Option<AccountInfo<'info>>],
     ) -> core::result::Result<Self, FuzzingError> {
         let mut accounts_iter = accounts.iter();

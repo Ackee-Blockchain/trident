@@ -210,6 +210,7 @@ pub trait FuzzDeserialize<'info> {
 
     fn deserialize_option(
         &self,
+        _program_id: &anchor_lang::prelude::Pubkey,
         accounts: &'info mut [Option<AccountInfo<'info>>],
     ) -> Result<Self::Ix, FuzzingError>;
 }

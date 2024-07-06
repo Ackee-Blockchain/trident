@@ -16,9 +16,10 @@ pub fn fuzz_deserialize(input: TokenStream) -> TokenStream {
                         type Ix = #snapshot_name<'info>;
                         fn deserialize_option(
                             &self,
+                            _program_id: &anchor_lang::prelude::Pubkey,
                             accounts: &'info mut [Option<AccountInfo<'info>>],
                         ) -> Result<Self::Ix, FuzzingError> {
-                            Self::Ix::deserialize_option(accounts)
+                            Self::Ix::deserialize_option(_program_id,accounts)
                         }
                     }
                 }

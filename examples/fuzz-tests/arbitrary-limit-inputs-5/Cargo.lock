@@ -391,6 +391,7 @@ version = "0.1.0"
 dependencies = [
  "anchor-lang",
  "anchor-spl",
+ "trident-client",
 ]
 
 [[package]]
@@ -1179,6 +1180,15 @@ name = "constant_time_eq"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f7144d30dcf0fafbce74250a3963025d8d52177934239851c917d29f1df280c2"
+
+[[package]]
+name = "convert_case"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ec182b0ca2f35d8fc196cf3404988fd8b8c739a4d270ff118a398feb0cbec1ca"
+dependencies = [
+ "unicode-segmentation",
+]
 
 [[package]]
 name = "core-foundation"
@@ -6308,11 +6318,22 @@ dependencies = [
  "thiserror",
  "tokio",
  "toml 0.5.11",
+ "trident-derive-accounts-snapshots",
  "trident-derive-displayix",
  "trident-derive-fuzz-deserialize",
  "trident-derive-fuzz-test-executor",
  "trident-fuzz",
  "trident-test",
+]
+
+[[package]]
+name = "trident-derive-accounts-snapshots"
+version = "0.0.1"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 1.0.109",
+ "trident-fuzz",
 ]
 
 [[package]]
@@ -6349,6 +6370,7 @@ dependencies = [
  "anchor-lang",
  "anchor-syn",
  "arbitrary",
+ "convert_case",
  "heck 0.4.1",
  "prettytable",
  "proc-macro2",
