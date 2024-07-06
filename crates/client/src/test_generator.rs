@@ -120,10 +120,11 @@ pub struct TestGenerator {
     pub programs_data: Vec<ProgramData>,
     pub packages: Vec<Package>,
     pub use_tokens: Vec<ItemUse>,
+    pub with_snapshot_file: bool,
 }
 impl Default for TestGenerator {
     fn default() -> Self {
-        Self::new()
+        Self::new(false)
     }
 }
 
@@ -133,12 +134,13 @@ impl TestGenerator {
     /// # Returns
     ///
     /// A new `TestGenerator` instance.
-    pub fn new() -> Self {
+    pub fn new(with_snapshot_file: bool) -> Self {
         Self {
             root: Path::new("../../").to_path_buf(),
             programs_data: Vec::default(),
             packages: Vec::default(),
             use_tokens: Vec::default(),
+            with_snapshot_file,
         }
     }
     /// Creates a new instance of `TestGenerator` with a specified root directory.
@@ -150,12 +152,13 @@ impl TestGenerator {
     /// # Returns
     ///
     /// A new `TestGenerator` instance with the specified root directory.
-    pub fn new_with_root(root: String) -> Self {
+    pub fn new_with_root(root: String, with_snapshot_file: bool) -> Self {
         Self {
             root: Path::new(&root).to_path_buf(),
             programs_data: Vec::default(),
             packages: Vec::default(),
             use_tokens: Vec::default(),
+            with_snapshot_file,
         }
     }
     /// Generates both proof of concept (POC) and fuzz tests along with the necessary setup.
@@ -420,17 +423,6 @@ impl TestGenerator {
     /// If not present add fuzz_tests into the workspace virtual manifest as member
     #[throws]
     pub async fn add_new_fuzz_test(&self) {
-        let program_name = if !&self.programs_data.is_empty() {
-            &self
-                .programs_data
-                .first()
-                .unwrap()
-                .program_idl
-                .name
-                .snake_case
-        } else {
-            throw!(Error::NoProgramsFound)
-        };
         let fuzz_dir_path =
             construct_path!(self.root, TESTS_WORKSPACE_DIRECTORY, FUZZ_TEST_DIRECTORY);
         let fuzz_tests_manifest_path = construct_path!(fuzz_dir_path, CARGO_TOML);
@@ -473,39 +465,17 @@ impl TestGenerator {
 
         self.create_directory(&new_fuzz_test_dir).await?;
 
-        let fuzz_test_path = new_fuzz_test_dir.join(FUZZ_TEST);
-
-        let fuzz_test_content = load_template!("/src/templates/trident-tests/test_fuzz.rs");
-
-        let use_entry = format!("use {}::entry;\n", program_name);
-        let use_instructions = format!("use {}::ID as PROGRAM_ID;\n", program_name);
-        let use_fuzz_instructions = format!(
-            "use fuzz_instructions::{}_fuzz_instructions::FuzzInstruction;\n",
-            program_name
-        );
-        let template =
-            format!("{use_entry}{use_instructions}{use_fuzz_instructions}{fuzz_test_content}");
-        let fuzz_test_content = template.replace("###PROGRAM_NAME###", program_name);
-
-        self.create_file(&fuzz_test_path, &fuzz_test_content)
-            .await?;
+        // create fuzz file
+        self.initialize_fuzz(&new_fuzz_test_dir).await?;
 
         // create fuzz instructions file
-        let fuzz_instructions_path = new_fuzz_test_dir.join(FUZZ_INSTRUCTIONS_FILE_NAME);
-        let program_fuzzer = fuzzer_generator::generate_source_code(&self.programs_data);
-        let program_fuzzer = Commander::format_program_code(&program_fuzzer).await?;
-
-        self.create_file(&fuzz_instructions_path, &program_fuzzer)
+        self.initialize_fuzz_instructions(&new_fuzz_test_dir)
             .await?;
 
-        // // create accounts_snapshots file
-        let accounts_snapshots_path = new_fuzz_test_dir.join(ACCOUNTS_SNAPSHOTS_FILE_NAME);
-        let fuzzer_snapshots = snapshot_generator::generate_snapshots_code(&self.programs_data)
-            .map_err(Error::ReadProgramCodeFailed)?;
-        let fuzzer_snapshots = Commander::format_program_code(&fuzzer_snapshots).await?;
-
-        self.create_file(&accounts_snapshots_path, &fuzzer_snapshots)
-            .await?;
+        // create accounts_snapshots file
+        if self.with_snapshot_file {
+            self.initialize_fuzz_snapshots(&new_fuzz_test_dir).await?;
+        }
 
         let cargo_toml_content =
             load_template!("/src/templates/trident-tests/Cargo_fuzz.toml.tmpl");
@@ -522,6 +492,58 @@ impl TestGenerator {
             "{TESTS_WORKSPACE_DIRECTORY}/{FUZZ_TEST_DIRECTORY}",
         ))
         .await?;
+    }
+
+    #[throws]
+    pub async fn initialize_fuzz(&self, new_fuzz_test_dir: &Path) {
+        let program_name = if !&self.programs_data.is_empty() {
+            &self
+                .programs_data
+                .first()
+                .unwrap()
+                .program_idl
+                .name
+                .snake_case
+        } else {
+            throw!(Error::NoProgramsFound)
+        };
+        let fuzz_test_path = new_fuzz_test_dir.join(FUZZ_TEST);
+
+        let fuzz_test_content = load_template!("/src/templates/trident-tests/test_fuzz.rs");
+
+        let use_entry = format!("use {}::entry;\n", program_name);
+        let use_instructions = format!("use {}::ID as PROGRAM_ID;\n", program_name);
+        let use_fuzz_instructions = format!(
+            "use fuzz_instructions::{}_fuzz_instructions::FuzzInstruction;\n",
+            program_name
+        );
+        let template =
+            format!("{use_entry}{use_instructions}{use_fuzz_instructions}{fuzz_test_content}");
+        let fuzz_test_content = template.replace("###PROGRAM_NAME###", program_name);
+
+        self.create_file(&fuzz_test_path, &fuzz_test_content)
+            .await?;
+    }
+
+    #[throws]
+    pub async fn initialize_fuzz_instructions(&self, new_fuzz_test_dir: &Path) {
+        let fuzz_instructions_path = new_fuzz_test_dir.join(FUZZ_INSTRUCTIONS_FILE_NAME);
+        let program_fuzzer = fuzzer_generator::generate_source_code(&self.programs_data);
+        let program_fuzzer = Commander::format_program_code(&program_fuzzer).await?;
+
+        self.create_file(&fuzz_instructions_path, &program_fuzzer)
+            .await?;
+    }
+
+    #[throws]
+    pub async fn initialize_fuzz_snapshots(&self, new_fuzz_test_dir: &Path) {
+        let accounts_snapshots_path = new_fuzz_test_dir.join(ACCOUNTS_SNAPSHOTS_FILE_NAME);
+        let fuzzer_snapshots = snapshot_generator::generate_snapshots_code(&self.programs_data)
+            .map_err(Error::ReadProgramCodeFailed)?;
+        let fuzzer_snapshots = Commander::format_program_code(&fuzzer_snapshots).await?;
+
+        self.create_file(&accounts_snapshots_path, &fuzzer_snapshots)
+            .await?;
     }
 
     /// Add/Update .program_client

@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 incremented upon a breaking change and the patch version will be incremented for features.
 
 ## [dev] - Unreleased
+- feat/ add option to initialize Trident with Macro/File (for Snapshots) option based on preference ([179](https://github.com/Ackee-Blockchain/trident/pull/179))
 - del/remove localnet subcommand ([178](https://github.com/Ackee-Blockchain/trident/pull/178))
 - feat/create AccountsSnapshots derive macro for Snapshots creation ([#177](https://github.com/Ackee-Blockchain/trident/pull/177))
 - del/remove unnecessary fuzzing feature as trident is mainly fuzzer ([#176](https://github.com/Ackee-Blockchain/trident/pull/176))
