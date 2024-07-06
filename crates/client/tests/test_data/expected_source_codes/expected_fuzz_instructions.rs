@@ -1,5 +1,4 @@
 pub mod fuzz_example3_fuzz_instructions {
-    use crate::accounts_snapshots::*;
     use trident_client::fuzzing::*;
     #[derive(Arbitrary, DisplayIx, FuzzTestExecutor, FuzzDeserialize)]
     pub enum FuzzInstruction {

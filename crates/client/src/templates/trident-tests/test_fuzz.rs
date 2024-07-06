@@ -1,5 +1,4 @@
 use trident_client::fuzzing::*;
-mod accounts_snapshots;
 mod fuzz_instructions;
 
 const PROGRAM_NAME: &str = "###PROGRAM_NAME###";

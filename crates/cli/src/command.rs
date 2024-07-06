@@ -11,7 +11,7 @@ mod test;
 pub use test::test;
 
 mod init;
-pub use init::{init, TestsType};
+pub use init::{init, SnapshotsType, TestsType};
 
 mod clean;
 pub use clean::clean;
