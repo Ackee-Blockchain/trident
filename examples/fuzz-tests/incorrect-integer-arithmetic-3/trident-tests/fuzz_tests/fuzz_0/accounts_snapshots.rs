@@ -1,7 +1,7 @@
+use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, Token, TokenAccount};
 use incorrect_integer_arithmetic_3::ID as PROGRAM_ID;
 use trident_client::fuzzing::{anchor_lang, FuzzingError};
-use anchor_lang::prelude::*;
 pub struct InitVestingSnapshot<'info> {
     pub sender: Signer<'info>,
     pub sender_token_account: Account<'info, TokenAccount>,
@@ -23,6 +23,7 @@ pub struct WithdrawUnlockedSnapshot<'info> {
 }
 impl<'info> InitVestingSnapshot<'info> {
     pub fn deserialize_option(
+        _program_id: &anchor_lang::prelude::Pubkey,
         accounts: &'info mut [Option<AccountInfo<'info>>],
     ) -> core::result::Result<Self, FuzzingError> {
         let mut accounts_iter = accounts.iter();
@@ -115,6 +116,7 @@ impl<'info> InitVestingSnapshot<'info> {
 }
 impl<'info> WithdrawUnlockedSnapshot<'info> {
     pub fn deserialize_option(
+        _program_id: &anchor_lang::prelude::Pubkey,
         accounts: &'info mut [Option<AccountInfo<'info>>],
     ) -> core::result::Result<Self, FuzzingError> {
         let mut accounts_iter = accounts.iter();

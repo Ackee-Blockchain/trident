@@ -30,6 +30,7 @@ pub mod fuzzing {
     pub use honggfuzz::fuzz;
 
     /// trident derive
+    pub use trident_derive_accounts_snapshots::AccountsSnapshots;
     pub use trident_derive_displayix::DisplayIx;
     pub use trident_derive_fuzz_deserialize::FuzzDeserialize;
     pub use trident_derive_fuzz_test_executor::FuzzTestExecutor;

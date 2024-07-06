@@ -60,7 +60,7 @@ pub fn fuzz_test_executor(input: TokenStream) -> TokenStream {
                                             stats_logger.increase_successful(self.to_context_string());
 
                                             snaphot.capture_after(client).unwrap();
-                                            let (acc_before, acc_after) = snaphot.get_snapshot()
+                                            let (acc_before, acc_after) = snaphot.get_snapshot(&program_id)
                                                 .map_err(|e| e.with_origin(Origin::Instruction(self.to_context_string())))
                                                 .expect("Snapshot deserialization expect"); // we want to panic if we cannot unwrap to cause a crash
 
