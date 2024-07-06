@@ -45,8 +45,6 @@ enum Command {
         #[clap(subcommand)]
         subcmd: FuzzCommand,
     },
-    /// Run local test validator
-    Localnet,
     /// Initialize test environment
     Init {
         /// Specifies the types of tests for which the frameworks should be initialized.
@@ -66,7 +64,6 @@ pub async fn start() {
         Command::KeyPair { subcmd } => command::keypair(subcmd)?,
         Command::Test { root } => command::test(root).await?,
         Command::Fuzz { root, subcmd } => command::fuzz(root, subcmd).await?,
-        Command::Localnet => command::localnet().await?,
         Command::Init { tests_type } => command::init(tests_type).await?,
         Command::Clean => command::clean().await?,
     }

@@ -10,9 +10,6 @@ pub use fuzz::{fuzz, FuzzCommand};
 mod test;
 pub use test::test;
 
-mod localnet;
-pub use localnet::localnet;
-
 mod init;
 pub use init::{init, TestsType};
 
