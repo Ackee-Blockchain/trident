@@ -13,29 +13,45 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3
+
       - name: Set Anchor Version
         run: echo "ANCHOR_VERSION=0.29.0" >> $GITHUB_ENV
-      - uses: ./.github/actions/setup-rust/
-      - uses: ./.github/actions/setup-solana/
-      - uses: ./.github/actions/setup-honggfuzz/
-        id: rust-setup
+
       - uses: Swatinem/rust-cache@v2
         name: Cache Rust and it's packages
+
+      - uses: ./.github/actions/setup-rust/
+
+      - uses: ./.github/actions/setup-solana/
+
+      - uses: ./.github/actions/setup-trident/
+
+      - uses: ./.github/actions/setup-honggfuzz/
+        id: rust-setup
+
       - name: Test Fuzz
         working-directory: examples/fuzz-tests/unchecked-arithmetic-0
-        run: cargo run --manifest-path ../../../Cargo.toml fuzz run fuzz_0
+        run: trident fuzz run fuzz_0
   arbitrary-limit-inputs-5:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3
+
       - name: Set Anchor Version
         run: echo "ANCHOR_VERSION=0.30.1" >> $GITHUB_ENV
-      - uses: ./.github/actions/setup-rust/
-      - uses: ./.github/actions/setup-solana/
-      - uses: ./.github/actions/setup-honggfuzz/
-        id: rust-setup
+
       - uses: Swatinem/rust-cache@v2
         name: Cache Rust and it's packages
+
+      - uses: ./.github/actions/setup-rust/
+
+      - uses: ./.github/actions/setup-solana/
+
+      - uses: ./.github/actions/setup-trident/
+
+      - uses: ./.github/actions/setup-honggfuzz/
+        id: rust-setup
+
       - name: Test Fuzz
         working-directory: examples/fuzz-tests/arbitrary-limit-inputs-5
-        run: cargo run --manifest-path ../../../Cargo.toml fuzz run fuzz_0
+        run: trident fuzz run fuzz_0
