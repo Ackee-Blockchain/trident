@@ -8,7 +8,6 @@ resolver = "1"
 # ANCHOR
 anchor-client = ">=0.29.0"
 anchor-syn = ">=0.29.0"
-anchor-spl = ">=0.29.0"
 anchor-lang = ">=0.29.0"
 
 
@@ -21,7 +20,5 @@ solana-program = "1.17.4"
 solana-banks-client = "1.17.4"
 solana-program-runtime = "1.17.4"
 solana-program-test = "1.17.4"
-spl-associated-token-account = { version = "3.0.2", features = [
-    "no-entrypoint",
-] }
-spl-token = { version = "4.0.0", features = ["no-entrypoint"] }
+spl-associated-token-account = { version = "2", features = ["no-entrypoint"] }
+spl-token = { version = "4", features = ["no-entrypoint"] }
