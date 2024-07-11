@@ -6283,7 +6283,6 @@ version = "0.6.0"
 dependencies = [
  "anchor-client",
  "anchor-lang",
- "anchor-spl",
  "anchor-syn",
  "anyhow",
  "arbitrary",
@@ -6312,7 +6311,7 @@ dependencies = [
  "solana-program-test",
  "solana-sdk",
  "solana-transaction-status",
- "spl-associated-token-account 3.0.2",
+ "spl-associated-token-account 2.3.0",
  "spl-token",
  "syn 1.0.109",
  "thiserror",

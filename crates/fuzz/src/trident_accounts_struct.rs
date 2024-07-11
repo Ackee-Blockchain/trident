@@ -714,7 +714,7 @@ fn generate(accs: &TridentAccountsStruct) -> proc_macro2::TokenStream {
     });
 
     quote! {
-        #[cfg(feature = "trident-fuzzing")]
+        // #[cfg(feature = "trident-fuzzing")]
         pub mod #module_name{
             #[cfg(target_os = "solana")]
             compile_error!("Do not use fuzzing with Production Code");
