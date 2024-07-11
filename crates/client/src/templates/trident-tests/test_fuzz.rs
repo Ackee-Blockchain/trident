@@ -1,6 +1,10 @@
 use trident_client::fuzzing::*;
 mod fuzz_instructions;
 
+// TODO: In case of using file extension for AccountsSnapshots
+// uncomment the line below
+// mod accounts_snapshots;
+
 const PROGRAM_NAME: &str = "###PROGRAM_NAME###";
 
 struct MyFuzzData;
