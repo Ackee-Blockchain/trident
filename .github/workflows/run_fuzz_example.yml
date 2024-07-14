@@ -9,7 +9,7 @@ env:
   HONGGFUZZ_VERSION: 0.5.56
 
 jobs:
-  simple-cpi-7:
+  simple-cpi-6:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3
@@ -30,7 +30,7 @@ jobs:
         id: rust-setup
 
       - name: Test Fuzz
-        working-directory: examples/fuzz-tests/simple-cpi-7
+        working-directory: examples/fuzz-tests/simple-cpi-6
         run: trident fuzz run fuzz_0
   arbitrary-limit-inputs-5:
     runs-on: ubuntu-20.04
