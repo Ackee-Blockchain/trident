@@ -496,33 +496,52 @@ impl TestGenerator {
 
     #[throws]
     pub async fn initialize_fuzz(&self, new_fuzz_test_dir: &Path) {
-        let program_name = if !&self.programs_data.is_empty() {
-            &self
-                .programs_data
-                .first()
-                .unwrap()
-                .program_idl
-                .name
-                .snake_case
-        } else {
+        if self.programs_data.is_empty() {
             throw!(Error::NoProgramsFound)
-        };
+        }
+
         let fuzz_test_path = new_fuzz_test_dir.join(FUZZ_TEST);
 
         let fuzz_test_content = load_template!("/src/templates/trident-tests/test_fuzz.rs");
 
-        let use_entry = format!("use {}::entry;\n", program_name);
-        let use_instructions = format!("use {}::ID as PROGRAM_ID;\n", program_name);
-        let use_fuzz_instructions = format!(
-            "use fuzz_instructions::{}_fuzz_instructions::FuzzInstruction;\n",
-            program_name
-        );
-        let template =
-            format!("{use_entry}{use_instructions}{use_fuzz_instructions}{fuzz_test_content}");
-        let fuzz_test_content = template.replace("###PROGRAM_NAME###", program_name);
+        let mut entry_points: String = String::new();
+        let mut program_ids: String = String::new();
+        let mut program_names: String = String::new();
+        let mut fuzz_instructions: String = String::new();
 
-        self.create_file(&fuzz_test_path, &fuzz_test_content)
-            .await?;
+        for x in self.programs_data.iter() {
+            let program_name = &x.program_idl.name.snake_case;
+
+            let use_entry = format!("use {}::entry as entry_{};\n", program_name, program_name);
+            entry_points.push_str(&use_entry);
+
+            let program_name_var = format!(
+                "const PROGRAM_NAME_{}: &str =  \"{}\";\n",
+                program_name.to_uppercase(),
+                program_name,
+            );
+            program_names.push_str(&program_name_var);
+
+            let program_id = format!(
+                "use {}::ID as PROGRAM_ID_{};\n",
+                program_name,
+                program_name.to_uppercase()
+            );
+            program_ids.push_str(&program_id);
+
+            let use_fuzz_instructions = format!(
+                "use fuzz_instructions::{}_fuzz_instructions::FuzzInstruction as FuzzInstruction_{};\n",
+                program_name,program_name
+            );
+            fuzz_instructions.push_str(&use_fuzz_instructions);
+        }
+
+        let template = format!(
+            "{}{}{}{}{}",
+            entry_points, program_ids, program_names, fuzz_instructions, fuzz_test_content
+        );
+
+        self.create_file(&fuzz_test_path, &template).await?;
     }
 
     #[throws]
