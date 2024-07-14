@@ -42,6 +42,7 @@ pub mod fuzzing {
     pub use trident_fuzz::*;
 
     pub use solana_program_test::processor;
+    pub use trident_fuzz::program_test_client_blocking::FuzzingProgram;
     pub use trident_fuzz::program_test_client_blocking::ProgramEntry;
 
     pub use super::temp_clone::*;

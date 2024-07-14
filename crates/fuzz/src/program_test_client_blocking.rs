@@ -1,3 +1,7 @@
+use std::fs::File;
+use std::io::Read;
+use std::path::PathBuf;
+
 use solana_program_runtime::invoke_context::BuiltinFunctionWithContext;
 use solana_program_test::ProgramTest;
 use solana_program_test::ProgramTestContext;
@@ -27,13 +31,49 @@ pub struct ProgramTestClientBlocking {
     rt: tokio::runtime::Runtime,
 }
 
-impl ProgramTestClientBlocking {
+pub struct FuzzingProgram {
+    pub program_name: String,
+    pub program_id: Pubkey,
+    pub entry: Option<BuiltinFunctionWithContext>,
+}
+impl FuzzingProgram {
     pub fn new(
         program_name: &str,
-        program_id: Pubkey,
-        entry: Option<BuiltinFunctionWithContext>,
-    ) -> Result<Self, FuzzClientError> {
-        let program_test = ProgramTest::new(program_name, program_id, entry);
+        program_id: &Pubkey,
+        entry_fn: Option<BuiltinFunctionWithContext>,
+    ) -> FuzzingProgram {
+        Self {
+            program_name: program_name.to_string(),
+            program_id: *program_id,
+            entry: entry_fn,
+        }
+    }
+}
+
+impl ProgramTestClientBlocking {
+    pub fn new(program_: &[FuzzingProgram]) -> Result<Self, FuzzClientError> {
+        let mut program_test = ProgramTest::default();
+        for x in program_ {
+            match x.entry {
+                Some(entry) => {
+                    program_test.add_builtin_program(&x.program_name, x.program_id, entry);
+                }
+                None => {
+                    let data = read_program(&x.program_name);
+
+                    program_test.add_account(
+                        x.program_id,
+                        Account {
+                            lamports: Rent::default().minimum_balance(data.len()).max(1),
+                            data,
+                            owner: solana_sdk::bpf_loader::id(),
+                            executable: true,
+                            rent_epoch: 0,
+                        },
+                    );
+                }
+            }
+        }
         let rt: tokio::runtime::Runtime = Builder::new_current_thread().enable_all().build()?;
 
         let ctx = rt.block_on(program_test.start_with_context());
@@ -200,4 +240,19 @@ impl FuzzClient for ProgramTestClientBlocking {
     fn get_rent(&mut self) -> Result<Rent, FuzzClientError> {
         Ok(self.rt.block_on(self.ctx.banks_client.get_rent())?)
     }
+}
+
+fn read_program(program_name: &str) -> Vec<u8> {
+    let genesis_folder = std::env::var("GENESIS_FOLDER")
+        .unwrap_or_else(|err| panic!("Failed to read env variable GENESIS_FOLDER: {}", err));
+
+    let program_path = PathBuf::from(genesis_folder).join(format!("{program_name}.so"));
+
+    let mut file = File::open(&program_path)
+        .unwrap_or_else(|err| panic!("Failed to open \"{}\": {}", program_path.display(), err));
+
+    let mut file_data = Vec::new();
+    file.read_to_end(&mut file_data)
+        .unwrap_or_else(|err| panic!("Failed to read \"{}\": {}", program_path.display(), err));
+    file_data
 }

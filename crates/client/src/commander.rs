@@ -153,6 +153,8 @@ impl Commander {
         // arguments so we need to parse the variable content.
         let hfuzz_run_args = std::env::var("HFUZZ_RUN_ARGS").unwrap_or_default();
 
+        let genesis_folder = PathBuf::from(self.root.to_string()).join("trident-genesis");
+
         let rustflags = std::env::var("RUSTFLAGS").unwrap_or_default();
 
         let rustflags = config.get_rustflags_args(rustflags);
@@ -190,6 +192,7 @@ impl Commander {
                 // enforce keep output to be true
                 fuzz_args.push_str("--keep_output");
                 let mut child = Command::new("cargo")
+                    .env("GENESIS_FOLDER", genesis_folder)
                     .env("HFUZZ_RUN_ARGS", fuzz_args)
                     .env("CARGO_TARGET_DIR", cargo_target_dir)
                     .env("HFUZZ_WORKSPACE", hfuzz_workspace)
@@ -203,6 +206,7 @@ impl Commander {
             }
             false => {
                 let mut child = Command::new("cargo")
+                    .env("GENESIS_FOLDER", genesis_folder)
                     .env("HFUZZ_RUN_ARGS", fuzz_args)
                     .env("CARGO_TARGET_DIR", cargo_target_dir)
                     .env("HFUZZ_WORKSPACE", hfuzz_workspace)
@@ -233,6 +237,8 @@ impl Commander {
 
         let hfuzz_run_args = std::env::var("HFUZZ_RUN_ARGS").unwrap_or_default();
 
+        let genesis_folder = PathBuf::from(self.root.to_string()).join("trident-genesis");
+
         let cargo_target_dir = std::env::var("CARGO_TARGET_DIR")
             .unwrap_or_else(|_| config.get_env_arg("CARGO_TARGET_DIR"));
         let hfuzz_workspace = std::env::var("HFUZZ_WORKSPACE")
@@ -249,6 +255,7 @@ impl Commander {
                 // enforce keep output to be true
                 fuzz_args.push_str("--keep_output");
                 let mut child = Command::new("cargo")
+                    .env("GENESIS_FOLDER", genesis_folder)
                     .env("HFUZZ_RUN_ARGS", fuzz_args)
                     .env("CARGO_TARGET_DIR", cargo_target_dir)
                     .env("HFUZZ_WORKSPACE", hfuzz_workspace)
@@ -262,6 +269,7 @@ impl Commander {
             }
             false => {
                 let mut child = Command::new("cargo")
+                    .env("GENESIS_FOLDER", genesis_folder)
                     .env("HFUZZ_RUN_ARGS", fuzz_args)
                     .env("CARGO_TARGET_DIR", cargo_target_dir)
                     .env("HFUZZ_WORKSPACE", hfuzz_workspace)
@@ -387,6 +395,8 @@ impl Commander {
 
         let crash_file = std::path::Path::new(&self.root as &str).join(crash_file_path);
 
+        let genesis_folder = PathBuf::from(self.root.to_string()).join("trident-genesis");
+
         if !crash_file.try_exists()? {
             println!("{ERROR} The crash file [{:?}] not found", crash_file);
             throw!(Error::CrashFileNotFound);
@@ -401,6 +411,7 @@ impl Commander {
 
         // using exec rather than spawn and replacing current process to avoid unflushed terminal output after ctrl+c signal
         std::process::Command::new("cargo")
+            .env("GENESIS_FOLDER", genesis_folder)
             .env("CARGO_TARGET_DIR", cargo_target_dir)
             .env("RUSTFLAGS", rustflags)
             .arg("hfuzz")
