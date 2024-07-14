@@ -1,6 +1,5 @@
 use anchor_lang::prelude::*;
 use trident_client::fuzzing::{anchor_lang, FuzzingError};
-use unauthorized_access_2::ID as PROGRAM_ID;
 pub struct InitializeSnapshot<'info> {
     pub author: Signer<'info>,
     pub escrow: Option<Account<'info, unauthorized_access_2::state::Escrow>>,
@@ -31,7 +30,7 @@ impl<'info> InitializeSnapshot<'info> {
             .ok_or(FuzzingError::NotEnoughAccounts("escrow".to_string()))?
             .as_ref()
             .map(|acc| {
-                if acc.key() != PROGRAM_ID {
+                if acc.key() != *_program_id {
                     anchor_lang::accounts::account::Account::try_from(acc)
                         .map_err(|_| FuzzingError::CannotDeserializeAccount("escrow".to_string()))
                 } else {
@@ -78,7 +77,7 @@ impl<'info> WithdrawSnapshot<'info> {
             .ok_or(FuzzingError::NotEnoughAccounts("escrow".to_string()))?
             .as_ref()
             .map(|acc| {
-                if acc.key() != PROGRAM_ID {
+                if acc.key() != *_program_id {
                     anchor_lang::accounts::account::Account::try_from(acc)
                         .map_err(|_| FuzzingError::CannotDeserializeAccount("escrow".to_string()))
                 } else {

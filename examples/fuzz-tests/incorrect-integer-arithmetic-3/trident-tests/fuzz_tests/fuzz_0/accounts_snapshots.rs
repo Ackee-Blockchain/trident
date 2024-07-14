@@ -1,6 +1,5 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, Token, TokenAccount};
-use incorrect_integer_arithmetic_3::ID as PROGRAM_ID;
 use trident_client::fuzzing::{anchor_lang, FuzzingError};
 pub struct InitVestingSnapshot<'info> {
     pub sender: Signer<'info>,
@@ -55,7 +54,7 @@ impl<'info> InitVestingSnapshot<'info> {
             .ok_or(FuzzingError::NotEnoughAccounts("escrow".to_string()))?
             .as_ref()
             .map(|acc| {
-                if acc.key() != PROGRAM_ID {
+                if acc.key() != *_program_id {
                     anchor_lang::accounts::account::Account::try_from(acc)
                         .map_err(|_| FuzzingError::CannotDeserializeAccount("escrow".to_string()))
                 } else {
@@ -148,7 +147,7 @@ impl<'info> WithdrawUnlockedSnapshot<'info> {
             .ok_or(FuzzingError::NotEnoughAccounts("escrow".to_string()))?
             .as_ref()
             .map(|acc| {
-                if acc.key() != PROGRAM_ID {
+                if acc.key() != *_program_id {
                     anchor_lang::accounts::account::Account::try_from(acc)
                         .map_err(|_| FuzzingError::CannotDeserializeAccount("escrow".to_string()))
                 } else {

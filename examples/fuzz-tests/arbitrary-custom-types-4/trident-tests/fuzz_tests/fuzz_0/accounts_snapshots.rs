@@ -1,5 +1,4 @@
 use anchor_lang::prelude::*;
-use arbitrary_custom_types_4::ID as PROGRAM_ID;
 use trident_client::fuzzing::{anchor_lang, FuzzingError};
 pub struct InitializeSnapshot<'info> {
     pub counter: Option<Account<'info, arbitrary_custom_types_4::Counter>>,
@@ -23,7 +22,7 @@ impl<'info> InitializeSnapshot<'info> {
             .ok_or(FuzzingError::NotEnoughAccounts("counter".to_string()))?
             .as_ref()
             .map(|acc| {
-                if acc.key() != PROGRAM_ID {
+                if acc.key() != *_program_id {
                     anchor_lang::accounts::account::Account::try_from(acc)
                         .map_err(|_| FuzzingError::CannotDeserializeAccount("counter".to_string()))
                 } else {
