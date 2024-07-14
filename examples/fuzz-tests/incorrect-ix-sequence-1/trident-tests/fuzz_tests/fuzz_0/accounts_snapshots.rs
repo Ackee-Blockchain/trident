@@ -1,5 +1,4 @@
 use anchor_lang::prelude::*;
-use incorrect_ix_sequence_1::ID as PROGRAM_ID;
 use trident_client::fuzzing::{anchor_lang, FuzzingError};
 pub struct InitializeSnapshot<'info> {
     pub author: Signer<'info>,
@@ -42,7 +41,7 @@ impl<'info> InitializeSnapshot<'info> {
             .ok_or(FuzzingError::NotEnoughAccounts("state".to_string()))?
             .as_ref()
             .map(|acc| {
-                if acc.key() != PROGRAM_ID {
+                if acc.key() != *_program_id {
                     anchor_lang::accounts::account::Account::try_from(acc)
                         .map_err(|_| FuzzingError::CannotDeserializeAccount("state".to_string()))
                 } else {
@@ -91,7 +90,7 @@ impl<'info> RegisterSnapshot<'info> {
             .ok_or(FuzzingError::NotEnoughAccounts("project".to_string()))?
             .as_ref()
             .map(|acc| {
-                if acc.key() != PROGRAM_ID {
+                if acc.key() != *_program_id {
                     anchor_lang::accounts::account::Account::try_from(acc)
                         .map_err(|_| FuzzingError::CannotDeserializeAccount("project".to_string()))
                 } else {
