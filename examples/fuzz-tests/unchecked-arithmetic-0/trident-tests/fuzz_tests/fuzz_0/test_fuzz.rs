@@ -1,3 +1,4 @@
+use fuzz_instructions::unchecked_arithmetic_0_fuzz_instructions::Initialize;
 use unchecked_arithmetic_0::entry as entry_unchecked_arithmetic_0;
 use unchecked_arithmetic_0::ID as PROGRAM_ID_UNCHECKED_ARITHMETIC_0;
 const PROGRAM_NAME_UNCHECKED_ARITHMETIC_0: &str = "unchecked_arithmetic_0";
@@ -11,7 +12,14 @@ mod accounts_snapshots;
 
 struct MyFuzzData;
 
-impl FuzzDataBuilder<FuzzInstruction_unchecked_arithmetic_0> for MyFuzzData {}
+impl FuzzDataBuilder<FuzzInstruction_unchecked_arithmetic_0> for MyFuzzData {
+    fn pre_ixs(
+        u: &mut arbitrary::Unstructured,
+    ) -> arbitrary::Result<Vec<FuzzInstruction_unchecked_arithmetic_0>> {
+        let init = FuzzInstruction_unchecked_arithmetic_0::Initialize(Initialize::arbitrary(u)?);
+        Ok(vec![init])
+    }
+}
 
 fn main() {
     loop {

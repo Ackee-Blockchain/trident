@@ -1,3 +1,4 @@
+use fuzz_instructions::incorrect_integer_arithmetic_3_fuzz_instructions::InitVesting;
 use incorrect_integer_arithmetic_3::entry as entry_incorrect_integer_arithmetic_3;
 use incorrect_integer_arithmetic_3::ID as PROGRAM_ID_INCORRECT_INTEGER_ARITHMETIC_3;
 const PROGRAM_NAME_INCORRECT_INTEGER_ARITHMETIC_3: &str = "incorrect_integer_arithmetic_3";
@@ -11,7 +12,16 @@ mod accounts_snapshots;
 
 struct MyFuzzData;
 
-impl FuzzDataBuilder<FuzzInstruction_incorrect_integer_arithmetic_3> for MyFuzzData {}
+impl FuzzDataBuilder<FuzzInstruction_incorrect_integer_arithmetic_3> for MyFuzzData {
+    fn pre_ixs(
+        u: &mut arbitrary::Unstructured,
+    ) -> arbitrary::Result<Vec<FuzzInstruction_incorrect_integer_arithmetic_3>> {
+        let init_ix =
+            FuzzInstruction_incorrect_integer_arithmetic_3::InitVesting(InitVesting::arbitrary(u)?);
+
+        Ok(vec![init_ix])
+    }
+}
 
 fn main() {
     loop {
