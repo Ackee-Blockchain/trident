@@ -1,3 +1,4 @@
+use fuzz_instructions::incorrect_ix_sequence_1_fuzz_instructions::Initialize;
 use incorrect_ix_sequence_1::entry as entry_incorrect_ix_sequence_1;
 use incorrect_ix_sequence_1::ID as PROGRAM_ID_INCORRECT_IX_SEQUENCE_1;
 const PROGRAM_NAME_INCORRECT_IX_SEQUENCE_1: &str = "incorrect_ix_sequence_1";
@@ -11,7 +12,15 @@ mod accounts_snapshots;
 
 struct MyFuzzData;
 
-impl FuzzDataBuilder<FuzzInstruction_incorrect_ix_sequence_1> for MyFuzzData {}
+impl FuzzDataBuilder<FuzzInstruction_incorrect_ix_sequence_1> for MyFuzzData {
+    fn pre_ixs(
+        u: &mut arbitrary::Unstructured,
+    ) -> arbitrary::Result<Vec<FuzzInstruction_incorrect_ix_sequence_1>> {
+        let init_ix =
+            FuzzInstruction_incorrect_ix_sequence_1::Initialize(Initialize::arbitrary(u)?);
+        Ok(vec![init_ix])
+    }
+}
 
 fn main() {
     loop {

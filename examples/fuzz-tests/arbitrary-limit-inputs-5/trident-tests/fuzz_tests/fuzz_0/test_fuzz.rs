@@ -2,6 +2,7 @@ use arbitrary_limit_inputs_5::entry as entry_arbitrary_limit_inputs_5;
 use arbitrary_limit_inputs_5::ID as PROGRAM_ID_ARBITRARY_LIMIT_INPUTS_5;
 const PROGRAM_NAME_ARBITRARY_LIMIT_INPUTS_5: &str = "arbitrary_limit_inputs_5";
 use fuzz_instructions::arbitrary_limit_inputs_5_fuzz_instructions::FuzzInstruction as FuzzInstruction_arbitrary_limit_inputs_5;
+use fuzz_instructions::arbitrary_limit_inputs_5_fuzz_instructions::InitVesting;
 use trident_client::fuzzing::*;
 mod fuzz_instructions;
 
@@ -11,7 +12,16 @@ mod fuzz_instructions;
 
 struct MyFuzzData;
 
-impl FuzzDataBuilder<FuzzInstruction_arbitrary_limit_inputs_5> for MyFuzzData {}
+impl FuzzDataBuilder<FuzzInstruction_arbitrary_limit_inputs_5> for MyFuzzData {
+    fn pre_ixs(
+        u: &mut arbitrary::Unstructured,
+    ) -> arbitrary::Result<Vec<FuzzInstruction_arbitrary_limit_inputs_5>> {
+        let init_ix =
+            FuzzInstruction_arbitrary_limit_inputs_5::InitVesting(InitVesting::arbitrary(u)?);
+
+        Ok(vec![init_ix])
+    }
+}
 
 fn main() {
     loop {

@@ -1,0 +1,41 @@
+[test]
+validator_startup_timeout = 15000
+
+
+[honggfuzz]
+# Timeout in seconds (default: 10)
+timeout = 10
+# Number of fuzzing iterations (default: 0 [no limit])
+iterations = 1000
+# Number of concurrent fuzzing threads (default: 0 [number of CPUs / 2])
+threads = 0
+# Don't close children's stdin, stdout, stderr; can be noisy (default: false)
+keep_output = false
+# Disable ANSI console; use simple log output (default: false)
+verbose = false
+# Exit upon seeing the first crash (default: false)
+exit_upon_crash = false
+# Maximal number of mutations per one run (default: 6)
+mutations_per_run = 6
+# Target compilation directory, (default: "" ["trident-tests/fuzz_tests/fuzzing/hfuzz_target"]).
+# To not clash with cargo build's default target directory.
+cargo_target_dir = ""
+# Honggfuzz working directory, (default: "" ["trident-tests/fuzz_tests/fuzzing/hfuzz_workspace"]).
+hfuzz_workspace = ""
+# Directory where crashes are saved to (default: "" [workspace directory])
+crashdir = ""
+# Input file extension (e.g. 'swf'), (default: "" ['fuzz'])
+extension = ""
+# Number of seconds this fuzzing session will last (default: 0 [no limit])
+run_time = 0
+# Maximal size of files processed by the fuzzer in bytes (default: 1048576 = 1MB)
+max_file_size = 1048576
+# Save all test-cases (not only the unique ones) by appending the current time-stamp to the filenames (default: false)
+save_all = false
+
+[fuzz]
+# Allow processing of duplicate transactions. Setting to true might speed up fuzzing but can cause false positive crashes (default: false)
+allow_duplicate_txs = false
+# Trident will show statistics after the fuzzing session. This option forces use of honggfuzz parameter
+# `keep_output` as true in order to be able to catch fuzzer stdout. (default: false)
+fuzzing_with_stats = false

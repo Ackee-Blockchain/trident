@@ -2,6 +2,8 @@ use arbitrary_custom_types_4::entry as entry_arbitrary_custom_types_4;
 use arbitrary_custom_types_4::ID as PROGRAM_ID_ARBITRARY_CUSTOM_TYPES_4;
 const PROGRAM_NAME_ARBITRARY_CUSTOM_TYPES_4: &str = "arbitrary_custom_types_4";
 use fuzz_instructions::arbitrary_custom_types_4_fuzz_instructions::FuzzInstruction as FuzzInstruction_arbitrary_custom_types_4;
+use fuzz_instructions::arbitrary_custom_types_4_fuzz_instructions::Initialize;
+use fuzz_instructions::arbitrary_custom_types_4_fuzz_instructions::Update;
 use trident_client::fuzzing::*;
 mod fuzz_instructions;
 
@@ -11,7 +13,15 @@ mod accounts_snapshots;
 
 struct MyFuzzData;
 
-impl FuzzDataBuilder<FuzzInstruction_arbitrary_custom_types_4> for MyFuzzData {}
+impl FuzzDataBuilder<FuzzInstruction_arbitrary_custom_types_4> for MyFuzzData {
+    fn pre_ixs(
+        u: &mut arbitrary::Unstructured,
+    ) -> arbitrary::Result<Vec<FuzzInstruction_arbitrary_custom_types_4>> {
+        let init = FuzzInstruction_arbitrary_custom_types_4::Initialize(Initialize::arbitrary(u)?);
+        let update = FuzzInstruction_arbitrary_custom_types_4::Update(Update::arbitrary(u)?);
+        Ok(vec![init, update])
+    }
+}
 
 fn main() {
     loop {

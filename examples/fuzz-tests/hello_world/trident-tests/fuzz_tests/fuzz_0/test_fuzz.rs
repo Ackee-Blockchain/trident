@@ -1,3 +1,4 @@
+use fuzz_instructions::hello_world_fuzz_instructions::Initialize;
 use hello_world::entry as entry_hello_world;
 use hello_world::ID as PROGRAM_ID_HELLO_WORLD;
 const PROGRAM_NAME_HELLO_WORLD: &str = "hello_world";
@@ -11,7 +12,14 @@ mod accounts_snapshots;
 
 struct MyFuzzData;
 
-impl FuzzDataBuilder<FuzzInstruction_hello_world> for MyFuzzData {}
+impl FuzzDataBuilder<FuzzInstruction_hello_world> for MyFuzzData {
+    fn pre_ixs(
+        u: &mut arbitrary::Unstructured,
+    ) -> arbitrary::Result<Vec<FuzzInstruction_hello_world>> {
+        let init = FuzzInstruction_hello_world::Initialize(Initialize::arbitrary(u)?);
+        Ok(vec![init])
+    }
+}
 
 fn main() {
     loop {

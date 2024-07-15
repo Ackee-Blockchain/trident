@@ -1,4 +1,6 @@
 use callee::entry as entry_callee;
+use caller::entry as entry_caller;
+
 use callee::ID as PROGRAM_ID_CALLEE;
 use caller::ID as PROGRAM_ID_CALLER;
 const PROGRAM_NAME_CALLEE: &str = "callee";
@@ -24,7 +26,7 @@ fn main() {
             let fuzzing_program1 = FuzzingProgram::new(
                 PROGRAM_NAME_CALLER,
                 &PROGRAM_ID_CALLER,
-                None
+                processor!(convert_entry!(entry_caller))
             );
 
             // `entry_fn`` example: processor!(convert_entry!(program_entry))

@@ -16,7 +16,7 @@ fn main() {
             // Specify programs you want to include in genesis
             // Programs without an `entry_fn`` will be searched for within `trident-genesis` folder.
             // `entry_fn`` example: processor!(convert_entry!(program_entry))
-            let fuzzing_program1 = FuzzingProgram::new(todo!(),todo!(),todo!());
+            let fuzzing_program1 = FuzzingProgram::new(todo!(),todo!(),processor!(convert_entry!(todo!())));
 
             let mut client =
                 ProgramTestClientBlocking::new(&[todo!()])

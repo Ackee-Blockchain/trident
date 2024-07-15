@@ -1,3 +1,4 @@
+use fuzz_instructions::unauthorized_access_2_fuzz_instructions::Initialize;
 use unauthorized_access_2::entry as entry_unauthorized_access_2;
 use unauthorized_access_2::ID as PROGRAM_ID_UNAUTHORIZED_ACCESS_2;
 const PROGRAM_NAME_UNAUTHORIZED_ACCESS_2: &str = "unauthorized_access_2";
@@ -11,7 +12,15 @@ mod accounts_snapshots;
 
 struct MyFuzzData;
 
-impl FuzzDataBuilder<FuzzInstruction_unauthorized_access_2> for MyFuzzData {}
+impl FuzzDataBuilder<FuzzInstruction_unauthorized_access_2> for MyFuzzData {
+    fn pre_ixs(
+        u: &mut arbitrary::Unstructured,
+    ) -> arbitrary::Result<Vec<FuzzInstruction_unauthorized_access_2>> {
+        let init_ix = FuzzInstruction_unauthorized_access_2::Initialize(Initialize::arbitrary(u)?);
+
+        Ok(vec![init_ix])
+    }
+}
 
 fn main() {
     loop {
