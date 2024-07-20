@@ -49,7 +49,7 @@
 // }
 
 pub mod caller_fuzz_instructions {
-    use caller::trident_fuzz_initialize_caller_snapshot::InitializeCallerSnapshot;
+    use caller::trident_fuzz_InitializeCaller_snapshot::InitializeCallerSnapshot;
     use trident_client::fuzzing::*;
     #[derive(Arbitrary, DisplayIx, FuzzTestExecutor, FuzzDeserialize)]
     pub enum FuzzInstruction {

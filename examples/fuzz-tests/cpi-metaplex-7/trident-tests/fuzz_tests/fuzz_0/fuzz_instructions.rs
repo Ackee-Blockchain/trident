@@ -1,5 +1,5 @@
 pub mod cpi_metaplex_7_fuzz_instructions {
-    use cpi_metaplex_7::trident_fuzz_initialize_snapshot::InitializeSnapshot;
+    use cpi_metaplex_7::trident_fuzz_Initialize_snapshot::InitializeSnapshot;
     use solana_sdk::native_token::LAMPORTS_PER_SOL;
     use trident_client::fuzzing::*;
     #[derive(Arbitrary, DisplayIx, FuzzTestExecutor, FuzzDeserialize)]

@@ -955,7 +955,8 @@ version = "0.1.0"
 dependencies = [
  "anchor-lang",
  "callee",
- "trident-client",
+ "trident-derive-accounts-snapshots",
+ "trident-fuzz",
 ]
 
 [[package]]
@@ -6138,10 +6139,10 @@ dependencies = [
 name = "trident-derive-accounts-snapshots"
 version = "0.0.1"
 dependencies = [
+ "anchor-syn",
  "proc-macro2",
  "quote",
  "syn 1.0.109",
- "trident-fuzz",
 ]
 
 [[package]]

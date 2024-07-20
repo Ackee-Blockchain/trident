@@ -9,7 +9,7 @@ use mpl_token_metadata::{
     ID as MPL_METADATA_PROGRAM,
 };
 
-use trident_client::fuzzing::AccountsSnapshots;
+use trident_derive_accounts_snapshots::AccountsSnapshots;
 
 declare_id!("3XtULmXDGS867VbBXiPkjYr4EMjytGW8X12F6BS23Zcw");
 
@@ -47,7 +47,7 @@ pub struct Initialize<'info> {
     )]
     pub mint: Account<'info, Mint>,
 
-    // CHECK: Will be initialized
+    /// CHECK: Will be initialized
     #[account(mut)]
     pub metadata_account: UncheckedAccount<'info>,
     pub mpl_token_metadata: Program<'info, MplTokenMetadataProgram>,
