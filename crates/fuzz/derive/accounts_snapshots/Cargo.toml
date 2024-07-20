@@ -13,7 +13,7 @@ description = "trident-accounts-snapshots"
 proc-macro = true
 
 [dependencies]
-proc-macro2 = "1"
+proc-macro2 = { version = "1", features = ["span-locations"] }
 quote = "1"
-syn = "1"
-trident-fuzz = { path = "../../", version = "0.1.0" }
+syn = { version = "1", features = ["full"] }
+anchor-syn = { workspace = true }

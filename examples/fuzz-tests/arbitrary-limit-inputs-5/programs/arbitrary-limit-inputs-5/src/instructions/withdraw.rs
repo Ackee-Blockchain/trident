@@ -3,7 +3,7 @@ use anchor_spl::token::{transfer, Mint, Token, TokenAccount, Transfer};
 
 use crate::{state::Escrow, VestingError};
 
-use trident_client::fuzzing::AccountsSnapshots;
+use trident_derive_accounts_snapshots::AccountsSnapshots;
 
 pub fn _withdraw_unlocked(ctx: Context<WithdrawUnlocked>) -> Result<()> {
     let escrow = &mut ctx.accounts.escrow;

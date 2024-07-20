@@ -2,8 +2,7 @@ use anchor_lang::prelude::*;
 use anchor_spl::token::{
     set_authority, transfer, Mint, SetAuthority, Token, TokenAccount, Transfer,
 };
-
-use trident_client::fuzzing::AccountsSnapshots;
+use trident_derive_accounts_snapshots::AccountsSnapshots;
 
 use crate::state::Escrow;
 use crate::VestingError;
