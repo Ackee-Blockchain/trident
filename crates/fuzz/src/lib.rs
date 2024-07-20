@@ -2,7 +2,6 @@ pub mod accounts_storage;
 pub mod error;
 pub mod fuzz_data;
 pub mod fuzz_stats;
-pub mod program_test_client_blocking;
 pub mod snapshot;
 pub type AccountId = u8;
 pub mod fuzz_client;
@@ -10,3 +9,6 @@ pub mod fuzz_deserialize;
 pub mod fuzz_test_executor;
 pub mod fuzz_trident;
 pub mod ix_ops;
+
+pub mod light;
+pub mod program_test;

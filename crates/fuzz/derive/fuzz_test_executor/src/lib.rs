@@ -30,16 +30,10 @@ pub fn fuzz_test_executor(input: TokenStream) -> TokenStream {
                             data: data.data(),
                         };
 
-                        let mut transaction =
-                            Transaction::new_with_payer(&[ixx], Some(&client.payer().pubkey()));
-
-                        signers.push(client.payer().clone());
-                        let sig: Vec<&Keypair> = signers.iter().collect();
-                        transaction.sign(&sig, client.get_last_blockhash());
-
                         let duplicate_tx = if cfg!(allow_duplicate_txs) {
                             None
                         } else {
+                            let mut transaction = Transaction::new_with_payer(&[ixx.clone()], None);
                             let message_hash = transaction.message().hash();
                             sent_txs.insert(message_hash, ())
                         };
@@ -52,7 +46,7 @@ pub fn fuzz_test_executor(input: TokenStream) -> TokenStream {
                                 #[cfg(fuzzing_with_stats)]
                                 stats_logger.increase_invoked(self.to_context_string());
 
-                                let tx_result = client.process_transaction(transaction)
+                                let tx_result = client.process(ixx,signers)
                                 .map_err(|e| e.with_origin(Origin::Instruction(self.to_context_string())));
                                 match tx_result {
                                         Ok(_) => {

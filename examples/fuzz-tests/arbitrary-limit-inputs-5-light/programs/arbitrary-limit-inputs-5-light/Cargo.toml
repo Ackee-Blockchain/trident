@@ -1,0 +1,24 @@
+[package]
+name = "arbitrary-limit-inputs-5-light"
+version = "0.1.0"
+description = "Created with Anchor"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "arbitrary_limit_inputs_5_light"
+
+[features]
+default = []
+cpi = ["no-entrypoint"]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+idl-build = ["anchor-lang/idl-build", "anchor-spl/idl-build"]
+trident-fuzzing = ["dep:trident-fuzz"]
+
+[dependencies]
+trident-derive-accounts-snapshots = { path = "../../../../../crates/fuzz/derive/accounts_snapshots" }
+trident-fuzz = { path = "../../../../../crates/fuzz", optional = true }
+anchor-lang = "0.30.1"
+anchor-spl = "0.30.1"

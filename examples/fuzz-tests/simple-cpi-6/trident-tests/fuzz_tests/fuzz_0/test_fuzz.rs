@@ -23,14 +23,14 @@ fn main() {
 
             // Specify programs you want to include in genesis
             // Programs without an `entry_fn`` will be searched for within `trident-genesis` folder.
-            let fuzzing_program1 = FuzzingProgram::new(
+            let fuzzing_program1 = FuzzingProgramFull::new(
                 PROGRAM_NAME_CALLER,
                 &PROGRAM_ID_CALLER,
                 processor!(convert_entry!(entry_caller))
             );
 
             // `entry_fn`` example: processor!(convert_entry!(program_entry))
-            let fuzzing_program2 = FuzzingProgram::new(
+            let fuzzing_program2 = FuzzingProgramFull::new(
                 PROGRAM_NAME_CALLEE,
                 &PROGRAM_ID_CALLEE,
                 processor!(convert_entry!(entry_callee))

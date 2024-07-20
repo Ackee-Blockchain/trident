@@ -30,7 +30,7 @@ fn main() {
             // Specify programs you want to include in genesis
             // Programs without an `entry_fn`` will be searched for within `trident-genesis` folder.
             // `entry_fn`` example: processor!(convert_entry!(program_entry))
-            let fuzzing_program1 = FuzzingProgram::new(
+            let fuzzing_program1 = FuzzingProgramFull::new(
                 PROGRAM_NAME_INCORRECT_INTEGER_ARITHMETIC_3,
                 &PROGRAM_ID_INCORRECT_INTEGER_ARITHMETIC_3,
                 processor!(convert_entry!(entry_incorrect_integer_arithmetic_3))

@@ -6111,10 +6111,10 @@ dependencies = [
 name = "trident-derive-accounts-snapshots"
 version = "0.0.1"
 dependencies = [
+ "anchor-syn",
  "proc-macro2",
  "quote",
  "syn 1.0.109",
- "trident-fuzz",
 ]
 
 [[package]]
@@ -6151,6 +6151,7 @@ dependencies = [
  "anchor-lang",
  "anchor-syn",
  "arbitrary",
+ "bincode",
  "convert_case",
  "heck 0.4.1",
  "prettytable",
@@ -6160,9 +6161,11 @@ dependencies = [
  "serde",
  "serde_json",
  "solana-banks-client",
+ "solana-program",
  "solana-program-runtime",
  "solana-program-test",
  "solana-sdk",
+ "solana-sdk-macro",
  "spl-token",
  "syn 1.0.109",
  "thiserror",

@@ -13,6 +13,7 @@ anchor-lang = ">=0.29.0"
 
 # SOLANA
 solana-sdk = "1.17.4"
+solana-sdk-macro = "1.17.4"
 solana-cli-output = "1.17.4"
 solana-transaction-status = "1.17.4"
 solana-account-decoder = "1.17.4"
@@ -20,5 +21,7 @@ solana-program = "1.17.4"
 solana-banks-client = "1.17.4"
 solana-program-runtime = "1.17.4"
 solana-program-test = "1.17.4"
+
+# SPL
 spl-associated-token-account = { version = "2", features = ["no-entrypoint"] }
 spl-token = { version = "4", features = ["no-entrypoint"] }

@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 
 use solana_banks_client::BanksClientError;
-use solana_sdk::pubkey::Pubkey;
+use solana_sdk::{program_error::ProgramError, pubkey::Pubkey};
 use std::fmt::{Debug, Display};
 use thiserror::Error;
 
@@ -10,10 +10,17 @@ pub enum FuzzClientError {
     #[error("Custom fuzzing error: {0}")]
     Custom(u32),
     #[error("Not able to initialize client: {0}")]
-    ClientInitError(#[from] std::io::Error),
-    // Box for Error variant too Long warnings
+    ClientInitError(Box<dyn std::error::Error>),
     #[error("Banks Client Error: {0}")]
     BanksError(Box<BanksClientError>),
+    #[error("Cannot Get Account")]
+    CannotGetAccounts,
+    #[error("This method is not implemented for this type of the Client")]
+    NotImplemnted,
+    #[error("Program error: {0}")]
+    ProgramError(ProgramError),
+    #[error("Client error: Program with address {0} was not found")]
+    ProgramNotFound(Pubkey),
 }
 
 #[derive(Debug, Error)]

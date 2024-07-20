@@ -41,8 +41,10 @@ pub mod fuzzing {
     pub use trident_fuzz::*;
 
     pub use solana_program_test::processor;
-    pub use trident_fuzz::program_test_client_blocking::FuzzingProgram;
-    pub use trident_fuzz::program_test_client_blocking::ProgramEntry;
+    pub use trident_fuzz::light::light_client::FuzzingProgramLight;
+    pub use trident_fuzz::program_test::program_test_client_blocking::FuzzingProgramFull;
+
+    pub use trident_fuzz::fuzz_client::ProgramEntry;
 
     pub use super::temp_clone::*;
     /// trident methods
@@ -55,7 +57,8 @@ pub mod fuzzing {
     pub use trident_fuzz::fuzz_stats::FuzzingStatistics;
     pub use trident_fuzz::fuzz_test_executor::FuzzTestExecutor;
     pub use trident_fuzz::ix_ops::IxOps;
-    pub use trident_fuzz::program_test_client_blocking::ProgramTestClientBlocking;
+    pub use trident_fuzz::light::light_client::LightClient;
+    pub use trident_fuzz::program_test::program_test_client_blocking::ProgramTestClientBlocking;
     pub use trident_fuzz::snapshot::Snapshot;
 
     pub use std::cell::RefCell;

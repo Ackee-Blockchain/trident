@@ -28,7 +28,7 @@ fn main() {
             // Specify programs you want to include in genesis
             // Programs without an `entry_fn`` will be searched for within `trident-genesis` folder.
             // `entry_fn`` example: processor!(convert_entry!(program_entry))
-            let fuzzing_program1 = FuzzingProgram::new(
+            let fuzzing_program1 = FuzzingProgramFull::new(
                 PROGRAM_NAME_UNCHECKED_ARITHMETIC_0,
                 &PROGRAM_ID_UNCHECKED_ARITHMETIC_0,
                 processor!(convert_entry!(entry_unchecked_arithmetic_0))

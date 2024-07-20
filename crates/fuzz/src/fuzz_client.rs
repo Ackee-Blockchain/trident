@@ -4,10 +4,11 @@ use anchor_lang::prelude::Rent;
 use anchor_lang::solana_program::hash::Hash;
 
 use solana_sdk::account::{Account, AccountSharedData};
-use solana_sdk::instruction::AccountMeta;
+use solana_sdk::account_info::AccountInfo;
+use solana_sdk::entrypoint::ProgramResult;
+use solana_sdk::instruction::{AccountMeta, Instruction};
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
-use solana_sdk::transaction::VersionedTransaction;
 
 use crate::error::*;
 
@@ -58,9 +59,36 @@ pub trait FuzzClient {
     /// Get the cluster rent
     fn get_rent(&mut self) -> Result<Rent, FuzzClientError>;
 
-    /// Send a transaction and return until the transaction has been finalized or rejected.
-    fn process_transaction(
+    /// Process instruction
+    fn process(
         &mut self,
-        transaction: impl Into<VersionedTransaction>,
+        instruction: Instruction,
+        signers: Vec<Keypair>,
     ) -> Result<(), FuzzClientError>;
 }
+
+/// Converts Anchor 0.29.0 and higher entrypoint into the runtime's entrypoint style
+///
+/// Starting Anchor 0.29.0 the accounts are passed by reference https://github.com/coral-xyz/anchor/pull/2656
+/// and the lifetime requirements are `accounts: &'a [AccountInfo<'a>]` instead of `accounts: &'a [AccountInfo<'b>]`.
+/// The new requirements require the slice of AccountInfos and the contained Accounts to have the same lifetime but
+/// the previous version is more general. The compiler implies that `'b` must live at least as long as `'a` or longer.
+///
+/// The transaction data is serialized and again deserialized to the `&[AccountInfo<_>]` slice just before invoking
+/// the entry point and the modified account data is copied to the original accounts just after the the entry point.
+/// After that the `&[AccountInfo<_>]` slice goes out of scope entirely and therefore `'a` == `'b`. So it _SHOULD_ be
+/// safe to do this conversion in this testing scenario.
+///
+/// Do not use this conversion in any on-chain programs!
+#[macro_export]
+macro_rules! convert_entry {
+    ($entry:expr) => {
+        unsafe { core::mem::transmute::<ProgramEntry, ProcessInstruction>($entry) }
+    };
+}
+
+pub type ProgramEntry = for<'info> fn(
+    program_id: &Pubkey,
+    accounts: &'info [AccountInfo<'info>],
+    instruction_data: &[u8],
+) -> ProgramResult;

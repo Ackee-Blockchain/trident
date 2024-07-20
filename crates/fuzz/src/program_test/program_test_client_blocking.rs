@@ -6,42 +6,30 @@ use solana_program_runtime::invoke_context::BuiltinFunctionWithContext;
 use solana_program_test::ProgramTest;
 use solana_program_test::ProgramTestContext;
 use solana_sdk::account::Account;
-use solana_sdk::account_info::AccountInfo;
-use solana_sdk::entrypoint::ProgramResult;
+use solana_sdk::instruction::Instruction;
+use solana_sdk::transaction::Transaction;
+
+use crate::error::*;
+use crate::fuzz_client::FuzzClient;
 use solana_sdk::system_program::ID as SYSTEM_PROGRAM_ID;
 use solana_sdk::{
     account::AccountSharedData, hash::Hash, instruction::AccountMeta, program_option::COption,
     program_pack::Pack, pubkey::Pubkey, rent::Rent, signature::Keypair, signature::Signer,
-    transaction::VersionedTransaction,
 };
 use spl_token::state::Mint;
 use tokio::runtime::Builder;
 
-use crate::error::*;
-use crate::fuzz_client::FuzzClient;
-
-pub type ProgramEntry = for<'info> fn(
-    program_id: &Pubkey,
-    accounts: &'info [AccountInfo<'info>],
-    instruction_data: &[u8],
-) -> ProgramResult;
-
-pub struct ProgramTestClientBlocking {
-    ctx: ProgramTestContext,
-    rt: tokio::runtime::Runtime,
-}
-
-pub struct FuzzingProgram {
+pub struct FuzzingProgramFull {
     pub program_name: String,
     pub program_id: Pubkey,
     pub entry: Option<BuiltinFunctionWithContext>,
 }
-impl FuzzingProgram {
+impl FuzzingProgramFull {
     pub fn new(
         program_name: &str,
         program_id: &Pubkey,
         entry_fn: Option<BuiltinFunctionWithContext>,
-    ) -> FuzzingProgram {
+    ) -> FuzzingProgramFull {
         Self {
             program_name: program_name.to_string(),
             program_id: *program_id,
@@ -50,8 +38,13 @@ impl FuzzingProgram {
     }
 }
 
+pub struct ProgramTestClientBlocking {
+    ctx: ProgramTestContext,
+    rt: tokio::runtime::Runtime,
+}
+
 impl ProgramTestClientBlocking {
-    pub fn new(program_: &[FuzzingProgram]) -> Result<Self, FuzzClientError> {
+    pub fn new(program_: &[FuzzingProgramFull]) -> Result<Self, FuzzClientError> {
         let mut program_test = ProgramTest::default();
         for x in program_ {
             match x.entry {
@@ -74,31 +67,14 @@ impl ProgramTestClientBlocking {
                 }
             }
         }
-        let rt: tokio::runtime::Runtime = Builder::new_current_thread().enable_all().build()?;
+        let rt: tokio::runtime::Runtime = Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .map_err(|e| FuzzClientError::ClientInitError(Box::new(e)))?;
 
         let ctx = rt.block_on(program_test.start_with_context());
         Ok(Self { ctx, rt })
     }
-}
-
-/// Converts Anchor 0.29.0 and higher entrypoint into the runtime's entrypoint style
-///
-/// Starting Anchor 0.29.0 the accounts are passed by reference https://github.com/coral-xyz/anchor/pull/2656
-/// and the lifetime requirements are `accounts: &'a [AccountInfo<'a>]` instead of `accounts: &'a [AccountInfo<'b>]`.
-/// The new requirements require the slice of AccountInfos and the contained Accounts to have the same lifetime but
-/// the previous version is more general. The compiler implies that `'b` must live at least as long as `'a` or longer.
-///
-/// The transaction data is serialized and again deserialized to the `&[AccountInfo<_>]` slice just before invoking
-/// the entry point and the modified account data is copied to the original accounts just after the the entry point.
-/// After that the `&[AccountInfo<_>]` slice goes out of scope entirely and therefore `'a` == `'b`. So it _SHOULD_ be
-/// safe to do this conversion in this testing scenario.
-///
-/// Do not use this conversion in any on-chain programs!
-#[macro_export]
-macro_rules! convert_entry {
-    ($entry:expr) => {
-        unsafe { core::mem::transmute::<ProgramEntry, ProcessInstruction>($entry) }
-    };
 }
 
 impl FuzzClient for ProgramTestClientBlocking {
@@ -224,15 +200,24 @@ impl FuzzClient for ProgramTestClientBlocking {
     fn get_last_blockhash(&self) -> Hash {
         self.ctx.last_blockhash
     }
-    fn process_transaction(
+
+    fn process(
         &mut self,
-        transaction: impl Into<VersionedTransaction>,
+        instruction: Instruction,
+        mut signers: Vec<Keypair>,
     ) -> Result<(), FuzzClientError> {
+        let mut transaction =
+            Transaction::new_with_payer(&[instruction], Some(&self.payer().pubkey()));
+
+        transaction.message.hash();
+        signers.push(self.payer().insecure_clone());
+        let sig: Vec<&Keypair> = signers.iter().collect();
+        transaction.sign(&sig, self.get_last_blockhash());
+
         Ok(self
             .rt
             .block_on(self.ctx.banks_client.process_transaction(transaction))?)
     }
-
     fn set_account_custom(&mut self, address: &Pubkey, account: &AccountSharedData) {
         self.ctx.set_account(address, account);
     }
