@@ -4,7 +4,9 @@ use anchor_lang::solana_program::account_info::Account as Acc;
 use anchor_lang::solana_program::account_info::AccountInfo;
 use solana_sdk::{account::Account, instruction::AccountMeta};
 
-use crate::data_builder::{FuzzClient, FuzzDeserialize};
+use crate::fuzz_client::FuzzClient;
+use crate::fuzz_deserialize::FuzzDeserialize;
+
 use crate::error::*;
 pub struct Snapshot<'info, T> {
     before: Vec<Option<Account>>,
