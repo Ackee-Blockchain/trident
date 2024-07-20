@@ -20,3 +20,4 @@ path = "../../../../../crates/client"
 
 [dependencies.cpi-metaplex-7]
 path = "../../programs/cpi-metaplex-7"
+features = ["trident-fuzzing"]

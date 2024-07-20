@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 use callee::program::Callee;
-use trident_client::fuzzing::AccountsSnapshots;
+use trident_derive_accounts_snapshots::AccountsSnapshots;
 
 declare_id!("FWtSodrkUnovFPnNRCxneP6VWh6JH6jtQZ4PHoP8Ejuz");
 
