@@ -34,10 +34,10 @@ pub mod fuzzing {
     pub use trident_derive_fuzz_deserialize::FuzzDeserialize;
     pub use trident_derive_fuzz_test_executor::FuzzTestExecutor;
 
+    /// trident macros
     pub use trident_fuzz::convert_entry;
     pub use trident_fuzz::fuzz_trident;
     pub use trident_fuzz::show_account;
-    /// trident macros
     pub use trident_fuzz::*;
 
     pub use solana_program_test::processor;
@@ -47,10 +47,14 @@ pub mod fuzzing {
     pub use super::temp_clone::*;
     /// trident methods
     pub use trident_fuzz::accounts_storage::*;
-    pub use trident_fuzz::data_builder::build_ix_fuzz_data;
-    pub use trident_fuzz::data_builder::*;
     pub use trident_fuzz::error::*;
-    pub use trident_fuzz::fuzzing_stats::FuzzingStatistics;
+    pub use trident_fuzz::fuzz_client::FuzzClient;
+    pub use trident_fuzz::fuzz_data::build_ix_fuzz_data;
+    pub use trident_fuzz::fuzz_data::*;
+    pub use trident_fuzz::fuzz_deserialize::FuzzDeserialize;
+    pub use trident_fuzz::fuzz_stats::FuzzingStatistics;
+    pub use trident_fuzz::fuzz_test_executor::FuzzTestExecutor;
+    pub use trident_fuzz::ix_ops::IxOps;
     pub use trident_fuzz::program_test_client_blocking::ProgramTestClientBlocking;
     pub use trident_fuzz::snapshot::Snapshot;
 

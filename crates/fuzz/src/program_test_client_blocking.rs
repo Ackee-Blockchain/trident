@@ -17,8 +17,8 @@ use solana_sdk::{
 use spl_token::state::Mint;
 use tokio::runtime::Builder;
 
-use crate::data_builder::FuzzClient;
 use crate::error::*;
+use crate::fuzz_client::FuzzClient;
 
 pub type ProgramEntry = for<'info> fn(
     program_id: &Pubkey,
