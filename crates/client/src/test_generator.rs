@@ -701,7 +701,7 @@ impl TestGenerator {
             let file = OpenOptions::new().append(true).open(gitignore_path);
 
             if let Ok(mut file) = file {
-                writeln!(file, "{}", ignored_path)?;
+                writeln!(file, "\n{}", ignored_path)?;
                 println!("{FINISH} [{GIT_IGNORE}] update with [{ignored_path}]");
             }
         } else {
