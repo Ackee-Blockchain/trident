@@ -214,7 +214,7 @@ pub fn generate_source_code(programs_data: &[ProgramData]) -> String {
             let fuzzer_module: syn::ItemMod = parse_quote! {
                 pub mod #fuzz_instructions_module_name {
                     use trident_client::fuzzing::*;
-                    // use crate::accounts_snapshots::*;
+                    use crate::accounts_snapshots::*;
 
                     #[derive(Arbitrary, DisplayIx, FuzzTestExecutor, FuzzDeserialize)]
                     pub enum FuzzInstruction {

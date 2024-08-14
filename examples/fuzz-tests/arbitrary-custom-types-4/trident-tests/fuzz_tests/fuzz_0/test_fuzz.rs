@@ -5,27 +5,24 @@ use fuzz_instructions::arbitrary_custom_types_4_fuzz_instructions::FuzzInstructi
 use fuzz_instructions::arbitrary_custom_types_4_fuzz_instructions::Initialize;
 use fuzz_instructions::arbitrary_custom_types_4_fuzz_instructions::Update;
 use trident_client::fuzzing::*;
+mod accounts_snapshots;
 mod fuzz_instructions;
 
-// TODO: In case of using file extension for AccountsSnapshots
-// uncomment the line below
-mod accounts_snapshots;
+pub type FuzzInstruction = FuzzInstruction_arbitrary_custom_types_4;
 
 struct MyFuzzData;
 
-impl FuzzDataBuilder<FuzzInstruction_arbitrary_custom_types_4> for MyFuzzData {
-    fn pre_ixs(
-        u: &mut arbitrary::Unstructured,
-    ) -> arbitrary::Result<Vec<FuzzInstruction_arbitrary_custom_types_4>> {
-        let init = FuzzInstruction_arbitrary_custom_types_4::Initialize(Initialize::arbitrary(u)?);
-        let update = FuzzInstruction_arbitrary_custom_types_4::Update(Update::arbitrary(u)?);
+impl FuzzDataBuilder<FuzzInstruction> for MyFuzzData {
+    fn pre_ixs(u: &mut arbitrary::Unstructured) -> arbitrary::Result<Vec<FuzzInstruction>> {
+        let init = FuzzInstruction::Initialize(Initialize::arbitrary(u)?);
+        let update = FuzzInstruction::Update(Update::arbitrary(u)?);
         Ok(vec![init, update])
     }
 }
 
 fn main() {
     loop {
-        fuzz_trident!(fuzz_ix: FuzzInstruction_arbitrary_custom_types_4, |fuzz_data: MyFuzzData| {
+        fuzz_trident!(fuzz_ix: FuzzInstruction, |fuzz_data: MyFuzzData| {
 
             // Specify programs you want to include in genesis
             // Programs without an `entry_fn`` will be searched for within `trident-genesis` folder.

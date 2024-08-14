@@ -7,19 +7,18 @@ const PROGRAM_NAME_CALLEE: &str = "callee";
 const PROGRAM_NAME_CALLER: &str = "caller";
 use fuzz_instructions::caller_fuzz_instructions::FuzzInstruction as FuzzInstruction_caller;
 use trident_client::fuzzing::*;
+mod accounts_snapshots;
 mod fuzz_instructions;
 
-// TODO: In case of using file extension for AccountsSnapshots
-// uncomment the line below
-// mod accounts_snapshots;
+pub type FuzzInstruction = FuzzInstruction_caller;
 
 struct MyFuzzData;
 
-impl FuzzDataBuilder<FuzzInstruction_caller> for MyFuzzData {}
+impl FuzzDataBuilder<FuzzInstruction> for MyFuzzData {}
 
 fn main() {
     loop {
-        fuzz_trident!(fuzz_ix: FuzzInstruction_caller, |fuzz_data: MyFuzzData| {
+        fuzz_trident!(fuzz_ix: FuzzInstruction, |fuzz_data: MyFuzzData| {
 
             // Specify programs you want to include in genesis
             // Programs without an `entry_fn`` will be searched for within `trident-genesis` folder.

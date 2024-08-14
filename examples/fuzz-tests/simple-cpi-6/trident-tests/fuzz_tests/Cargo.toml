@@ -21,4 +21,3 @@ path = "../../programs/callee"
 
 [dependencies.caller]
 path = "../../programs/caller"
-features = ["trident-fuzzing"]

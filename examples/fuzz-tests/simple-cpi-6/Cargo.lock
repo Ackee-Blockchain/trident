@@ -955,8 +955,6 @@ version = "0.1.0"
 dependencies = [
  "anchor-lang",
  "callee",
- "trident-derive-accounts-snapshots",
- "trident-fuzz",
 ]
 
 [[package]]

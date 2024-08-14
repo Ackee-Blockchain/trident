@@ -51,7 +51,7 @@ enum Command {
         #[clap(default_value = "fuzz")]
         tests_type: TestsType,
         /// Specifies type of Accounts Snapshots, i.e used derive macro or generated file
-        #[clap(default_value = "macro")]
+        #[clap(default_value = "file")]
         snapshots_type: SnapshotsType,
     },
     /// Removes target contents except for KeyPair and removes hfuzz_target folder

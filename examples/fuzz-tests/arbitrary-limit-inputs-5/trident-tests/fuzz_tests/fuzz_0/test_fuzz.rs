@@ -6,18 +6,13 @@ use fuzz_instructions::arbitrary_limit_inputs_5_fuzz_instructions::InitVesting;
 use trident_client::fuzzing::*;
 mod fuzz_instructions;
 
-// TODO: In case of using file extension for AccountsSnapshots
-// uncomment the line below
-// mod accounts_snapshots;
-
 struct MyFuzzData;
 
-impl FuzzDataBuilder<FuzzInstruction_arbitrary_limit_inputs_5> for MyFuzzData {
-    fn pre_ixs(
-        u: &mut arbitrary::Unstructured,
-    ) -> arbitrary::Result<Vec<FuzzInstruction_arbitrary_limit_inputs_5>> {
-        let init_ix =
-            FuzzInstruction_arbitrary_limit_inputs_5::InitVesting(InitVesting::arbitrary(u)?);
+pub type FuzzInstruction = FuzzInstruction_arbitrary_limit_inputs_5;
+
+impl FuzzDataBuilder<FuzzInstruction> for MyFuzzData {
+    fn pre_ixs(u: &mut arbitrary::Unstructured) -> arbitrary::Result<Vec<FuzzInstruction>> {
+        let init_ix = FuzzInstruction::InitVesting(InitVesting::arbitrary(u)?);
 
         Ok(vec![init_ix])
     }
@@ -25,7 +20,7 @@ impl FuzzDataBuilder<FuzzInstruction_arbitrary_limit_inputs_5> for MyFuzzData {
 
 fn main() {
     loop {
-        fuzz_trident!(fuzz_ix: FuzzInstruction_arbitrary_limit_inputs_5, |fuzz_data: MyFuzzData| {
+        fuzz_trident!(fuzz_ix: FuzzInstruction, |fuzz_data: MyFuzzData| {
 
             // Specify programs you want to include in genesis
             // Programs without an `entry_fn`` will be searched for within `trident-genesis` folder.

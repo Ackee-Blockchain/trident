@@ -4,26 +4,23 @@ use hello_world::ID as PROGRAM_ID_HELLO_WORLD;
 const PROGRAM_NAME_HELLO_WORLD: &str = "hello_world";
 use fuzz_instructions::hello_world_fuzz_instructions::FuzzInstruction as FuzzInstruction_hello_world;
 use trident_client::fuzzing::*;
+mod accounts_snapshots;
 mod fuzz_instructions;
 
-// TODO: In case of using file extension for AccountsSnapshots
-// uncomment the line below
-mod accounts_snapshots;
+pub type FuzzInstruction = FuzzInstruction_hello_world;
 
 struct MyFuzzData;
 
-impl FuzzDataBuilder<FuzzInstruction_hello_world> for MyFuzzData {
-    fn pre_ixs(
-        u: &mut arbitrary::Unstructured,
-    ) -> arbitrary::Result<Vec<FuzzInstruction_hello_world>> {
-        let init = FuzzInstruction_hello_world::Initialize(Initialize::arbitrary(u)?);
+impl FuzzDataBuilder<FuzzInstruction> for MyFuzzData {
+    fn pre_ixs(u: &mut arbitrary::Unstructured) -> arbitrary::Result<Vec<FuzzInstruction>> {
+        let init = FuzzInstruction::Initialize(Initialize::arbitrary(u)?);
         Ok(vec![init])
     }
 }
 
 fn main() {
     loop {
-        fuzz_trident!(fuzz_ix: FuzzInstruction_hello_world, |fuzz_data: MyFuzzData| {
+        fuzz_trident!(fuzz_ix: FuzzInstruction, |fuzz_data: MyFuzzData| {
 
             // Specify programs you want to include in genesis
             // Programs without an `entry_fn`` will be searched for within `trident-genesis` folder.

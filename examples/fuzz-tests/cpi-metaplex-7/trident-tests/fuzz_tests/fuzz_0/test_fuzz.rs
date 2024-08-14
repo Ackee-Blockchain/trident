@@ -6,34 +6,26 @@ use fuzz_instructions::cpi_metaplex_7_fuzz_instructions::Initialize;
 use trident_client::fuzzing::*;
 mod fuzz_instructions;
 
-// TODO: In case of using file extension for AccountsSnapshots
-// uncomment the line below
-// mod accounts_snapshots;
+pub type FuzzInstruction = FuzzInstruction_cpi_metaplex_7;
 
 struct MyFuzzData;
 
-impl FuzzDataBuilder<FuzzInstruction_cpi_metaplex_7> for MyFuzzData {
-    fn pre_ixs(
-        u: &mut arbitrary::Unstructured,
-    ) -> arbitrary::Result<Vec<FuzzInstruction_cpi_metaplex_7>> {
-        let init = FuzzInstruction_cpi_metaplex_7::Initialize(Initialize::arbitrary(u)?);
+impl FuzzDataBuilder<FuzzInstruction> for MyFuzzData {
+    fn pre_ixs(u: &mut arbitrary::Unstructured) -> arbitrary::Result<Vec<FuzzInstruction>> {
+        let init = FuzzInstruction::Initialize(Initialize::arbitrary(u)?);
         Ok(vec![init])
     }
-    fn ixs(
-        _u: &mut arbitrary::Unstructured,
-    ) -> arbitrary::Result<Vec<FuzzInstruction_cpi_metaplex_7>> {
+    fn ixs(_u: &mut arbitrary::Unstructured) -> arbitrary::Result<Vec<FuzzInstruction>> {
         Ok(vec![])
     }
-    fn post_ixs(
-        _u: &mut arbitrary::Unstructured,
-    ) -> arbitrary::Result<Vec<FuzzInstruction_cpi_metaplex_7>> {
+    fn post_ixs(_u: &mut arbitrary::Unstructured) -> arbitrary::Result<Vec<FuzzInstruction>> {
         Ok(vec![])
     }
 }
 
 fn main() {
     loop {
-        fuzz_trident!(fuzz_ix: FuzzInstruction_cpi_metaplex_7, |fuzz_data: MyFuzzData| {
+        fuzz_trident!(fuzz_ix: FuzzInstruction, |fuzz_data: MyFuzzData| {
 
             // Specify programs you want to include in genesis
             // Programs without an `entry_fn`` will be searched for within `trident-genesis` folder.
