@@ -4,7 +4,7 @@
 To initialize {{ config.site_name }} and generate all-suite test templates, navigate to your project's root directory and run
 
 ```bash
-trident init
+trident init both
 ```
 
 The command will generate the following folder structure:
