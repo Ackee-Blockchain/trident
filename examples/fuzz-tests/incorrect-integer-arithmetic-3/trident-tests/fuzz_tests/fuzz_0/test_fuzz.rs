@@ -4,20 +4,16 @@ use incorrect_integer_arithmetic_3::ID as PROGRAM_ID_INCORRECT_INTEGER_ARITHMETI
 const PROGRAM_NAME_INCORRECT_INTEGER_ARITHMETIC_3: &str = "incorrect_integer_arithmetic_3";
 use fuzz_instructions::incorrect_integer_arithmetic_3_fuzz_instructions::FuzzInstruction as FuzzInstruction_incorrect_integer_arithmetic_3;
 use trident_client::fuzzing::*;
+mod accounts_snapshots;
 mod fuzz_instructions;
 
-// TODO: In case of using file extension for AccountsSnapshots
-// uncomment the line below
-mod accounts_snapshots;
+pub type FuzzInstruction = FuzzInstruction_incorrect_integer_arithmetic_3;
 
 struct MyFuzzData;
 
-impl FuzzDataBuilder<FuzzInstruction_incorrect_integer_arithmetic_3> for MyFuzzData {
-    fn pre_ixs(
-        u: &mut arbitrary::Unstructured,
-    ) -> arbitrary::Result<Vec<FuzzInstruction_incorrect_integer_arithmetic_3>> {
-        let init_ix =
-            FuzzInstruction_incorrect_integer_arithmetic_3::InitVesting(InitVesting::arbitrary(u)?);
+impl FuzzDataBuilder<FuzzInstruction> for MyFuzzData {
+    fn pre_ixs(u: &mut arbitrary::Unstructured) -> arbitrary::Result<Vec<FuzzInstruction>> {
+        let init_ix = FuzzInstruction::InitVesting(InitVesting::arbitrary(u)?);
 
         Ok(vec![init_ix])
     }
@@ -25,7 +21,7 @@ impl FuzzDataBuilder<FuzzInstruction_incorrect_integer_arithmetic_3> for MyFuzzD
 
 fn main() {
     loop {
-        fuzz_trident!(fuzz_ix: FuzzInstruction_incorrect_integer_arithmetic_3, |fuzz_data: MyFuzzData| {
+        fuzz_trident!(fuzz_ix: FuzzInstruction, |fuzz_data: MyFuzzData| {
 
             // Specify programs you want to include in genesis
             // Programs without an `entry_fn`` will be searched for within `trident-genesis` folder.

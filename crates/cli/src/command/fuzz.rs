@@ -30,7 +30,7 @@ pub enum FuzzCommand {
     },
     /// Add new fuzz test. Explicit fuzz test name is not yet supported. Implicit name is fuzz_ID, where ID is automatically derived.
     Add {
-        #[clap(default_value = "macro")]
+        #[clap(default_value = "file")]
         snapshots_type: SnapshotsType,
     },
 }

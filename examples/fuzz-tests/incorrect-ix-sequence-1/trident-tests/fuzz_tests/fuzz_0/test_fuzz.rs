@@ -4,27 +4,23 @@ use incorrect_ix_sequence_1::ID as PROGRAM_ID_INCORRECT_IX_SEQUENCE_1;
 const PROGRAM_NAME_INCORRECT_IX_SEQUENCE_1: &str = "incorrect_ix_sequence_1";
 use fuzz_instructions::incorrect_ix_sequence_1_fuzz_instructions::FuzzInstruction as FuzzInstruction_incorrect_ix_sequence_1;
 use trident_client::fuzzing::*;
+mod accounts_snapshots;
 mod fuzz_instructions;
 
-// TODO: In case of using file extension for AccountsSnapshots
-// uncomment the line below
-mod accounts_snapshots;
+pub type FuzzInstruction = FuzzInstruction_incorrect_ix_sequence_1;
 
 struct MyFuzzData;
 
-impl FuzzDataBuilder<FuzzInstruction_incorrect_ix_sequence_1> for MyFuzzData {
-    fn pre_ixs(
-        u: &mut arbitrary::Unstructured,
-    ) -> arbitrary::Result<Vec<FuzzInstruction_incorrect_ix_sequence_1>> {
-        let init_ix =
-            FuzzInstruction_incorrect_ix_sequence_1::Initialize(Initialize::arbitrary(u)?);
+impl FuzzDataBuilder<FuzzInstruction> for MyFuzzData {
+    fn pre_ixs(u: &mut arbitrary::Unstructured) -> arbitrary::Result<Vec<FuzzInstruction>> {
+        let init_ix = FuzzInstruction::Initialize(Initialize::arbitrary(u)?);
         Ok(vec![init_ix])
     }
 }
 
 fn main() {
     loop {
-        fuzz_trident!(fuzz_ix: FuzzInstruction_incorrect_ix_sequence_1, |fuzz_data: MyFuzzData| {
+        fuzz_trident!(fuzz_ix: FuzzInstruction, |fuzz_data: MyFuzzData| {
 
             // Specify programs you want to include in genesis
             // Programs without an `entry_fn`` will be searched for within `trident-genesis` folder.

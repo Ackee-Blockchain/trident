@@ -1,4 +1,5 @@
 // pub mod callee_fuzz_instructions {
+//     use crate::accounts_snapshots::*;
 //     use trident_client::fuzzing::*;
 //     #[derive(Arbitrary, DisplayIx, FuzzTestExecutor, FuzzDeserialize)]
 //     pub enum FuzzInstruction {
@@ -49,7 +50,7 @@
 // }
 
 pub mod caller_fuzz_instructions {
-    use caller::trident_fuzz_InitializeCaller_snapshot::InitializeCallerSnapshot;
+    use crate::accounts_snapshots::*;
     use trident_client::fuzzing::*;
     #[derive(Arbitrary, DisplayIx, FuzzTestExecutor, FuzzDeserialize)]
     pub enum FuzzInstruction {

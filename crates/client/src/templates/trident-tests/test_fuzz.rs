@@ -1,9 +1,8 @@
 use trident_client::fuzzing::*;
+mod accounts_snapshots;
 mod fuzz_instructions;
 
-// TODO: In case of using file extension for AccountsSnapshots
-// uncomment the line below
-// mod accounts_snapshots;
+pub type FuzzInstruction = todo!();
 
 struct MyFuzzData;
 
