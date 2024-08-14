@@ -23,9 +23,10 @@ cargo install --version <version> trident-cli
 
 - We support `Anchor` and `Solana` versions specified in the table below.
 
-| {{ config.site_name }} CLI |  Anchor   |   Solana  |          Rust          |
+| {{ config.site_name }} CLI | Anchor | Solana | Rust |
 |--------------|:---------:|----------:|:-----------------------|
-| `v0.6.0`     | `>=0.29.*`<sup>1</sup> | `^1.17`  |  `nightly`  |
+| `v0.7.0`     | `>=0.29.*`<sup>1</sup> | `^1.17.4`  | `nightly` |
+| `v0.6.0`     | `>=0.29.*`<sup>1</sup> | `^1.17`  | `nightly` |
 | `v0.5.0`     | `~0.28.*` | `=1.16.6` |                        |
 | `v0.4.0`     | `~0.27.*` | `>=1.15`  |                        |
 | `v0.3.0`     | `~0.25.*` | `>=1.10`  |                        |

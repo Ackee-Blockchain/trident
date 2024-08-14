@@ -1,6 +1,6 @@
 [package]
 name = "trident-client"
-version = "0.6.0"
+version = "0.7.0"
 edition = "2021"
 repository = "https://github.com/Ackee-Blockchain/trident"
 license-file = "../../LICENSE"
@@ -15,12 +15,12 @@ pretty_assertions = "1.1.0"
 
 [dependencies]
 # TRIDENT
-trident-derive-displayix = { path = "../fuzz/derive/display_ix", version = "0.0.1" }
-trident-derive-fuzz-deserialize = { path = "../fuzz/derive/fuzz_deserialize", version = "0.0.1" }
-trident-derive-fuzz-test-executor = { path = "../fuzz/derive/fuzz_test_executor", version = "0.0.1" }
+trident-derive-displayix = { path = "../fuzz/derive/display_ix", version = "0.0.2" }
+trident-derive-fuzz-deserialize = { path = "../fuzz/derive/fuzz_deserialize", version = "0.0.2" }
+trident-derive-fuzz-test-executor = { path = "../fuzz/derive/fuzz_test_executor", version = "0.0.2" }
 trident-derive-accounts-snapshots = { path = "../fuzz/derive/accounts_snapshots", version = "0.0.1" }
 
-trident-test = { path = "../test", version = "0.3.2" }
+trident-test = { path = "../test", version = "0.3.3" }
 trident-fuzz = { path = "../fuzz", version = "0.1.0" }
 
 # ANCHOR
