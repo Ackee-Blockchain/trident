@@ -10,7 +10,6 @@ incremented upon a breaking change and the patch version will be incremented for
 
 ## [dev] - Unreleased
 
-
 ## [0.7.0] - 2024-08-14
 ### Added
 - impr/ add feature flag to the AccountsSnapshots macro ([183](https://github.com/Ackee-Blockchain/trident/pull/183))
