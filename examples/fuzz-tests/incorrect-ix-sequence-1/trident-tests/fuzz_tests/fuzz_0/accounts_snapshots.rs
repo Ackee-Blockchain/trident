@@ -1,6 +1,5 @@
-use incorrect_ix_sequence_1::ID as PROGRAM_ID;
-use trident_client::anchor_lang::{self, prelude::*};
-use trident_client::fuzzing::FuzzingError;
+use anchor_lang::prelude::*;
+use trident_client::fuzzing::{anchor_lang, FuzzingError};
 pub struct InitializeSnapshot<'info> {
     pub author: Signer<'info>,
     pub state: Option<Account<'info, incorrect_ix_sequence_1::state::State>>,
@@ -24,6 +23,7 @@ pub struct InvestSnapshot<'info> {
 }
 impl<'info> InitializeSnapshot<'info> {
     pub fn deserialize_option(
+        _program_id: &anchor_lang::prelude::Pubkey,
         accounts: &'info mut [Option<AccountInfo<'info>>],
     ) -> core::result::Result<Self, FuzzingError> {
         let mut accounts_iter = accounts.iter();
@@ -41,7 +41,7 @@ impl<'info> InitializeSnapshot<'info> {
             .ok_or(FuzzingError::NotEnoughAccounts("state".to_string()))?
             .as_ref()
             .map(|acc| {
-                if acc.key() != PROGRAM_ID {
+                if acc.key() != *_program_id {
                     anchor_lang::accounts::account::Account::try_from(acc)
                         .map_err(|_| FuzzingError::CannotDeserializeAccount("state".to_string()))
                 } else {
@@ -70,6 +70,7 @@ impl<'info> InitializeSnapshot<'info> {
 }
 impl<'info> RegisterSnapshot<'info> {
     pub fn deserialize_option(
+        _program_id: &anchor_lang::prelude::Pubkey,
         accounts: &'info mut [Option<AccountInfo<'info>>],
     ) -> core::result::Result<Self, FuzzingError> {
         let mut accounts_iter = accounts.iter();
@@ -89,7 +90,7 @@ impl<'info> RegisterSnapshot<'info> {
             .ok_or(FuzzingError::NotEnoughAccounts("project".to_string()))?
             .as_ref()
             .map(|acc| {
-                if acc.key() != PROGRAM_ID {
+                if acc.key() != *_program_id {
                     anchor_lang::accounts::account::Account::try_from(acc)
                         .map_err(|_| FuzzingError::CannotDeserializeAccount("project".to_string()))
                 } else {
@@ -127,6 +128,7 @@ impl<'info> RegisterSnapshot<'info> {
 }
 impl<'info> EndRegistrationsSnapshot<'info> {
     pub fn deserialize_option(
+        _program_id: &anchor_lang::prelude::Pubkey,
         accounts: &'info mut [Option<AccountInfo<'info>>],
     ) -> core::result::Result<Self, FuzzingError> {
         let mut accounts_iter = accounts.iter();
@@ -150,6 +152,7 @@ impl<'info> EndRegistrationsSnapshot<'info> {
 }
 impl<'info> InvestSnapshot<'info> {
     pub fn deserialize_option(
+        _program_id: &anchor_lang::prelude::Pubkey,
         accounts: &'info mut [Option<AccountInfo<'info>>],
     ) -> core::result::Result<Self, FuzzingError> {
         let mut accounts_iter = accounts.iter();

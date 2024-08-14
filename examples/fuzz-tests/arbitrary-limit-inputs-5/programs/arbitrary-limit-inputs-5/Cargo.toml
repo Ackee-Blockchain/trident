@@ -9,12 +9,16 @@ crate-type = ["cdylib", "lib"]
 name = "arbitrary_limit_inputs_5"
 
 [features]
+default = []
+cpi = ["no-entrypoint"]
 no-entrypoint = []
 no-idl = []
 no-log-ix-name = []
-cpi = ["no-entrypoint"]
-default = []
+idl-build = ["anchor-lang/idl-build", "anchor-spl/idl-build"]
+trident-fuzzing = ["dep:trident-fuzz"]
 
 [dependencies]
-anchor-lang = "0.29.0"
-anchor-spl = "0.29.0"
+trident-derive-accounts-snapshots = { path = "../../../../../crates/fuzz/derive/accounts_snapshots" }
+trident-fuzz = { path = "../../../../../crates/fuzz", optional = true }
+anchor-lang = "0.30.1"
+anchor-spl = "0.30.1"

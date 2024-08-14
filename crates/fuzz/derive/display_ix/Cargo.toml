@@ -1,0 +1,17 @@
+[package]
+name = "trident-derive-displayix"
+version = "0.0.2"
+rust-version = "1.60"
+edition = "2021"
+license-file = "../../../../LICENSE"
+readme = "../../../../README.md"
+description = "trident-derive-displayix"
+
+
+[lib]
+proc-macro = true
+
+[dependencies]
+proc-macro2 = "1.0"
+quote = "1.0"
+syn = "1"

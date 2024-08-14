@@ -14,3 +14,10 @@
 
 ### Example usage of limiting the Instruction data structure with the Arbitrary trait
 - [arbitrary-limit-inputs-5](https://github.com/Ackee-Blockchain/trident/tree/master/examples/fuzz-tests/arbitrary-limit-inputs-5)
+
+### Example usage of CPI with available source code to the callee program
+- [simple-cpi-6](https://github.com/Ackee-Blockchain/trident/tree/master/examples/fuzz-tests/simple-cpi-6)
+
+
+### Example usage of CPI with unavailable source code to the callee program (i.e. callee as SBF)
+- [cpi-metaplex-7](https://github.com/Ackee-Blockchain/trident/tree/master/examples/fuzz-tests/cpi-metaplex-7)

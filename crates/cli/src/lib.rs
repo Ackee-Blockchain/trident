@@ -1,13 +1,12 @@
 use anyhow::Error;
 use anyhow::{Context, Result};
 use clap::{Parser, Subcommand};
-use command::TestsType;
+use command::{SnapshotsType, TestsType};
 use fehler::throws;
 
 // subcommand functions to call and nested subcommands
 mod command;
 // bring nested subcommand enums into scope
-use command::ExplorerCommand;
 use command::FuzzCommand;
 
 use command::KeyPairCommand;
@@ -46,18 +45,14 @@ enum Command {
         #[clap(subcommand)]
         subcmd: FuzzCommand,
     },
-    /// Run local test validator
-    Localnet,
-    /// The Hacker's Explorer
-    Explorer {
-        #[clap(subcommand)]
-        subcmd: ExplorerCommand,
-    },
     /// Initialize test environment
     Init {
         /// Specifies the types of tests for which the frameworks should be initialized.
-        #[clap(default_value = "both")]
+        #[clap(default_value = "fuzz")]
         tests_type: TestsType,
+        /// Specifies type of Accounts Snapshots, i.e used derive macro or generated file
+        #[clap(default_value = "file")]
+        snapshots_type: SnapshotsType,
     },
     /// Removes target contents except for KeyPair and removes hfuzz_target folder
     Clean,
@@ -72,9 +67,10 @@ pub async fn start() {
         Command::KeyPair { subcmd } => command::keypair(subcmd)?,
         Command::Test { root } => command::test(root).await?,
         Command::Fuzz { root, subcmd } => command::fuzz(root, subcmd).await?,
-        Command::Localnet => command::localnet().await?,
-        Command::Explorer { subcmd } => command::explorer(subcmd).await?,
-        Command::Init { tests_type } => command::init(tests_type).await?,
+        Command::Init {
+            tests_type,
+            snapshots_type,
+        } => command::init(tests_type, snapshots_type).await?,
         Command::Clean => command::clean().await?,
     }
 }

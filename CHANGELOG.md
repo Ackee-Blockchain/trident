@@ -10,6 +10,26 @@ incremented upon a breaking change and the patch version will be incremented for
 
 ## [dev] - Unreleased
 
+
+## [0.7.0] - 2024-08-14
+### Added
+- impr/ add feature flag to the AccountsSnapshots macro ([183](https://github.com/Ackee-Blockchain/trident/pull/183))
+- feat/ add Support for CPI ([182](https://github.com/Ackee-Blockchain/trident/pull/182))
+- feat/ add option to initialize Trident with Macro/File (for Snapshots) option based on preference ([179](https://github.com/Ackee-Blockchain/trident/pull/179))
+- feat/create AccountsSnapshots derive macro for Snapshots creation ([#177](https://github.com/Ackee-Blockchain/trident/pull/177))
+- feat/fuzzing moved to separate crate trident-fuzz ([#175](https://github.com/Ackee-Blockchain/trident/pull/175))
+- feat/unify dependencies provided by the Trident ([#172](https://github.com/Ackee-Blockchain/trident/pull/172))
+- feat/fuzzer-stats-logging, an optional statistics output for fuzzing session ([#144](https://github.com/Ackee-Blockchain/trident/pull/144))
+
+### Fixed
+- fix/in case of fuzzing failure throw error instead of only printing message ([#167](https://github.com/Ackee-Blockchain/trident/pull/167))
+- fix/snapshot's zeroed account as optional ([#170](https://github.com/Ackee-Blockchain/trident/pull/170))
+
+### Removed
+- del/remove localnet subcommand ([178](https://github.com/Ackee-Blockchain/trident/pull/178))
+- del/remove unnecessary fuzzing feature as trident is mainly fuzzer ([#176](https://github.com/Ackee-Blockchain/trident/pull/176))
+- del/remove Trident explorer ([#171](https://github.com/Ackee-Blockchain/trident/pull/171))
+
 ## [0.6.0] - 2024-05-20
 ### Added
 - feat/anchor 0.30.0 support ([#148](https://github.com/Ackee-Blockchain/trident/pull/148))

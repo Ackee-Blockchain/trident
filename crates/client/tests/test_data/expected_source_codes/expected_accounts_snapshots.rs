@@ -1,6 +1,5 @@
-use fuzz_example3::ID as PROGRAM_ID;
-use trident_client::anchor_lang::{self, prelude::*};
-use trident_client::fuzzing::FuzzingError;
+use anchor_lang::prelude::*;
+use trident_client::fuzzing::{anchor_lang, FuzzingError};
 pub struct InitVestingSnapshot<'info> {
     pub sender: Signer<'info>,
     pub sender_token_account: Account<'info, TokenAccount>,
@@ -22,6 +21,7 @@ pub struct WithdrawUnlockedSnapshot<'info> {
 }
 impl<'info> InitVestingSnapshot<'info> {
     pub fn deserialize_option(
+        _program_id: &anchor_lang::prelude::Pubkey,
         accounts: &'info mut [Option<AccountInfo<'info>>],
     ) -> core::result::Result<Self, FuzzingError> {
         let mut accounts_iter = accounts.iter();
@@ -52,7 +52,7 @@ impl<'info> InitVestingSnapshot<'info> {
                 .ok_or(FuzzingError::NotEnoughAccounts("escrow".to_string()))?
                 .as_ref()
                 .map(|acc| {
-                    if acc.key() != PROGRAM_ID {
+                    if acc.key() != *_program_id {
                         anchor_lang::accounts::account::Account::try_from(acc).map_err(|_| {
                             FuzzingError::CannotDeserializeAccount("escrow".to_string())
                         })
@@ -114,6 +114,7 @@ impl<'info> InitVestingSnapshot<'info> {
 }
 impl<'info> WithdrawUnlockedSnapshot<'info> {
     pub fn deserialize_option(
+        _program_id: &anchor_lang::prelude::Pubkey,
         accounts: &'info mut [Option<AccountInfo<'info>>],
     ) -> core::result::Result<Self, FuzzingError> {
         let mut accounts_iter = accounts.iter();
@@ -144,7 +145,7 @@ impl<'info> WithdrawUnlockedSnapshot<'info> {
                 .ok_or(FuzzingError::NotEnoughAccounts("escrow".to_string()))?
                 .as_ref()
                 .map(|acc| {
-                    if acc.key() != PROGRAM_ID {
+                    if acc.key() != *_program_id {
                         anchor_lang::accounts::account::Account::try_from(acc).map_err(|_| {
                             FuzzingError::CannotDeserializeAccount("escrow".to_string())
                         })

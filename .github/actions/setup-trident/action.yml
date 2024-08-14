@@ -1,0 +1,17 @@
+name: "Setup Trident"
+description: "Setup Trident"
+
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/cache@v3
+      name: Cache Trident
+      id: cache-trident
+      with:
+        path: |
+          ~/.cache/trident/
+          ~/.local/share/trident/
+        key: trident-${{ runner.os }}-v0000
+    - name: Install Trident
+      run: cargo install --path crates/cli
+      shell: bash

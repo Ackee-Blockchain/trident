@@ -2,6 +2,7 @@ use anchor_lang::prelude::*;
 use anchor_spl::token::{
     set_authority, transfer, Mint, SetAuthority, Token, TokenAccount, Transfer,
 };
+use trident_derive_accounts_snapshots::AccountsSnapshots;
 
 use crate::state::Escrow;
 use crate::VestingError;
@@ -61,7 +62,7 @@ pub fn _init_vesting(
     Ok(())
 }
 
-#[derive(Accounts)]
+#[derive(AccountsSnapshots, Accounts)]
 #[instruction(recipient: Pubkey)]
 pub struct InitVesting<'info> {
     #[account(mut)]

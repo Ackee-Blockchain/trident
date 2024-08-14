@@ -1,6 +1,5 @@
-use trident_client::anchor_lang::{self, prelude::*};
-use trident_client::fuzzing::FuzzingError;
-use unchecked_arithmetic_0::ID as PROGRAM_ID;
+use anchor_lang::prelude::*;
+use trident_client::fuzzing::{anchor_lang, FuzzingError};
 pub struct InitializeSnapshot<'info> {
     pub counter: Option<Account<'info, unchecked_arithmetic_0::Counter>>,
     pub user: Signer<'info>,
@@ -12,6 +11,7 @@ pub struct UpdateSnapshot<'info> {
 }
 impl<'info> InitializeSnapshot<'info> {
     pub fn deserialize_option(
+        _program_id: &anchor_lang::prelude::Pubkey,
         accounts: &'info mut [Option<AccountInfo<'info>>],
     ) -> core::result::Result<Self, FuzzingError> {
         let mut accounts_iter = accounts.iter();
@@ -22,7 +22,7 @@ impl<'info> InitializeSnapshot<'info> {
             .ok_or(FuzzingError::NotEnoughAccounts("counter".to_string()))?
             .as_ref()
             .map(|acc| {
-                if acc.key() != PROGRAM_ID {
+                if acc.key() != *_program_id {
                     anchor_lang::accounts::account::Account::try_from(acc)
                         .map_err(|_| FuzzingError::CannotDeserializeAccount("counter".to_string()))
                 } else {
@@ -58,6 +58,7 @@ impl<'info> InitializeSnapshot<'info> {
 }
 impl<'info> UpdateSnapshot<'info> {
     pub fn deserialize_option(
+        _program_id: &anchor_lang::prelude::Pubkey,
         accounts: &'info mut [Option<AccountInfo<'info>>],
     ) -> core::result::Result<Self, FuzzingError> {
         let mut accounts_iter = accounts.iter();

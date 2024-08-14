@@ -1,6 +1,6 @@
 use anyhow::{bail, Error};
 use fehler::throws;
-use trident_client::*;
+use trident_client::___private::TestGenerator;
 
 use crate::_discover;
 
@@ -22,6 +22,6 @@ pub async fn build(root: Option<String>) {
             }
         }
     };
-    let mut generator: TestGenerator = TestGenerator::new_with_root(root);
+    let mut generator: TestGenerator = TestGenerator::new_with_root(root, false);
     generator.build().await?;
 }

@@ -1,9 +1,7 @@
+use crate::___private::Client;
 use crate::config::Config;
+use crate::idl::{self};
 use crate::test_generator::ProgramData;
-use crate::{
-    idl::{self},
-    Client,
-};
 use fehler::{throw, throws};
 use log::debug;
 use solana_sdk::signer::keypair::Keypair;
@@ -19,6 +17,8 @@ use tokio::{
 };
 
 use crate::constants::*;
+use tokio::io::AsyncBufReadExt;
+use trident_fuzz::fuzz_stats::FuzzingStatistics;
 
 #[derive(Error, Debug)]
 pub enum Error {
@@ -153,7 +153,13 @@ impl Commander {
         // arguments so we need to parse the variable content.
         let hfuzz_run_args = std::env::var("HFUZZ_RUN_ARGS").unwrap_or_default();
 
-        let fuzz_args = config.get_honggfuzz_args(hfuzz_run_args);
+        let genesis_folder = PathBuf::from(self.root.to_string()).join("trident-genesis");
+
+        let rustflags = std::env::var("RUSTFLAGS").unwrap_or_default();
+
+        let rustflags = config.get_rustflags_args(rustflags);
+
+        let mut fuzz_args = config.get_honggfuzz_args(hfuzz_run_args);
 
         // let cargo_target_dir = std::env::var("CARGO_TARGET_DIR").unwrap_or_default();
 
@@ -181,36 +187,36 @@ impl Commander {
             }
         }
 
-        let mut rustflags = if config.fuzz.allow_duplicate_txs {
-            "--cfg allow_duplicate_txs "
-        } else {
-            ""
-        }
-        .to_string();
-
-        rustflags.push_str(&std::env::var("RUSTFLAGS").unwrap_or_default());
-
-        let mut child = Command::new("cargo")
-            .env("HFUZZ_RUN_ARGS", fuzz_args)
-            .env("CARGO_TARGET_DIR", cargo_target_dir)
-            .env("HFUZZ_WORKSPACE", hfuzz_workspace)
-            .env("RUSTFLAGS", rustflags)
-            .arg("hfuzz")
-            .arg("run")
-            .arg(target)
-            .spawn()?;
-
-        tokio::select! {
-            res = child.wait() =>
-                match res {
-                    Ok(status) => if !status.success() {
-                        println!("Honggfuzz exited with an error!");
-                    },
-                    Err(_) => throw!(Error::FuzzingFailed),
-            },
-            _ = signal::ctrl_c() => {
-                tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
-            },
+        match rustflags.contains("fuzzing_with_stats") {
+            true => {
+                // enforce keep output to be true
+                fuzz_args.push_str("--keep_output");
+                let mut child = Command::new("cargo")
+                    .env("GENESIS_FOLDER", genesis_folder)
+                    .env("HFUZZ_RUN_ARGS", fuzz_args)
+                    .env("CARGO_TARGET_DIR", cargo_target_dir)
+                    .env("HFUZZ_WORKSPACE", hfuzz_workspace)
+                    .env("RUSTFLAGS", rustflags)
+                    .arg("hfuzz")
+                    .arg("run")
+                    .arg(target)
+                    .stdout(Stdio::piped())
+                    .spawn()?;
+                Self::handle_child_with_stats(&mut child).await?;
+            }
+            false => {
+                let mut child = Command::new("cargo")
+                    .env("GENESIS_FOLDER", genesis_folder)
+                    .env("HFUZZ_RUN_ARGS", fuzz_args)
+                    .env("CARGO_TARGET_DIR", cargo_target_dir)
+                    .env("HFUZZ_WORKSPACE", hfuzz_workspace)
+                    .env("RUSTFLAGS", rustflags)
+                    .arg("hfuzz")
+                    .arg("run")
+                    .arg(target)
+                    .spawn()?;
+                Self::handle_child(&mut child).await?;
+            }
         }
 
         if let Ok(crash_files) = get_crash_files(&crash_dir, &ext) {
@@ -219,7 +225,7 @@ impl Commander {
                     "The crash directory {} contains new fuzz test crashes. Exiting!",
                     crash_dir.to_string_lossy()
                 );
-                process::exit(1);
+                process::exit(99);
             }
         }
     }
@@ -231,43 +237,154 @@ impl Commander {
 
         let hfuzz_run_args = std::env::var("HFUZZ_RUN_ARGS").unwrap_or_default();
 
+        let genesis_folder = PathBuf::from(self.root.to_string()).join("trident-genesis");
+
         let cargo_target_dir = std::env::var("CARGO_TARGET_DIR")
             .unwrap_or_else(|_| config.get_env_arg("CARGO_TARGET_DIR"));
         let hfuzz_workspace = std::env::var("HFUZZ_WORKSPACE")
             .unwrap_or_else(|_| config.get_env_arg("HFUZZ_WORKSPACE"));
 
-        let fuzz_args = config.get_honggfuzz_args(hfuzz_run_args);
+        let mut fuzz_args = config.get_honggfuzz_args(hfuzz_run_args);
 
-        let mut rustflags = if config.fuzz.allow_duplicate_txs {
-            "--cfg allow_duplicate_txs "
-        } else {
-            ""
+        let rustflags = std::env::var("RUSTFLAGS").unwrap_or_default();
+
+        let rustflags = config.get_rustflags_args(rustflags);
+
+        match rustflags.contains("fuzzing_with_stats") {
+            true => {
+                // enforce keep output to be true
+                fuzz_args.push_str("--keep_output");
+                let mut child = Command::new("cargo")
+                    .env("GENESIS_FOLDER", genesis_folder)
+                    .env("HFUZZ_RUN_ARGS", fuzz_args)
+                    .env("CARGO_TARGET_DIR", cargo_target_dir)
+                    .env("HFUZZ_WORKSPACE", hfuzz_workspace)
+                    .env("RUSTFLAGS", rustflags)
+                    .arg("hfuzz")
+                    .arg("run")
+                    .arg(target)
+                    .stdout(Stdio::piped())
+                    .spawn()?;
+                Self::handle_child_with_stats(&mut child).await?;
+            }
+            false => {
+                let mut child = Command::new("cargo")
+                    .env("GENESIS_FOLDER", genesis_folder)
+                    .env("HFUZZ_RUN_ARGS", fuzz_args)
+                    .env("CARGO_TARGET_DIR", cargo_target_dir)
+                    .env("HFUZZ_WORKSPACE", hfuzz_workspace)
+                    .env("RUSTFLAGS", rustflags)
+                    .arg("hfuzz")
+                    .arg("run")
+                    .arg(target)
+                    .spawn()?;
+                Self::handle_child(&mut child).await?;
+            }
         }
-        .to_string();
+    }
 
-        rustflags.push_str(&std::env::var("RUSTFLAGS").unwrap_or_default());
-
-        let mut child = Command::new("cargo")
-            .env("HFUZZ_RUN_ARGS", fuzz_args)
-            .env("CARGO_TARGET_DIR", cargo_target_dir)
-            .env("HFUZZ_WORKSPACE", hfuzz_workspace)
-            .env("RUSTFLAGS", rustflags)
-            .arg("hfuzz")
-            .arg("run")
-            .arg(target)
-            .spawn()?;
-
+    /// Manages a child process in an async context, specifically for monitoring fuzzing tasks.
+    /// Waits for the process to exit or a Ctrl+C signal. Prints an error message if the process
+    /// exits with an error, and sleeps briefly on Ctrl+C. Throws `Error::FuzzingFailed` on errors.
+    ///
+    /// # Arguments
+    /// * `child` - A mutable reference to a `Child` process.
+    ///
+    /// # Errors
+    /// * Throws `Error::FuzzingFailed` if waiting on the child process fails.
+    #[throws]
+    async fn handle_child(child: &mut Child) {
         tokio::select! {
             res = child.wait() =>
                 match res {
                     Ok(status) => if !status.success() {
-                        println!("Honggfuzz exited with an error!");
+                        throw!(Error::FuzzingFailed);
                     },
                     Err(_) => throw!(Error::FuzzingFailed),
             },
             _ = signal::ctrl_c() => {
                 tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
             },
+        }
+    }
+    /// Asynchronously manages a child fuzzing process, collecting and logging its statistics.
+    /// This function spawns a new task dedicated to reading the process's standard output and logging the fuzzing statistics.
+    /// It waits for either the child process to exit or a Ctrl+C signal to be received. Upon process exit or Ctrl+C signal,
+    /// it stops the logging task and displays the collected statistics in a table format.
+    ///
+    /// The implementation ensures that the statistics logging task only stops after receiving a signal indicating the end of the fuzzing process
+    /// or an interrupt from the user, preventing premature termination of the logging task if scenarios where reading is faster than fuzzing,
+    /// which should not be common.
+    ///
+    /// # Arguments
+    /// * `child` - A mutable reference to a `Child` process, representing the child fuzzing process.
+    ///
+    /// # Errors
+    /// * `Error::FuzzingFailed` - Thrown if there's an issue with managing the child process, such as failing to wait on the child process.
+    #[throws]
+    async fn handle_child_with_stats(child: &mut Child) {
+        let stdout = child
+            .stdout
+            .take()
+            .expect("child did not have a handle to stdout");
+
+        let reader = tokio::io::BufReader::new(stdout);
+
+        let fuzz_end = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false));
+        let fuzz_end_clone = std::sync::Arc::clone(&fuzz_end);
+
+        let stats_handle: tokio::task::JoinHandle<Result<FuzzingStatistics, std::io::Error>> =
+            tokio::spawn(async move {
+                let mut stats_logger = FuzzingStatistics::new();
+
+                let mut lines = reader.lines();
+                loop {
+                    let _line = lines.next_line().await;
+                    match _line {
+                        Ok(__line) => match __line {
+                            Some(content) => {
+                                stats_logger.insert_serialized(&content);
+                            }
+                            None => {
+                                if fuzz_end_clone.load(std::sync::atomic::Ordering::SeqCst) {
+                                    break;
+                                }
+                            }
+                        },
+                        Err(e) => return Err(e),
+                    }
+                }
+                Ok(stats_logger)
+            });
+
+        tokio::select! {
+            res = child.wait() =>{
+                fuzz_end.store(true, std::sync::atomic::Ordering::SeqCst);
+
+                match res {
+                    Ok(status) => {
+                        if !status.success() {
+                            throw!(Error::FuzzingFailed);
+                        }
+                    },
+                    Err(_) => throw!(Error::FuzzingFailed),
+                }
+            },
+            _ = signal::ctrl_c() => {
+                fuzz_end.store(true, std::sync::atomic::Ordering::SeqCst);
+                tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
+            },
+        }
+        let stats_result = stats_handle
+            .await
+            .expect("Unable to obtain Statistics Handle");
+        match stats_result {
+            Ok(stats_result) => {
+                stats_result.show_table();
+            }
+            Err(e) => {
+                println!("Statistics thread exited with the Error: {}", e);
+            }
         }
     }
 
@@ -278,6 +395,8 @@ impl Commander {
 
         let crash_file = std::path::Path::new(&self.root as &str).join(crash_file_path);
 
+        let genesis_folder = PathBuf::from(self.root.to_string()).join("trident-genesis");
+
         if !crash_file.try_exists()? {
             println!("{ERROR} The crash file [{:?}] not found", crash_file);
             throw!(Error::CrashFileNotFound);
@@ -286,17 +405,13 @@ impl Commander {
         let cargo_target_dir = std::env::var("CARGO_TARGET_DIR")
             .unwrap_or_else(|_| config.get_env_arg("CARGO_TARGET_DIR"));
 
-        let mut rustflags = if config.fuzz.allow_duplicate_txs {
-            "--cfg allow_duplicate_txs "
-        } else {
-            ""
-        }
-        .to_string();
+        let rustflags = std::env::var("RUSTFLAGS").unwrap_or_default();
 
-        rustflags.push_str(&std::env::var("RUSTFLAGS").unwrap_or_default());
+        let rustflags = config.get_rustflags_args(rustflags);
 
         // using exec rather than spawn and replacing current process to avoid unflushed terminal output after ctrl+c signal
         std::process::Command::new("cargo")
+            .env("GENESIS_FOLDER", genesis_folder)
             .env("CARGO_TARGET_DIR", cargo_target_dir)
             .env("RUSTFLAGS", rustflags)
             .arg("hfuzz")

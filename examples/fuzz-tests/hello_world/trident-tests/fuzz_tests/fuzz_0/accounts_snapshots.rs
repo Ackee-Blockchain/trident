@@ -1,6 +1,5 @@
-use hello_world::ID as PROGRAM_ID;
-use trident_client::anchor_lang::{self, prelude::*};
-use trident_client::fuzzing::FuzzingError;
+use anchor_lang::prelude::*;
+use trident_client::fuzzing::{anchor_lang, FuzzingError};
 pub struct InitializeSnapshot<'info> {
     pub author: Signer<'info>,
     pub hello_world_account: Option<Account<'info, hello_world::StoreHelloWorld>>,
@@ -8,6 +7,7 @@ pub struct InitializeSnapshot<'info> {
 }
 impl<'info> InitializeSnapshot<'info> {
     pub fn deserialize_option(
+        _program_id: &anchor_lang::prelude::Pubkey,
         accounts: &'info mut [Option<AccountInfo<'info>>],
     ) -> core::result::Result<Self, FuzzingError> {
         let mut accounts_iter = accounts.iter();
@@ -27,7 +27,7 @@ impl<'info> InitializeSnapshot<'info> {
             ))?
             .as_ref()
             .map(|acc| {
-                if acc.key() != PROGRAM_ID {
+                if acc.key() != *_program_id {
                     anchor_lang::accounts::account::Account::try_from(acc).map_err(|_| {
                         FuzzingError::CannotDeserializeAccount("hello_world_account".to_string())
                     })

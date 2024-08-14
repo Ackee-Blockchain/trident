@@ -10,14 +10,8 @@ pub use fuzz::{fuzz, FuzzCommand};
 mod test;
 pub use test::test;
 
-mod localnet;
-pub use localnet::localnet;
-
-mod explorer;
-pub use explorer::{explorer, ExplorerCommand};
-
 mod init;
-pub use init::{init, TestsType};
+pub use init::{init, SnapshotsType, TestsType};
 
 mod clean;
 pub use clean::clean;

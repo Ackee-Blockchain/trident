@@ -1,0 +1,26 @@
+[package]
+name = "cpi-metaplex-7"
+version = "0.1.0"
+description = "Created with Anchor"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "cpi_metaplex_7"
+
+[features]
+default = []
+cpi = ["no-entrypoint"]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+idl-build = ["anchor-lang/idl-build", "anchor-spl/idl-build"]
+trident-fuzzing = ["dep:trident-fuzz"]
+
+
+[dependencies]
+anchor-lang = "0.30.1"
+anchor-spl = "0.30.1"
+mpl-token-metadata = "4.1.2"
+trident-derive-accounts-snapshots = { path = "../../../../../crates/fuzz/derive/accounts_snapshots" }
+trident-fuzz = { path = "../../../../../crates/fuzz", optional = true }

@@ -1,6 +1,5 @@
-use trident_client::anchor_lang::{self, prelude::*};
-use trident_client::fuzzing::FuzzingError;
-use unauthorized_access_2::ID as PROGRAM_ID;
+use anchor_lang::prelude::*;
+use trident_client::fuzzing::{anchor_lang, FuzzingError};
 pub struct InitializeSnapshot<'info> {
     pub author: Signer<'info>,
     pub escrow: Option<Account<'info, unauthorized_access_2::state::Escrow>>,
@@ -13,6 +12,7 @@ pub struct WithdrawSnapshot<'info> {
 }
 impl<'info> InitializeSnapshot<'info> {
     pub fn deserialize_option(
+        _program_id: &anchor_lang::prelude::Pubkey,
         accounts: &'info mut [Option<AccountInfo<'info>>],
     ) -> core::result::Result<Self, FuzzingError> {
         let mut accounts_iter = accounts.iter();
@@ -30,7 +30,7 @@ impl<'info> InitializeSnapshot<'info> {
             .ok_or(FuzzingError::NotEnoughAccounts("escrow".to_string()))?
             .as_ref()
             .map(|acc| {
-                if acc.key() != PROGRAM_ID {
+                if acc.key() != *_program_id {
                     anchor_lang::accounts::account::Account::try_from(acc)
                         .map_err(|_| FuzzingError::CannotDeserializeAccount("escrow".to_string()))
                 } else {
@@ -59,6 +59,7 @@ impl<'info> InitializeSnapshot<'info> {
 }
 impl<'info> WithdrawSnapshot<'info> {
     pub fn deserialize_option(
+        _program_id: &anchor_lang::prelude::Pubkey,
         accounts: &'info mut [Option<AccountInfo<'info>>],
     ) -> core::result::Result<Self, FuzzingError> {
         let mut accounts_iter = accounts.iter();
@@ -76,7 +77,7 @@ impl<'info> WithdrawSnapshot<'info> {
             .ok_or(FuzzingError::NotEnoughAccounts("escrow".to_string()))?
             .as_ref()
             .map(|acc| {
-                if acc.key() != PROGRAM_ID {
+                if acc.key() != *_program_id {
                     anchor_lang::accounts::account::Account::try_from(acc)
                         .map_err(|_| FuzzingError::CannotDeserializeAccount("escrow".to_string()))
                 } else {

@@ -1,5 +1,4 @@
-use crate::Keypair;
-
+use solana_sdk::signer::keypair::Keypair;
 // @TODO remove once `Clone` is implemented for `Keypair`
 // https://docs.rs/solana-sdk/latest/solana_sdk/signer/keypair/struct.Keypair.html
 
