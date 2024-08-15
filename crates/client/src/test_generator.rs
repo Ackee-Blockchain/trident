@@ -698,10 +698,20 @@ impl TestGenerator {
                     return;
                 }
             }
+            // Check if the file ends with a newline
+            let mut file = File::open(&gitignore_path)?;
+            let mut buf = [0; 1];
+            file.seek(io::SeekFrom::End(-1))?;
+            file.read_exact(&mut buf)?;
+
             let file = OpenOptions::new().append(true).open(gitignore_path);
 
             if let Ok(mut file) = file {
-                writeln!(file, "\n{}", ignored_path)?;
+                if buf[0] == b'\n' {
+                    writeln!(file, "{}", ignored_path)?;
+                } else {
+                    writeln!(file, "\n{}", ignored_path)?;
+                }
                 println!("{FINISH} [{GIT_IGNORE}] update with [{ignored_path}]");
             }
         } else {
