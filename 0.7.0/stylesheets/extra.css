@@ -1,0 +1,16 @@
+/*
+    update colour of comments in code block
+    source:
+        https: //squidfunk.github.io/mkdocs-material/reference/code-blocks/#annotation-tooltip-width-docsstylesheetsextracss
+*/
+:root>* {
+    --md-code-hl-comment-color: #09902d;
+}
+
+/*
+    rotate hue so that the image will be modified based on the background
+*/
+[data-md-color-scheme="default"] .excalidraw svg,
+[data-md-color-scheme="default"] span.excalidraw {
+    filter: invert(1) hue-rotate(90deg);
+}
