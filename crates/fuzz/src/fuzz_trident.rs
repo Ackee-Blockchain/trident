@@ -1,7 +1,7 @@
 #[macro_export]
 macro_rules! fuzz_trident {
     ($ix:ident: $ix_dty:ident , |$buf:ident: $dty:ident| $body:block) => {
-        fuzz(|$buf| {
+        fuzz_target!(|$buf| {
             let mut $buf: FuzzData<$ix_dty, _> = {
                 use arbitrary::Unstructured;
 

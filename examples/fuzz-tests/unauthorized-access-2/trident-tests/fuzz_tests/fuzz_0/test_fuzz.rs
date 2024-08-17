@@ -6,6 +6,8 @@ use fuzz_instructions::unauthorized_access_2_fuzz_instructions::FuzzInstruction 
 use trident_client::fuzzing::*;
 mod accounts_snapshots;
 mod fuzz_instructions;
+use libfuzzer_sys::{fuzz_target, Corpus};
+use log::info;
 
 pub type FuzzInstruction = FuzzInstruction_unauthorized_access_2;
 
@@ -20,6 +22,7 @@ impl FuzzDataBuilder<FuzzInstruction> for MyFuzzData {
 }
 
 fn main() {
+    info!("inside main");
     loop {
         fuzz_trident!(fuzz_ix: FuzzInstruction, |fuzz_data: MyFuzzData| {
 
