@@ -1,4 +1,4 @@
-# How to use Custom Data Types
+# Custom Data Types
 
 If you use Custom Types as Instruction data arguments, you may encounter a problem that the Custom Type does not implement
 
@@ -147,4 +147,7 @@ impl<'info> IxOps<'info> for InitVestingData {
 ```
 
 ## Example
-For a practical example, please refer to the [Examples](../fuzzing-examples.md) section.
+
+!!! tip
+
+    For a practical example, please refer to the [Examples](../extra/examples.md) section.

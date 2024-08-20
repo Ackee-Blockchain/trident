@@ -1,4 +1,4 @@
-# How to use Arbitrary crate
+# Structured Data
 
 The [Arbitrary](https://docs.rs/arbitrary/latest/arbitrary/) crate in Rust is used for generating well-typed, structured instances of data from raw byte buffers, making it useful for fuzzing by producing random but structured data for tests.
 
@@ -157,5 +157,9 @@ impl<'a> Arbitrary<'a> for InitVestingData {
 }
 ...
 ```
+
 ## Example
-For a practical example, please refer to the [Examples](../fuzzing-examples.md) section.
+
+!!! tip
+
+    For a practical example, please refer to the [Examples](../extra/examples.md) section.
