@@ -1,8 +1,10 @@
-# Define invariants checks
+# Invariants checks
 
 After each successful instruction execution, the `check()` method is called to check the account data invariants.
 
-For each instruction, you can compare the account data **before** and **after** the instruction execution such as:
+!!! important
+
+    For each instruction, you can compare the account data **before** and **after** the instruction execution.
 
 ```rust
 fn check(
@@ -30,3 +32,8 @@ fn check(
     Ok(())
 }
 ```
+
+
+!!! tip
+
+    Consider checking the [Examples](../extra/examples.md) section for more tips.
