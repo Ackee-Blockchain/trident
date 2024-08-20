@@ -1,7 +1,6 @@
-# Run and Debug
+# Run
 
-## Run
-Once you have finished the implementation of the Fuzz Test, you can run the Test as follows:
+To execute the desired fuzz test, run:
 
 ```bash
 # Replace <TARGET_NAME> with the name of particular
@@ -9,6 +8,35 @@ Once you have finished the implementation of the Fuzz Test, you can run the Test
 trident fuzz run <TARGET_NAME>
 ```
 
+## Trident output
+
+!!! important
+
+    The output provided by Honggfuzz is as follows
+
+    1. Number of Fuzzing Iterations.
+    2. Feedback Driven Mode = Honggfuzz generates data based on the feedback (i.e. feedback based on Coverage progress).
+    3. Average Iterations per second
+    4. Number of crashes it found (**panics** or failed **invariant checks**)
+
+
+```bash
+------------------------[  0 days 00 hrs 00 mins 01 secs ]----------------------
+  Iterations : 688 (out of: 1000 [68%]) # -- 1. --
+  Mode [3/3] : Feedback Driven Mode # -- 2. --
+      Target : trident-tests/fuzz_tests/fuzzing.....wn-linux-gnu/release/fuzz_0
+     Threads : 16, CPUs: 32, CPU%: 1262% [39%/CPU]
+       Speed : 680/sec [avg: 688] # -- 3. --
+     Crashes : 1 [unique: 1, blocklist: 0, verified: 0] # -- 4. --
+    Timeouts : 0 [10 sec]
+ Corpus Size : 98, max: 1048576 bytes, init: 0 files
+  Cov Update : 0 days 00 hrs 00 mins 00 secs ago
+    Coverage : edge: 10345/882951 [1%] pc: 163 cmp: 622547
+---------------------------------- [ LOGS ] ------------------/ honggfuzz 2.6 /-
+```
+
+
+## Customize Fuzzing
 Under the hood {{ config.site_name }} uses [honggfuzz-rs](https://github.com/rust-fuzz/honggfuzz-rs).
 
 You can pass [supported parameters](https://github.com/Ackee-Blockchain/trident/blob/develop/examples/fuzz-tests/hello_world/Trident.toml) via the **{{ config.site_name }}.toml** configuration file:
@@ -54,31 +82,16 @@ allow_duplicate_txs = false
 fuzzing_with_stats = true
 ```
 
-Or you can pass any parameter via [environment variables](https://github.com/rust-fuzz/honggfuzz-rs#environment-variables).
+??? note
 
-A list of hongfuzz parameters can be found in honggfuzz [usage documentation](https://github.com/google/honggfuzz/blob/master/docs/USAGE.md#cmdline---help). The parameters passed via **environment variables** have **higher priority**. For example:
+    Or you can pass any parameter via [environment variables](https://github.com/rust-fuzz/honggfuzz-rs#environment-variables).
 
-```bash
-# Time-out: 10 secs
-# Number of concurrent fuzzing threads: 1
-# Number of fuzzing iterations: 10000
-# Display Solana logs in the terminal
-HFUZZ_RUN_ARGS="-t 10 -n 1 -N 10000 -Q" trident fuzz run <TARGET_NAME>
-```
+    A list of hongfuzz parameters can be found in honggfuzz [usage documentation](https://github.com/google/honggfuzz/blob/master/docs/USAGE.md#cmdline---help). The parameters passed via **environment variables** have **higher priority**. For example:
 
-### Fuzzing statistics
-Sometimes, it's useful to know how often a particular instruction has been invoked and how many times it has succeeded or failed. To display these statistics when fuzzing is finished or interrupted, set the `fuzzing_with_stats` option to `true` in the `[fuzz]` section of the Trident.toml configuration file. Please note that this option is disabled by default because it impacts performance.
-
-The statistics show the total number of invocations for each instruction, which is the sum of successful and failed invocations. Successful invocations are those that return an `Ok()` result. Failed invocations are those that return an `Err()` result. Additionally, the statistics also show as `Check Failed` the number of successful invocations that did not pass the user-defined invariants check. Note that unhandled panics are currently logged only as crashes and are not displayed in the fuzzing statistics table.
-
-Keep in mind that the number of fuzz iterations does not directly correspond to the total number of invocations. In one fuzz iteration, the fuzzer might be unable to deserialize fuzz data into instructions, causing the entire iteration to be skipped.
-
-## Debug
-To debug your program with values from a crash file:
-
-```bash
-# fuzzer will run the <TARGET_NAME> with the specified <CRASH_FILE_PATH>
-trident fuzz run-debug <TARGET_NAME> <CRASH_FILE_PATH>
-# for example:
-trident fuzz run-debug fuzz_0 trident-tests/fuzz_tests/fuzzing/fuzz_0/cr1.fuzz
-```
+    ```bash
+    # Time-out: 10 secs
+    # Number of concurrent fuzzing threads: 1
+    # Number of fuzzing iterations: 10000
+    # Display Solana logs in the terminal
+    HFUZZ_RUN_ARGS="-t 10 -n 1 -N 10000 -Q" trident fuzz run <TARGET_NAME>
+    ```

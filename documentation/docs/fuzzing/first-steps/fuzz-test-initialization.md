@@ -1,6 +1,6 @@
-# Fuzz test-only
+# Initialize Fuzz Test
 
-If you are interested only in generating templates for fuzz tests run
+For initialization of workspace for fuzz tests, call:
 ```bash
 trident init fuzz
 ```
@@ -20,4 +20,11 @@ project-root
 │   │   └── Cargo.toml
 ├── Trident.toml
 └── ...
+```
+
+## Add new Fuzz Test
+
+If you wish to generate template for a new fuzz test, call:
+```bash
+trident fuzz add
 ```
