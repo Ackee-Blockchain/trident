@@ -1,10 +1,13 @@
-# Specify instruction accounts
+# Instruction accounts
 
-{{ config.site_name }} fuzzer generates random indexes of accounts to use in each instruction. Each created account is saved in the global `FuzzAccounts` structure which helps you to reuse already existing accounts across all instructions.
+{{ config.site_name }} generates random indexes of accounts to use in each instruction. Each created account is saved in the global FuzzAccounts structure which helps you to reuse already existing accounts across all instructions.
 
-You are required to define, how these accounts should be created and which accounts should be passed to an instruction. It is done using the `IxOps` trait and its method `get_accounts`.
+!!! important
 
-- Go to the `trident-tests/fuzz_tests/<FUZZ_TEST_NAME>/fuzz_instructions.rs` file and complete the pre-generated `get_accounts` methods for each instruction such as:
+    You are required to define, how these accounts should be created and which accounts should be passed to an instruction. It is done using the `IxOps` trait and its method `get_accounts`.
+
+    - Go to the `trident-tests/fuzz_tests/<FUZZ_TEST_NAME>/fuzz_instructions.rs` file and complete the pre-generated `get_accounts` methods for each instruction.
+
 
 ```rust
 fn get_accounts(
@@ -35,7 +38,10 @@ fn get_accounts(
     Ok((signers, acc_meta))
 }
 ```
-Notice especially the helper method `fuzz_accounts.<account_name>.get_or_create_account` that is used to create a Keypair or retrieve the Public key of the already existing account.
+
+!!! note
+
+    Notice especially the helper method `fuzz_accounts.<account_name>.get_or_create_account` that is used to create a Keypair or retrieve the Public key of the already existing account.
 
 ## Create an arbitrary account
 The `AccountsStorage<T>` type provides an implementation of the `get_or_create_account` method that helps you create new or read already existing accounts. There are different implementations for different types of storage (`Keypair`, `TokenStore`, `MintStore`, `PdaStore`) to simplify the creation of new accounts.
@@ -112,3 +118,10 @@ let my_pda = fuzz_accounts
         }
     }).pubkey();
 ```
+
+
+## Example
+
+!!! tip
+
+    Consider checking the [Examples](../extra/examples.md) section for more tips.

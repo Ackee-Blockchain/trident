@@ -4,33 +4,37 @@ repo_url: https://github.com/Ackee-Blockchain/trident
 repo_name: Ackee-Blockchain/trident
 edit_uri: edit/master/docs
 site_description: Trident is a Rust-based testing framework providing several convenient developer tools for testing Solana programs written in Anchor.
-site_author: Ackee Blockchain
+site_author: Ackee Blockchain Security
 
 
 nav:
-  - Trident:
-    - index.md
-    - home/home-installation.md
-    - Fuzz Tests:
-      - fuzzing/fuzzing-introduction.md
-      - Initialization:
-          - fuzzing/initialization/fuzzing-initialization-fuzz.md
-          - fuzzing/initialization/fuzzing-initialization-fuzz-add.md
-          - fuzzing/initialization/fuzzing-initialization-all.md
-      - fuzzing/fuzzing-lifecycle.md
-      - How-To write Fuzz Test:
-          - fuzzing/howto/fuzzing-howto-p0.md
-          - fuzzing/howto/fuzzing-howto-p1.md
-          - fuzzing/howto/fuzzing-howto-p2.md
-          - fuzzing/howto/fuzzing-howto-p3.md
-          - fuzzing/howto/fuzzing-howto-p4.md
-          - fuzzing/howto/fuzzing-howto-p5.md
-          - fuzzing/howto/fuzzing-howto-p6.md
-          - fuzzing/howto/fuzzing-howto-p7.md
-      - fuzzing/fuzzing-run-debug.md
-      - fuzzing/fuzzing-current-limitations.md
-      - fuzzing/fuzzing-examples.md
-    - Integration Tests:
+  - Getting Started:
+      - getting-started/getting-started.md
+      - getting-started/docker-image.md
+  - Fuzz Tests:
+      - First Steps:
+        - fuzzing/first-steps/fuzz-test-initialization.md
+        - fuzzing/first-steps/writing-fuzz-test.md
+      - Writing Fuzz Test:
+        - fuzzing/writing-fuzz-test/programs.md
+        - fuzzing/writing-fuzz-test/accounts.md
+        - fuzzing/writing-fuzz-test/instruction-data.md
+        - fuzzing/writing-fuzz-test/instruction-accounts.md
+      - Writing Fuzz Test (Extra):
+        - fuzzing/writing-fuzz-test-extra/invariants-checks.md
+        - fuzzing/writing-fuzz-test-extra/instruction-sequences.md
+        - fuzzing/writing-fuzz-test-extra/custom-data-types.md
+        - fuzzing/writing-fuzz-test-extra/arbitrary.md
+        - fuzzing/writing-fuzz-test-extra/accounts-snapshots.md
+      - Run and Debug:
+        - fuzzing/execute/run.md
+        - fuzzing/execute/statistics.md
+        - fuzzing/execute/debug.md
+      - Extra:
+        - fuzzing/extra/examples.md
+        - fuzzing/extra/lifecycle.md
+        - fuzzing/extra/current-limitations.md
+  - Integration Tests:
       - integration-tests/poc-introduction.md
       - Initialization:
           - integration-tests/initialization/poc-initialization-poc.md
@@ -51,8 +55,6 @@ theme:
   logo: 'images/logo.png'
   favicon: 'images/favicon.ico'
   custom_dir: docs/overrides
-  font:
-    text: Inter
   # https://squidfunk.github.io/mkdocs-material/setup/changing-the-colors/?h=palette+sw#color-palette-toggle
   palette:
     # Palette toggle for light mode
@@ -70,8 +72,6 @@ theme:
   features:
   # https://squidfunk.github.io/mkdocs-material/setup/setting-up-navigation/#navigation-tabs
     - navigation.tabs
-  # https://squidfunk.github.io/mkdocs-material/setup/setting-up-navigation/#navigation-expansion
-    - navigation.expand
   # https://squidfunk.github.io/mkdocs-material/setup/setting-up-navigation/#back-to-top-button
     - navigation.top
   # https://squidfunk.github.io/mkdocs-material/setup/setting-up-navigation/#section-index-pages
@@ -80,8 +80,10 @@ theme:
     - content.code.copy
   # https://squidfunk.github.io/mkdocs-material/setup/setting-up-navigation/#navigation-sections
     - navigation.sections
-  # may be used 
+  # may be used
     # - navigation.footer
+  icon:
+    repo: fontawesome/brands/github
 
 # https://squidfunk.github.io/mkdocs-material/setup/setting-up-the-footer/?h=social#social-links
 extra:
@@ -123,6 +125,13 @@ markdown_extensions:
   - pymdownx.superfences
   - pymdownx.tasklist:
       custom_checkbox: true
+  - admonition
+  - attr_list
+  - md_in_html
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.details
 
 exclude_docs: |
   requirements.txt.
