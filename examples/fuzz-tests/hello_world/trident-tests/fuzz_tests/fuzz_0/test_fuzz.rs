@@ -6,6 +6,8 @@ use fuzz_instructions::hello_world_fuzz_instructions::FuzzInstruction as FuzzIns
 use trident_client::fuzzing::*;
 mod accounts_snapshots;
 mod fuzz_instructions;
+use afl::fuzz;
+
 
 pub type FuzzInstruction = FuzzInstruction_hello_world;
 

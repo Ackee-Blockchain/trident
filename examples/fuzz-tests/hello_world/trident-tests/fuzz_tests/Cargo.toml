@@ -9,12 +9,13 @@ description = "Created with Trident"
 edition = "2021"
 
 [dependencies]
-honggfuzz = "0.5.56"
+afl = "0.15.10"
 arbitrary = "1.3.0"
 assert_matches = "1.4.0"
+
+[dependencies.hello_world]
+path = "../../programs/hello_world"
 
 [dependencies.trident-client]
 path = "../../../../../crates/client"
 
-[dependencies.hello_world]
-path = "../../programs/hello_world"
