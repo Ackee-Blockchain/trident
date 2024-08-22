@@ -1,4 +1,5 @@
 use anchor_syn::{AccountField, AccountTy};
+use convert_case::{Case, Casing};
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 use syn::parse::{Parse, ParseStream};
@@ -611,9 +612,10 @@ fn deserialize_option_account_loader(
 
 fn generate(accs: &TridentAccountsStruct) -> proc_macro2::TokenStream {
     let context_name = &accs.0.ident;
-    let snapshot_name = syn::Ident::new(&format!("{}Snapshot", context_name), context_name.span());
+    let snapshot_name = syn::Ident::new(&format!("{}Alias", context_name), context_name.span());
+    let context_name_snake_case = context_name.to_string().to_case(Case::Snake);
     let module_name = syn::Ident::new(
-        &format!("trident_fuzz_{}_snapshot", context_name),
+        &format!("trident_fuzz_{}_snapshot", context_name_snake_case),
         context_name.span(),
     );
 

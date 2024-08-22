@@ -1,7 +1,5 @@
 use crate::___private::Client;
 use crate::config::Config;
-use crate::idl::{self};
-use crate::test_generator::ProgramData;
 use fehler::{throw, throws};
 use log::debug;
 use solana_sdk::signer::keypair::Keypair;
@@ -36,8 +34,6 @@ pub enum Error {
     TestingFailed,
     #[error("read program code failed: '{0}'")]
     ReadProgramCodeFailed(String),
-    #[error("{0:?}")]
-    Idl(#[from] idl::Error),
     #[error("{0:?}")]
     TomlDeserialize(#[from] toml::de::Error),
     #[error("parsing Cargo.toml dependencies failed")]
@@ -446,141 +442,7 @@ impl Commander {
             packages
         }
     }
-    /// Displays a progress spinner for a package expansion process.
-    ///
-    /// This function creates and manages a spinner-style progress bar using the `indicatif`
-    /// crate to visually represent the progress of expanding a specified package.
-    /// The progress bar continues to spin as long as a shared atomic boolean, wrapped in an `Arc`,
-    /// is set to `true`. Once the boolean is flipped to `false`, indicating the expansion process is complete,
-    /// the spinner is cleared from the terminal.
-    ///
-    /// # Parameters
-    /// - `package_name`: A string slice (`&str`) representing the name of the package being expanded.
-    /// This name is displayed within the progress bar's message to indicate which package is currently being processed.
-    /// - `mutex`: A reference to an `Arc<AtomicBool>` that acts as a flag for the progress bar's activity.
-    fn expand_progress_bar(
-        package_name: &str,
-        mutex: &std::sync::Arc<std::sync::atomic::AtomicBool>,
-    ) {
-        let progress_bar = indicatif::ProgressBar::new_spinner();
-        progress_bar.set_style(
-            indicatif::ProgressStyle::default_spinner()
-                .template("{spinner} {wide_msg}")
-                .unwrap(),
-        );
 
-        let msg = format!("{EXPANDING_PROGRESS_BAR} [{package_name}] ... this may take a while");
-        progress_bar.set_message(msg);
-        while mutex.load(std::sync::atomic::Ordering::SeqCst) {
-            progress_bar.inc(1);
-            std::thread::sleep(std::time::Duration::from_millis(100));
-        }
-
-        progress_bar.finish_and_clear();
-    }
-    /// Expands program packages, extracting IDL and codes_libs pairs.
-    ///
-    /// This function iterates over a slice of `cargo_metadata::Package` objects,
-    /// initiating an expansion process for each.
-    /// The expansion involves parsing the package to extract IDL and determining the path to the code.
-    /// It utilizes multithreading to handle package expansions and concurrently progress bar.
-    ///
-    /// # Parameters
-    /// - `packages`: A slice of `cargo_metadata::Package`, representing the packages to be processed.
-    ///
-    /// # Returns
-    /// A tuple containing:
-    /// - An `Idl` object aggregating all IDL programs extracted from the packages.
-    /// - A vector of tuples, each consisting of a `String` (representing code) and a `cargo_metadata::camino::Utf8PathBuf`
-    ///  (representing the path to the library code) for each package.
-    ///
-    /// # Errors
-    /// Returns an error if:
-    /// - The library path for a package cannot be found (`Error::ReadProgramCodeFailed`).
-    /// - The expansion of a package fails due to issues in processing its code or IDL (`Error::ReadProgramCodeFailed`).
-    /// - No programs are found after processing all packages (`Error::NoProgramsFound`).
-    #[throws]
-    pub async fn expand_program_packages(packages: &[cargo_metadata::Package]) -> Vec<ProgramData> {
-        let shared_mutex_data = std::sync::Arc::new(std::sync::Mutex::new(Vec::new()));
-
-        for package in packages.iter() {
-            let mutex = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(true));
-            let c_mutex = std::sync::Arc::clone(&mutex);
-
-            let name = package.name.clone();
-
-            let mut libs = package.targets.iter().filter(|&t| t.is_lib());
-            let path = libs
-                .next()
-                .ok_or(Error::ReadProgramCodeFailed(
-                    "Cannot find program library path.".into(),
-                ))?
-                .src_path
-                .clone();
-
-            let c_shared_mutex_data = std::sync::Arc::clone(&shared_mutex_data);
-
-            let cargo_thread = std::thread::spawn(move || -> Result<(), Error> {
-                let output = Self::expand_package(&name);
-                // release progress bar loop here as the expansion is the longest part
-                // further we cannot release after parsing as parsing can panic which will not
-                // release the lock
-                c_mutex.store(false, std::sync::atomic::Ordering::SeqCst);
-                let output = output.expect("Program expansion failed");
-
-                if output.status.success() {
-                    let code = String::from_utf8(output.stdout).expect("Reading stdout failed");
-
-                    let program_idl = idl::parse_to_idl_program(name, &code)?;
-                    let mut programs_data = c_shared_mutex_data
-                        .lock()
-                        .expect("Acquire Programs Data lock failed");
-
-                    let program_data = ProgramData {
-                        code,
-                        path,
-                        program_idl,
-                    };
-
-                    programs_data.push(program_data);
-
-                    Ok(())
-                } else {
-                    let error_text =
-                        String::from_utf8(output.stderr).expect("Reading stderr failed");
-                    Err(Error::ReadProgramCodeFailed(error_text))
-                }
-            });
-
-            Self::expand_progress_bar(&package.name, &mutex);
-            cargo_thread.join().unwrap()?;
-        }
-        let programs_data = shared_mutex_data.lock().unwrap().to_vec();
-        programs_data
-    }
-    /// Executes a cargo command to expand the Rust source code of a specified package.
-    ///
-    /// This function leverages the `cargo +nightly` command to compile a given package with the `rustc` compiler,
-    /// specifically using the `-Zunpretty=expanded` option to output the expanded form of the Rust source code.
-    /// This operation is performed under the `check` profile, which checks the code for errors without producing
-    /// executable artifacts. The function is designed to provide insights into the macro-expanded source code
-    ///
-    /// # Parameters
-    /// - `package_name`: A string slice (`&str`) representing the name of the package to be expanded.
-    ///
-    /// # Returns
-    /// - Returns a `std::process::Output` object containing the outcome of the cargo command execution. This includes
-    ///   the expanded source code in the command's stdout, along with any stderr output and the exit status.
-    fn expand_package(package_name: &str) -> std::io::Result<std::process::Output> {
-        std::process::Command::new("cargo")
-            .arg("+nightly")
-            .arg("rustc")
-            .args(["--package", package_name])
-            .arg("--profile=check")
-            .arg("--")
-            .arg("-Zunpretty=expanded")
-            .output()
-    }
     #[throws]
     pub fn get_use_statements(code: &str, use_modules: &mut Vec<syn::ItemUse>) {
         for item in syn::parse_file(code).unwrap().items.into_iter() {
@@ -605,6 +467,24 @@ impl Commander {
     pub async fn format_program_code(code: &str) -> String {
         let mut rustfmt = Command::new("rustfmt")
             .args(["--edition", "2018"])
+            .kill_on_drop(true)
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .spawn()?;
+        if let Some(stdio) = &mut rustfmt.stdin {
+            stdio.write_all(code.as_bytes()).await?;
+        }
+        let output = rustfmt.wait_with_output().await?;
+        String::from_utf8(output.stdout)?
+    }
+
+    /// Formats program code - nightly.
+    #[throws]
+    pub async fn format_program_code_nightly(code: &str) -> String {
+        let mut rustfmt = Command::new("rustfmt")
+            .arg("+nightly")
+            .arg("--config")
+            .arg("blank_lines_upper_bound=1,blank_lines_lower_bound=1")
             .kill_on_drop(true)
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())

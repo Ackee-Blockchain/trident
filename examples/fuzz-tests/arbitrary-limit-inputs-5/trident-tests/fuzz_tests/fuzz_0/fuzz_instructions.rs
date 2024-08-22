@@ -1,9 +1,13 @@
 pub mod arbitrary_limit_inputs_5_fuzz_instructions {
-    use arbitrary_limit_inputs_5::instructions::initialize::trident_fuzz_InitVesting_snapshot::InitVestingSnapshot;
-    use arbitrary_limit_inputs_5::instructions::withdraw::trident_fuzz_WithdrawUnlocked_snapshot::WithdrawUnlockedSnapshot;
     use solana_sdk::native_token::LAMPORTS_PER_SOL;
-    use solana_sdk::system_program::ID as SYSTEM_PROGRAM_ID;
     use trident_client::fuzzing::*;
+
+    use arbitrary_limit_inputs_5::trident_fuzz_init_vesting_context_snapshot::InitVestingContextAlias;
+    use arbitrary_limit_inputs_5::trident_fuzz_withdraw_unlocked_snapshot::WithdrawUnlockedAlias;
+
+    type InitVestingSnapshot<'info> = InitVestingContextAlias<'info>;
+    type WithdrawUnlockedSnapshot<'info> = WithdrawUnlockedAlias<'info>;
+
     #[derive(Arbitrary, DisplayIx, FuzzTestExecutor, FuzzDeserialize)]
     pub enum FuzzInstruction {
         InitVesting(InitVesting),
@@ -190,14 +194,14 @@ pub mod arbitrary_limit_inputs_5_fuzz_instructions {
                 )
                 .unwrap();
 
-            let acc_meta = arbitrary_limit_inputs_5::accounts::InitVesting {
+            let acc_meta = arbitrary_limit_inputs_5::accounts::InitVestingContext {
                 sender: sender.pubkey(),
                 sender_token_account,
                 escrow: escrow.pubkey(),
                 escrow_token_account,
                 mint,
                 token_program: anchor_spl::token::ID,
-                system_program: SYSTEM_PROGRAM_ID,
+                system_program: solana_sdk::system_program::ID,
             }
             .to_account_metas(None);
 
@@ -290,7 +294,7 @@ pub mod arbitrary_limit_inputs_5_fuzz_instructions {
                 escrow_pda_authority: escrow_pda_authority.pubkey(),
                 mint,
                 token_program: anchor_spl::token::ID,
-                system_program: SYSTEM_PROGRAM_ID,
+                system_program: solana_sdk::system_program::ID,
             }
             .to_account_metas(None);
             Ok((vec![recipient], acc_meta))

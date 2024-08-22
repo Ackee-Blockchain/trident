@@ -19,3 +19,4 @@ path = "../../../../../crates/client"
 
 [dependencies.incorrect-integer-arithmetic-3]
 path = "../../programs/incorrect-integer-arithmetic-3"
+features = ["trident-fuzzing"]

@@ -68,6 +68,7 @@ pub mod test {
     pub use super::error_reporter::report_error;
     pub use super::keys::*;
     pub use super::tester::Tester;
+    pub use anchor_lang::pubkey;
     pub use anyhow::{self, Error, Result};
     pub use futures::{self, FutureExt};
     pub use rstest::*;
@@ -91,12 +92,12 @@ pub mod prelude {
     pub use solana_sdk::signer::Signer;
 }
 
+mod anchor_idl;
 mod cleaner;
 mod client;
 mod commander;
 mod config;
 mod error_reporter;
-mod idl;
 mod keys;
 mod reader;
 mod source_code_generators;
@@ -105,21 +106,19 @@ mod test_generator;
 mod tester;
 
 pub mod ___private {
+    pub use super::anchor_idl::*;
     pub use super::cleaner::*;
     pub use super::client::*;
     pub use super::commander::Commander;
     pub use super::commander::Error;
     pub use super::commander::LocalnetHandle;
     pub use super::error_reporter::*;
-    pub use super::idl::*;
     pub use super::keys::*;
     pub use super::reader::*;
     pub use super::source_code_generators::*;
     pub use super::temp_clone::TempClone;
-    pub use super::test_generator::ProgramData;
     pub use super::test_generator::TestGenerator;
     pub use super::tester::*;
-    // pub use trident_fuzz_test::fuzz_trident;
 }
 
 mod constants {
@@ -142,7 +141,6 @@ mod constants {
     pub const POC_TEST: &str = "test.rs";
 
     // fuzz
-    pub const ACCOUNTS_SNAPSHOTS_FILE_NAME: &str = "accounts_snapshots.rs";
     pub const FUZZ_INSTRUCTIONS_FILE_NAME: &str = "fuzz_instructions.rs";
     pub const FUZZ_TEST_DIRECTORY: &str = "fuzz_tests";
     pub const FUZZING: &str = "fuzzing";
@@ -165,7 +163,4 @@ mod constants {
     pub const WARNING: &str = "\x1b[1;93mWarning\x1b[0m";
     pub const FINISH: &str = "\x1b[92mFinished\x1b[0m";
     pub const ERROR: &str = "\x1b[31mError\x1b[0m";
-
-    // special message for the progress bar
-    pub const EXPANDING_PROGRESS_BAR: &str = "\x1b[92mExpanding\x1b[0m";
 }

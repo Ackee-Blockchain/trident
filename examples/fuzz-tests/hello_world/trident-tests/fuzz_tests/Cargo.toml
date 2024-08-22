@@ -18,3 +18,4 @@ path = "../../../../../crates/client"
 
 [dependencies.hello_world]
 path = "../../programs/hello_world"
+features = ["trident-fuzzing"]

@@ -1,0 +1,281 @@
+{
+  "address": "ETC9SS2iTY8xFF6etnvsFaxDz9WhLryXR2Z6k81Z43U4",
+  "metadata": {
+    "name": "dummy_example",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Created with Anchor"
+  },
+  "instructions": [
+    {
+      "name": "initialize_ix",
+      "discriminator": [
+        150,
+        84,
+        235,
+        128,
+        82,
+        59,
+        240,
+        136
+      ],
+      "accounts": [
+        {
+          "name": "account",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  104,
+                  101,
+                  108,
+                  108,
+                  111
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "account_info"
+        },
+        {
+          "name": "account_loader"
+        },
+        {
+          "name": "boxed"
+        },
+        {
+          "name": "interace"
+        },
+        {
+          "name": "interface_account"
+        },
+        {
+          "name": "option",
+          "optional": true
+        },
+        {
+          "name": "program",
+          "address": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
+        },
+        {
+          "name": "signer",
+          "signer": true
+        },
+        {
+          "name": "system_account"
+        },
+        {
+          "name": "sysvar",
+          "address": "SysvarC1ock11111111111111111111111111111111"
+        },
+        {
+          "name": "unchecked_account"
+        }
+      ],
+      "args": [
+        {
+          "name": "_var1",
+          "type": "bool"
+        },
+        {
+          "name": "_var2",
+          "type": "u8"
+        },
+        {
+          "name": "_var3",
+          "type": "i8"
+        },
+        {
+          "name": "_var4",
+          "type": "u16"
+        },
+        {
+          "name": "_var5",
+          "type": "i16"
+        },
+        {
+          "name": "_var6",
+          "type": "u32"
+        },
+        {
+          "name": "_var7",
+          "type": "i32"
+        },
+        {
+          "name": "_var8",
+          "type": "u64"
+        },
+        {
+          "name": "_var9",
+          "type": "i32"
+        },
+        {
+          "name": "_var10",
+          "type": "f64"
+        },
+        {
+          "name": "_var11",
+          "type": "u128"
+        },
+        {
+          "name": "_var12",
+          "type": "i128"
+        },
+        {
+          "name": "_ver13",
+          "type": "bytes"
+        },
+        {
+          "name": "_var14",
+          "type": "string"
+        },
+        {
+          "name": "_var15",
+          "type": "pubkey"
+        },
+        {
+          "name": "_var16",
+          "type": {
+            "option": "i16"
+          }
+        },
+        {
+          "name": "_var17",
+          "type": {
+            "vec": "u32"
+          }
+        },
+        {
+          "name": "_var18",
+          "type": {
+            "array": [
+              "i128",
+              5
+            ]
+          }
+        },
+        {
+          "name": "_var19",
+          "type": {
+            "defined": {
+              "name": "InputParameter"
+            }
+          }
+        },
+        {
+          "name": "_var20",
+          "type": {
+            "vec": {
+              "vec": {
+                "vec": {
+                  "vec": "bytes"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "_var21",
+          "type": {
+            "vec": {
+              "vec": {
+                "vec": {
+                  "vec": {
+                    "option": "u8"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "_var22",
+          "type": {
+            "vec": {
+              "vec": {
+                "vec": {
+                  "vec": {
+                    "option": "bytes"
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "DataAccount",
+      "discriminator": [
+        85,
+        240,
+        182,
+        158,
+        76,
+        7,
+        18,
+        233
+      ]
+    },
+    {
+      "name": "DataAccountZeroCopy",
+      "discriminator": [
+        254,
+        68,
+        35,
+        162,
+        195,
+        219,
+        248,
+        239
+      ]
+    }
+  ],
+  "types": [
+    {
+      "name": "DataAccount",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "field1",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "DataAccountZeroCopy",
+      "serialization": "bytemuck",
+      "repr": {
+        "kind": "c"
+      },
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "field1",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "InputParameter",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "field1",
+            "type": "u8"
+          }
+        ]
+      }
+    }
+  ]
+}

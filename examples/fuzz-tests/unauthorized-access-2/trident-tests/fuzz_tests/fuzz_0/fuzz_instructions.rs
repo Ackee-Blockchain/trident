@@ -1,9 +1,13 @@
 pub mod unauthorized_access_2_fuzz_instructions {
-    use crate::accounts_snapshots::*;
     use solana_sdk::native_token::LAMPORTS_PER_SOL;
-    use solana_sdk::system_program::ID as SYSTEM_PROGRAM_ID;
     use trident_client::fuzzing::*;
     use unauthorized_access_2::ESCROW_SEED;
+
+    use unauthorized_access_2::trident_fuzz_initialize_snapshot::InitializeAlias;
+    use unauthorized_access_2::trident_fuzz_withdraw_snapshot::WithdrawAlias;
+
+    type InitializeSnapshot<'info> = InitializeAlias<'info>;
+    type WithdrawSnapshot<'info> = WithdrawAlias<'info>;
     #[derive(Arbitrary, DisplayIx, FuzzTestExecutor, FuzzDeserialize)]
     pub enum FuzzInstruction {
         Initialize(Initialize),
@@ -54,7 +58,7 @@ pub mod unauthorized_access_2_fuzz_instructions {
             );
             let data = unauthorized_access_2::instruction::Initialize {
                 receiver: receiver.pubkey(),
-                amount: 100,
+                amount: self.data.amount,
             };
             Ok(data)
         }
@@ -90,7 +94,7 @@ pub mod unauthorized_access_2_fuzz_instructions {
             let acc_meta = unauthorized_access_2::accounts::Initialize {
                 author: author.pubkey(),
                 escrow: escrow.pubkey(),
-                system_program: SYSTEM_PROGRAM_ID,
+                system_program: solana_sdk::system_program::ID,
             }
             .to_account_metas(None);
             Ok((vec![author], acc_meta))
@@ -135,7 +139,7 @@ pub mod unauthorized_access_2_fuzz_instructions {
             let acc_meta = unauthorized_access_2::accounts::Withdraw {
                 receiver: receiver.pubkey(),
                 escrow: escrow.pubkey(),
-                system_program: SYSTEM_PROGRAM_ID,
+                system_program: solana_sdk::system_program::ID,
             }
             .to_account_metas(None);
             Ok((vec![receiver], acc_meta))

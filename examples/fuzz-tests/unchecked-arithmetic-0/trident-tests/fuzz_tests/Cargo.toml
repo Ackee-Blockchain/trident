@@ -18,3 +18,4 @@ path = "../../../../../crates/client"
 
 [dependencies.unchecked-arithmetic-0]
 path = "../../programs/unchecked-arithmetic-0"
+features = ["trident-fuzzing"]
