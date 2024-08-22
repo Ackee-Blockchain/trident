@@ -1,37 +1,39 @@
 pub mod hello_world_fuzz_instructions {
-    use crate::accounts_snapshots::*;
     use solana_sdk::native_token::LAMPORTS_PER_SOL;
-    use solana_sdk::system_program::ID as SYSTEM_PROGRAM_ID;
     use trident_client::fuzzing::*;
+
+    use hello_world::trident_fuzz_initialize_context_snapshot::InitializeContextAlias;
+
+    type InitializeFnSnapshot<'info> = InitializeContextAlias<'info>;
     #[derive(Arbitrary, DisplayIx, FuzzTestExecutor, FuzzDeserialize)]
     pub enum FuzzInstruction {
-        Initialize(Initialize),
+        InitializeFn(InitializeFn),
     }
     #[derive(Arbitrary, Debug)]
-    pub struct Initialize {
-        pub accounts: InitializeAccounts,
-        pub data: InitializeData,
+    pub struct InitializeFn {
+        pub accounts: InitializeFnAccounts,
+        pub data: InitializeFnData,
     }
     #[derive(Arbitrary, Debug)]
-    pub struct InitializeAccounts {
+    pub struct InitializeFnAccounts {
         pub author: AccountId,
         pub hello_world_account: AccountId,
         pub system_program: AccountId,
     }
     #[derive(Arbitrary, Debug)]
-    pub struct InitializeData {
+    pub struct InitializeFnData {
         pub input: u8,
     }
-    impl<'info> IxOps<'info> for Initialize {
-        type IxData = hello_world::instruction::Initialize;
+    impl<'info> IxOps<'info> for InitializeFn {
+        type IxData = hello_world::instruction::InitializeFn;
         type IxAccounts = FuzzAccounts;
-        type IxSnapshot = InitializeSnapshot<'info>;
+        type IxSnapshot = InitializeFnSnapshot<'info>;
         fn get_data(
             &self,
             _client: &mut impl FuzzClient,
             _fuzz_accounts: &mut FuzzAccounts,
         ) -> Result<Self::IxData, FuzzingError> {
-            let data = hello_world::instruction::Initialize {
+            let data = hello_world::instruction::InitializeFn {
                 input: self.data.input,
             };
             Ok(data)
@@ -56,10 +58,10 @@ pub mod hello_world_fuzz_instructions {
                 )
                 .unwrap();
             let signers = vec![author.clone()];
-            let acc_meta = hello_world::accounts::Initialize {
+            let acc_meta = hello_world::accounts::InitializeContext {
                 author: author.pubkey(),
                 hello_world_account: hello_world_account.pubkey(),
-                system_program: SYSTEM_PROGRAM_ID,
+                system_program: solana_sdk::system_program::ID,
             }
             .to_account_metas(None);
             Ok((signers, acc_meta))

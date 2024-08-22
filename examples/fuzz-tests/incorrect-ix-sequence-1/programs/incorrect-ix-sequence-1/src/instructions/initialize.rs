@@ -1,6 +1,7 @@
 pub use anchor_lang::prelude::*;
 
 use crate::state::{State, STATE_SEED};
+use trident_derive_accounts_snapshots::AccountsSnapshots;
 
 pub fn _initialize(ctx: Context<Initialize>) -> Result<()> {
     let state = &mut ctx.accounts.state;
@@ -11,7 +12,7 @@ pub fn _initialize(ctx: Context<Initialize>) -> Result<()> {
     Ok(())
 }
 
-#[derive(Accounts)]
+#[derive(Accounts, AccountsSnapshots)]
 pub struct Initialize<'info> {
     #[account(mut)]
     pub author: Signer<'info>,
@@ -19,7 +20,7 @@ pub struct Initialize<'info> {
         init,
         payer = author,
         space = 8 + State::LEN,
-        seeds = [author.key().as_ref(), STATE_SEED.as_ref()],
+        seeds = [author.key().as_ref(), STATE_SEED.as_bytes()],
         bump
     )]
     pub state: Account<'info, State>,

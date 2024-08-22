@@ -8,7 +8,7 @@ use crate::state::Escrow;
 use crate::VestingError;
 
 pub fn _init_vesting(
-    ctx: Context<InitVesting>,
+    ctx: Context<InitVestingContext>,
     recipient: Pubkey,
     amount: u64,
     start_at: u64,
@@ -64,7 +64,7 @@ pub fn _init_vesting(
 
 #[derive(AccountsSnapshots, Accounts)]
 #[instruction(recipient: Pubkey)]
-pub struct InitVesting<'info> {
+pub struct InitVestingContext<'info> {
     #[account(mut)]
     pub sender: Signer<'info>,
 

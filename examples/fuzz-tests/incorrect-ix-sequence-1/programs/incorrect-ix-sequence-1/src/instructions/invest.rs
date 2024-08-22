@@ -4,6 +4,9 @@ use crate::{
     error::CustomError,
     state::{Project, State, PROJECT_SEED, STATE_SEED},
 };
+
+use trident_derive_accounts_snapshots::AccountsSnapshots;
+
 pub fn _invest(ctx: Context<Invest>, amount: u64) -> Result<()> {
     let project = &mut ctx.accounts.project;
     let state = &mut ctx.accounts.state;
@@ -40,19 +43,19 @@ pub fn _invest(ctx: Context<Invest>, amount: u64) -> Result<()> {
     Ok(())
 }
 
-#[derive(Accounts)]
+#[derive(Accounts, AccountsSnapshots)]
 pub struct Invest<'info> {
     #[account(mut)]
     pub investor: Signer<'info>,
     #[account(
         mut,
-        seeds = [project.project_author.key().as_ref(), state.key().as_ref() ,PROJECT_SEED.as_ref()],
+        seeds = [project.project_author.key().as_ref(), state.key().as_ref(),PROJECT_SEED.as_bytes()],
         bump = project.bump
     )]
     pub project: Account<'info, Project>,
     #[account(
         mut,
-        seeds = [state.author.key().as_ref(), STATE_SEED.as_ref()],
+        seeds = [state.author.key().as_ref(), STATE_SEED.as_bytes()],
         bump = state.bump
     )]
     pub state: Account<'info, State>,

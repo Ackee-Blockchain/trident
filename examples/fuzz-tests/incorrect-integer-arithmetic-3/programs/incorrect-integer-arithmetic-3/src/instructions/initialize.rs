@@ -6,6 +6,8 @@ use anchor_spl::token::{
 use crate::state::Escrow;
 use crate::VestingError;
 
+use trident_derive_accounts_snapshots::AccountsSnapshots;
+
 pub fn _init_vesting(
     ctx: Context<InitVesting>,
     recipient: Pubkey,
@@ -61,7 +63,7 @@ pub fn _init_vesting(
     Ok(())
 }
 
-#[derive(Accounts)]
+#[derive(Accounts, AccountsSnapshots)]
 #[instruction(recipient: Pubkey)]
 pub struct InitVesting<'info> {
     #[account(mut)]

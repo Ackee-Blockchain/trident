@@ -16,6 +16,7 @@ runs:
       run: |
         rustup default nightly
         rustup component add rustfmt clippy
+        rustup component add rustfmt clippy --toolchain nightly
       shell: bash
     - name: Install Cargo Expand
       run: cargo install --locked cargo-expand

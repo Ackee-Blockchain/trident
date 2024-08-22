@@ -1,5 +1,11 @@
+[toolchain]
+anchor_version = "0.30.1"
+
 [features]
-seeds = false
+resolution = true
+skip-lint = false
+
+
 [programs.localnet]
 escrow = "Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS"
 

@@ -18,3 +18,4 @@ path = "../../../../../crates/client"
 
 [dependencies.arbitrary-custom-types-4]
 path = "../../programs/arbitrary-custom-types-4"
+features = ["trident-fuzzing"]

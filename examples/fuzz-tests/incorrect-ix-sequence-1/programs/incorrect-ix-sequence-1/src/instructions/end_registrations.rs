@@ -2,6 +2,8 @@ pub use anchor_lang::prelude::*;
 
 use crate::state::{State, STATE_SEED};
 
+use trident_derive_accounts_snapshots::AccountsSnapshots;
+
 pub fn _end_registration(ctx: Context<EndRegistration>) -> Result<()> {
     let state = &mut ctx.accounts.state;
 
@@ -9,13 +11,13 @@ pub fn _end_registration(ctx: Context<EndRegistration>) -> Result<()> {
     Ok(())
 }
 
-#[derive(Accounts)]
+#[derive(Accounts, AccountsSnapshots)]
 pub struct EndRegistration<'info> {
     pub author: Signer<'info>,
     #[account(
         mut,
         has_one = author,
-        seeds = [author.key().as_ref(), STATE_SEED.as_ref()],
+        seeds = [author.key().as_ref(), STATE_SEED.as_bytes()],
         bump = state.bump
     )]
     pub state: Account<'info, State>,
