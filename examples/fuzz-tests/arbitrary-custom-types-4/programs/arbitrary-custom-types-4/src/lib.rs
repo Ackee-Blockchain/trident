@@ -4,6 +4,8 @@ declare_id!("CdWkp3CY9CAjBQP73SDCwDDfsumwY7e6DDSjrN5u8Cii");
 
 const MAGIC_NUMBER: u8 = 254;
 
+use trident_derive_accounts_snapshots::AccountsSnapshots;
+
 #[program]
 pub mod arbitrary_custom_types_4 {
     use super::*;
@@ -48,7 +50,7 @@ pub fn buggy_math_function(input1: u8, input2: u8) -> u8 {
     input1 / divisor
 }
 
-#[derive(Accounts)]
+#[derive(Accounts, AccountsSnapshots)]
 pub struct Initialize<'info> {
     #[account(init, payer = user, space = 8 + 40)]
     pub counter: Account<'info, Counter>,
@@ -59,7 +61,7 @@ pub struct Initialize<'info> {
     pub system_program: Program<'info, System>,
 }
 
-#[derive(Accounts)]
+#[derive(Accounts, AccountsSnapshots)]
 pub struct Update<'info> {
     #[account(mut, has_one = authority)]
     pub counter: Account<'info, Counter>,

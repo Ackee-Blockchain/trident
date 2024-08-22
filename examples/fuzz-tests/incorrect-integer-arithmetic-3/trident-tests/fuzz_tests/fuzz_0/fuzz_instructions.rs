@@ -1,8 +1,13 @@
 pub mod incorrect_integer_arithmetic_3_fuzz_instructions {
-    use crate::accounts_snapshots::*;
     use solana_sdk::native_token::LAMPORTS_PER_SOL;
-    use solana_sdk::system_program::ID as SYSTEM_PROGRAM_ID;
     use trident_client::fuzzing::*;
+
+    use incorrect_integer_arithmetic_3::trident_fuzz_init_vesting_snapshot::InitVestingAlias;
+    use incorrect_integer_arithmetic_3::trident_fuzz_withdraw_unlocked_snapshot::WithdrawUnlockedAlias;
+
+    type InitVestingSnapshot<'info> = InitVestingAlias<'info>;
+    type WithdrawUnlockedSnapshot<'info> = WithdrawUnlockedAlias<'info>;
+
     #[derive(Arbitrary, DisplayIx, FuzzTestExecutor, FuzzDeserialize)]
     pub enum FuzzInstruction {
         InitVesting(InitVesting),
@@ -69,6 +74,7 @@ pub mod incorrect_integer_arithmetic_3_fuzz_instructions {
                 client,
                 10 * LAMPORTS_PER_SOL,
             );
+
             let data = incorrect_integer_arithmetic_3::instruction::InitVesting {
                 recipient: recipient.pubkey(),
                 amount: self.data.amount,
@@ -146,7 +152,7 @@ pub mod incorrect_integer_arithmetic_3_fuzz_instructions {
                 escrow_token_account,
                 mint,
                 token_program: anchor_spl::token::ID,
-                system_program: SYSTEM_PROGRAM_ID,
+                system_program: solana_sdk::system_program::ID,
             }
             .to_account_metas(None);
 
@@ -239,7 +245,7 @@ pub mod incorrect_integer_arithmetic_3_fuzz_instructions {
                 escrow_pda_authority: escrow_pda_authority.pubkey(),
                 mint,
                 token_program: anchor_spl::token::ID,
-                system_program: SYSTEM_PROGRAM_ID,
+                system_program: solana_sdk::system_program::ID,
             }
             .to_account_metas(None);
             Ok((vec![recipient], acc_meta))

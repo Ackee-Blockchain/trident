@@ -955,6 +955,8 @@ version = "0.1.0"
 dependencies = [
  "anchor-lang",
  "callee",
+ "trident-derive-accounts-snapshots",
+ "trident-fuzz",
 ]
 
 [[package]]
@@ -6087,16 +6089,18 @@ dependencies = [
 
 [[package]]
 name = "trident-client"
-version = "0.6.0"
+version = "0.7.0"
 dependencies = [
  "anchor-client",
  "anchor-lang",
+ "anchor-lang-idl-spec",
  "anchor-syn",
  "anyhow",
  "arbitrary",
  "bincode",
  "borsh 0.10.3",
  "cargo_metadata",
+ "convert_case",
  "ed25519-dalek",
  "fehler",
  "futures",
@@ -6138,6 +6142,7 @@ name = "trident-derive-accounts-snapshots"
 version = "0.0.1"
 dependencies = [
  "anchor-syn",
+ "convert_case",
  "proc-macro2",
  "quote",
  "syn 1.0.109",
@@ -6145,7 +6150,7 @@ dependencies = [
 
 [[package]]
 name = "trident-derive-displayix"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -6154,7 +6159,7 @@ dependencies = [
 
 [[package]]
 name = "trident-derive-fuzz-deserialize"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -6163,7 +6168,7 @@ dependencies = [
 
 [[package]]
 name = "trident-derive-fuzz-test-executor"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -6197,7 +6202,7 @@ dependencies = [
 
 [[package]]
 name = "trident-test"
-version = "0.3.2"
+version = "0.3.3"
 dependencies = [
  "darling 0.13.4",
  "quote",

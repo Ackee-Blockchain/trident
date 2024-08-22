@@ -13,14 +13,9 @@ pub enum TestsType {
     Fuzz,
     Poc,
 }
-#[derive(ValueEnum, Clone)]
-pub enum SnapshotsType {
-    Macro,
-    File,
-}
 
 #[throws]
-pub async fn init(tests_type: TestsType, snapshots_type: SnapshotsType) {
+pub async fn init(tests_type: TestsType) {
     // look for Anchor.toml
     let root = if let Some(r) = _discover(ANCHOR_TOML)? {
         r
@@ -28,10 +23,7 @@ pub async fn init(tests_type: TestsType, snapshots_type: SnapshotsType) {
         bail!("It does not seem that Anchor is initialized because the Anchor.toml file was not found in any parent directory!");
     };
 
-    let mut generator: TestGenerator = match snapshots_type {
-        SnapshotsType::Macro => TestGenerator::new_with_root(root, false),
-        SnapshotsType::File => TestGenerator::new_with_root(root, true),
-    };
+    let mut generator: TestGenerator = TestGenerator::new_with_root(root);
 
     match tests_type {
         TestsType::Poc => {

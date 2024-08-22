@@ -27,8 +27,9 @@ trident-fuzz = { path = "../fuzz", version = "0.1.0" }
 # INFO: Anchor-spl is here as dependency only to activate the idl-build feature, so that
 # users do not have to do it manually in their program's Cargo.toml
 anchor-lang = { workspace = true, features = ["init-if-needed"] }
-anchor-syn = { workspace = true }
 anchor-client = { workspace = true, features = ["async"] }
+anchor-syn = { workspace = true }
+anchor-lang-idl-spec = { workspace = true }
 
 # SOLANA
 solana-sdk = { workspace = true }
@@ -71,3 +72,4 @@ quinn-proto = { version = "0.10.6", features = ["arbitrary"] }
 pathdiff = "0.2.1"
 indicatif = "0.17.8"
 regex = "1.10.3"
+convert_case = "0.6.0"

@@ -10,6 +10,9 @@ incremented upon a breaking change and the patch version will be incremented for
 
 ## [dev] - Unreleased
 
+**Changed**
+- impr/ instead of parsing source code and creating our IDL, read anchor IDL ([196](https://github.com/Ackee-Blockchain/trident/pull/196))
+
 ## [0.7.0] - 2024-08-14
 
 **Added**

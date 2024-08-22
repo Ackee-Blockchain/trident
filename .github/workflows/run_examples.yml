@@ -5,8 +5,8 @@ on:
 name: Test Escrow
 
 env:
-  SOLANA_CLI_VERSION: 1.18.12
-  ANCHOR_VERSION: 0.29.0
+  SOLANA_CLI_VERSION: 1.18.18
+  ANCHOR_VERSION: 0.30.1
 
 jobs:
   test_escrow:
@@ -16,12 +16,10 @@ jobs:
       - uses: ./.github/actions/setup-rust/
       - uses: ./.github/actions/setup-solana/
       - uses: ./.github/actions/setup-anchor/
+      - uses: ./.github/actions/setup-trident/
         id: rust-setup
       - uses: Swatinem/rust-cache@v2
         name: Cache Rust and it's packages
-      - name: Build Escrow
-        working-directory: examples/integration-tests/escrow
-        run: anchor build
       - name: Test Escrow
         working-directory: examples/integration-tests/escrow
-        run: cargo run --manifest-path ../../../Cargo.toml test
+        run: trident test

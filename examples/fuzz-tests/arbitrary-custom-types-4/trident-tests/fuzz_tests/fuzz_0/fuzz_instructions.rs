@@ -1,8 +1,13 @@
 pub mod arbitrary_custom_types_4_fuzz_instructions {
-    use crate::accounts_snapshots::*;
     use solana_sdk::native_token::LAMPORTS_PER_SOL;
-    use solana_sdk::system_program::ID as SYSTEM_PROGRAM_ID;
     use trident_client::fuzzing::*;
+
+    use arbitrary_custom_types_4::trident_fuzz_initialize_snapshot::InitializeAlias;
+    use arbitrary_custom_types_4::trident_fuzz_update_snapshot::UpdateAlias;
+
+    type InitializeSnapshot<'info> = InitializeAlias<'info>;
+    type UpdateSnapshot<'info> = UpdateAlias<'info>;
+
     #[derive(Arbitrary, DisplayIx, FuzzTestExecutor, FuzzDeserialize)]
     pub enum FuzzInstruction {
         Initialize(Initialize),
@@ -67,7 +72,7 @@ pub mod arbitrary_custom_types_4_fuzz_instructions {
             let acc_meta = arbitrary_custom_types_4::accounts::Initialize {
                 counter: counter.pubkey(),
                 user: user.pubkey(),
-                system_program: SYSTEM_PROGRAM_ID,
+                system_program: solana_sdk::system_program::ID,
             }
             .to_account_metas(None);
             Ok((vec![user, counter], acc_meta))
@@ -119,6 +124,7 @@ pub mod arbitrary_custom_types_4_fuzz_instructions {
         user: AccountsStorage<Keypair>,
         counter: AccountsStorage<Keypair>,
     }
+
     // -------------------------------------------------------------------
     // -------------------------------------------------------------------
     // -------------------------------------------------------------------

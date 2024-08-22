@@ -1,8 +1,12 @@
 pub mod unchecked_arithmetic_0_fuzz_instructions {
-    use crate::accounts_snapshots::*;
     use solana_sdk::native_token::LAMPORTS_PER_SOL;
-    use solana_sdk::system_program::ID as SYSTEM_PROGRAM_ID;
     use trident_client::fuzzing::*;
+
+    use unchecked_arithmetic_0::trident_fuzz_initialize_snapshot::InitializeAlias;
+    use unchecked_arithmetic_0::trident_fuzz_update_snapshot::UpdateAlias;
+
+    type InitializeSnapshot<'info> = InitializeAlias<'info>;
+    type UpdateSnapshot<'info> = UpdateAlias<'info>;
     #[derive(Arbitrary, DisplayIx, FuzzTestExecutor, FuzzDeserialize)]
     pub enum FuzzInstruction {
         Initialize(Initialize),
@@ -67,7 +71,7 @@ pub mod unchecked_arithmetic_0_fuzz_instructions {
             let acc_meta = unchecked_arithmetic_0::accounts::Initialize {
                 counter: counter.pubkey(),
                 user: user.pubkey(),
-                system_program: SYSTEM_PROGRAM_ID,
+                system_program: solana_sdk::system_program::ID,
             }
             .to_account_metas(None);
             Ok((vec![user, counter], acc_meta))

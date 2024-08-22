@@ -18,3 +18,4 @@ path = "../../../../../crates/client"
 
 [dependencies.incorrect-ix-sequence-1]
 path = "../../programs/incorrect-ix-sequence-1"
+features = ["trident-fuzzing"]

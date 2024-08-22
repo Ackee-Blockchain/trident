@@ -1,7 +1,10 @@
 pub mod cpi_metaplex_7_fuzz_instructions {
-    use cpi_metaplex_7::trident_fuzz_Initialize_snapshot::InitializeSnapshot;
     use solana_sdk::native_token::LAMPORTS_PER_SOL;
     use trident_client::fuzzing::*;
+
+    use cpi_metaplex_7::trident_fuzz_initialize_snapshot::InitializeAlias;
+
+    type InitializeSnapshot<'info> = InitializeAlias<'info>;
     #[derive(Arbitrary, DisplayIx, FuzzTestExecutor, FuzzDeserialize)]
     pub enum FuzzInstruction {
         Initialize(Initialize),
@@ -38,9 +41,9 @@ pub mod cpi_metaplex_7_fuzz_instructions {
         ) -> Result<Self::IxData, FuzzingError> {
             let data = cpi_metaplex_7::instruction::Initialize {
                 input: self.data.input,
-                name: "NAME1".to_string(),
-                symbol: "SMB1".to_string(),
-                uri: "URI1".to_string(),
+                name: self.data.name.clone(),
+                symbol: self.data.symbol.clone(),
+                uri: self.data.uri.clone(),
             };
             Ok(data)
         }
