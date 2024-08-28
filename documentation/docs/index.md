@@ -51,6 +51,12 @@ Rust-based Fuzzing framework for Solana programs to help you ship secure code.
 
 *"Fuzz testing is an automated technique that provides generated random, invalid, or unexpected input data to your program. This helps discover unknown bugs and vulnerabilities, potentially preventing zero-day exploits."*
 
+<div id="fuzz-asciinema" style="z-index: 1; position: relative;"></div>
+<script>
+  window.onload = function(){
+    AsciinemaPlayer.create('./images/trident.cast', document.getElementById('fuzz-asciinema'), { preload: true, autoPlay: true, rows: 35 });
+}
+</script>
 
 {{ config.site_name }} equips developers with tools to efficiently develop fuzz tests for Anchor-based programs. It streamlines the fuzz testing process through automation and comprehensive support
 

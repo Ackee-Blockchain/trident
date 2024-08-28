@@ -110,6 +110,10 @@ plugins:
 # https://squidfunk.github.io/mkdocs-material/customization/?h=extra+css#additional-css
 extra_css:
   - stylesheets/extra.css
+  - stylesheets/asciinema-player.css
+
+extra_javascript:
+  - js/asciinema-player.min.js
 
 
 markdown_extensions:

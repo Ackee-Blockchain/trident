@@ -5,10 +5,11 @@ To debug your program with values from a crash file:
 ```bash
 # fuzzer will run the <TARGET_NAME> with the specified <CRASH_FILE_PATH>
 trident fuzz run-debug <TARGET_NAME> <CRASH_FILE_PATH>
-# for example:
-trident fuzz run-debug fuzz_0 trident-tests/fuzz_tests/fuzzing/fuzz_0/cr1.fuzz
 ```
 
+!!! tip
+
+    By default, the crashfiles are stored in the `trident-tests/fuzz_tests/fuzzing/hfuzz_workspace/<FUZZ_TARGET>`.
 
 ## Debug Output
 
