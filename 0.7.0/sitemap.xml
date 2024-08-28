@@ -2,147 +2,147 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://ackee.xyz/trident/docs/0.7.0/</loc>
-         <lastmod>2024-08-24</lastmod>
+         <lastmod>2024-08-28</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://ackee.xyz/trident/docs/0.7.0/CHANGELOG/</loc>
-         <lastmod>2024-08-24</lastmod>
+         <lastmod>2024-08-28</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://ackee.xyz/trident/docs/0.7.0/fuzzing/execute/debug/</loc>
-         <lastmod>2024-08-24</lastmod>
+         <lastmod>2024-08-28</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://ackee.xyz/trident/docs/0.7.0/fuzzing/execute/run/</loc>
-         <lastmod>2024-08-24</lastmod>
+         <lastmod>2024-08-28</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://ackee.xyz/trident/docs/0.7.0/fuzzing/execute/statistics/</loc>
-         <lastmod>2024-08-24</lastmod>
+         <lastmod>2024-08-28</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://ackee.xyz/trident/docs/0.7.0/fuzzing/extra/current-limitations/</loc>
-         <lastmod>2024-08-24</lastmod>
+         <lastmod>2024-08-28</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://ackee.xyz/trident/docs/0.7.0/fuzzing/extra/examples/</loc>
-         <lastmod>2024-08-24</lastmod>
+         <lastmod>2024-08-28</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://ackee.xyz/trident/docs/0.7.0/fuzzing/extra/lifecycle/</loc>
-         <lastmod>2024-08-24</lastmod>
+         <lastmod>2024-08-28</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://ackee.xyz/trident/docs/0.7.0/fuzzing/first-steps/fuzz-test-initialization/</loc>
-         <lastmod>2024-08-24</lastmod>
+         <lastmod>2024-08-28</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://ackee.xyz/trident/docs/0.7.0/fuzzing/first-steps/writing-fuzz-test/</loc>
-         <lastmod>2024-08-24</lastmod>
+         <lastmod>2024-08-28</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://ackee.xyz/trident/docs/0.7.0/fuzzing/writing-fuzz-test/accounts/</loc>
-         <lastmod>2024-08-24</lastmod>
+         <lastmod>2024-08-28</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://ackee.xyz/trident/docs/0.7.0/fuzzing/writing-fuzz-test/instruction-accounts/</loc>
-         <lastmod>2024-08-24</lastmod>
+         <lastmod>2024-08-28</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://ackee.xyz/trident/docs/0.7.0/fuzzing/writing-fuzz-test/instruction-data/</loc>
-         <lastmod>2024-08-24</lastmod>
+         <lastmod>2024-08-28</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://ackee.xyz/trident/docs/0.7.0/fuzzing/writing-fuzz-test/programs/</loc>
-         <lastmod>2024-08-24</lastmod>
+         <lastmod>2024-08-28</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://ackee.xyz/trident/docs/0.7.0/fuzzing/writing-fuzz-test-extra/accounts-snapshots/</loc>
-         <lastmod>2024-08-24</lastmod>
+         <lastmod>2024-08-28</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://ackee.xyz/trident/docs/0.7.0/fuzzing/writing-fuzz-test-extra/arbitrary/</loc>
-         <lastmod>2024-08-24</lastmod>
+         <lastmod>2024-08-28</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://ackee.xyz/trident/docs/0.7.0/fuzzing/writing-fuzz-test-extra/custom-data-types/</loc>
-         <lastmod>2024-08-24</lastmod>
+         <lastmod>2024-08-28</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://ackee.xyz/trident/docs/0.7.0/fuzzing/writing-fuzz-test-extra/instruction-sequences/</loc>
-         <lastmod>2024-08-24</lastmod>
+         <lastmod>2024-08-28</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://ackee.xyz/trident/docs/0.7.0/fuzzing/writing-fuzz-test-extra/invariants-checks/</loc>
-         <lastmod>2024-08-24</lastmod>
+         <lastmod>2024-08-28</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://ackee.xyz/trident/docs/0.7.0/getting-started/docker-image/</loc>
-         <lastmod>2024-08-24</lastmod>
+         <lastmod>2024-08-28</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://ackee.xyz/trident/docs/0.7.0/getting-started/getting-started/</loc>
-         <lastmod>2024-08-24</lastmod>
+         <lastmod>2024-08-28</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://ackee.xyz/trident/docs/0.7.0/integration-tests/poc-examples/</loc>
-         <lastmod>2024-08-24</lastmod>
+         <lastmod>2024-08-28</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://ackee.xyz/trident/docs/0.7.0/integration-tests/poc-introduction/</loc>
-         <lastmod>2024-08-24</lastmod>
+         <lastmod>2024-08-28</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://ackee.xyz/trident/docs/0.7.0/integration-tests/poc-run/</loc>
-         <lastmod>2024-08-24</lastmod>
+         <lastmod>2024-08-28</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://ackee.xyz/trident/docs/0.7.0/integration-tests/howto/poc-howto-p0/</loc>
-         <lastmod>2024-08-24</lastmod>
+         <lastmod>2024-08-28</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://ackee.xyz/trident/docs/0.7.0/integration-tests/howto/poc-howto-p1/</loc>
-         <lastmod>2024-08-24</lastmod>
+         <lastmod>2024-08-28</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://ackee.xyz/trident/docs/0.7.0/integration-tests/initialization/poc-initialization-all/</loc>
-         <lastmod>2024-08-24</lastmod>
+         <lastmod>2024-08-28</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://ackee.xyz/trident/docs/0.7.0/integration-tests/initialization/poc-initialization-poc/</loc>
-         <lastmod>2024-08-24</lastmod>
+         <lastmod>2024-08-28</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://ackee.xyz/trident/docs/0.7.0/integration-tests/initialization/poc-initialization-program-client/</loc>
-         <lastmod>2024-08-24</lastmod>
+         <lastmod>2024-08-28</lastmod>
          <changefreq>daily</changefreq>
     </url>
 </urlset>
