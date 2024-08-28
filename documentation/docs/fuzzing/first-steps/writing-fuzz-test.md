@@ -26,7 +26,7 @@
     For better fuzzing results and experience you can also manually adjust the following:
 
      1. Define Invariants checks [Invariants Checks](../writing-fuzz-test-extra/invariants-checks.md).
-     2. Specify instruction sequences[Instruction sequences](../writing-fuzz-test-extra/instruction-sequences.md).
-     3. Specify custom data types[Custom Data types](../writing-fuzz-test-extra/custom-data-types.md).
-     4. Well structured data[Arbitrary](../writing-fuzz-test-extra/arbitrary.md).
-     4. AccountsSnapshots macro[AccountsSnapshots](../writing-fuzz-test-extra/accounts-snapshots.md).
+     2. Specify instruction sequences [Instruction sequences](../writing-fuzz-test-extra/instruction-sequences.md).
+     3. Specify custom data types [Custom Data types](../writing-fuzz-test-extra/custom-data-types.md).
+     4. Well structured data [Arbitrary](../writing-fuzz-test-extra/arbitrary.md).
+     4. AccountsSnapshots macro [AccountsSnapshots](../writing-fuzz-test-extra/accounts-snapshots.md).
