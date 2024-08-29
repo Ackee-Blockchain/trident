@@ -11,87 +11,97 @@
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://ackee.xyz/trident/docs/dev/fuzzing/fuzzing-current-limitations/</loc>
+         <loc>https://ackee.xyz/trident/docs/dev/fuzzing/execute/debug/</loc>
          <lastmod>2024-08-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://ackee.xyz/trident/docs/dev/fuzzing/fuzzing-examples/</loc>
+         <loc>https://ackee.xyz/trident/docs/dev/fuzzing/execute/run/</loc>
          <lastmod>2024-08-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://ackee.xyz/trident/docs/dev/fuzzing/fuzzing-introduction/</loc>
+         <loc>https://ackee.xyz/trident/docs/dev/fuzzing/execute/statistics/</loc>
          <lastmod>2024-08-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://ackee.xyz/trident/docs/dev/fuzzing/fuzzing-lifecycle/</loc>
+         <loc>https://ackee.xyz/trident/docs/dev/fuzzing/extra/current-limitations/</loc>
          <lastmod>2024-08-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://ackee.xyz/trident/docs/dev/fuzzing/fuzzing-run-debug/</loc>
+         <loc>https://ackee.xyz/trident/docs/dev/fuzzing/extra/examples/</loc>
          <lastmod>2024-08-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://ackee.xyz/trident/docs/dev/fuzzing/howto/fuzzing-howto-p0/</loc>
+         <loc>https://ackee.xyz/trident/docs/dev/fuzzing/extra/lifecycle/</loc>
          <lastmod>2024-08-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://ackee.xyz/trident/docs/dev/fuzzing/howto/fuzzing-howto-p1/</loc>
+         <loc>https://ackee.xyz/trident/docs/dev/fuzzing/first-steps/fuzz-test-initialization/</loc>
          <lastmod>2024-08-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://ackee.xyz/trident/docs/dev/fuzzing/howto/fuzzing-howto-p2/</loc>
+         <loc>https://ackee.xyz/trident/docs/dev/fuzzing/first-steps/writing-fuzz-test/</loc>
          <lastmod>2024-08-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://ackee.xyz/trident/docs/dev/fuzzing/howto/fuzzing-howto-p3/</loc>
+         <loc>https://ackee.xyz/trident/docs/dev/fuzzing/writing-fuzz-test/accounts/</loc>
          <lastmod>2024-08-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://ackee.xyz/trident/docs/dev/fuzzing/howto/fuzzing-howto-p4/</loc>
+         <loc>https://ackee.xyz/trident/docs/dev/fuzzing/writing-fuzz-test/instruction-accounts/</loc>
          <lastmod>2024-08-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://ackee.xyz/trident/docs/dev/fuzzing/howto/fuzzing-howto-p5/</loc>
+         <loc>https://ackee.xyz/trident/docs/dev/fuzzing/writing-fuzz-test/instruction-data/</loc>
          <lastmod>2024-08-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://ackee.xyz/trident/docs/dev/fuzzing/howto/fuzzing-howto-p6/</loc>
+         <loc>https://ackee.xyz/trident/docs/dev/fuzzing/writing-fuzz-test/programs/</loc>
          <lastmod>2024-08-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://ackee.xyz/trident/docs/dev/fuzzing/howto/fuzzing-howto-p7/</loc>
+         <loc>https://ackee.xyz/trident/docs/dev/fuzzing/writing-fuzz-test-extra/accounts-snapshots/</loc>
          <lastmod>2024-08-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://ackee.xyz/trident/docs/dev/fuzzing/initialization/fuzzing-initialization-all/</loc>
+         <loc>https://ackee.xyz/trident/docs/dev/fuzzing/writing-fuzz-test-extra/arbitrary/</loc>
          <lastmod>2024-08-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://ackee.xyz/trident/docs/dev/fuzzing/initialization/fuzzing-initialization-fuzz-add/</loc>
+         <loc>https://ackee.xyz/trident/docs/dev/fuzzing/writing-fuzz-test-extra/custom-data-types/</loc>
          <lastmod>2024-08-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://ackee.xyz/trident/docs/dev/fuzzing/initialization/fuzzing-initialization-fuzz/</loc>
+         <loc>https://ackee.xyz/trident/docs/dev/fuzzing/writing-fuzz-test-extra/instruction-sequences/</loc>
          <lastmod>2024-08-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://ackee.xyz/trident/docs/dev/home/home-installation/</loc>
+         <loc>https://ackee.xyz/trident/docs/dev/fuzzing/writing-fuzz-test-extra/invariants-checks/</loc>
+         <lastmod>2024-08-29</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://ackee.xyz/trident/docs/dev/getting-started/docker-image/</loc>
+         <lastmod>2024-08-29</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://ackee.xyz/trident/docs/dev/getting-started/getting-started/</loc>
          <lastmod>2024-08-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
