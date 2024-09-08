@@ -30,7 +30,8 @@ fn fuzz_iteration<T: FuzzTestExecutor<U> + std::fmt::Display, U>(fuzz_data: Fuzz
     );
 
     let mut client =
-        ProgramTestClientBlocking::new(&[fuzzing_program_incorrect_integer_arithmetic_3]).unwrap();
+        ProgramTestClientBlocking::new(&[fuzzing_program_incorrect_integer_arithmetic_3], &[])
+            .unwrap();
 
     let _ = fuzz_data.run_with_runtime(PROGRAM_ID_INCORRECT_INTEGER_ARITHMETIC_3, &mut client);
 }

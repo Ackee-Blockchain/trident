@@ -50,8 +50,34 @@ impl FuzzingProgram {
     }
 }
 
+pub struct FuzzingAccountBase64<'a> {
+    pub address: Pubkey,
+    pub lamports: u64,
+    pub owner: Pubkey,
+    pub data_base64: &'a str,
+}
+
+impl<'a> FuzzingAccountBase64<'a> {
+    pub fn new(
+        address: Pubkey,
+        lamports: u64,
+        owner: Pubkey,
+        data_base64: &'a str,
+    ) -> FuzzingAccountBase64<'a> {
+        Self {
+            address,
+            lamports,
+            owner,
+            data_base64,
+        }
+    }
+}
+
 impl ProgramTestClientBlocking {
-    pub fn new(program_: &[FuzzingProgram]) -> Result<Self, FuzzClientError> {
+    pub fn new(
+        program_: &[FuzzingProgram],
+        account_: &[FuzzingAccountBase64],
+    ) -> Result<Self, FuzzClientError> {
         let mut program_test = ProgramTest::default();
         for x in program_ {
             match x.entry {
@@ -74,6 +100,10 @@ impl ProgramTestClientBlocking {
                 }
             }
         }
+        for x in account_ {
+            program_test.add_account_with_base64_data(x.address, x.lamports, x.owner, x.data_base64)
+        }
+
         let rt: tokio::runtime::Runtime = Builder::new_current_thread().enable_all().build()?;
 
         let ctx = rt.block_on(program_test.start_with_context());
