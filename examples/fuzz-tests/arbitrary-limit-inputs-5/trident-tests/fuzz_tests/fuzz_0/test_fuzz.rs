@@ -38,7 +38,7 @@ fn fuzz_iteration<T: FuzzTestExecutor<U> + std::fmt::Display, U>(fuzz_data: Fuzz
     );
 
     let mut client =
-        ProgramTestClientBlocking::new(&[fuzzing_program_arbitrary_limit_inputs_5]).unwrap();
+        ProgramTestClientBlocking::new(&[fuzzing_program_arbitrary_limit_inputs_5], &[]).unwrap();
 
     let _ = fuzz_data.run_with_runtime(PROGRAM_ID_ARBITRARY_LIMIT_INPUTS_5, &mut client);
 }

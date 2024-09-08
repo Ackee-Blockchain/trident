@@ -58,7 +58,7 @@ pub fn generate_source_code(idl_instructions: &[Idl]) -> String {
 
             #(#fuzzing_programs)*
 
-            let mut client = ProgramTestClientBlocking::new(&#programs_array).unwrap();
+            let mut client = ProgramTestClientBlocking::new(&#programs_array,&[]).unwrap();
 
             #run_with_runtime
 
