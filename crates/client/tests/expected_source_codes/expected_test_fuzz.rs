@@ -23,7 +23,7 @@ fn fuzz_iteration<T: FuzzTestExecutor<U> + std::fmt::Display, U>(fuzz_data: Fuzz
         processor!(convert_entry!(entry_dummy_example)),
     );
 
-    let mut client = ProgramTestClientBlocking::new(&[fuzzing_program_dummy_example]).unwrap();
+    let mut client = ProgramTestClientBlocking::new(&[fuzzing_program_dummy_example], &[]).unwrap();
 
     let _ = fuzz_data.run_with_runtime(PROGRAM_ID_DUMMY_EXAMPLE, &mut client);
 }
