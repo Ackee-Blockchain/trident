@@ -2,10 +2,8 @@ use crate::___private::test_fuzz_generator;
 use crate::commander::{Commander, Error as CommanderError};
 
 use crate::source_code_generators::fuzz_instructions_generator;
-use crate::source_code_generators::program_client_generator;
 
 use cargo_metadata::Package;
-use convert_case::{Case, Casing};
 use fehler::{throw, throws};
 use std::{fs::File, io::prelude::*};
 use std::{
@@ -13,7 +11,6 @@ use std::{
     io,
     path::{Path, PathBuf},
 };
-use syn::ItemUse;
 use thiserror::Error;
 use tokio::fs;
 use toml::{value::Table, Value};
@@ -62,7 +59,6 @@ macro_rules! load_template {
 pub struct TestGenerator {
     pub root: PathBuf,
     pub program_packages: Vec<Package>,
-    pub use_tokens: Vec<ItemUse>,
     pub anchor_idls: Vec<Idl>,
 }
 impl Default for TestGenerator {
@@ -76,7 +72,6 @@ impl TestGenerator {
         Self {
             root: Path::new("../../").to_path_buf(),
             program_packages: Vec::default(),
-            use_tokens: Vec::default(),
             anchor_idls: Vec::default(),
         }
     }
@@ -84,27 +79,9 @@ impl TestGenerator {
         Self {
             root: Path::new(&root).to_path_buf(),
             program_packages: Vec::default(),
-            use_tokens: Vec::default(),
             anchor_idls: Vec::default(),
         }
     }
-    #[throws]
-    pub async fn generate_both(&mut self) {
-        let root_path = self.root.to_str().unwrap().to_string();
-        let commander = Commander::with_root(root_path);
-
-        commander.build_anchor_project().await?;
-
-        self.get_program_packages().await?;
-        self.load_idls()?;
-        self.get_program_client_imports().await?;
-        self.init_program_client().await?;
-        self.init_poc_tests().await?;
-        self.init_fuzz_tests().await?;
-        self.create_trident_manifest().await?;
-        self.update_gitignore(CARGO_TARGET_DIR_DEFAULT)?;
-    }
-
     #[throws]
     pub async fn generate_fuzz(&mut self) {
         let root_path = self.root.to_str().unwrap().to_string();
@@ -119,21 +96,6 @@ impl TestGenerator {
         self.update_gitignore(CARGO_TARGET_DIR_DEFAULT)?;
     }
     #[throws]
-    pub async fn generate_poc(&mut self) {
-        let root_path = self.root.to_str().unwrap().to_string();
-        let commander = Commander::with_root(root_path);
-
-        commander.build_anchor_project().await?;
-
-        self.get_program_packages().await?;
-        self.load_idls()?;
-        self.get_program_client_imports().await?;
-        self.init_program_client().await?;
-        self.init_poc_tests().await?;
-        self.create_trident_manifest().await?;
-    }
-
-    #[throws]
     pub async fn add_fuzz_test(&mut self) {
         let root_path = self.root.to_str().unwrap().to_string();
         let commander = Commander::with_root(root_path);
@@ -145,17 +107,6 @@ impl TestGenerator {
         self.add_new_fuzz_test().await?;
         self.create_trident_manifest().await?;
         self.update_gitignore(CARGO_TARGET_DIR_DEFAULT)?;
-    }
-    #[throws]
-    pub async fn build(&mut self) {
-        let root_path = self.root.to_str().unwrap().to_string();
-        let commander = Commander::with_root(root_path);
-
-        commander.build_anchor_project().await?;
-        self.get_program_packages().await?;
-        self.load_idls()?;
-        self.get_program_client_imports().await?;
-        self.add_program_client().await?;
     }
 
     #[throws]
@@ -170,39 +121,6 @@ impl TestGenerator {
     #[throws]
     async fn get_program_packages(&mut self) {
         self.program_packages = Commander::collect_program_packages().await?;
-    }
-    #[throws]
-    async fn get_program_client_imports(&mut self) {
-        let lib_path = construct_path!(self.root, PROGRAM_CLIENT_DIRECTORY, SRC_DIRECTORY, LIB);
-        if lib_path.exists() {
-            let code = fs::read_to_string(lib_path).await.unwrap_or_else(|_e| {
-                println!(
-                    "{WARNING} Unable to read [.program_client], use statements set to default"
-                );
-                String::default()
-            });
-            Commander::get_use_statements(&code, &mut self.use_tokens)?;
-        }
-        if self.use_tokens.is_empty() {
-            self.use_tokens
-                .push(syn::parse_quote! {use trident_client::prelude::*;});
-            self.use_tokens
-                .push(syn::parse_quote! {use trident_client::test::*;});
-        }
-    }
-
-    #[throws]
-    async fn init_program_client(&mut self) {
-        let cargo_path = construct_path!(self.root, PROGRAM_CLIENT_DIRECTORY, CARGO_TOML);
-        let src_path = construct_path!(self.root, PROGRAM_CLIENT_DIRECTORY, SRC_DIRECTORY);
-        let crate_path = construct_path!(self.root, PROGRAM_CLIENT_DIRECTORY);
-        let lib_path = construct_path!(self.root, PROGRAM_CLIENT_DIRECTORY, SRC_DIRECTORY, LIB);
-
-        if cargo_path.exists() && src_path.exists() && crate_path.exists() && lib_path.exists() {
-            println!("{SKIP} looks like [.program_client] is already initialized");
-        } else {
-            self.add_program_client().await?;
-        }
     }
 
     #[throws]
@@ -235,63 +153,6 @@ impl TestGenerator {
         } else {
             self.add_new_fuzz_test().await?
         }
-    }
-
-    #[throws]
-    async fn init_poc_tests(&mut self) {
-        // create reuqired paths
-
-        let poc_dir_path =
-            construct_path!(self.root, TESTS_WORKSPACE_DIRECTORY, POC_TEST_DIRECTORY);
-        let new_poc_test_dir = construct_path!(poc_dir_path, TESTS_DIRECTORY);
-        let cargo_path = construct_path!(poc_dir_path, CARGO_TOML);
-        let poc_test_path = construct_path!(new_poc_test_dir, POC_TEST);
-
-        // if folder structure exists we skip
-        if poc_dir_path.exists()
-            && new_poc_test_dir.exists()
-            && cargo_path.exists()
-            && poc_test_path.exists()
-        {
-            println!("{SKIP} looks like [PoC] Tests are already initialized");
-        } else {
-            self.add_new_poc_test().await?;
-        }
-    }
-
-    #[throws]
-    async fn add_new_poc_test(&self) {
-        let program_name = if !&self.anchor_idls.is_empty() {
-            let name = &self.anchor_idls.first().unwrap().metadata.name;
-            name.to_case(Case::Snake)
-        } else {
-            throw!(Error::NoProgramsFound)
-        };
-        let poc_dir_path =
-            construct_path!(self.root, TESTS_WORKSPACE_DIRECTORY, POC_TEST_DIRECTORY);
-        let new_poc_test_dir = construct_path!(poc_dir_path, TESTS_DIRECTORY);
-        let cargo_path = construct_path!(poc_dir_path, CARGO_TOML);
-        let poc_test_path = construct_path!(new_poc_test_dir, POC_TEST);
-
-        self.create_directory_all(&new_poc_test_dir).await?;
-        let cargo_toml_content = load_template!("/src/templates/trident-tests/Cargo_poc.toml.tmpl");
-        self.create_file(&cargo_path, cargo_toml_content).await?;
-
-        let poc_test_content = load_template!("/src/templates/trident-tests/test.rs");
-        let test_content = poc_test_content.replace("###PROGRAM_NAME###", &program_name);
-        let use_instructions = format!("use program_client::{}_instruction::*;\n", program_name);
-        let template = format!("{use_instructions}{test_content}");
-
-        self.create_file(&poc_test_path, &template).await?;
-
-        // add poc test to the workspace virtual manifest
-        self.add_workspace_member(&format!("{TESTS_WORKSPACE_DIRECTORY}/{POC_TEST_DIRECTORY}",))
-            .await?;
-
-        // add program dev-dependencies into the poc tests Cargo
-        // dev-deps are ok as they are used with the cargo test
-        self.add_program_dependencies(&poc_dir_path, "dev-dependencies", None)
-            .await?;
     }
 
     #[throws]
@@ -387,35 +248,6 @@ impl TestGenerator {
     }
 
     #[throws]
-    async fn add_program_client(&self) {
-        let cargo_path = construct_path!(self.root, PROGRAM_CLIENT_DIRECTORY, CARGO_TOML);
-        let src_path = construct_path!(self.root, PROGRAM_CLIENT_DIRECTORY, SRC_DIRECTORY);
-        let crate_path = construct_path!(self.root, PROGRAM_CLIENT_DIRECTORY);
-        let lib_path = construct_path!(self.root, PROGRAM_CLIENT_DIRECTORY, SRC_DIRECTORY, LIB);
-
-        self.create_directory_all(&src_path).await?;
-
-        // load template
-        let cargo_toml_content = load_template!("/src/templates/program_client/Cargo.toml.tmpl");
-
-        // if path exists the file will not be overwritten
-        self.create_file(&cargo_path, cargo_toml_content).await?;
-
-        self.add_program_dependencies(&crate_path, "dependencies", Some(vec!["no-entrypoint"]))
-            .await?;
-
-        let program_client =
-            program_client_generator::generate_source_code(&self.anchor_idls, &self.use_tokens);
-        let program_client = Commander::format_program_code(&program_client).await?;
-
-        if lib_path.exists() {
-            self.update_file(&lib_path, &program_client).await?;
-        } else {
-            self.create_file(&lib_path, &program_client).await?;
-        }
-    }
-
-    #[throws]
     async fn create_trident_manifest(&self) {
         let trident_toml_path = construct_path!(self.root, TRIDENT_TOML);
         let trident_toml_content = load_template!("/src/templates/Trident.toml.tmpl");
@@ -484,21 +316,6 @@ impl TestGenerator {
             }
         };
     }
-    #[throws]
-    async fn update_file(&self, path: &PathBuf, content: &str) {
-        let file = path.strip_prefix(&self.root).unwrap().to_str().unwrap();
-        match path.exists() {
-            true => {
-                fs::write(path, content).await?;
-                println!("{FINISH} [{file}] updated");
-            }
-            false => {
-                fs::write(path, content).await?;
-                println!("{FINISH} [{file}] created");
-            }
-        };
-    }
-
     #[throws]
     fn update_gitignore(&self, ignored_path: &str) {
         let gitignore_path = construct_path!(self.root, GIT_IGNORE);
