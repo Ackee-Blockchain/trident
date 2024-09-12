@@ -19,30 +19,6 @@ pub enum Error {
 }
 
 #[derive(Debug, Deserialize, Clone)]
-pub struct Test {
-    pub validator_startup_timeout: u64,
-}
-#[derive(Default, Debug, Deserialize, Clone)]
-struct _Test {
-    #[serde(default)]
-    pub validator_startup_timeout: Option<u64>,
-}
-impl Default for Test {
-    fn default() -> Self {
-        Self {
-            validator_startup_timeout: 10_000,
-        }
-    }
-}
-impl From<_Test> for Test {
-    fn from(_t: _Test) -> Self {
-        Self {
-            validator_startup_timeout: _t.validator_startup_timeout.unwrap_or(10_000),
-        }
-    }
-}
-
-#[derive(Debug, Deserialize, Clone)]
 pub struct Cfg {
     pub cfg_identifier: String,
     pub val: bool,
@@ -309,15 +285,12 @@ impl HonggFuzzArg {
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct Config {
-    pub test: Test,
     pub honggfuzz: HonggFuzz,
     pub fuzz: Fuzz,
 }
 
 #[derive(Default, Debug, Deserialize, Clone)]
 struct _Config {
-    #[serde(default)]
-    pub test: Option<_Test>,
     #[serde(default)]
     pub honggfuzz: Option<_HonggFuzz>,
     #[serde(default)]
@@ -327,7 +300,6 @@ struct _Config {
 impl From<_Config> for Config {
     fn from(_c: _Config) -> Self {
         Self {
-            test: _c.test.unwrap_or_default().into(),
             honggfuzz: _c.honggfuzz.unwrap_or_default().into(),
             fuzz: _c.fuzz.unwrap_or_default().into(),
         }
@@ -465,7 +437,6 @@ mod tests {
     #[test]
     fn test_merge_and_precedence1() {
         let config = Config {
-            test: Test::default(),
             honggfuzz: HonggFuzz::default(),
             fuzz: Fuzz::default(),
         };
@@ -479,7 +450,6 @@ mod tests {
     #[test]
     fn test_merge_and_precedence2() {
         let config = Config {
-            test: Test::default(),
             honggfuzz: HonggFuzz::default(),
             fuzz: Fuzz::default(),
         };
@@ -494,7 +464,6 @@ mod tests {
     #[test]
     fn test_merge_and_precedence3() {
         let config = Config {
-            test: Test::default(),
             honggfuzz: HonggFuzz::default(),
             fuzz: Fuzz::default(),
         };
@@ -508,7 +477,6 @@ mod tests {
     #[test]
     fn test_merge_and_precedence4() {
         let config = Config {
-            test: Test::default(),
             honggfuzz: HonggFuzz::default(),
             fuzz: Fuzz::default(),
         };
@@ -522,7 +490,6 @@ mod tests {
     #[test]
     fn test_merge_and_precedence5() {
         let config = Config {
-            test: Test::default(),
             honggfuzz: HonggFuzz::default(),
             fuzz: Fuzz::default(),
         };
@@ -536,7 +503,6 @@ mod tests {
     #[test]
     fn test_obtain_env_variables() {
         let config = Config {
-            test: Test::default(),
             honggfuzz: HonggFuzz::default(),
             fuzz: Fuzz::default(),
         };
@@ -550,7 +516,6 @@ mod tests {
     #[test]
     fn test_obtain_env_variables2() {
         let mut config = Config {
-            test: Test::default(),
             honggfuzz: HonggFuzz::default(),
             fuzz: Fuzz::default(),
         };
@@ -575,7 +540,6 @@ mod tests {
     #[test]
     fn test_obtain_rustflags_variable1() {
         let config = Config {
-            test: Test::default(),
             honggfuzz: HonggFuzz::default(),
             fuzz: Fuzz::default(),
         };
@@ -588,7 +552,6 @@ mod tests {
     #[test]
     fn test_obtain_rustflags_variable2() {
         let config = Config {
-            test: Test::default(),
             honggfuzz: HonggFuzz::default(),
             fuzz: Fuzz {
                 rust_flags: vec![Cfg {
@@ -606,7 +569,6 @@ mod tests {
     #[test]
     fn test_obtain_rustflags_variable3() {
         let config = Config {
-            test: Test::default(),
             honggfuzz: HonggFuzz::default(),
             fuzz: Fuzz {
                 rust_flags: vec![
@@ -630,7 +592,6 @@ mod tests {
     #[test]
     fn test_obtain_rustflags_variable4() {
         let config = Config {
-            test: Test::default(),
             honggfuzz: HonggFuzz::default(),
             fuzz: Fuzz {
                 rust_flags: vec![Cfg {

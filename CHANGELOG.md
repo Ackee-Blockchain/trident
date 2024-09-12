@@ -11,8 +11,12 @@ incremented upon a breaking change and the patch version will be incremented for
 ## [dev] - Unreleased
 
 **Changed**
+
 - feat/ option to add account into Fuzz Test environment with base64 data ([197](https://github.com/Ackee-Blockchain/trident/pull/197))
-- impr/ instead of parsing source code and creating our IDL, read anchor IDL ([196](https://github.com/Ackee-Blockchain/trident/pull/196))
+- impr/ instead of parsing source code and creating our IDL, read anchor IDL ([198](https://github.com/Ackee-Blockchain/trident/pull/196))
+
+**Removed**
+- del/remove integration tests supported by Trident, this feature adds more unnecessary overhead compared to its value ([196](https://github.com/Ackee-Blockchain/trident/pull/198))
 
 ## [0.7.0] - 2024-08-14
 

@@ -1,15 +1,12 @@
 use anyhow::Error;
 use anyhow::{Context, Result};
 use clap::{Parser, Subcommand};
-use command::TestsType;
 use fehler::throws;
 
 // subcommand functions to call and nested subcommands
 mod command;
 // bring nested subcommand enums into scope
 use command::FuzzCommand;
-
-use command::KeyPairCommand;
 
 #[derive(Parser)]
 #[clap(version, propagate_version = true)]
@@ -20,23 +17,6 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Command {
-    /// Create or update a `program_client` crate
-    Build {
-        /// Anchor project root
-        #[clap(short, long)]
-        root: Option<String>,
-    },
-    /// Get information about a keypair
-    KeyPair {
-        #[clap(subcommand)]
-        subcmd: KeyPairCommand,
-    },
-    /// Run program Integration tests
-    Test {
-        /// Anchor project root
-        #[clap(short, long)]
-        root: Option<String>,
-    },
     /// Run and debug Fuzz tests
     Fuzz {
         /// Anchor project root
@@ -46,11 +26,7 @@ enum Command {
         subcmd: FuzzCommand,
     },
     /// Initialize test environment
-    Init {
-        /// Specifies the types of tests for which the frameworks should be initialized.
-        #[clap(default_value = "fuzz")]
-        tests_type: TestsType,
-    },
+    Init,
     /// Removes target contents except for KeyPair and removes hfuzz_target folder
     Clean,
 }
@@ -60,11 +36,8 @@ pub async fn start() {
     let cli = Cli::parse();
 
     match cli.command {
-        Command::Build { root } => command::build(root).await?,
-        Command::KeyPair { subcmd } => command::keypair(subcmd)?,
-        Command::Test { root } => command::test(root).await?,
         Command::Fuzz { root, subcmd } => command::fuzz(root, subcmd).await?,
-        Command::Init { tests_type } => command::init(tests_type).await?,
+        Command::Init => command::init().await?,
         Command::Clean => command::clean().await?,
     }
 }

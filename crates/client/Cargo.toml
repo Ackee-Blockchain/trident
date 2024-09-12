@@ -20,24 +20,17 @@ trident-derive-fuzz-deserialize = { path = "../fuzz/derive/fuzz_deserialize", ve
 trident-derive-fuzz-test-executor = { path = "../fuzz/derive/fuzz_test_executor", version = "0.0.2" }
 trident-derive-accounts-snapshots = { path = "../fuzz/derive/accounts_snapshots", version = "0.0.1" }
 
-trident-test = { path = "../test", version = "0.3.3" }
 trident-fuzz = { path = "../fuzz", version = "0.1.0" }
 
 # ANCHOR
 # INFO: Anchor-spl is here as dependency only to activate the idl-build feature, so that
 # users do not have to do it manually in their program's Cargo.toml
 anchor-lang = { workspace = true, features = ["init-if-needed"] }
-anchor-client = { workspace = true, features = ["async"] }
 anchor-syn = { workspace = true }
 anchor-lang-idl-spec = { workspace = true }
 
 # SOLANA
 solana-sdk = { workspace = true }
-solana-cli-output = { workspace = true }
-solana-transaction-status = { workspace = true }
-solana-account-decoder = { workspace = true }
-spl-token = { workspace = true }
-spl-associated-token-account = { workspace = true }
 solana-program-test = { workspace = true }
 
 
@@ -48,7 +41,6 @@ arbitrary = { version = "1.3.0", features = ["derive"] }
 
 
 # MISC
-shellexpand = "3.1.0"
 tokio = "1"
 serde_json = "1.0.72"
 serde = { version = "1.0.136", default-features = false }
@@ -57,16 +49,12 @@ borsh = "0.10.3"
 futures = "0.3.18"
 fehler = "1.0.0"
 thiserror = "1.0.30"
-ed25519-dalek = "1.0.1"
-serial_test = "2.0.0"
 anyhow = "1.0.45"
 cargo_metadata = "0.17.0"
 syn = { version = "1.0.109", features = ["visit"] }
 quote = "1.0.14"
-heck = { version = "0.4.0", default-features = false }
 toml = { version = "0.5.8", features = ["preserve_order"] }
 log = "0.4"
-rstest = "0.18.1"
 proc-macro2 = { version = "1.0.66", default-features = false }
 quinn-proto = { version = "0.10.6", features = ["arbitrary"] }
 pathdiff = "0.2.1"

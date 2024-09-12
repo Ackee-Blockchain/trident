@@ -34,17 +34,6 @@ nav:
         - fuzzing/extra/examples.md
         - fuzzing/extra/lifecycle.md
         - fuzzing/extra/current-limitations.md
-  - Integration Tests:
-      - integration-tests/poc-introduction.md
-      - Initialization:
-          - integration-tests/initialization/poc-initialization-poc.md
-          - integration-tests/initialization/poc-initialization-program-client.md
-          - integration-tests/initialization/poc-initialization-all.md
-      - How-To write Integration Test:
-          - integration-tests/howto/poc-howto-p0.md
-          - integration-tests/howto/poc-howto-p1.md
-      - integration-tests/poc-run.md
-      - integration-tests/poc-examples.md
   - CHANGELOG.md
 
 # Beware this is strongly dependent on names of folders , example:
