@@ -64,6 +64,9 @@ pub mod incorrect_integer_arithmetic_3_fuzz_instructions {
         type IxData = incorrect_integer_arithmetic_3::instruction::InitVesting;
         type IxAccounts = FuzzAccounts;
         type IxSnapshot = InitVestingSnapshot<'info>;
+        fn get_program_id(&self) -> solana_sdk::pubkey::Pubkey {
+            incorrect_integer_arithmetic_3::ID
+        }
         fn get_data(
             &self,
             client: &mut impl FuzzClient,
@@ -163,6 +166,9 @@ pub mod incorrect_integer_arithmetic_3_fuzz_instructions {
         type IxData = incorrect_integer_arithmetic_3::instruction::WithdrawUnlocked;
         type IxAccounts = FuzzAccounts;
         type IxSnapshot = WithdrawUnlockedSnapshot<'info>;
+        fn get_program_id(&self) -> solana_sdk::pubkey::Pubkey {
+            incorrect_integer_arithmetic_3::ID
+        }
         fn get_data(
             &self,
             _client: &mut impl FuzzClient,

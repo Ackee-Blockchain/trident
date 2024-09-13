@@ -79,6 +79,9 @@ pub mod incorrect_ix_sequence_1_fuzz_instructions {
         type IxData = incorrect_ix_sequence_1::instruction::EndRegistrations;
         type IxAccounts = FuzzAccounts;
         type IxSnapshot = EndRegistrationsSnapshot<'info>;
+        fn get_program_id(&self) -> solana_sdk::pubkey::Pubkey {
+            incorrect_ix_sequence_1::ID
+        }
         fn get_data(
             &self,
             _client: &mut impl FuzzClient,
@@ -119,6 +122,9 @@ pub mod incorrect_ix_sequence_1_fuzz_instructions {
         type IxData = incorrect_ix_sequence_1::instruction::Initialize;
         type IxAccounts = FuzzAccounts;
         type IxSnapshot = InitializeSnapshot<'info>;
+        fn get_program_id(&self) -> solana_sdk::pubkey::Pubkey {
+            incorrect_ix_sequence_1::ID
+        }
         fn get_data(
             &self,
             _client: &mut impl FuzzClient,
@@ -161,6 +167,9 @@ pub mod incorrect_ix_sequence_1_fuzz_instructions {
         type IxData = incorrect_ix_sequence_1::instruction::Invest;
         type IxAccounts = FuzzAccounts;
         type IxSnapshot = InvestSnapshot<'info>;
+        fn get_program_id(&self) -> solana_sdk::pubkey::Pubkey {
+            incorrect_ix_sequence_1::ID
+        }
         fn get_data(
             &self,
             _client: &mut impl FuzzClient,
@@ -225,6 +234,9 @@ pub mod incorrect_ix_sequence_1_fuzz_instructions {
         type IxData = incorrect_ix_sequence_1::instruction::Register;
         type IxAccounts = FuzzAccounts;
         type IxSnapshot = RegisterSnapshot<'info>;
+        fn get_program_id(&self) -> solana_sdk::pubkey::Pubkey {
+            incorrect_ix_sequence_1::ID
+        }
         fn get_data(
             &self,
             _client: &mut impl FuzzClient,

@@ -25,7 +25,7 @@ impl FuzzDataBuilder<FuzzInstruction> for MyFuzzData {
         let withdraw_ix = FuzzInstruction::WithdrawUnlocked(WithdrawUnlocked::arbitrary(u)?);
         Ok(vec![withdraw_ix])
     }
-    fn post_ixs(u: &mut arbitrary::Unstructured) -> arbitrary::Result<Vec<FuzzInstruction>> {
+    fn post_ixs(_u: &mut arbitrary::Unstructured) -> arbitrary::Result<Vec<FuzzInstruction>> {
         Ok(vec![])
     }
 }
@@ -40,7 +40,7 @@ fn fuzz_iteration<T: FuzzTestExecutor<U> + std::fmt::Display, U>(fuzz_data: Fuzz
     let mut client =
         ProgramTestClientBlocking::new(&[fuzzing_program_arbitrary_limit_inputs_5], &[]).unwrap();
 
-    let _ = fuzz_data.run_with_runtime(PROGRAM_ID_ARBITRARY_LIMIT_INPUTS_5, &mut client);
+    let _ = fuzz_data.run_with_runtime(&mut client);
 }
 
 fn main() {

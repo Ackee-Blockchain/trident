@@ -10,6 +10,10 @@ incremented upon a breaking change and the patch version will be incremented for
 
 ## [dev] - Unreleased
 
+**Added**
+
+- impr/ added get_program_id function to the IxOps and FuzzTestExecutor ([199](https://github.com/Ackee-Blockchain/trident/pull/199))
+
 **Changed**
 
 - feat/ option to add account into Fuzz Test environment with base64 data ([197](https://github.com/Ackee-Blockchain/trident/pull/197))

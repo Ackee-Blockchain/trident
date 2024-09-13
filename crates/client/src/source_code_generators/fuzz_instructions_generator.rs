@@ -208,7 +208,9 @@ fn get_instruction_ixops(
                     type IxData = #module_name::instruction::#instruction_ident_name;
                     type IxAccounts = FuzzAccounts;
                     type IxSnapshot = #ix_snapshot<'info>;
-
+                    fn get_program_id(&self) -> solana_sdk::pubkey::Pubkey {
+                        #module_name::ID
+                    }
                     fn get_data(
                         &self,
                         _client: &mut impl FuzzClient,

@@ -34,6 +34,9 @@ pub mod cpi_metaplex_7_fuzz_instructions {
         type IxData = cpi_metaplex_7::instruction::Initialize;
         type IxAccounts = FuzzAccounts;
         type IxSnapshot = InitializeSnapshot<'info>;
+        fn get_program_id(&self) -> solana_sdk::pubkey::Pubkey {
+            cpi_metaplex_7::ID
+        }
         fn get_data(
             &self,
             _client: &mut impl FuzzClient,

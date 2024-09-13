@@ -16,6 +16,10 @@ pub trait IxOps<'info> {
     /// The structure to which the instruction accounts will be deserialized
     type IxSnapshot;
 
+    /// Specify Program ID to which the Instruction corresponds. This is particularly helpful when using multiple
+    /// programs in the workspace, to differentiate between possible program calls.
+    fn get_program_id(&self) -> solana_sdk::pubkey::Pubkey;
+
     /// Provides instruction data for the fuzzed instruction.
     /// It is assumed that the instruction data will be based on the fuzzer input stored in the `self.data` variable.
     /// However it is on the developer to decide and it can be also for example a hardcoded constant.
