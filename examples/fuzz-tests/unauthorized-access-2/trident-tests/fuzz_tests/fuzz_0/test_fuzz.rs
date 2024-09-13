@@ -1,16 +1,13 @@
-use fuzz_instructions::unauthorized_access_2_fuzz_instructions::Initialize;
+use fuzz_instructions::Initialize;
 use trident_client::fuzzing::*;
 
 mod fuzz_instructions;
 
+use fuzz_instructions::FuzzInstruction;
 use unauthorized_access_2::entry as entry_unauthorized_access_2;
 use unauthorized_access_2::ID as PROGRAM_ID_UNAUTHORIZED_ACCESS_2;
 
 const PROGRAM_NAME_UNAUTHORIZED_ACCESS_2: &str = "unauthorized_access_2";
-
-use fuzz_instructions::unauthorized_access_2_fuzz_instructions::FuzzInstruction as fuzz_instruction_unauthorized_access_2;
-
-pub type FuzzInstruction = fuzz_instruction_unauthorized_access_2;
 
 struct MyFuzzData;
 

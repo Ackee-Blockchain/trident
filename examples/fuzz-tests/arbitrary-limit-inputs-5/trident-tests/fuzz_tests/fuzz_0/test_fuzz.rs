@@ -1,17 +1,14 @@
-use fuzz_instructions::arbitrary_limit_inputs_5_fuzz_instructions::InitVesting;
-use fuzz_instructions::arbitrary_limit_inputs_5_fuzz_instructions::WithdrawUnlocked;
+use fuzz_instructions::InitVesting;
+use fuzz_instructions::WithdrawUnlocked;
 use trident_client::fuzzing::*;
 
 mod fuzz_instructions;
 
 use arbitrary_limit_inputs_5::entry as entry_arbitrary_limit_inputs_5;
 use arbitrary_limit_inputs_5::ID as PROGRAM_ID_ARBITRARY_LIMIT_INPUTS_5;
+use fuzz_instructions::FuzzInstruction;
 
 const PROGRAM_NAME_ARBITRARY_LIMIT_INPUTS_5: &str = "arbitrary_limit_inputs_5";
-
-use fuzz_instructions::arbitrary_limit_inputs_5_fuzz_instructions::FuzzInstruction as fuzz_instruction_arbitrary_limit_inputs_5;
-
-pub type FuzzInstruction = fuzz_instruction_arbitrary_limit_inputs_5;
 
 struct MyFuzzData;
 

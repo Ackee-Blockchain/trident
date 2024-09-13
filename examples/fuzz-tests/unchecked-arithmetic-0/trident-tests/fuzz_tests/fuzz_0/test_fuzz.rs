@@ -1,17 +1,14 @@
-use fuzz_instructions::unchecked_arithmetic_0_fuzz_instructions::Initialize;
-use fuzz_instructions::unchecked_arithmetic_0_fuzz_instructions::Update;
+use fuzz_instructions::Initialize;
+use fuzz_instructions::Update;
 use trident_client::fuzzing::*;
 
 mod fuzz_instructions;
 
+use fuzz_instructions::FuzzInstruction;
 use unchecked_arithmetic_0::entry as entry_unchecked_arithmetic_0;
 use unchecked_arithmetic_0::ID as PROGRAM_ID_UNCHECKED_ARITHMETIC_0;
 
 const PROGRAM_NAME_UNCHECKED_ARITHMETIC_0: &str = "unchecked_arithmetic_0";
-
-use fuzz_instructions::unchecked_arithmetic_0_fuzz_instructions::FuzzInstruction as fuzz_instruction_unchecked_arithmetic_0;
-
-pub type FuzzInstruction = fuzz_instruction_unchecked_arithmetic_0;
 
 struct MyFuzzData;
 

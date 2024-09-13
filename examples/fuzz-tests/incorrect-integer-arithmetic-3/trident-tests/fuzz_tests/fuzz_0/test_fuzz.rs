@@ -1,16 +1,13 @@
-use fuzz_instructions::incorrect_integer_arithmetic_3_fuzz_instructions::InitVesting;
+use fuzz_instructions::InitVesting;
 use trident_client::fuzzing::*;
 
 mod fuzz_instructions;
 
+use fuzz_instructions::FuzzInstruction;
 use incorrect_integer_arithmetic_3::entry as entry_incorrect_integer_arithmetic_3;
 use incorrect_integer_arithmetic_3::ID as PROGRAM_ID_INCORRECT_INTEGER_ARITHMETIC_3;
 
 const PROGRAM_NAME_INCORRECT_INTEGER_ARITHMETIC_3: &str = "incorrect_integer_arithmetic_3";
-
-use fuzz_instructions::incorrect_integer_arithmetic_3_fuzz_instructions::FuzzInstruction as fuzz_instruction_incorrect_integer_arithmetic_3;
-
-pub type FuzzInstruction = fuzz_instruction_incorrect_integer_arithmetic_3;
 
 struct MyFuzzData;
 

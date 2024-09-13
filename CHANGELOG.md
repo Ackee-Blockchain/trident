@@ -16,6 +16,7 @@ incremented upon a breaking change and the patch version will be incremented for
 
 **Changed**
 
+- impr/ allow various instructions to be generated in case of multiple programs in the Anchor workspace ([200](https://github.com/Ackee-Blockchain/trident/pull/200))
 - feat/ option to add account into Fuzz Test environment with base64 data ([197](https://github.com/Ackee-Blockchain/trident/pull/197))
 - impr/ instead of parsing source code and creating our IDL, read anchor IDL ([198](https://github.com/Ackee-Blockchain/trident/pull/196))
 
