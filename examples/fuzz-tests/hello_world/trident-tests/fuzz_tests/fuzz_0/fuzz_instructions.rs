@@ -28,6 +28,9 @@ pub mod hello_world_fuzz_instructions {
         type IxData = hello_world::instruction::InitializeFn;
         type IxAccounts = FuzzAccounts;
         type IxSnapshot = InitializeFnSnapshot<'info>;
+        fn get_program_id(&self) -> solana_sdk::pubkey::Pubkey {
+            hello_world::ID
+        }
         fn get_data(
             &self,
             _client: &mut impl FuzzClient,

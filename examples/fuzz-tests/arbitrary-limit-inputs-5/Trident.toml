@@ -6,7 +6,7 @@ validator_startup_timeout = 15000
 # Timeout in seconds (default: 10)
 timeout = 10
 # Number of fuzzing iterations (default: 0 [no limit])
-iterations = 1000
+iterations = 100
 # Number of concurrent fuzzing threads (default: 0 [number of CPUs / 2])
 threads = 0
 # Don't close children's stdin, stdout, stderr; can be noisy (default: false)

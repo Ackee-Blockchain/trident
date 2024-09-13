@@ -46,6 +46,9 @@ pub mod unauthorized_access_2_fuzz_instructions {
         type IxData = unauthorized_access_2::instruction::Initialize;
         type IxAccounts = FuzzAccounts;
         type IxSnapshot = InitializeSnapshot<'info>;
+        fn get_program_id(&self) -> solana_sdk::pubkey::Pubkey {
+            unauthorized_access_2::ID
+        }
         fn get_data(
             &self,
             client: &mut impl FuzzClient,
@@ -104,6 +107,9 @@ pub mod unauthorized_access_2_fuzz_instructions {
         type IxData = unauthorized_access_2::instruction::Withdraw;
         type IxAccounts = FuzzAccounts;
         type IxSnapshot = WithdrawSnapshot<'info>;
+        fn get_program_id(&self) -> solana_sdk::pubkey::Pubkey {
+            unauthorized_access_2::ID
+        }
         fn get_data(
             &self,
             _client: &mut impl FuzzClient,

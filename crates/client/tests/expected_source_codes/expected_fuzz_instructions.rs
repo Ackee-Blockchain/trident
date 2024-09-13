@@ -54,6 +54,9 @@ pub mod dummy_example_fuzz_instructions {
         type IxData = dummy_example::instruction::InitializeIx;
         type IxAccounts = FuzzAccounts;
         type IxSnapshot = InitializeIxSnapshot<'info>;
+        fn get_program_id(&self) -> solana_sdk::pubkey::Pubkey {
+            dummy_example::ID
+        }
         fn get_data(
             &self,
             _client: &mut impl FuzzClient,

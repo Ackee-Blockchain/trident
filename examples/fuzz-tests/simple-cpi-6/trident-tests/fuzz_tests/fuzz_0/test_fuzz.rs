@@ -36,7 +36,7 @@ fn fuzz_iteration<T: FuzzTestExecutor<U> + std::fmt::Display, U>(fuzz_data: Fuzz
         ProgramTestClientBlocking::new(&[fuzzing_program_callee, fuzzing_program_caller], &[])
             .unwrap();
 
-    let _ = fuzz_data.run_with_runtime(PROGRAM_ID_CALLER, &mut client);
+    let _ = fuzz_data.run_with_runtime(&mut client);
 }
 
 fn main() {

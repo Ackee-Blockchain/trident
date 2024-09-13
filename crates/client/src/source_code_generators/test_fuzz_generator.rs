@@ -23,20 +23,6 @@ pub fn generate_source_code(idl_instructions: &[Idl]) -> String {
         ),
     };
 
-    let run_with_runtime: syn::Stmt = match fuzz_instructions.len() {
-        1 => {
-            let program_name_upper = idl_instructions[0].metadata.name.to_case(Case::UpperSnake);
-            let program_id_name_ident = format_ident!("PROGRAM_ID_{}", program_name_upper);
-
-            parse_quote!(
-                let _ = fuzz_data.run_with_runtime(#program_id_name_ident, &mut client);
-            )
-        }
-        _ => parse_quote!(
-            let _ = fuzz_data.run_with_runtime(todo!(), &mut client);
-        ),
-    };
-
     let test_fuzz_definition: syn::File = parse_quote! {
         use trident_client::fuzzing::*;
         mod fuzz_instructions;
@@ -60,8 +46,7 @@ pub fn generate_source_code(idl_instructions: &[Idl]) -> String {
 
             let mut client = ProgramTestClientBlocking::new(&#programs_array,&[]).unwrap();
 
-            #run_with_runtime
-
+            let _ = fuzz_data.run_with_runtime(&mut client);
 
         }
 
