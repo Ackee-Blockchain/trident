@@ -26,6 +26,9 @@ pub mod caller_fuzz_instructions {
         type IxData = caller::instruction::InitializeCaller;
         type IxAccounts = FuzzAccounts;
         type IxSnapshot = InitializeCallerSnapshot<'info>;
+        fn get_program_id(&self) -> solana_sdk::pubkey::Pubkey {
+            caller::ID
+        }
         fn get_data(
             &self,
             _client: &mut impl FuzzClient,

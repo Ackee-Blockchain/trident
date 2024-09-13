@@ -44,6 +44,9 @@ pub mod unchecked_arithmetic_0_fuzz_instructions {
         type IxData = unchecked_arithmetic_0::instruction::Initialize;
         type IxAccounts = FuzzAccounts;
         type IxSnapshot = InitializeSnapshot<'info>;
+        fn get_program_id(&self) -> solana_sdk::pubkey::Pubkey {
+            unchecked_arithmetic_0::ID
+        }
         fn get_data(
             &self,
             _client: &mut impl FuzzClient,
@@ -81,6 +84,9 @@ pub mod unchecked_arithmetic_0_fuzz_instructions {
         type IxData = unchecked_arithmetic_0::instruction::Update;
         type IxAccounts = FuzzAccounts;
         type IxSnapshot = UpdateSnapshot<'info>;
+        fn get_program_id(&self) -> solana_sdk::pubkey::Pubkey {
+            unchecked_arithmetic_0::ID
+        }
         fn get_data(
             &self,
             _client: &mut impl FuzzClient,

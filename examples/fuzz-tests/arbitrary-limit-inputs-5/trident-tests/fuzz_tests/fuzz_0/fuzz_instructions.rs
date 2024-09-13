@@ -114,6 +114,9 @@ pub mod arbitrary_limit_inputs_5_fuzz_instructions {
         type IxData = arbitrary_limit_inputs_5::instruction::InitVesting;
         type IxAccounts = FuzzAccounts;
         type IxSnapshot = InitVestingSnapshot<'info>;
+        fn get_program_id(&self) -> solana_sdk::pubkey::Pubkey {
+            arbitrary_limit_inputs_5::ID
+        }
         fn get_data(
             &self,
             client: &mut impl FuzzClient,
@@ -212,6 +215,9 @@ pub mod arbitrary_limit_inputs_5_fuzz_instructions {
         type IxData = arbitrary_limit_inputs_5::instruction::WithdrawUnlocked;
         type IxAccounts = FuzzAccounts;
         type IxSnapshot = WithdrawUnlockedSnapshot<'info>;
+        fn get_program_id(&self) -> solana_sdk::pubkey::Pubkey {
+            arbitrary_limit_inputs_5::ID
+        }
         fn get_data(
             &self,
             _client: &mut impl FuzzClient,

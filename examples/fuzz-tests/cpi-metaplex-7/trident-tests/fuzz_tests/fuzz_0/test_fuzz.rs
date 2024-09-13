@@ -39,7 +39,7 @@ fn fuzz_iteration<T: FuzzTestExecutor<U> + std::fmt::Display, U>(fuzz_data: Fuzz
     let mut client =
         ProgramTestClientBlocking::new(&[fuzzing_program_cpi_metaplex_7, metaplex], &[]).unwrap();
 
-    let _ = fuzz_data.run_with_runtime(PROGRAM_ID_CPI_METAPLEX_7, &mut client);
+    let _ = fuzz_data.run_with_runtime(&mut client);
 }
 
 fn main() {

@@ -45,6 +45,9 @@ pub mod arbitrary_custom_types_4_fuzz_instructions {
         type IxData = arbitrary_custom_types_4::instruction::Initialize;
         type IxAccounts = FuzzAccounts;
         type IxSnapshot = InitializeSnapshot<'info>;
+        fn get_program_id(&self) -> solana_sdk::pubkey::Pubkey {
+            arbitrary_custom_types_4::ID
+        }
         fn get_data(
             &self,
             _client: &mut impl FuzzClient,
@@ -82,6 +85,9 @@ pub mod arbitrary_custom_types_4_fuzz_instructions {
         type IxData = arbitrary_custom_types_4::instruction::Update;
         type IxAccounts = FuzzAccounts;
         type IxSnapshot = UpdateSnapshot<'info>;
+        fn get_program_id(&self) -> solana_sdk::pubkey::Pubkey {
+            arbitrary_custom_types_4::ID
+        }
         fn get_data(
             &self,
             _client: &mut impl FuzzClient,

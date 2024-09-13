@@ -13,6 +13,8 @@ pub fn fuzz_test_executor(input: TokenStream) -> TokenStream {
                 let variant_name = &variant.ident;
                 quote! {
                     #enum_name::#variant_name (ix) => {
+                        let program_id = ix.get_program_id();
+
                         let (mut signers, metas) = ix.get_accounts(client, &mut accounts.borrow_mut())
                             .map_err(|e| e.with_origin(Origin::Instruction(self.to_context_string())))
                             .expect("Accounts calculation expect");
@@ -99,7 +101,6 @@ pub fn fuzz_test_executor(input: TokenStream) -> TokenStream {
                impl FuzzTestExecutor<FuzzAccounts> for FuzzInstruction {
                    fn run_fuzzer(
                        &self,
-                       program_id: Pubkey,
                        accounts: &RefCell<FuzzAccounts>,
                        client: &mut impl FuzzClient,
                        sent_txs: &mut HashMap<Hash, ()>,
