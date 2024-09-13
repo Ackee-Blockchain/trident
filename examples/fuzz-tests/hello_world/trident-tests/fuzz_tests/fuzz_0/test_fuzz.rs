@@ -2,14 +2,11 @@ use trident_client::fuzzing::*;
 
 mod fuzz_instructions;
 
+use fuzz_instructions::FuzzInstruction;
 use hello_world::entry as entry_hello_world;
 use hello_world::ID as PROGRAM_ID_HELLO_WORLD;
 
 const PROGRAM_NAME_HELLO_WORLD: &str = "hello_world";
-
-use fuzz_instructions::hello_world_fuzz_instructions::FuzzInstruction as fuzz_instruction_hello_world;
-
-pub type FuzzInstruction = fuzz_instruction_hello_world;
 
 struct MyFuzzData;
 

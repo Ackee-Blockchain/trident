@@ -6,34 +6,16 @@ use syn::parse_quote;
 pub fn generate_source_code(idl_instructions: &[Idl]) -> String {
     let program_imports = get_program_imports(idl_instructions);
     let program_names = get_program_names(idl_instructions);
-    let fuzz_instructions = get_fuzz_instructions(idl_instructions);
     let (fuzzing_programs, programs_array) = get_fuzzing_programs(idl_instructions);
-
-    let main_fuzz_instruction: syn::ItemType = match fuzz_instructions.len() {
-        1 => {
-            let program_name = idl_instructions[0].metadata.name.to_case(Case::Snake);
-            let alias = format_ident!("fuzz_instruction_{}", program_name);
-
-            parse_quote!(
-                pub type FuzzInstruction = #alias;
-            )
-        }
-        _ => parse_quote!(
-            pub type FuzzInstruction = todo!();
-        ),
-    };
 
     let test_fuzz_definition: syn::File = parse_quote! {
         use trident_client::fuzzing::*;
         mod fuzz_instructions;
+        use fuzz_instructions::FuzzInstruction;
 
         #(#program_imports)*
 
         #(#program_names)*
-
-        #(#fuzz_instructions)*
-
-        #main_fuzz_instruction
 
         struct MyFuzzData;
 
@@ -64,16 +46,6 @@ pub fn generate_source_code(idl_instructions: &[Idl]) -> String {
     };
 
     test_fuzz_definition.into_token_stream().to_string()
-}
-
-fn get_fuzz_instructions(idl_instructions: &[Idl]) -> Vec<syn::ItemUse> {
-    idl_instructions.iter().map(|idl| {
-        let program_name = idl.metadata.name.to_case(Case::Snake);
-        let fuzz_instructions_program_ident = format_ident!("{}_fuzz_instructions", program_name);
-        let alias = format_ident!("fuzz_instruction_{}", program_name);
-
-        parse_quote!(use fuzz_instructions::#fuzz_instructions_program_ident::FuzzInstruction as #alias;)
-    }).collect()
 }
 
 fn get_program_names(idl_instructions: &[Idl]) -> Vec<syn::Stmt> {

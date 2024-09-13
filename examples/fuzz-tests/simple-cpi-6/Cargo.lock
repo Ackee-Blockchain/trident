@@ -928,6 +928,8 @@ name = "callee"
 version = "0.1.0"
 dependencies = [
  "anchor-lang",
+ "trident-derive-accounts-snapshots",
+ "trident-fuzz",
 ]
 
 [[package]]

@@ -18,6 +18,7 @@ path = "../../../../../crates/client"
 
 [dependencies.callee]
 path = "../../programs/callee"
+features = ["trident-fuzzing"]
 
 [dependencies.caller]
 path = "../../programs/caller"
