@@ -84,36 +84,4 @@
          <loc>https://ackee.xyz/trident/docs/dev/getting-started/getting-started/</loc>
          <lastmod>2024-09-13</lastmod>
     </url>
-    <url>
-         <loc>https://ackee.xyz/trident/docs/dev/integration-tests/poc-examples/</loc>
-         <lastmod>2024-09-13</lastmod>
-    </url>
-    <url>
-         <loc>https://ackee.xyz/trident/docs/dev/integration-tests/poc-introduction/</loc>
-         <lastmod>2024-09-13</lastmod>
-    </url>
-    <url>
-         <loc>https://ackee.xyz/trident/docs/dev/integration-tests/poc-run/</loc>
-         <lastmod>2024-09-13</lastmod>
-    </url>
-    <url>
-         <loc>https://ackee.xyz/trident/docs/dev/integration-tests/howto/poc-howto-p0/</loc>
-         <lastmod>2024-09-13</lastmod>
-    </url>
-    <url>
-         <loc>https://ackee.xyz/trident/docs/dev/integration-tests/howto/poc-howto-p1/</loc>
-         <lastmod>2024-09-13</lastmod>
-    </url>
-    <url>
-         <loc>https://ackee.xyz/trident/docs/dev/integration-tests/initialization/poc-initialization-all/</loc>
-         <lastmod>2024-09-13</lastmod>
-    </url>
-    <url>
-         <loc>https://ackee.xyz/trident/docs/dev/integration-tests/initialization/poc-initialization-poc/</loc>
-         <lastmod>2024-09-13</lastmod>
-    </url>
-    <url>
-         <loc>https://ackee.xyz/trident/docs/dev/integration-tests/initialization/poc-initialization-program-client/</loc>
-         <lastmod>2024-09-13</lastmod>
-    </url>
 </urlset>
