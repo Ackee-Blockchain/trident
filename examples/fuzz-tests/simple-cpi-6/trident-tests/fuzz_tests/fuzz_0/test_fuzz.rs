@@ -1,3 +1,4 @@
+use fuzz_instructions::InitializeCaller;
 use trident_client::fuzzing::*;
 
 mod fuzz_instructions;
@@ -6,18 +7,26 @@ use callee::entry as entry_callee;
 use callee::ID as PROGRAM_ID_CALLEE;
 use caller::entry as entry_caller;
 use caller::ID as PROGRAM_ID_CALLER;
+use fuzz_instructions::FuzzInstruction;
 
 const PROGRAM_NAME_CALLEE: &str = "callee";
 
 const PROGRAM_NAME_CALLER: &str = "caller";
 
-use fuzz_instructions::caller_fuzz_instructions::FuzzInstruction as fuzz_instruction_caller;
-
-pub type FuzzInstruction = fuzz_instruction_caller;
-
 struct MyFuzzData;
 
-impl FuzzDataBuilder<FuzzInstruction> for MyFuzzData {}
+impl FuzzDataBuilder<FuzzInstruction> for MyFuzzData {
+    fn pre_ixs(u: &mut arbitrary::Unstructured) -> arbitrary::Result<Vec<FuzzInstruction>> {
+        let init_caller = FuzzInstruction::InitializeCaller(InitializeCaller::arbitrary(u)?);
+        Ok(vec![init_caller])
+    }
+    fn ixs(_u: &mut arbitrary::Unstructured) -> arbitrary::Result<Vec<FuzzInstruction>> {
+        Ok(vec![])
+    }
+    fn post_ixs(_u: &mut arbitrary::Unstructured) -> arbitrary::Result<Vec<FuzzInstruction>> {
+        Ok(vec![])
+    }
+}
 
 fn fuzz_iteration<T: FuzzTestExecutor<U> + std::fmt::Display, U>(fuzz_data: FuzzData<T, U>) {
     let fuzzing_program_callee = FuzzingProgram::new(

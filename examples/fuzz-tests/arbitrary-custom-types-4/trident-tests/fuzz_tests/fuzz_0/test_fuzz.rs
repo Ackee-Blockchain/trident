@@ -1,17 +1,14 @@
-use fuzz_instructions::arbitrary_custom_types_4_fuzz_instructions::Initialize;
-use fuzz_instructions::arbitrary_custom_types_4_fuzz_instructions::Update;
+use fuzz_instructions::Initialize;
+use fuzz_instructions::Update;
 use trident_client::fuzzing::*;
 
 mod fuzz_instructions;
 
 use arbitrary_custom_types_4::entry as entry_arbitrary_custom_types_4;
 use arbitrary_custom_types_4::ID as PROGRAM_ID_ARBITRARY_CUSTOM_TYPES_4;
+use fuzz_instructions::FuzzInstruction;
 
 const PROGRAM_NAME_ARBITRARY_CUSTOM_TYPES_4: &str = "arbitrary_custom_types_4";
-
-use fuzz_instructions::arbitrary_custom_types_4_fuzz_instructions::FuzzInstruction as fuzz_instruction_arbitrary_custom_types_4;
-
-pub type FuzzInstruction = fuzz_instruction_arbitrary_custom_types_4;
 
 struct MyFuzzData;
 

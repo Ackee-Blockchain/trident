@@ -1,16 +1,13 @@
-use fuzz_instructions::cpi_metaplex_7_fuzz_instructions::Initialize;
+use fuzz_instructions::Initialize;
 use trident_client::fuzzing::*;
 
 mod fuzz_instructions;
 
 use cpi_metaplex_7::entry as entry_cpi_metaplex_7;
 use cpi_metaplex_7::ID as PROGRAM_ID_CPI_METAPLEX_7;
+use fuzz_instructions::FuzzInstruction;
 
 const PROGRAM_NAME_CPI_METAPLEX_7: &str = "cpi_metaplex_7";
-
-use fuzz_instructions::cpi_metaplex_7_fuzz_instructions::FuzzInstruction as fuzz_instruction_cpi_metaplex_7;
-
-pub type FuzzInstruction = fuzz_instruction_cpi_metaplex_7;
 
 struct MyFuzzData;
 

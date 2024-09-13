@@ -16,10 +16,13 @@ async fn test_fuzz_instructions() {
         "/tests/expected_source_codes/expected_fuzz_instructions.rs"
     ));
 
-    let idl = read_idl()?;
+    let idl_2 = read_idl("dummy_2.json")?;
+    let idl_dummy = read_idl("dummy_example.json")?;
 
     let fuzz_instructions_code =
-        trident_client::___private::fuzz_instructions_generator::generate_source_code(&vec![idl]);
+        trident_client::___private::fuzz_instructions_generator::generate_source_code(&vec![
+            idl_2, idl_dummy,
+        ]);
 
     let fuzz_instructions_code =
         trident_client::___private::Commander::format_program_code(&fuzz_instructions_code).await?;
@@ -35,10 +38,12 @@ async fn test_fuzz_test() {
         "/tests/expected_source_codes/expected_test_fuzz.rs"
     ));
 
-    let idl = read_idl()?;
+    let idl_2 = read_idl("dummy_2.json")?;
+    let idl_dummy = read_idl("dummy_example.json")?;
 
-    let test_fuzz =
-        trident_client::___private::test_fuzz_generator::generate_source_code(&vec![idl]);
+    let test_fuzz = trident_client::___private::test_fuzz_generator::generate_source_code(&vec![
+        idl_2, idl_dummy,
+    ]);
 
     let test_fuzz =
         trident_client::___private::Commander::format_program_code_nightly(&test_fuzz).await?;
@@ -47,12 +52,12 @@ async fn test_fuzz_test() {
 }
 
 #[throws]
-fn read_idl() -> Idl {
+fn read_idl(_idl_name: &str) -> Idl {
     let current_dir = std::env::current_dir()?;
 
     let anchor_idl_path: PathBuf = [
         current_dir.as_ref(),
-        Path::new("tests/anchor_idl/example.json"),
+        Path::new(&format!("tests/anchor_idl/{}", _idl_name)),
     ]
     .iter()
     .collect();

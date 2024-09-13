@@ -1,5 +1,7 @@
 use anchor_lang::prelude::*;
 
+use trident_derive_accounts_snapshots::AccountsSnapshots;
+
 declare_id!("HJR1TK8bgrUWzysdpS1pBGBYKF7zi1tU9cS4qj8BW8ZL");
 
 #[program]
@@ -16,7 +18,7 @@ pub mod callee {
     }
 }
 
-#[derive(Accounts)]
+#[derive(Accounts, AccountsSnapshots)]
 pub struct InitializeCallee<'info> {
     pub signer: Signer<'info>,
 }
