@@ -21,6 +21,7 @@ incremented upon a breaking change and the patch version will be incremented for
 - impr/ instead of parsing source code and creating our IDL, read anchor IDL ([198](https://github.com/Ackee-Blockchain/trident/pull/196))
 
 **Removed**
+
 - del/remove integration tests supported by Trident, this feature adds more unnecessary overhead compared to its value ([196](https://github.com/Ackee-Blockchain/trident/pull/198))
 
 ## [0.7.0] - 2024-08-14
