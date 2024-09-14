@@ -8,32 +8,33 @@ site_author: Ackee Blockchain Security
 
 
 nav:
-  - Getting Started:
-      - getting-started/getting-started.md
-      - getting-started/docker-image.md
-  - Fuzz Tests:
-      - First Steps:
-        - fuzzing/first-steps/fuzz-test-initialization.md
-        - fuzzing/first-steps/writing-fuzz-test.md
-      - Writing Fuzz Test:
-        - fuzzing/writing-fuzz-test/programs.md
-        - fuzzing/writing-fuzz-test/accounts.md
-        - fuzzing/writing-fuzz-test/instruction-data.md
-        - fuzzing/writing-fuzz-test/instruction-accounts.md
-      - Writing Fuzz Test (Extra):
-        - fuzzing/writing-fuzz-test-extra/invariants-checks.md
-        - fuzzing/writing-fuzz-test-extra/instruction-sequences.md
-        - fuzzing/writing-fuzz-test-extra/custom-data-types.md
-        - fuzzing/writing-fuzz-test-extra/arbitrary.md
-        - fuzzing/writing-fuzz-test-extra/accounts-snapshots.md
-      - Run and Debug:
-        - fuzzing/execute/run.md
-        - fuzzing/execute/statistics.md
-        - fuzzing/execute/debug.md
+  - Installation:
+      - installation/installation.md
+  - Writing Fuzz Test:
+      - writing-fuzz-test/writing-fuzz-test.md
+  - Fuzz Test Features:
+      - features/features.md
+      - Features:
+        - features/account-storages.md
+        - features/fuzz-instructions.md
+        - features/instructions-sequences.md
+        - features/genesis-accounts.md
+        - features/invariant-checks.md
+        - features/arbitrary-data.md
+        - features/fuzzing-statistics.md
+        - features/error-handlers.md
+        - features/trident-manifest.md
       - Extra:
-        - fuzzing/extra/examples.md
-        - fuzzing/extra/lifecycle.md
-        - fuzzing/extra/current-limitations.md
+        - features/lifecycle.md
+        - features/limitations.md
+  - Commands:
+        - commands/commands.md
+  - Examples:
+        - examples/examples.md
+  - FAQ:
+        - faq/faq.md
+  - Get Help:
+        - get-help/get-help.md
   - CHANGELOG.md
 
 # Beware this is strongly dependent on names of folders , example:

@@ -4,7 +4,7 @@
         https: //squidfunk.github.io/mkdocs-material/reference/code-blocks/#annotation-tooltip-width-docsstylesheetsextracss
 */
 :root>* {
-    --md-code-hl-comment-color: #09902d;
+    --md-code-hl-comment-color: #b9845a;
 }
 
 /*

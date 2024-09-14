@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Fuzz Test Lifecycle
 
 In the sequence diagram below you can see a simplified fuzz test lifecycle.
