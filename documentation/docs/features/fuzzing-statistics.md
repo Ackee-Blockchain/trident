@@ -1,4 +1,5 @@
-# Fuzzing statistics
+# Fuzzing Statistics
+
 
 !!! important
 
@@ -14,7 +15,7 @@
 
 Currently exported statistics from the Fuzzing Session
 
-#### Simple
+## Simple
 
 - Number of invocations of each instruction during the fuzzing session.
 - Number of successful invocations of each instruction during the fuzzing session.
@@ -25,3 +26,8 @@ Currently exported statistics from the Fuzzing Session
     Keep in mind that the number of fuzz iterations does not directly correspond to the total number of invocations. In one fuzz iteration, the fuzzer might be unable to deserialize fuzz data into instructions, causing the entire iteration to be skipped.
 
     On the other hand this is expected behavior as the underlying data are randomly (with coverage feedback) generated, so the Honggfuzz will not necessarily find appropriate data each iteration.
+
+
+!!! tip
+
+    Consider checking the [Examples](../examples/examples.md) section for more tips.

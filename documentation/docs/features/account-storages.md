@@ -1,6 +1,8 @@
-# Accounts to reuse
+# Account Storages
 
-{{ config.site_name }} helps you to generate only a limited amount of pseudo-random accounts and reuse them in the instructions.
+
+Trident allows developers to generate random accounts for fuzzing. However, the Accounts are not completely random, nor the Account addresses are not completely random. Instead, Trident generates random AccountIDs which are indexes to Account Storages. Each uniqe Account contained within the Anchor generated IDL has its own AccountStorage. The FuzzAccounts containing the Accounts Storages is global to all Instructions to use.
+
 
 ??? note
 
@@ -8,10 +10,9 @@
 
     Always generating only random accounts would **in most cases lead to a situation where the fuzzer would be stuck because the accounts would be almost every time rejected by your Anchor program**. Therefore it is necessary to specify, what accounts should be used and also limit the number of newly created accounts to reduce the space complexity.
 
-
 !!! important
 
-    Go to the `trident-tests/fuzz_tests/<FUZZ_TEST_NAME>/fuzz_instructions.rs` file and complete the pre-generated `FuzzAccounts` structure. It contains all accounts used in your program. You have to determine if the account is a:
+    Currently, supported types of Account Storages:
 
     - Signer
     - PDA
@@ -19,7 +20,6 @@
     - Program account
 
     Then use the corresponding AccountsStorage.
-
 
 ```rust
 pub struct FuzzAccounts {
@@ -32,4 +32,4 @@ pub struct FuzzAccounts {
 
 !!! tip
 
-    Consider checking the [Examples](../extra/examples.md) section for more tips.
+    Consider checking the [Examples](../examples/examples.md) section for more tips.

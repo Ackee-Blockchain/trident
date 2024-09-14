@@ -18,15 +18,15 @@ Rust-based Fuzzing framework for Solana programs to help you ship secure code.
 
     Install the Trident Fuzz Testing Framework
 
-    [Getting started](./getting-started/getting-started.md)
+    [Installation](./installation/installation.md)
 
 -   :material-test-tube:{ .lg .middle } __Start Fuzzing__
 
     ---
 
-    Focus on security and start fuzzing immediatelly
+    Focus on security and start fuzzing immediately
 
-    [Start Fuzzing](./fuzzing/first-steps/fuzz-test-initialization.md)
+    [Start Fuzzing](./writing-fuzz-test/writing-fuzz-test.md)
 
 -   :octicons-mark-github-24:{ .lg .middle } __Check the GitHub for unreleased features__
 
@@ -42,7 +42,7 @@ Rust-based Fuzzing framework for Solana programs to help you ship secure code.
 
     Try the Fuzzing Examples
 
-    [Trident Examples](./fuzzing/extra/examples.md)
+    [Trident Examples](./examples/examples.md)
 
 </div>
 

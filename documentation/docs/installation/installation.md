@@ -1,4 +1,15 @@
+---
+hide:
+  - navigation
+---
+
+
 # Installation
+
+!!! tip
+
+    Docker Image down below.
+
 
 This guide will walk you through the Installation process of Trident.
 
@@ -49,6 +60,7 @@ cargo install honggfuzz
 
 | {{ config.site_name }} CLI | Anchor | Solana | Rust | Honggfuzz |
 |--------------|---------|----------|-----------------------|-----------------------|
+| `develop` | `0.30.1` | `^1.17.4` | `nightly` | `0.5.56` |
 | `v0.7.0` | `>=0.29.*`<sup>1</sup> | `^1.17.4` | `nightly` | `0.5.56` |
 | `v0.6.0` | `>=0.29.*`<sup>1</sup> | `^1.17` | `nightly` | `0.5.55` |
 | `v0.5.0` | `~0.28.*` | `=1.16.6` | - | - |
@@ -61,3 +73,8 @@ cargo install honggfuzz
 cargo update anchor-client@0.30.0 --precise 0.29.0
 cargo update anchor-spl@0.30.0 --precise 0.29.0
 ```
+
+
+## Docker Image
+
+TBD

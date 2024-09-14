@@ -1,3 +1,0 @@
-# Docker Image
-
-TBD
