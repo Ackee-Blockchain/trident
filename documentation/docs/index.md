@@ -4,7 +4,7 @@ hide:
   - toc
 ---
 
-# {{ config.site_name }}
+<h1 style="font-size: 65px;">{{ config.site_name }}</h1>
 
 ![Trident](./images/trident-logo-smaller.png){ align=right }
 
@@ -18,15 +18,15 @@ Rust-based Fuzzing framework for Solana programs to help you ship secure code.
 
     Install the Trident Fuzz Testing Framework
 
-    [Getting started](./getting-started/getting-started.md)
+    [Installation](./installation/installation.md)
 
 -   :material-test-tube:{ .lg .middle } __Start Fuzzing__
 
     ---
 
-    Focus on security and start fuzzing immediatelly
+    Focus on security and start fuzzing immediately
 
-    [Start Fuzzing](./fuzzing/first-steps/fuzz-test-initialization.md)
+    [Start Fuzzing](./writing-fuzz-test/writing-fuzz-test.md)
 
 -   :octicons-mark-github-24:{ .lg .middle } __Check the GitHub for unreleased features__
 
@@ -42,7 +42,7 @@ Rust-based Fuzzing framework for Solana programs to help you ship secure code.
 
     Try the Fuzzing Examples
 
-    [Trident Examples](./fuzzing/extra/examples.md)
+    [Trident Examples](./examples/examples.md)
 
 </div>
 
@@ -58,7 +58,7 @@ Rust-based Fuzzing framework for Solana programs to help you ship secure code.
 }
 </script>
 
-{{ config.site_name }} equips developers with tools to efficiently develop fuzz tests for Anchor-based programs. It streamlines the fuzz testing process through automation and comprehensive support
+<!-- {{ config.site_name }} equips developers with tools to efficiently develop fuzz tests for Anchor-based programs. It streamlines the fuzz testing process through automation and comprehensive support
 
 <div class="grid cards" markdown>
 
@@ -66,7 +66,7 @@ Rust-based Fuzzing framework for Solana programs to help you ship secure code.
 
     ---
 
-    - **Automatically parses Anchor-based programs** to generate necessary implementations for deserializing instruction accounts.
+    - **Builds Anchor-based programs** to generate necessary implementations for deserializing instruction accounts.
     - **Generates templates** for developers to customize according to the specific needs of their fuzz test scenarios.
     - **Offers derive macros** to effortlessly implement required traits, reducing manual coding efforts.
     - **Includes a bank client** and helper functions for simplified account management during testing.
@@ -81,4 +81,4 @@ Rust-based Fuzzing framework for Solana programs to help you ship secure code.
     - **Instruction Accounts**: Explore the impact of different account states on the software's functionality, ensuring comprehensive account testing.
     - **Comprehensive Testing**: Conduct thorough and effective fuzz testing by combining any of the above aspects.
 
-</div>
+</div> -->
