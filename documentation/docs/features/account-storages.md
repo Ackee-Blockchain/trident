@@ -1,7 +1,7 @@
 # Account Storages
 
 
-Trident allows developers to generate random accounts for fuzzing. However, the Accounts are not completely random, nor the Account addresses are not completely random. Instead, Trident generates random AccountIDs which are indexes to Account Storages. Each uniqe Account contained within the Anchor generated IDL has its own AccountStorage. The FuzzAccounts containing the Accounts Storages is global to all Instructions to use.
+Trident allows developers to generate random accounts for fuzzing. However, the Accounts are not completely random, and neither are the Account addresses. Instead, Trident generates random AccountIDs which are indexes to Account Storages. Each uniqe Account contained within the Anchor generated IDL has its own AccountStorage. The FuzzAccounts containing the Accounts Storages is global to all Instructions to use.
 
 
 ??? note

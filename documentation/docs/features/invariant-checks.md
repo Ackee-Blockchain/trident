@@ -1,7 +1,7 @@
 # Invariant Checks
 
 
-Trident allows you to (optionaly) specify Invariant Checks for each Instruction. The Invariant Check will be called after the Instruction was successfully invoked. Within the Invariant Check you can compare the contents of Accounts before and after the Instruction was called.
+Trident allows you to (optionally) specify Invariant Checks for each Instruction. The Invariant Check will be called after the Instruction was successfully invoked. Within the Invariant Check you can compare the contents of Accounts before and after the Instruction was called.
 
 !!! important
 

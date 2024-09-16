@@ -1,7 +1,7 @@
 # Arbitrary Data
 
 
-Trident allows you to customize Instruction Data to fulfile some structure. For example your Initialize Instruction expects two arguments `start_at` and `end_at` you know that in order for the Instruction to make sense, it is required that the `start_at` < `end_at`. Moreover, there should be significant difference between these two. This can be utilized with the Arbitrary crate.
+Trident allows you to customize Instruction Data to provide some structure. For example your Initialize Instruction expects two arguments `start_at` and `end_at` you know that in order for the Instruction to make sense, it is required that the `start_at` < `end_at`. Moreover, there should be significant difference between these two. This can be utilized with the Arbitrary crate.
 
 
 ```rust

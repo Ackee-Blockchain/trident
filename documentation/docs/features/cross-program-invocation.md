@@ -45,7 +45,7 @@ fn fuzz_iteration<T: FuzzTestExecutor<U> + std::fmt::Display, U>(
 
 ## SBF
 
-In case of SBF targets, compiled or dumped from whatever cluster. You can also use thes within the Fuzz Tests.
+In case of SBF targets, compiled or dumped from whatever cluster. You can also use these within the Fuzz Tests.
 
 !!! important
 
