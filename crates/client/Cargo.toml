@@ -35,6 +35,10 @@ solana-program-test = { workspace = true }
 
 # HONGGFUZZ
 honggfuzz = { version = "0.5.55" }
+
+#AFL
+afl = { version = "0.15.10" }
+
 # ARBITRARY
 arbitrary = { version = "1.3.0", features = ["derive"] }
 
@@ -48,7 +52,7 @@ borsh = "0.10.3"
 futures = "0.3.18"
 fehler = "1.0.0"
 thiserror = "1.0.30"
-anyhow = "1.0.45"
+anyhow = { version = "1.0.45" }
 cargo_metadata = "0.17.0"
 syn = { version = "1.0.109", features = ["visit"] }
 quote = "1.0.14"

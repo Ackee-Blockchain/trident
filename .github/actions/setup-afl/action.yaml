@@ -1,0 +1,9 @@
+name: "Setup AFL"
+
+runs:
+  using: "composite"
+  steps:
+    # Install AFL using Cargo
+    - name: Install AFL
+      run: cargo install cargo-afl --version ${{ env.AFL_VERSION }}  # Install the specified version of AFL via Cargo
+      shell: bash

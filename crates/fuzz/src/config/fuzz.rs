@@ -9,15 +9,15 @@ pub struct Fuzz {
 #[derive(Default, Debug, Deserialize, Clone)]
 pub struct _Fuzz {
     #[serde(default)]
-    pub fuzzing_with_stats: bool,
+    pub fuzzing_with_stats: Option<bool>,
     #[serde(default)]
-    pub allow_duplicate_txs: bool,
+    pub allow_duplicate_txs: Option<bool>,
 }
 impl From<_Fuzz> for Fuzz {
     fn from(_f: _Fuzz) -> Self {
         Self {
-            fuzzing_with_stats: _f.fuzzing_with_stats,
-            allow_duplicate_txs: _f.allow_duplicate_txs,
+            fuzzing_with_stats: _f.fuzzing_with_stats.unwrap_or_default(),
+            allow_duplicate_txs: _f.allow_duplicate_txs.unwrap_or_default(),
         }
     }
 }

@@ -64,6 +64,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "afl"
+version = "0.15.10"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c21e10b6947189c5ff61343b5354e9ad1c1722bd47b69cd0a6b49e5fa7f7ecf6"
+dependencies = [
+ "home",
+ "libc",
+ "rustc_version",
+ "xdg",
+]
+
+[[package]]
 name = "ahash"
 version = "0.7.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2055,6 +2067,15 @@ dependencies = [
  "digest 0.9.0",
  "generic-array",
  "hmac 0.8.1",
+]
+
+[[package]]
+name = "home"
+version = "0.5.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e3d1354bf6b7235cb4a0576c2619fd4ed18183f689b12b006a0ee7329eeff9a5"
+dependencies = [
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
@@ -6058,6 +6079,7 @@ dependencies = [
 name = "trident-client"
 version = "0.7.0"
 dependencies = [
+ "afl",
  "anchor-lang",
  "anchor-lang-idl-spec",
  "anchor-syn",
@@ -6129,6 +6151,7 @@ dependencies = [
  "arbitrary",
  "fehler",
  "prettytable",
+ "rand 0.8.5",
  "regex",
  "serde",
  "serde_json",
@@ -6653,6 +6676,12 @@ dependencies = [
  "linux-raw-sys",
  "rustix",
 ]
+
+[[package]]
+name = "xdg"
+version = "2.5.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "213b7324336b53d2414b2db8537e56544d981803139155afa84f76eeebb7a546"
 
 [[package]]
 name = "yasna"
