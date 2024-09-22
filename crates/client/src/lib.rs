@@ -24,10 +24,10 @@ pub mod fuzzing {
     pub use solana_sdk::signer::Signer;
     pub use solana_sdk::transaction::Transaction;
 
-    /// arbitrary and honggfuzz
+    pub use afl::fuzz as fuzz_afl;
     pub use arbitrary;
     pub use arbitrary::Arbitrary;
-    pub use honggfuzz::fuzz;
+    pub use honggfuzz::fuzz as fuzz_honggfuzz;
 
     /// trident derive
     pub use trident_derive_displayix::DisplayIx;
@@ -93,10 +93,15 @@ mod constants {
     // fuzz
     pub const FUZZ_INSTRUCTIONS_FILE_NAME: &str = "fuzz_instructions.rs";
     pub const FUZZ_TEST_DIRECTORY: &str = "fuzz_tests";
-    pub const FUZZING: &str = "fuzzing";
     pub const FUZZ_TEST: &str = "test_fuzz.rs";
-    pub const HFUZZ_TARGET: &str = "hfuzz_target";
-    pub const CARGO_TARGET_DIR_DEFAULT: &str = "trident-tests/fuzz_tests/fuzzing/hfuzz_target";
+
+    // honggfuzz
+    pub const CARGO_TARGET_DIR_DEFAULT_HFUZZ: &str =
+        "trident-tests/fuzz_tests/fuzzing/honggfuzz/hfuzz_target";
+
+    // afl
+    pub const CARGO_TARGET_DIR_DEFAULT_AFL: &str =
+        "trident-tests/fuzz_tests/fuzzing/afl/afl_target";
 
     // workspace
     pub const GIT_IGNORE: &str = ".gitignore";
