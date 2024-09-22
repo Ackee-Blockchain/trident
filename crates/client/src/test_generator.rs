@@ -93,7 +93,7 @@ impl TestGenerator {
         self.load_idls()?;
         self.init_fuzz_tests().await?;
         self.create_trident_manifest().await?;
-        self.update_gitignore(CARGO_TARGET_DIR_DEFAULT)?;
+        self.update_gitignore(CARGO_TARGET_DIR_DEFAULT_HFUZZ)?;
     }
     #[throws]
     pub async fn add_fuzz_test(&mut self) {
@@ -106,7 +106,7 @@ impl TestGenerator {
         self.load_idls()?;
         self.add_new_fuzz_test().await?;
         self.create_trident_manifest().await?;
-        self.update_gitignore(CARGO_TARGET_DIR_DEFAULT)?;
+        self.update_gitignore(CARGO_TARGET_DIR_DEFAULT_HFUZZ)?;
     }
 
     #[throws]

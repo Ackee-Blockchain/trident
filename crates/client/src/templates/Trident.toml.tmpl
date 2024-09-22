@@ -29,6 +29,11 @@ max_file_size = 1048576
 # Save all test-cases (not only the unique ones) by appending the current time-stamp to the filenames (default: false)
 save_all = false
 
+[afl]
+cargo_target_dir = ""
+afl_workspace_in = ""
+afl_workspace_out = ""
+
 [fuzz]
 # Allow processing of duplicate transactions. Setting to true might speed up fuzzing but can cause false positive crashes (default: false)
 allow_duplicate_txs = false
