@@ -3,6 +3,7 @@
 use anchor_lang::prelude::Rent;
 use anchor_lang::solana_program::hash::Hash;
 
+use solana_program_test::BanksTransactionResultWithMetadata;
 use solana_sdk::account::{Account, AccountSharedData};
 use solana_sdk::instruction::AccountMeta;
 use solana_sdk::pubkey::Pubkey;
@@ -63,4 +64,11 @@ pub trait FuzzClient {
         &mut self,
         transaction: impl Into<VersionedTransaction>,
     ) -> Result<(), FuzzClientError>;
+
+    /// Send a transaction and return until the transaction has been finalized or rejected.
+    /// Additionally, update CU statistics.
+    fn process_transaction_with_metadata(
+        &mut self,
+        transaction: impl Into<VersionedTransaction>,
+    ) -> Result<BanksTransactionResultWithMetadata, FuzzClientError>;
 }

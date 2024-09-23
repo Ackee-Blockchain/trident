@@ -3,6 +3,7 @@ use std::io::Read;
 use std::path::PathBuf;
 
 use solana_program_runtime::invoke_context::BuiltinFunctionWithContext;
+use solana_program_test::BanksTransactionResultWithMetadata;
 use solana_program_test::ProgramTest;
 use solana_program_test::ProgramTestContext;
 use solana_sdk::account::Account;
@@ -254,6 +255,10 @@ impl FuzzClient for ProgramTestClientBlocking {
     fn get_last_blockhash(&self) -> Hash {
         self.ctx.last_blockhash
     }
+
+    /// Process transaction, returning the result of the tx processing
+    /// # Arguments
+    /// * `transaction` - transaction to process
     fn process_transaction(
         &mut self,
         transaction: impl Into<VersionedTransaction>,
@@ -261,6 +266,24 @@ impl FuzzClient for ProgramTestClientBlocking {
         Ok(self
             .rt
             .block_on(self.ctx.banks_client.process_transaction(transaction))?)
+    }
+
+    /// Process transaction, returning the result of the tx processing
+    /// in addition to `fn process_transaction()`, this function obtains transaction metadata
+    /// and adds CU units used by the transaction to the `stats_logger`
+    /// # Arguments
+    /// * `transaction` - transaction to process
+    /// * `instruction` - name of the instruction inside the transaction
+    /// * `stats_logger` - statistics logger
+    fn process_transaction_with_metadata(
+        &mut self,
+        transaction: impl Into<VersionedTransaction>,
+    ) -> Result<BanksTransactionResultWithMetadata, FuzzClientError> {
+        Ok(self.rt.block_on(
+            self.ctx
+                .banks_client
+                .process_transaction_with_metadata(transaction),
+        )?)
     }
 
     fn set_account_custom(&mut self, address: &Pubkey, account: &AccountSharedData) {
