@@ -4,7 +4,7 @@ use trident_client::fuzzing::*;
 use cpi_metaplex_7::trident_fuzz_initialize_snapshot::InitializeAlias;
 
 type InitializeSnapshot<'info> = InitializeAlias<'info>;
-#[derive(Arbitrary, DisplayIx, FuzzTestExecutor, FuzzDeserialize)]
+#[derive(Arbitrary, DisplayIx, FuzzTestExecutor)]
 pub enum FuzzInstruction {
     Initialize(Initialize),
 }

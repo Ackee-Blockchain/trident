@@ -6,7 +6,7 @@ use arbitrary_limit_inputs_5::trident_fuzz_withdraw_unlocked_snapshot::WithdrawU
 
 type InitVestingSnapshot<'info> = InitVestingContextAlias<'info>;
 type WithdrawUnlockedSnapshot<'info> = WithdrawUnlockedAlias<'info>;
-#[derive(Arbitrary, DisplayIx, FuzzTestExecutor, FuzzDeserialize)]
+#[derive(Arbitrary, DisplayIx, FuzzTestExecutor)]
 pub enum FuzzInstruction {
     InitVesting(InitVesting),
     WithdrawUnlocked(WithdrawUnlocked),

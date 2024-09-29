@@ -6,7 +6,7 @@ use unchecked_arithmetic_0::trident_fuzz_update_snapshot::UpdateAlias;
 
 type InitializeSnapshot<'info> = InitializeAlias<'info>;
 type UpdateSnapshot<'info> = UpdateAlias<'info>;
-#[derive(Arbitrary, DisplayIx, FuzzTestExecutor, FuzzDeserialize)]
+#[derive(Arbitrary, DisplayIx, FuzzTestExecutor)]
 pub enum FuzzInstruction {
     Initialize(Initialize),
     Update(Update),

@@ -32,6 +32,7 @@ Each Instruction variant has to define `IxOps` trait containing the following me
 - `get_accounts()` (required)
 - `check()` (optional)
 - `tx_error_handler()` (optional)
+- `deserialize_accounts()` (automatically implemented)
 
 
 ## Get Program ID

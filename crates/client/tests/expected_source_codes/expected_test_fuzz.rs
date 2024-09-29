@@ -16,7 +16,10 @@ struct MyFuzzData;
 
 impl FuzzDataBuilder<FuzzInstruction> for MyFuzzData {}
 
-fn fuzz_iteration<T: FuzzTestExecutor<U> + std::fmt::Display, U>(fuzz_data: FuzzData<T, U>) {
+fn fuzz_iteration<T: FuzzTestExecutor<U> + std::fmt::Display, U>(
+    fuzz_data: FuzzData<T, U>,
+    config: &Config,
+) {
 
     let fuzzing_program_dummy_2 = FuzzingProgram::new(
         PROGRAM_NAME_DUMMY_2,
@@ -36,13 +39,15 @@ fn fuzz_iteration<T: FuzzTestExecutor<U> + std::fmt::Display, U>(fuzz_data: Fuzz
     )
     .unwrap();
 
-    let _ = fuzz_data.run_with_runtime(&mut client);
+    let _ = fuzz_data.run_with_runtime(&mut client, config);
 }
 
 fn main() {
 
+    let config = Config::new();
+
     loop {
 
-        fuzz_trident ! (fuzz_ix : FuzzInstruction , | fuzz_data : MyFuzzData | { fuzz_iteration (fuzz_data) ; });
+        fuzz_trident ! (fuzz_ix : FuzzInstruction , | fuzz_data : MyFuzzData | { fuzz_iteration (fuzz_data , & config) ; });
     }
 }

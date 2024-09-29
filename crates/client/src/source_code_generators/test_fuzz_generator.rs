@@ -21,23 +21,24 @@ pub fn generate_source_code(idl_instructions: &[Idl]) -> String {
 
         impl FuzzDataBuilder<FuzzInstruction> for MyFuzzData {}
 
-        fn fuzz_iteration<T: FuzzTestExecutor<U> + std::fmt::Display, U>(fuzz_data: FuzzData<T, U>) {
+        fn fuzz_iteration<T: FuzzTestExecutor<U> + std::fmt::Display, U>(fuzz_data: FuzzData<T, U>,config: &Config) {
 
 
             #(#fuzzing_programs)*
 
             let mut client = ProgramTestClientBlocking::new(&#programs_array,&[]).unwrap();
 
-            let _ = fuzz_data.run_with_runtime(&mut client);
+            let _ = fuzz_data.run_with_runtime(&mut client,config);
 
         }
 
         fn main() {
+            let config = Config::new();
             loop {
                 fuzz_trident!(fuzz_ix: FuzzInstruction, |fuzz_data: MyFuzzData| {
 
 
-                    fuzz_iteration(fuzz_data);
+                    fuzz_iteration(fuzz_data,&config);
 
 
                 });

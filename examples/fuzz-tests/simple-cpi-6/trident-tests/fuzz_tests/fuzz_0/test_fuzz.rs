@@ -28,7 +28,10 @@ impl FuzzDataBuilder<FuzzInstruction> for MyFuzzData {
     }
 }
 
-fn fuzz_iteration<T: FuzzTestExecutor<U> + std::fmt::Display, U>(fuzz_data: FuzzData<T, U>) {
+fn fuzz_iteration<T: FuzzTestExecutor<U> + std::fmt::Display, U>(
+    fuzz_data: FuzzData<T, U>,
+    config: &Config,
+) {
     let fuzzing_program_callee = FuzzingProgram::new(
         PROGRAM_NAME_CALLEE,
         &PROGRAM_ID_CALLEE,
@@ -45,11 +48,13 @@ fn fuzz_iteration<T: FuzzTestExecutor<U> + std::fmt::Display, U>(fuzz_data: Fuzz
         ProgramTestClientBlocking::new(&[fuzzing_program_callee, fuzzing_program_caller], &[])
             .unwrap();
 
-    let _ = fuzz_data.run_with_runtime(&mut client);
+    let _ = fuzz_data.run_with_runtime(&mut client, config);
 }
 
 fn main() {
+    let config = Config::new();
+
     loop {
-        fuzz_trident ! (fuzz_ix : FuzzInstruction , | fuzz_data : MyFuzzData | { fuzz_iteration (fuzz_data) ; });
+        fuzz_trident ! (fuzz_ix : FuzzInstruction , | fuzz_data : MyFuzzData | { fuzz_iteration (fuzz_data,&config) ; });
     }
 }

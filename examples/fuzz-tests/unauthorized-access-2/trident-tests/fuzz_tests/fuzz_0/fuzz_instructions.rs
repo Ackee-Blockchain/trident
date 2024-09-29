@@ -7,7 +7,7 @@ use unauthorized_access_2::ESCROW_SEED;
 
 type InitializeSnapshot<'info> = InitializeAlias<'info>;
 type WithdrawSnapshot<'info> = WithdrawAlias<'info>;
-#[derive(Arbitrary, DisplayIx, FuzzTestExecutor, FuzzDeserialize)]
+#[derive(Arbitrary, DisplayIx, FuzzTestExecutor)]
 pub enum FuzzInstruction {
     Initialize(Initialize),
     Withdraw(Withdraw),
