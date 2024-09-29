@@ -5900,7 +5900,6 @@ dependencies = [
  "toml 0.5.11",
  "trident-derive-accounts-snapshots",
  "trident-derive-displayix",
- "trident-derive-fuzz-deserialize",
  "trident-derive-fuzz-test-executor",
  "trident-fuzz",
 ]
@@ -5926,15 +5925,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "trident-derive-fuzz-deserialize"
-version = "0.0.2"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 1.0.109",
-]
-
-[[package]]
 name = "trident-derive-fuzz-test-executor"
 version = "0.0.2"
 dependencies = [
@@ -5948,7 +5938,9 @@ name = "trident-fuzz"
 version = "0.1.0"
 dependencies = [
  "anchor-lang",
+ "anyhow",
  "arbitrary",
+ "fehler",
  "prettytable",
  "regex",
  "serde",
@@ -5960,6 +5952,7 @@ dependencies = [
  "spl-token",
  "thiserror",
  "tokio",
+ "toml 0.5.11",
 ]
 
 [[package]]

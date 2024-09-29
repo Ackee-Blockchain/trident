@@ -1,4 +1,3 @@
-use crate::config::Config;
 use fehler::{throw, throws};
 use std::path::PathBuf;
 use std::process;
@@ -9,6 +8,7 @@ use tokio::{
     process::{Child, Command},
     signal,
 };
+use trident_fuzz::config::Config;
 
 use crate::constants::*;
 use tokio::io::AsyncBufReadExt;
@@ -86,10 +86,6 @@ impl Commander {
 
         let genesis_folder = PathBuf::from(self.root.to_string()).join("trident-genesis");
 
-        let rustflags = std::env::var("RUSTFLAGS").unwrap_or_default();
-
-        let rustflags = config.get_rustflags_args(rustflags);
-
         let mut fuzz_args = config.get_honggfuzz_args(hfuzz_run_args);
 
         // let cargo_target_dir = std::env::var("CARGO_TARGET_DIR").unwrap_or_default();
@@ -118,7 +114,7 @@ impl Commander {
             }
         }
 
-        match rustflags.contains("fuzzing_with_stats") {
+        match config.get_fuzzing_with_stats() {
             true => {
                 // enforce keep output to be true
                 fuzz_args.push_str("--keep_output");
@@ -127,7 +123,6 @@ impl Commander {
                     .env("HFUZZ_RUN_ARGS", fuzz_args)
                     .env("CARGO_TARGET_DIR", cargo_target_dir)
                     .env("HFUZZ_WORKSPACE", hfuzz_workspace)
-                    .env("RUSTFLAGS", rustflags)
                     .arg("hfuzz")
                     .arg("run")
                     .arg(target)
@@ -141,7 +136,6 @@ impl Commander {
                     .env("HFUZZ_RUN_ARGS", fuzz_args)
                     .env("CARGO_TARGET_DIR", cargo_target_dir)
                     .env("HFUZZ_WORKSPACE", hfuzz_workspace)
-                    .env("RUSTFLAGS", rustflags)
                     .arg("hfuzz")
                     .arg("run")
                     .arg(target)
@@ -177,11 +171,7 @@ impl Commander {
 
         let mut fuzz_args = config.get_honggfuzz_args(hfuzz_run_args);
 
-        let rustflags = std::env::var("RUSTFLAGS").unwrap_or_default();
-
-        let rustflags = config.get_rustflags_args(rustflags);
-
-        match rustflags.contains("fuzzing_with_stats") {
+        match config.get_fuzzing_with_stats() {
             true => {
                 // enforce keep output to be true
                 fuzz_args.push_str("--keep_output");
@@ -190,7 +180,6 @@ impl Commander {
                     .env("HFUZZ_RUN_ARGS", fuzz_args)
                     .env("CARGO_TARGET_DIR", cargo_target_dir)
                     .env("HFUZZ_WORKSPACE", hfuzz_workspace)
-                    .env("RUSTFLAGS", rustflags)
                     .arg("hfuzz")
                     .arg("run")
                     .arg(target)
@@ -204,7 +193,6 @@ impl Commander {
                     .env("HFUZZ_RUN_ARGS", fuzz_args)
                     .env("CARGO_TARGET_DIR", cargo_target_dir)
                     .env("HFUZZ_WORKSPACE", hfuzz_workspace)
-                    .env("RUSTFLAGS", rustflags)
                     .arg("hfuzz")
                     .arg("run")
                     .arg(target)
@@ -336,15 +324,10 @@ impl Commander {
         let cargo_target_dir = std::env::var("CARGO_TARGET_DIR")
             .unwrap_or_else(|_| config.get_env_arg("CARGO_TARGET_DIR"));
 
-        let rustflags = std::env::var("RUSTFLAGS").unwrap_or_default();
-
-        let rustflags = config.get_rustflags_args(rustflags);
-
         // using exec rather than spawn and replacing current process to avoid unflushed terminal output after ctrl+c signal
         std::process::Command::new("cargo")
             .env("GENESIS_FOLDER", genesis_folder)
             .env("CARGO_TARGET_DIR", cargo_target_dir)
-            .env("RUSTFLAGS", rustflags)
             .arg("hfuzz")
             .arg("run-debug")
             .arg(target)

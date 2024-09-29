@@ -6,7 +6,7 @@ use incorrect_integer_arithmetic_3::trident_fuzz_withdraw_unlocked_snapshot::Wit
 
 type InitVestingSnapshot<'info> = InitVestingAlias<'info>;
 type WithdrawUnlockedSnapshot<'info> = WithdrawUnlockedAlias<'info>;
-#[derive(Arbitrary, DisplayIx, FuzzTestExecutor, FuzzDeserialize)]
+#[derive(Arbitrary, DisplayIx, FuzzTestExecutor)]
 pub enum FuzzInstruction {
     InitVesting(InitVesting),
     WithdrawUnlocked(WithdrawUnlocked),

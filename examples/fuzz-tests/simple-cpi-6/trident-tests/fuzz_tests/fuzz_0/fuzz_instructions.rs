@@ -5,7 +5,7 @@ use caller::trident_fuzz_initialize_caller_snapshot::InitializeCallerAlias;
 
 type InitializeCalleeSnapshot<'info> = InitializeCalleeAlias<'info>;
 type InitializeCallerSnapshot<'info> = InitializeCallerAlias<'info>;
-#[derive(Arbitrary, DisplayIx, FuzzTestExecutor, FuzzDeserialize)]
+#[derive(Arbitrary, DisplayIx, FuzzTestExecutor)]
 pub enum FuzzInstruction {
     InitializeCallee(InitializeCallee),
     InitializeCaller(InitializeCaller),

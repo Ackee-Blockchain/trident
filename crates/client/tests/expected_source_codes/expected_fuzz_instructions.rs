@@ -1,7 +1,7 @@
 use trident_client::fuzzing::*;
 type InitializeIxDummy2Snapshot<'info> = InitializeIxDummy2Alias<'info>;
 type InitializeIxDummyExampleSnapshot<'info> = InitializeIxDummyExampleAlias<'info>;
-#[derive(Arbitrary, DisplayIx, FuzzTestExecutor, FuzzDeserialize)]
+#[derive(Arbitrary, DisplayIx, FuzzTestExecutor)]
 pub enum FuzzInstruction {
     InitializeIxDummy2(InitializeIxDummy2),
     InitializeIxDummyExample(InitializeIxDummyExample),

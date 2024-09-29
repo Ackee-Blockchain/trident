@@ -11,7 +11,7 @@ type EndRegistrationsSnapshot<'info> = EndRegistrationAlias<'info>;
 type InitializeSnapshot<'info> = InitializeAlias<'info>;
 type InvestSnapshot<'info> = InvestAlias<'info>;
 type RegisterSnapshot<'info> = RegisterAlias<'info>;
-#[derive(Arbitrary, DisplayIx, FuzzTestExecutor, FuzzDeserialize)]
+#[derive(Arbitrary, DisplayIx, FuzzTestExecutor)]
 pub enum FuzzInstruction {
     EndRegistrations(EndRegistrations),
     Initialize(Initialize),

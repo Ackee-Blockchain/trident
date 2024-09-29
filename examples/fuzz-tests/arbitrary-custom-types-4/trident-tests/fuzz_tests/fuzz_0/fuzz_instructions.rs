@@ -5,7 +5,7 @@ use arbitrary_custom_types_4::trident_fuzz_initialize_snapshot::InitializeAlias;
 use arbitrary_custom_types_4::trident_fuzz_update_snapshot::UpdateAlias;
 type InitializeSnapshot<'info> = InitializeAlias<'info>;
 type UpdateSnapshot<'info> = UpdateAlias<'info>;
-#[derive(Arbitrary, DisplayIx, FuzzTestExecutor, FuzzDeserialize)]
+#[derive(Arbitrary, DisplayIx, FuzzTestExecutor)]
 pub enum FuzzInstruction {
     Initialize(Initialize),
     Update(Update),
