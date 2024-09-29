@@ -4,7 +4,7 @@ use trident_client::fuzzing::*;
 use hello_world::trident_fuzz_initialize_context_snapshot::InitializeContextAlias;
 
 type InitializeFnSnapshot<'info> = InitializeContextAlias<'info>;
-#[derive(Arbitrary, DisplayIx, FuzzTestExecutor, FuzzDeserialize)]
+#[derive(Arbitrary, DisplayIx, FuzzTestExecutor)]
 pub enum FuzzInstruction {
     InitializeFn(InitializeFn),
 }

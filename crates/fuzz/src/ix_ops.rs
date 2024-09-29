@@ -2,7 +2,9 @@
 
 use crate::error::*;
 use crate::fuzz_client::FuzzClient;
+use crate::fuzz_deserialize::FuzzDeserialize;
 use anchor_lang::solana_program::account_info::AccountInfo;
+use anchor_lang::InstructionData;
 use solana_sdk::instruction::AccountMeta;
 use solana_sdk::signature::Keypair;
 
@@ -10,11 +12,11 @@ use solana_sdk::signature::Keypair;
 /// users to implement custom invariants checks and transactions error handling.
 pub trait IxOps<'info> {
     /// The data to be passed as instruction data parameter
-    type IxData;
+    type IxData: InstructionData;
     /// The accounts to be passed as instruction accounts
     type IxAccounts;
     /// The structure to which the instruction accounts will be deserialized
-    type IxSnapshot;
+    type IxSnapshot: FuzzDeserialize<'info>;
 
     /// Specify Program ID to which the Instruction corresponds. This is particularly helpful when using multiple
     /// programs in the workspace, to differentiate between possible program calls.
@@ -71,15 +73,26 @@ pub trait IxOps<'info> {
     /// the `pre_ix_acc_infos` raw accounts to a snapshot structure, you can call:
     ///
     /// ```rust,ignore
-    /// self.deserialize_option(pre_ix_acc_infos)
+    /// self.deserialize_accounts(pre_ix_acc_infos)
     /// ```
     #[allow(unused_variables)]
     fn tx_error_handler(
         &self,
         e: FuzzClientErrorWithOrigin,
         ix_data: Self::IxData,
-        pre_ix_acc_infos: &'info mut [Option<AccountInfo<'info>>],
+        pre_ix_acc_infos: &mut &'info [Option<AccountInfo<'info>>],
     ) -> Result<(), FuzzClientErrorWithOrigin> {
         Err(e)
+    }
+
+    /// A method implemented for each instruction variant.
+    /// This method calls the corresponding `deserialize_option`, which is defined
+    /// by deriving the `AccountsSnapshot` macro.
+    /// No changes are needed for this function.
+    fn deserialize_accounts(
+        &self,
+        accounts: &mut &'info [Option<AccountInfo<'info>>],
+    ) -> Result<Self::IxSnapshot, FuzzingError> {
+        Self::IxSnapshot::deserialize_option(&self.get_program_id(), accounts)
     }
 }

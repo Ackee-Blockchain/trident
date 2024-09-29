@@ -30,3 +30,6 @@ prettytable = "0.10.0"
 serde = { version = "1.0.136", default-features = false }
 serde_json = "1.0.72"
 tokio = "1"
+anyhow = "1.0.45"
+fehler = "1.0.0"
+toml = { version = "0.5.8", features = ["preserve_order"] }

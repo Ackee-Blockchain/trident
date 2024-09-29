@@ -31,7 +31,6 @@ pub mod fuzzing {
 
     /// trident derive
     pub use trident_derive_displayix::DisplayIx;
-    pub use trident_derive_fuzz_deserialize::FuzzDeserialize;
     pub use trident_derive_fuzz_test_executor::FuzzTestExecutor;
 
     /// trident macros
@@ -48,6 +47,7 @@ pub mod fuzzing {
     pub use super::temp_clone::*;
     /// trident methods
     pub use trident_fuzz::accounts_storage::*;
+    pub use trident_fuzz::config::Config;
     pub use trident_fuzz::error::*;
     pub use trident_fuzz::fuzz_client::FuzzClient;
     pub use trident_fuzz::fuzz_data::build_ix_fuzz_data;
@@ -58,6 +58,7 @@ pub mod fuzzing {
     pub use trident_fuzz::ix_ops::IxOps;
     pub use trident_fuzz::program_test_client_blocking::ProgramTestClientBlocking;
     pub use trident_fuzz::snapshot::Snapshot;
+    pub use trident_fuzz::transaction_executor::TransactionExecutor;
 
     pub use std::cell::RefCell;
     pub use std::collections::HashMap;
@@ -66,7 +67,6 @@ pub mod fuzzing {
 mod anchor_idl;
 mod cleaner;
 mod commander;
-mod config;
 mod source_code_generators;
 mod temp_clone;
 mod test_generator;
@@ -97,9 +97,6 @@ mod constants {
     pub const FUZZ_TEST: &str = "test_fuzz.rs";
     pub const HFUZZ_TARGET: &str = "hfuzz_target";
     pub const CARGO_TARGET_DIR_DEFAULT: &str = "trident-tests/fuzz_tests/fuzzing/hfuzz_target";
-    pub const HFUZZ_WORKSPACE_DEFAULT: &str = "trident-tests/fuzz_tests/fuzzing/hfuzz_workspace";
-    pub const CARGO_TARGET_DIR_ENV: &str = "CARGO_TARGET_DIR";
-    pub const HFUZZ_WORKSPACE_ENV: &str = "HFUZZ_WORKSPACE";
 
     // workspace
     pub const GIT_IGNORE: &str = ".gitignore";

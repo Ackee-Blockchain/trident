@@ -35,7 +35,7 @@ pub fn generate_source_code(idls: &[Idl]) -> String {
 
         #(#all_snapshot_types)*
 
-        #[derive(Arbitrary, DisplayIx, FuzzTestExecutor, FuzzDeserialize)]
+        #[derive(Arbitrary, DisplayIx, FuzzTestExecutor)]
         pub enum FuzzInstruction {
             #(#all_instructions),*
         }

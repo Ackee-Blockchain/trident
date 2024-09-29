@@ -1,7 +1,7 @@
-use crate::config::Config;
+use anyhow::Context;
 use fehler::{throw, throws};
 use std::{
-    io,
+    env, io,
     path::{Path, PathBuf},
 };
 use thiserror::Error;
@@ -15,6 +15,8 @@ pub enum Error {
     Io(#[from] io::Error),
     #[error("Cannot find the Anchor.toml file to locate the root folder")]
     BadWorkspace,
+    #[error("{0:?}")]
+    Anyhow(#[from] anyhow::Error),
 }
 
 pub struct Cleaner;
@@ -31,7 +33,7 @@ impl Cleaner {
     }
     #[throws]
     pub async fn clean_target(&self) {
-        let root = match Config::discover_root() {
+        let root = match discover_root() {
             Ok(root) => root,
             Err(_) => throw!(Error::BadWorkspace),
         };
@@ -59,4 +61,29 @@ impl Cleaner {
             )
         }
     }
+}
+
+/// Tries to find the root directory with the `Anchor.toml` file.
+/// Throws an error when there is no directory with the `Anchor.toml` file
+pub fn discover_root() -> Result<PathBuf, Error> {
+    let current_dir = env::current_dir()?;
+    let mut dir = Some(current_dir.as_path());
+    while let Some(cwd) = dir {
+        for file in std::fs::read_dir(cwd)
+            .with_context(|| format!("Error reading the directory with path: {}", cwd.display()))?
+        {
+            let path = file
+                .with_context(|| {
+                    format!("Error reading the directory with path: {}", cwd.display())
+                })?
+                .path();
+            if let Some(filename) = path.file_name() {
+                if filename.to_str() == Some(ANCHOR_TOML) {
+                    return Ok(PathBuf::from(cwd));
+                }
+            }
+        }
+        dir = cwd.parent();
+    }
+    throw!(Error::BadWorkspace)
 }

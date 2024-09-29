@@ -722,10 +722,10 @@ fn generate(accs: &TridentAccountsStruct) -> proc_macro2::TokenStream {
             #[cfg(target_os = "solana")]
             compile_error!("Do not use fuzzing with Production Code");
             use super::*;
-            impl<'info> #snapshot_name<'info> {
-                pub fn deserialize_option(
+            impl<'info>trident_fuzz::fuzz_deserialize::FuzzDeserialize<'info> for #snapshot_name<'info> {
+                fn deserialize_option(
                     _program_id: &anchor_lang::prelude::Pubkey,
-                    accounts: &'info mut [Option<AccountInfo<'info>>],
+                    accounts: &mut &'info [Option<AccountInfo<'info>>],
                 ) -> core::result::Result<Self, trident_fuzz::error::FuzzingError> {
                     let mut accounts_iter = accounts.iter();
 
