@@ -16,6 +16,7 @@ incremented upon a breaking change and the patch version will be incremented for
 
 **Changed**
 
+- impr/ optional statistics extended with reporting of min and max CU used for both failed and successful transactions ([203](https://github.com/Ackee-Blockchain/trident/pull/203))
 - impr/ fuzz flags are read at start of fuzzing session from Config instead of env variable and transaction dispatch was added to increase FuzzTestExecutor readability ([204](https://github.com/Ackee-Blockchain/trident/pull/204))
 - impr/ allow various instructions to be generated in case of multiple programs in the Anchor workspace ([200](https://github.com/Ackee-Blockchain/trident/pull/200))
 - feat/ option to add account into Fuzz Test environment with base64 data ([197](https://github.com/Ackee-Blockchain/trident/pull/197))

@@ -11,6 +11,10 @@ pub struct IterationStats {
     pub successful: u64,
     pub failed: u64,
     pub failed_check: u64,
+    pub cu_used_max: u64,
+    pub cu_used_min: u64,
+    pub cu_used_failed_max: u64,
+    pub cu_used_failed_min: u64,
 }
 
 /// Manages and aggregates statistics for fuzzing instructions.
@@ -45,6 +49,10 @@ impl FuzzingStatistics {
                 successful: 0,
                 failed: 0,
                 failed_check: 0,
+                cu_used_max: 0,
+                cu_used_min: u64::MAX,
+                cu_used_failed_max: 0,
+                cu_used_failed_min: u64::MAX,
             });
     }
 
@@ -63,9 +71,14 @@ impl FuzzingStatistics {
                     successful: 1,
                     failed: 0,
                     failed_check: 0,
+                    cu_used_max: 0,
+                    cu_used_min: u64::MAX,
+                    cu_used_failed_max: 0,
+                    cu_used_failed_min: u64::MAX,
                 },
             );
     }
+
     pub fn increase_failed(&mut self, instruction: String) {
         self.instructions
             .entry(instruction)
@@ -78,9 +91,14 @@ impl FuzzingStatistics {
                     successful: 0,
                     failed: 1,
                     failed_check: 0,
+                    cu_used_max: 0,
+                    cu_used_min: u64::MAX,
+                    cu_used_failed_max: 0,
+                    cu_used_failed_min: u64::MAX,
                 },
             );
     }
+
     pub fn increase_failed_check(&mut self, instruction: String) {
         self.instructions
             .entry(instruction)
@@ -93,8 +111,58 @@ impl FuzzingStatistics {
                     successful: 1,
                     failed: 0,
                     failed_check: 1,
+                    cu_used_max: 0,
+                    cu_used_min: u64::MAX,
+                    cu_used_failed_max: 0,
+                    cu_used_failed_min: u64::MAX,
                 },
             );
+    }
+
+    /// Inserts information about used CU for a given instruction.
+    /// # Arguments
+    /// * `instruction` - The instruction to increment the count for.
+    /// * `cu_used` - The number of CU used by the instruction.
+    pub fn update_cu_stats(&mut self, instruction: String, cu_used: u64) {
+        self.instructions
+            .entry(instruction)
+            .and_modify(|iterations_stats| {
+                iterations_stats.cu_used_max = cu_used;
+                iterations_stats.cu_used_min = cu_used;
+            })
+            .or_insert(IterationStats {
+                invoked: 1,
+                successful: 0,
+                failed: 0,
+                failed_check: 0,
+                cu_used_max: cu_used,
+                cu_used_min: cu_used,
+                cu_used_failed_max: 0,
+                cu_used_failed_min: u64::MAX,
+            });
+    }
+
+    /// Inserts information about used CU for a given instruction that failed.
+    /// # Arguments
+    /// * `instruction` - The instruction to increment the count for.
+    /// * `cu_used` - The number of CU used by the instruction.
+    pub fn update_failed_cu_stats(&mut self, instruction: String, cu_used: u64) {
+        self.instructions
+            .entry(instruction)
+            .and_modify(|iterations_stats| {
+                iterations_stats.cu_used_failed_max = cu_used;
+                iterations_stats.cu_used_failed_min = cu_used;
+            })
+            .or_insert(IterationStats {
+                invoked: 1,
+                successful: 0,
+                failed: 0,
+                failed_check: 0,
+                cu_used_max: 0,
+                cu_used_min: u64::MAX,
+                cu_used_failed_max: cu_used,
+                cu_used_failed_min: cu_used,
+            });
     }
 
     /// Inserts or updates instructions with statistics provided in a serialized string.
@@ -112,12 +180,28 @@ impl FuzzingStatistics {
                         instruction_stats.successful += value.successful;
                         instruction_stats.failed += value.failed;
                         instruction_stats.failed_check += value.failed_check;
+                        if value.cu_used_max > instruction_stats.cu_used_max {
+                            instruction_stats.cu_used_max = value.cu_used_max;
+                        }
+                        if value.cu_used_min < instruction_stats.cu_used_min {
+                            instruction_stats.cu_used_min = value.cu_used_min;
+                        }
+                        if value.cu_used_failed_max > instruction_stats.cu_used_failed_max {
+                            instruction_stats.cu_used_failed_max = value.cu_used_failed_max;
+                        }
+                        if value.cu_used_failed_min < instruction_stats.cu_used_failed_min {
+                            instruction_stats.cu_used_failed_min = value.cu_used_failed_min;
+                        }
                     })
                     .or_insert_with(|| IterationStats {
                         invoked: value.invoked,
                         successful: value.successful,
                         failed: value.failed,
                         failed_check: value.failed_check,
+                        cu_used_max: value.cu_used_max,
+                        cu_used_min: value.cu_used_min,
+                        cu_used_failed_max: value.cu_used_failed_max,
+                        cu_used_failed_min: value.cu_used_failed_min,
                     });
             }
         }
@@ -130,7 +214,11 @@ impl FuzzingStatistics {
             "Invoked Total",
             "Ix Success",
             "Check Failed",
-            "Ix Failed"
+            "Ix Failed",
+            "CU Used Max",
+            "CU Used Min",
+            "CU Used Max for Ix Failed",
+            "CU Used Min for Ix Failed",
         ]);
         for (instruction, stats) in &self.instructions {
             table.add_row(row![
@@ -139,6 +227,26 @@ impl FuzzingStatistics {
                 stats.successful,
                 stats.failed_check,
                 stats.failed,
+                if stats.cu_used_max == 0 {
+                    "N/A".to_string()
+                } else {
+                    stats.cu_used_max.to_string()
+                },
+                if stats.cu_used_min == u64::MAX {
+                    "N/A".to_string()
+                } else {
+                    stats.cu_used_min.to_string()
+                },
+                if stats.cu_used_failed_max == 0 {
+                    "N/A".to_string()
+                } else {
+                    stats.cu_used_failed_max.to_string()
+                },
+                if stats.cu_used_failed_min == u64::MAX {
+                    "N/A".to_string()
+                } else {
+                    stats.cu_used_failed_min.to_string()
+                },
             ]);
         }
         table.printstd();
