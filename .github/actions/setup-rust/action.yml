@@ -1,27 +1,23 @@
 name: "Setup Rust"
-description: "Setup Rust"
-
-outputs:
-  rustc-hash:
-    description: "Hash of the rustc version"
-    value: ${{ steps.rust-version.outputs.RUSTC_HASH }}
 
 runs:
   using: "composite"
   steps:
+    # Install essential system packages required for building Rust projects
     - name: Install system packages
-      run: sudo apt-fast update && sudo apt-fast install -y build-essential libudev-dev
+      run: sudo apt-get update && sudo apt-get install -y build-essential libudev-dev  # Installs essential packages like GCC and libudev development headers
       shell: bash
-    - name: Install Rust nightly
+
+    # Install Rust nightly toolchain and additional components
+    # Ensure rustfmt and clippy are installed for the nightly toolchain as well
+    - name: Install Rust Toolchain Components
       run: |
-        rustup default nightly
+        rustup install nightly
         rustup component add rustfmt clippy
         rustup component add rustfmt clippy --toolchain nightly
       shell: bash
+
+    # Install Cargo Expand for expanding macros in Rust, useful for debugging macro-generated code
     - name: Install Cargo Expand
-      run: cargo install --locked cargo-expand
-      shell: bash
-    - name: Get rustc version
-      id: rust-version
-      run: echo "::set-output name=RUSTC_HASH::$(rustc -V | cut -d " " -f 3 | tail -c +2)"
+      run: cargo install --locked cargo-expand  # Installs the cargo-expand tool, using --locked to ensure exact versions from Cargo.lock are used
       shell: bash
