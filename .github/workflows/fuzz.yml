@@ -106,8 +106,8 @@ jobs:
         working-directory: examples/fuzz-tests/arbitrary-limit-inputs-5  # Set the working directory for the fuzzing test
         run: trident fuzz run-hfuzz fuzz_0  # Run the fuzz test with trident
 
-  unauthorized-access-2:
-    name: Fuzz Tests (unauthorized-access-2)
+  cpi-metaplex-7:
+    name: Fuzz Tests (cpi-metaplex-7)
     needs: Fuzz-Tests
     # Runs on an Ubuntu 20.04 runner for a different fuzz test
     runs-on: ubuntu-20.04
@@ -143,18 +143,17 @@ jobs:
       - name: Cache Target Folder
         uses: actions/cache@v3
         with:
-          path: examples/fuzz-tests/unauthorized-access-2/trident-tests/fuzz_tests/fuzzing/afl/afl_target  # Cache the folder where build artifacts are stored
-          key: target-${{ runner.os }}-unauthorized-access-2  # Unique key for caching based on OS and test
+          path: examples/fuzz-tests/cpi-metaplex-7/trident-tests/fuzz_tests/fuzzing/honggfuzz/hfuzz_target  # Cache the folder where build artifacts are stored
+          key: target-${{ runner.os }}-cpi-metaplex-7  # Unique key for caching based on OS and test
 
-      # Run the fuzzing test using Trident in the unauthorized-access-2 directory
+      # Run the fuzzing test using Trident in the cpi-metaplex-7 directory
       - name: Test Fuzz
-        working-directory: examples/fuzz-tests/unauthorized-access-2  # Set the working directory for the fuzzing test
-        run: trident fuzz run-afl fuzz_0  # Run the fuzz test with trident
-
+        working-directory: examples/fuzz-tests/cpi-metaplex-7  # Set the working directory for the fuzzing test
+        run: trident fuzz run-hfuzz fuzz_0  # Run the fuzz test with trident
 
   checks:
     name: Fuzz Tests (Checks)
-    needs: [simple-cpi-6, arbitrary-limit-inputs-5,unauthorized-access-2]
+    needs: [simple-cpi-6, arbitrary-limit-inputs-5,cpi-metaplex-7]
     runs-on: ubuntu-20.04
     steps:
       - run: echo "All fuzz tests completed successfully"

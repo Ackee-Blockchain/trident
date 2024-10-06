@@ -40,13 +40,19 @@ afl_workspace_in = ""
 # AFL working output directory,
 # (default: "" ["trident-tests/fuzz_tests/fuzzing/afl/afl_workspace/out"]).
 afl_workspace_out = ""
-
+# fuzz for an approx. no. of total executions then terminate
+# Note: not precise and can have several more executions.
+# (default: 0 [no limit]).
+execs = 0
+# fuzz for a specified time then terminate (fuzz time only!)
+# (default: 0 [no limit]).
+seconds = 0
 
 [[afl.seeds]]
 # Filename under which the test input is generated.
 # The location of file is afl_workspace_in directory.
 # (default: "" ["trident-seed"]).
-file_name = ""
+file_name = "trident-seed"
 # String used as seed.
 # (default: "" ["0"]).
 seed = ""

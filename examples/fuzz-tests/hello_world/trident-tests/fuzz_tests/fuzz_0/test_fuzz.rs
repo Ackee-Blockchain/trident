@@ -34,14 +34,16 @@ fn fuzz_iteration<T: FuzzTestExecutor<U> + std::fmt::Display, U>(
         processor!(convert_entry!(entry_hello_world)),
     );
 
-    let mut client = ProgramTestClientBlocking::new(&[fuzzing_program_hello_world], &[]).unwrap();
+    let mut client =
+        ProgramTestClientBlocking::new(&[fuzzing_program_hello_world], config).unwrap();
 
     let _ = fuzz_data.run_with_runtime(&mut client, config);
 }
 
 fn main() {
     let config = Config::new();
+
     loop {
-        fuzz_trident ! (fuzz_ix : FuzzInstruction , | fuzz_data : MyFuzzData | { fuzz_iteration (fuzz_data,&config) ; });
+        fuzz_trident ! (fuzz_ix : FuzzInstruction , | fuzz_data : MyFuzzData | { fuzz_iteration (fuzz_data , & config) ; });
     }
 }
