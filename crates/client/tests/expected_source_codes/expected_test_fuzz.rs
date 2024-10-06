@@ -35,7 +35,7 @@ fn fuzz_iteration<T: FuzzTestExecutor<U> + std::fmt::Display, U>(
 
     let mut client = ProgramTestClientBlocking::new(
         &[fuzzing_program_dummy_2, fuzzing_program_dummy_example],
-        &[],
+        config,
     )
     .unwrap();
 
