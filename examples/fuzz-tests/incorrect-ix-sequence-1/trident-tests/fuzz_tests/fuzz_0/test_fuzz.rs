@@ -29,14 +29,15 @@ fn fuzz_iteration<T: FuzzTestExecutor<U> + std::fmt::Display, U>(
     );
 
     let mut client =
-        ProgramTestClientBlocking::new(&[fuzzing_program_incorrect_ix_sequence_1], &[]).unwrap();
+        ProgramTestClientBlocking::new(&[fuzzing_program_incorrect_ix_sequence_1], config).unwrap();
 
     let _ = fuzz_data.run_with_runtime(&mut client, config);
 }
 
 fn main() {
     let config = Config::new();
+
     loop {
-        fuzz_trident ! (fuzz_ix : FuzzInstruction , | fuzz_data : MyFuzzData | { fuzz_iteration (fuzz_data,&config) ; });
+        fuzz_trident ! (fuzz_ix : FuzzInstruction , | fuzz_data : MyFuzzData | { fuzz_iteration (fuzz_data , & config) ; });
     }
 }

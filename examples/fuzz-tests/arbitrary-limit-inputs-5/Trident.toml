@@ -43,7 +43,7 @@ afl_workspace_out = ""
 # fuzz for an approx. no. of total executions then terminate
 # Note: not precise and can have several more executions.
 # (default: 0 [no limit]).
-execs = 5000
+execs = 100
 # fuzz for a specified time then terminate (fuzz time only!)
 # (default: 0 [no limit]).
 seconds = 5

@@ -34,10 +34,8 @@ fn fuzz_iteration<T: FuzzTestExecutor<U> + std::fmt::Display, U>(
         processor!(convert_entry!(entry_cpi_metaplex_7)),
     );
 
-    let metaplex = FuzzingProgram::new("metaplex-token-metadata", &mpl_token_metadata::ID, None);
-
     let mut client =
-        ProgramTestClientBlocking::new(&[fuzzing_program_cpi_metaplex_7, metaplex], &[]).unwrap();
+        ProgramTestClientBlocking::new(&[fuzzing_program_cpi_metaplex_7], config).unwrap();
 
     let _ = fuzz_data.run_with_runtime(&mut client, config);
 }
@@ -46,6 +44,6 @@ fn main() {
     let config = Config::new();
 
     loop {
-        fuzz_trident ! (fuzz_ix : FuzzInstruction , | fuzz_data : MyFuzzData | { fuzz_iteration (fuzz_data,&config) ; });
+        fuzz_trident ! (fuzz_ix : FuzzInstruction , | fuzz_data : MyFuzzData | { fuzz_iteration (fuzz_data , & config) ; });
     }
 }

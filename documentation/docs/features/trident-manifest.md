@@ -2,7 +2,7 @@
 
 You can pass supported parameters via the **{{ config.site_name }}.toml** configuration file:
 
-### [honggfuzz]
+## [honggfuzz]
 
 #### timeout
 - Timeout in seconds (default: 10)
@@ -13,6 +13,8 @@ You can pass supported parameters via the **{{ config.site_name }}.toml** config
 timeout = 10
 ```
 
+---
+
 #### iterations
 - Number of fuzzing iterations (default: 0 [no limit])
 
@@ -21,6 +23,8 @@ timeout = 10
 # Number of fuzzing iterations (default: 0 [no limit])
 iterations = 0
 ```
+
+---
 
 #### threads
 - Number of concurrent fuzzing threads (default: 0 [number of CPUs / 2])
@@ -31,6 +35,8 @@ iterations = 0
 threads = 0
 ```
 
+---
+
 #### keep_output
 - Don't close children's stdin, stdout, stderr; can be noisy (default: false)
 
@@ -39,6 +45,8 @@ threads = 0
 # Don't close children's stdin, stdout, stderr; can be noisy (default: false)
 keep_output = false
 ```
+
+---
 
 #### verbose
 - Disable ANSI console; use simple log output (default: false)
@@ -49,6 +57,8 @@ keep_output = false
 verbose = false
 ```
 
+---
+
 #### exit_upon_crash
 - Exit upon seeing the first crash (default: false)
 
@@ -58,6 +68,8 @@ verbose = false
 exit_upon_crash = false
 ```
 
+---
+
 #### mutations_per_run
 - Maximal number of mutations per one run (default: 6)
 
@@ -66,6 +78,8 @@ exit_upon_crash = false
 # Maximal number of mutations per one run (default: 6)
 mutations_per_run = 6
 ```
+
+---
 
 #### cargo_target_dir
 - Target compilation directory, (default: "" ["trident-tests/fuzz_tests/fuzzing/honggfuzz/hfuzz_target"]).
@@ -79,6 +93,8 @@ mutations_per_run = 6
 cargo_target_dir = ""
 ```
 
+---
+
 #### hfuzz_workspace
 - Honggfuzz working directory, (default: "" ["trident-tests/fuzz_tests/fuzzing/honggfuzz/hfuzz_workspace"]).
 
@@ -89,6 +105,8 @@ cargo_target_dir = ""
 hfuzz_workspace = ""
 ```
 
+---
+
 #### crashdir
 - Directory where crashes are saved to (default: "" [workspace directory])
 
@@ -97,6 +115,8 @@ hfuzz_workspace = ""
 # Directory where crashes are saved to (default: "" [workspace directory])
 crashdir = ""
 ```
+
+---
 
 #### extension
 - Input file extension (e.g. 'swf'), (default: "" ['fuzz'])
@@ -107,6 +127,8 @@ crashdir = ""
 extension = ""
 ```
 
+---
+
 #### run_time
 - Number of seconds this fuzzing session will last (default: 0 [no limit])
 
@@ -115,6 +137,8 @@ extension = ""
 # Number of seconds this fuzzing session will last (default: 0 [no limit])
 run_time = 0
 ```
+
+---
 
 #### max_file_size
 - Maximal size of files processed by the fuzzer in bytes (default: 1048576 = 1MB)
@@ -125,6 +149,8 @@ run_time = 0
 # (default: 1048576 = 1MB)
 max_file_size = 1048576
 ```
+
+---
 
 #### save_all
 - Save all test-cases (not only the unique ones) by appending the current time-stamp to the filenames (default: false)
@@ -137,7 +163,9 @@ max_file_size = 1048576
 save_all = false
 ```
 
-### [afl]
+---
+
+## [afl]
 
 #### cargo_target_dir
 - Target compilation directory, (default: "" ["trident-tests/fuzz_tests/fuzzing/afl/afl_target"]).
@@ -151,6 +179,8 @@ save_all = false
 cargo_target_dir = ""
 ```
 
+---
+
 #### afl_workspace_in
 - AFL working input directory,
 - (default: "" ["trident-tests/fuzz_tests/fuzzing/afl/afl_workspace/in"]).
@@ -162,6 +192,8 @@ cargo_target_dir = ""
 afl_workspace_in = ""
 ```
 
+---
+
 #### afl_workspace_out
 - AFL working output directory,
 - (default: "" ["trident-tests/fuzz_tests/fuzzing/afl/afl_workspace/out"]).
@@ -172,6 +204,8 @@ afl_workspace_in = ""
 # (default: "" ["trident-tests/fuzz_tests/fuzzing/afl/afl_workspace/out"]).
 afl_workspace_out = ""
 ```
+
+---
 
 #### seeds
 - Predefined inputs to the AFL
@@ -199,7 +233,33 @@ override_file = true
 bytes_count = 20
 ```
 
-### [fuzz]
+---
+
+## [fuzz]
+
+#### programs
+- Trident allows you to specify genesis programs (SBF targets) that will be included in the fuzzing environment in order to perform all desired Cross-Program-Invocations.
+
+- Including these types of programs will lead to performance decline of Trident.    
+
+```toml
+[[fuzz.programs]]
+address = "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s"
+program = "metaplex-program/metaplex-token-metadata.so"
+```
+
+---
+
+#### accounts
+- Trident allwos you to specify genesis accounts to inlcude in the fuzzing environment. In most cases it is helpful to dump some accounts from mainnet and use then during testing.
+
+```toml
+[[fuzz.accounts]]
+address = "6YG3J7PaxyMnnbU67ifyrgF3BzNzc7cD8hPkqK6ATweE"
+filename = "tests/accounts/core_bridge_mainnet/guardian_set_5_mock.json"
+```
+
+---
 
 #### allow_duplicate_txs
 - Allow processing of duplicate transactions. Setting to true might speed up fuzzing but can cause false positive crashes (default: false)
@@ -211,6 +271,8 @@ bytes_count = 20
 # false positive crashes (default: false)
 allow_duplicate_txs = false
 ```
+
+---
 
 #### fuzzing_with_stats
 - Trident will show statistics after the fuzzing session. This option forces use of honggfuzz parameter `keep_output` as true in order to be able to catch fuzzer stdout. (default: false)
@@ -224,19 +286,7 @@ allow_duplicate_txs = false
 fuzzing_with_stats = true
 ```
 
-??? note
-
-    Or you can pass any parameter via [environment variables](https://github.com/rust-fuzz/honggfuzz-rs#environment-variables).
-
-    A list of hongfuzz parameters can be found in honggfuzz [usage documentation](https://github.com/google/honggfuzz/blob/master/docs/USAGE.md#cmdline---help). The parameters passed via **environment variables** have **higher priority**. For example:
-
-    ```bash
-    # Time-out: 10 secs
-    # Number of concurrent fuzzing threads: 1
-    # Number of fuzzing iterations: 10000
-    # Display Solana logs in the terminal
-    HFUZZ_RUN_ARGS="-t 10 -n 1 -N 10000 -Q" trident fuzz run <TARGET_NAME>
-    ```
+---
 
 !!! tip
 

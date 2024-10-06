@@ -1,7 +1,6 @@
 use crate::constants::*;
 use fehler::{throw, throws};
 use std::io::{Read, Write};
-use std::path::PathBuf;
 use std::process::Stdio;
 use std::{fs::File, path::Path};
 use tokio::{io::AsyncWriteExt, process::Command};
@@ -15,8 +14,6 @@ impl Commander {
     #[throws]
     pub async fn run_afl(&self, target: String) {
         let config = Config::new();
-
-        let genesis_folder = PathBuf::from(self.root.to_string()).join("trident-genesis");
 
         let build_args = config.get_afl_build_args();
         let fuzz_args = config.get_afl_fuzz_args();
@@ -56,7 +53,6 @@ impl Commander {
         Self::handle_child(&mut child).await?;
 
         let mut child = Command::new("cargo")
-            .env("GENESIS_FOLDER", genesis_folder)
             .arg("afl")
             .arg("fuzz")
             .args(fuzz_args)
@@ -74,7 +70,6 @@ impl Commander {
         let crash_file = std::path::Path::new(&self.root as &str).join(crash_file_path);
 
         let build_args = config.get_afl_build_args();
-        let genesis_folder = PathBuf::from(self.root.to_string()).join("trident-genesis");
 
         if !crash_file.try_exists()? {
             println!("{ERROR} The crash file [{:?}] not found", crash_file);
@@ -95,7 +90,6 @@ impl Commander {
         // using exec rather than spawn and replacing current process to avoid unflushed terminal output after ctrl+c signal
         let mut child = Command::new("cargo")
             .env("RUSTFLAGS", rustflags)
-            .env("GENESIS_FOLDER", genesis_folder)
             .arg("afl")
             .arg("run")
             .args(build_args)
