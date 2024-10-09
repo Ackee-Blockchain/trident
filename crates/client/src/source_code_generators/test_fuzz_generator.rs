@@ -19,8 +19,21 @@ pub fn generate_source_code(idl_instructions: &[Idl]) -> String {
 
         struct MyFuzzData;
 
+
+        /// Define instruction sequences for invocation.
+        /// `pre_ixs` runs at the start, `ixs` in the middle, and `post_ixs` at the end.
+        /// For example, to call `InitializeFn` at the start of each fuzzing iteration:
+        /// ```
+        /// fn pre_ixs(u: &mut arbitrary::Unstructured) -> arbitrary::Result<Vec<FuzzInstruction>> {
+        ///     let init = FuzzInstruction::InitializeFn(InitializeFn::arbitrary(u)?);
+        ///     Ok(vec![init])
+        /// }
+        /// ```
+        /// For more details, see: https://ackee.xyz/trident/docs/dev/features/instructions-sequences/#instructions-sequences
         impl FuzzDataBuilder<FuzzInstruction> for MyFuzzData {}
 
+        /// `fn fuzz_iteration` runs during every fuzzing iteration.
+        /// Modification is not required.
         fn fuzz_iteration<T: FuzzTestExecutor<U> + std::fmt::Display, U>(fuzz_data: FuzzData<T, U>,config: &Config) {
 
 

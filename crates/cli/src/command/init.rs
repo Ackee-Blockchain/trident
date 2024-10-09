@@ -2,10 +2,9 @@ use anyhow::{bail, Error};
 use fehler::throws;
 use trident_client::___private::TestGenerator;
 
-use crate::_discover;
+use crate::{_discover, show_howto};
 
 pub const ANCHOR_TOML: &str = "Anchor.toml";
-
 #[throws]
 pub async fn init() {
     // look for Anchor.toml
@@ -18,4 +17,6 @@ pub async fn init() {
     let mut generator: TestGenerator = TestGenerator::new_with_root(root);
 
     generator.generate_fuzz().await?;
+
+    show_howto();
 }
