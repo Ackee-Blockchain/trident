@@ -34,15 +34,11 @@ pub fn generate_source_code(idl_instructions: &[Idl]) -> String {
 
         fn main() {
             let config = Config::new();
-            loop {
-                fuzz_trident!(fuzz_ix: FuzzInstruction, |fuzz_data: MyFuzzData| {
+            fuzz_trident!(fuzz_ix: FuzzInstruction, |fuzz_data: MyFuzzData| {
 
+                fuzz_iteration(fuzz_data,&config);
 
-                    fuzz_iteration(fuzz_data,&config);
-
-
-                });
-            }
+            });
         }
     };
 

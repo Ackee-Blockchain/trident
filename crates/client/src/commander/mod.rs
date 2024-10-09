@@ -145,7 +145,9 @@ impl Commander {
                     Err(_) => throw!(Error::FuzzingFailed),
             },
             _ = signal::ctrl_c() => {
-                tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
+                let _res = child.wait().await?;
+
+                tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
             },
         }
     }

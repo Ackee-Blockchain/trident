@@ -69,15 +69,12 @@ impl Commander {
 
         let crash_file = std::path::Path::new(&self.root as &str).join(crash_file_path);
 
-        let build_args = config.get_afl_build_args();
+        let cargo_target_dir = config.get_afl_cargo_build_dir();
 
         if !crash_file.try_exists()? {
             println!("{ERROR} The crash file [{:?}] not found", crash_file);
             throw!(Error::CrashFileNotFound);
         }
-
-        let mut target_path = config.get_afl_target_path();
-        target_path.push_str(&target);
 
         let mut rustflags = std::env::var("RUSTFLAGS").unwrap_or_default();
 
@@ -92,8 +89,8 @@ impl Commander {
             .env("RUSTFLAGS", rustflags)
             .arg("afl")
             .arg("run")
-            .args(build_args)
-            .arg(target_path)
+            .args(["--target-dir", &cargo_target_dir])
+            .args(["--bin", &target])
             .stdin(Stdio::piped())
             .spawn()?;
 
