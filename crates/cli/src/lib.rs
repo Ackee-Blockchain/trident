@@ -7,9 +7,21 @@ use fehler::throws;
 mod command;
 // bring nested subcommand enums into scope
 use command::FuzzCommand;
+use termimad::MadSkin;
 
+macro_rules! load_template {
+    ($file:expr) => {
+        include_str!(concat!(env!("CARGO_MANIFEST_DIR"), $file))
+    };
+}
+
+/// Simple program to greet a person
 #[derive(Parser)]
-#[clap(version, propagate_version = true)]
+#[command(
+    name = "Trident",
+    version = "0.7.0",
+    about = "Trident is Rust based fuzzer for Solana programs written using Anchor framework."
+)]
 struct Cli {
     #[clap(subcommand)]
     command: Command,
@@ -17,17 +29,28 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Command {
-    /// Run and debug Fuzz tests
+    #[command(
+        about = "Initialize Trident in the current Anchor workspace.",
+        long_about = "Initialize Trident in the current Anchor workspace.\n\
+        This command creates a new fuzz test template, adds a Trident.toml configuration file,\n\
+        and updates the Cargo.toml and .gitignore files accordingly to integrate Trident."
+    )]
+    Init,
+    #[command(
+        about = "Run fuzz subcommands.",
+        override_usage = "With fuzz subcommands you can add new fuzz test \
+        template or you can run fuzz test on already initialzied one.\
+        \n\n\x1b[1m\x1b[4mEXAMPLE:\x1b[0m\
+        \n    trident add\n    trident fuzz run-afl fuzz_0\
+        \n    trident fuzz debug-hfuzz \x1b[92m<TARGET>\x1b[0m \x1b[92m<PATH_TO_CRASHFILE>\x1b[0m"
+    )]
     Fuzz {
-        /// Anchor project root
-        #[clap(short, long)]
-        root: Option<String>,
         #[clap(subcommand)]
         subcmd: FuzzCommand,
     },
-    /// Initialize test environment
-    Init,
-    /// Removes target contents except for KeyPair and removes hfuzz_target folder
+    #[command(
+        about = "Clean build targets of AFL and Honggfuzz, additionally perform `anchor build`"
+    )]
     Clean,
 }
 
@@ -36,7 +59,7 @@ pub async fn start() {
     let cli = Cli::parse();
 
     match cli.command {
-        Command::Fuzz { root, subcmd } => command::fuzz(root, subcmd).await?,
+        Command::Fuzz { subcmd } => command::fuzz(subcmd).await?,
         Command::Init => command::init().await?,
         Command::Clean => command::clean().await?,
     }
@@ -67,4 +90,14 @@ fn _discover(target: &str) -> Result<Option<String>> {
     }
 
     Ok(None)
+}
+
+fn show_howto() {
+    let markdown_input = load_template!("/src/howto.md");
+
+    // Create a MadSkin for styling the Markdown.
+    let skin = MadSkin::default();
+
+    // Print the markdown content to the terminal.
+    skin.print_text(markdown_input);
 }

@@ -16,3 +16,4 @@ clap = { version = "=4.3.19", features = ["derive"] }
 tokio = { version = "1" }
 anyhow = { version = "1.0.45" }
 fehler = { version = "1.0.0" }
+termimad = "0.30.0"
