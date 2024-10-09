@@ -84,6 +84,14 @@ impl Config {
     pub fn get_afl_fuzz_args(&self) -> Vec<String> {
         self.afl.get_collect_fuzz_args()
     }
+    pub fn get_afl_cargo_build_dir(&self) -> String {
+        self.afl
+            .get_cargo_build_dir()
+            .expect("AFL Cargo Target Dir argument not available")
+            .val
+            .clone()
+            .expect("AFL Cargo Target Dir value not available")
+    }
     pub fn get_afl_target_path(&self) -> String {
         let afl_arg = self
             .afl

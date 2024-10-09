@@ -2,19 +2,21 @@
 macro_rules! fuzz_trident {
     ($ix:ident: $ix_dty:ident , |$buf:ident: $dty:ident| $body:block) => {
         if cfg!(honggfuzz) {
-            fuzz_honggfuzz(|$buf| {
-                let mut $buf: FuzzData<$ix_dty, _> = {
-                    use arbitrary::Unstructured;
+            loop {
+                fuzz_honggfuzz(|$buf| {
+                    let mut $buf: FuzzData<$ix_dty, _> = {
+                        use arbitrary::Unstructured;
 
-                    let mut buf = Unstructured::new($buf);
-                    if let Ok(fuzz_data) = build_ix_fuzz_data($dty {}, &mut buf) {
-                        fuzz_data
-                    } else {
-                        return;
-                    }
-                };
-                $body
-            });
+                        let mut buf = Unstructured::new($buf);
+                        if let Ok(fuzz_data) = build_ix_fuzz_data($dty {}, &mut buf) {
+                            fuzz_data
+                        } else {
+                            return;
+                        }
+                    };
+                    $body
+                });
+            }
         } else if cfg!(afl) {
             fuzz_afl(true, |$buf| {
                 let mut $buf: FuzzData<$ix_dty, _> = {
@@ -30,7 +32,6 @@ macro_rules! fuzz_trident {
                 $body
             });
         } else {
-            break;
         }
     };
 }

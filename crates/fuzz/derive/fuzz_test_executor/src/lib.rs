@@ -17,15 +17,28 @@ pub fn fuzz_test_executor(input: TokenStream) -> TokenStream {
                         // snapshot has to live as long as ix, thus we declare it here
                         let mut snaphot = Snapshot::new_empty(ix);
 
-                        TransactionExecutor::process_transaction(
-                            &self.to_context_string(),
-                            client,
-                            ix,
-                            &mut snaphot,
-                            sent_txs,
-                            config,
-                            accounts
-                        )?;
+                        if cfg!(honggfuzz){
+                            TransactionExecutor::process_transaction_honggfuzz(
+                                &self.to_context_string(),
+                                client,
+                                ix,
+                                &mut snaphot,
+                                sent_txs,
+                                config,
+                                accounts
+                            )?;
+                        }else if cfg!(afl){
+                            TransactionExecutor::process_transaction_afl(
+                                &self.to_context_string(),
+                                client,
+                                ix,
+                                &mut snaphot,
+                                sent_txs,
+                                config,
+                                accounts
+                            )?;
+                        }
+
                     }
                 }
             });

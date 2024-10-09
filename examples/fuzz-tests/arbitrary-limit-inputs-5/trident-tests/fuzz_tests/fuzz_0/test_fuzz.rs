@@ -46,7 +46,5 @@ fn fuzz_iteration<T: FuzzTestExecutor<U> + std::fmt::Display, U>(
 fn main() {
     let config = Config::new();
 
-    loop {
-        fuzz_trident ! (fuzz_ix : FuzzInstruction , | fuzz_data : MyFuzzData | { fuzz_iteration (fuzz_data , &config) ; });
-    }
+    fuzz_trident ! (fuzz_ix : FuzzInstruction , | fuzz_data : MyFuzzData | { fuzz_iteration (fuzz_data , &config) ; });
 }
