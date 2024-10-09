@@ -113,7 +113,13 @@ impl Commander {
         let mut rustfmt = Command::new("rustfmt")
             .arg("+nightly")
             .arg("--config")
-            .arg("blank_lines_upper_bound=1,blank_lines_lower_bound=1")
+            .arg(
+                "\
+            edition=2021,\
+            blank_lines_lower_bound=1,\
+            wrap_comments=true,\
+            normalize_doc_attributes=true",
+            )
             .kill_on_drop(true)
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())

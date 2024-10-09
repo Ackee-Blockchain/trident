@@ -242,7 +242,7 @@ impl TestGenerator {
         let fuzz_instructions_path = new_fuzz_test_dir.join(FUZZ_INSTRUCTIONS_FILE_NAME);
         let program_fuzzer = fuzz_instructions_generator::generate_source_code(&self.anchor_idls);
 
-        let program_fuzzer = Commander::format_program_code(&program_fuzzer).await?;
+        let program_fuzzer = Commander::format_program_code_nightly(&program_fuzzer).await?;
 
         self.create_file(&fuzz_instructions_path, &program_fuzzer)
             .await?;
