@@ -42,27 +42,38 @@ sudo apt-get install -y \
     lldb
 ```
 
-## Install Trident and Honggfuzz
+## Install Hongfuzz and AFL
 
-Install them using the following commands:
+Install honggfuzz
 
+```bash
+cargo install honggfuzz
+
+```
+Install AFL
+```bash
+cargo install cargo-afl
+```
+
+
+## Install Trident
 
 ```bash
 cargo install trident-cli
-cargo install honggfuzz
+
 ```
 
 ## Supported versions
 
-| {{ config.site_name }} CLI | Anchor | Solana | Rust | Honggfuzz |
-|--------------|---------|----------|-----------------------|-----------------------|
-| `develop` | `0.30.1` | `^1.17.4` | `nightly` | `0.5.56` |
-| `v0.7.0` | `>=0.29.*`<sup>1</sup> | `^1.17.4` | `nightly` | `0.5.56` |
-| `v0.6.0` | `>=0.29.*`<sup>1</sup> | `^1.17` | `nightly` | `0.5.55` |
-| `v0.5.0` | `~0.28.*` | `=1.16.6` | - | - |
-| `v0.4.0` | `~0.27.*` | `>=1.15`  | - | - |
-| `v0.3.0` | `~0.25.*` | `>=1.10`  | - | - |
-| `v0.2.0` | `~0.24.*` |  `>=1.9`  | - | - |
+| {{ config.site_name }} CLI | Anchor | Solana | Rust | Honggfuzz | AFL |
+|-|-|-|-|-|-|
+| `develop` | `0.30.1` | `^1.17.4` | `nightly` | `0.5.56` | `0.15.10` |
+| `v0.7.0` | `>=0.29.*`<sup>1</sup> | `^1.17.4` | `nightly` | `0.5.56` | - |
+| `v0.6.0` | `>=0.29.*`<sup>1</sup> | `^1.17` | `nightly` | `0.5.55` | - |
+| `v0.5.0` | `~0.28.*` | `=1.16.6` | - | - | - |
+| `v0.4.0` | `~0.27.*` | `>=1.15`  | - | - | - |
+| `v0.3.0` | `~0.25.*` | `>=1.10`  | - | - | - |
+| `v0.2.0` | `~0.24.*` |  `>=1.9`  | - | - | - |
 
 1. To use Trident with Anchor 0.29.0, run the following commands from your project's root directory after Trident initialization:
 ```bash

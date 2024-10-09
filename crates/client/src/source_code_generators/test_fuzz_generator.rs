@@ -26,7 +26,7 @@ pub fn generate_source_code(idl_instructions: &[Idl]) -> String {
 
             #(#fuzzing_programs)*
 
-            let mut client = ProgramTestClientBlocking::new(&#programs_array,&[]).unwrap();
+            let mut client = ProgramTestClientBlocking::new(&#programs_array,config).unwrap();
 
             let _ = fuzz_data.run_with_runtime(&mut client,config);
 
@@ -34,15 +34,11 @@ pub fn generate_source_code(idl_instructions: &[Idl]) -> String {
 
         fn main() {
             let config = Config::new();
-            loop {
-                fuzz_trident!(fuzz_ix: FuzzInstruction, |fuzz_data: MyFuzzData| {
+            fuzz_trident!(fuzz_ix: FuzzInstruction, |fuzz_data: MyFuzzData| {
 
+                fuzz_iteration(fuzz_data,&config);
 
-                    fuzz_iteration(fuzz_data,&config);
-
-
-                });
-            }
+            });
         }
     };
 

@@ -185,61 +185,50 @@ Each Instruction in the Fuzz Test has to have defined the following functions:
 
 ### Run Fuzz Test
 
-To execute the desired fuzz test, run:
+In principle there are two possible fuzzing engines that the Trident supports, [Honggfuzz](https://github.com/google/honggfuzz) and [AFL](https://aflplus.plus/).
+
+To execute the desired fuzz test using the Honggfuzz, run:
 
 ```bash
 # Replace <TARGET_NAME> with the name of particular
 # fuzz test (for example: "fuzz_0")
-trident fuzz run <TARGET_NAME>
+trident fuzz run-hfuzz <TARGET_NAME>
 ```
 
-!!! important
-
-    The output provided by Honggfuzz is as follows:
-
-    1. Number of Fuzzing Iterations.
-    2. Feedback Driven Mode = Honggfuzz generates data based on the feedback (i.e. feedback based on Coverage progress).
-    3. Average Iterations per second.
-    4. Number of crashes it found (**panics** or failed **invariant checks**).
-
+To execute the desired fuzz test using the AFL, run:
 
 ```bash
-------------------------[  0 days 00 hrs 00 mins 01 secs ]----------------------
-  Iterations : 688 (out of: 1000 [68%]) # -- 1. --
-  Mode [3/3] : Feedback Driven Mode # -- 2. --
-      Target : trident-tests/fuzz_tests/fuzzing.....wn-linux-gnu/release/fuzz_0
-     Threads : 16, CPUs: 32, CPU%: 1262% [39%/CPU]
-       Speed : 680/sec [avg: 688] # -- 3. --
-     Crashes : 1 [unique: 1, blocklist: 0, verified: 0] # -- 4. --
-    Timeouts : 0 [10 sec]
- Corpus Size : 98, max: 1048576 bytes, init: 0 files
-  Cov Update : 0 days 00 hrs 00 mins 00 secs ago
-    Coverage : edge: 10345/882951 [1%] pc: 163 cmp: 622547
----------------------------------- [ LOGS ] ------------------/ honggfuzz 2.6 /-
+# Replace <TARGET_NAME> with the name of particular
+# fuzz test (for example: "fuzz_0")
+trident fuzz run-afl <TARGET_NAME>
 ```
+
+
 
 ### Debug Fuzz Test
 
-To debug your program with values from a crash file:
+To debug your program using Honggfuzz with values from a crash file:
 
 ```bash
 # fuzzer will run the <TARGET_NAME> with the specified <CRASH_FILE_PATH>
-trident fuzz run-debug <TARGET_NAME> <CRASH_FILE_PATH>
+trident fuzz debug-hfuzz <TARGET_NAME> <CRASH_FILE_PATH>
+```
+
+To debug your program using AFL with values from a crash file:
+
+```bash
+# fuzzer will run the <TARGET_NAME> with the specified <CRASH_FILE_PATH>
+trident fuzz debug-afl <TARGET_NAME> <CRASH_FILE_PATH>
 ```
 
 !!! tip
 
-    By default, the crashfiles are stored in the `trident-tests/fuzz_tests/fuzzing/hfuzz_workspace/<FUZZ_TARGET>`.
+    By default, the crashfiles are stored in the
+
+    - `trident-tests/fuzz_tests/fuzzing/honggfuzz/hfuzz_workspace/<FUZZ_TARGET>` for Hongfuzz and
+    - `trident-tests/fuzz_tests/fuzzing/afl/afl_workspace/out/default/crashes` for the AFL.
 
 
-!!! important
+!!! tip
 
-    The debug output is at current development stage really verbose and contains lldb parts. We are working on improving this experience. In the picture below you can see an example of provided debug output.
-
-    1. Series of Transaction Logs
-    2. Structures of data send within the Instructions
-    3. **Panic** or **Crash**, based on if the Fuzzing panicked within the Solana Program or Invariant Check failed.
-
-
-
-![alt text](../images/run-debug.png)
+    For more info about the fuzzing outputs chech the [Commands](../commands/commands.md)

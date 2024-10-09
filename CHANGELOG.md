@@ -12,6 +12,7 @@ incremented upon a breaking change and the patch version will be incremented for
 
 **Added**
 
+- impr/ allow to specify programs and accounts in the Trident Manifest ([207](https://github.com/Ackee-Blockchain/trident/pull/207))
 - impr/ added get_program_id function to the IxOps and FuzzTestExecutor ([199](https://github.com/Ackee-Blockchain/trident/pull/199))
 
 **Changed**

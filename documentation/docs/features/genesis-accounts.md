@@ -49,41 +49,26 @@ fn fuzz_iteration<T: FuzzTestExecutor<U> + std::fmt::Display, U>(
 
 In case of SBF targets, compiled or dumped from whatever cluster. You can also use these within the Fuzz Tests.
 
+!!! tip
+
+    If you want to obtain Program from Mainnet use
+
+    ```bash
+    # -u m specifies to dump from mainnet
+    solana program dump -u m <PROGRAM_ID> <PROGRAM_NAME>.so
+    ```
+
 !!! important
 
-    To include the SBF target in the Fuzz Test for CPI
+    - To include the SBF target in the Fuzz Test for CPI, specify address and path to the program in the `Trident.toml`.
 
-    - Specify program entry to `None`.
-    - Store the SBF target in the `trident-genesis` folder in the root of the workspace.
-    - **Name of the program has to be the same as name of the dumbed SBF target** in the trident-genesis (without .so).
+    - Including these types of programs will lead to performance decline of Trident.
 
-```rust
-fn fuzz_iteration<T: FuzzTestExecutor<U> + std::fmt::Display, U>(
-    fuzz_data: FuzzData<T, U>
-) {
-
-    let fuzzing_program_cpi_metaplex_7 = FuzzingProgram::new(
-        PROGRAM_NAME_CPI_METAPLEX_7,
-        &PROGRAM_ID_CPI_METAPLEX_7,
-        processor!(convert_entry!(entry_cpi_metaplex_7)),
-    );
-
-    let metaplex = FuzzingProgram::new(
-        "metaplex-token-metadata",
-        &mpl_token_metadata::ID,
-        None
-    );
-
-    let mut client =
-        ProgramTestClientBlocking::new(
-            &[fuzzing_program_cpi_metaplex_7, metaplex],
-            &[]
-        ).unwrap();
-
-    let _ = fuzz_data.run_with_runtime(&mut client);
-}
+```toml
+[[fuzz.programs]]
+address = "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s"
+program = "metaplex-program/metaplex-token-metadata.so"
 ```
-
 
 
 
@@ -100,32 +85,14 @@ Trident allows you to include Accounts with data in base64 format.
     solana account -u m <ADDRESS> --output json
     ```
 
-```rust
-fn fuzz_iteration<T: FuzzTestExecutor<U> + std::fmt::Display, U>(
-    fuzz_data: FuzzData<T, U>
-) {
+!!! important
 
-    let fuzzing_program_cpi_metaplex_7 = FuzzingProgram::new(
-        PROGRAM_NAME_CPI_METAPLEX_7,
-        &PROGRAM_ID_CPI_METAPLEX_7,
-        processor!(convert_entry!(entry_cpi_metaplex_7)),
-    );
+    To include desired accounts in the fuzz testing environment, add then using the `Trident.toml`.
 
-    let custom_account = FuzzingAccountBase64::new(
-        ACCOUNT_ADDRESS,
-        LAMPORTS,
-        OWNER,
-        "AQAAALL8+z4UH4TCY/N8hU0XmNZYMU9r04EadnC4rxQcc", // base64 data format
-    );
-
-    let mut client =
-        ProgramTestClientBlocking::new(
-            &[fuzzing_program_cpi_metaplex_7],
-            &[custom_account] // Include here
-        ).unwrap();
-
-    let _ = fuzz_data.run_with_runtime(&mut client);
-}
+```toml
+[[fuzz.accounts]]
+address = "6YG3J7PaxyMnnbU67ifyrgF3BzNzc7cD8hPkqK6ATweE"
+filename = "tests/accounts/core_bridge_mainnet/guardian_set_5_mock.json"
 ```
 
 

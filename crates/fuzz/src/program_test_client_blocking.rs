@@ -1,7 +1,3 @@
-use std::fs::File;
-use std::io::Read;
-use std::path::PathBuf;
-
 use solana_program_runtime::invoke_context::BuiltinFunctionWithContext;
 use solana_program_test::ProgramTest;
 use solana_program_test::ProgramTestContext;
@@ -17,6 +13,7 @@ use solana_sdk::{
 use spl_token::state::Mint;
 use tokio::runtime::Builder;
 
+use crate::config::Config;
 use crate::error::*;
 use crate::fuzz_client::FuzzClient;
 
@@ -50,58 +47,34 @@ impl FuzzingProgram {
     }
 }
 
-pub struct FuzzingAccountBase64<'a> {
-    pub address: Pubkey,
-    pub lamports: u64,
-    pub owner: Pubkey,
-    pub data_base64: &'a str,
-}
-
-impl<'a> FuzzingAccountBase64<'a> {
-    pub fn new(
-        address: Pubkey,
-        lamports: u64,
-        owner: Pubkey,
-        data_base64: &'a str,
-    ) -> FuzzingAccountBase64<'a> {
-        Self {
-            address,
-            lamports,
-            owner,
-            data_base64,
-        }
-    }
-}
-
 impl ProgramTestClientBlocking {
-    pub fn new(
-        program_: &[FuzzingProgram],
-        account_: &[FuzzingAccountBase64],
-    ) -> Result<Self, FuzzClientError> {
+    pub fn new(program_: &[FuzzingProgram], config: &Config) -> Result<Self, FuzzClientError> {
         let mut program_test = ProgramTest::default();
         for x in program_ {
-            match x.entry {
-                Some(entry) => {
-                    program_test.add_builtin_program(&x.program_name, x.program_id, entry);
-                }
-                None => {
-                    let data = read_program(&x.program_name);
-
-                    program_test.add_account(
-                        x.program_id,
-                        Account {
-                            lamports: Rent::default().minimum_balance(data.len()).max(1),
-                            data,
-                            owner: solana_sdk::bpf_loader::id(),
-                            executable: true,
-                            rent_epoch: 0,
-                        },
-                    );
-                }
+            if let Some(entry) = x.entry {
+                program_test.add_builtin_program(&x.program_name, x.program_id, entry);
             }
         }
-        for x in account_ {
-            program_test.add_account_with_base64_data(x.address, x.lamports, x.owner, x.data_base64)
+        for account in config.fuzz.accounts.iter() {
+            program_test.add_account_with_base64_data(
+                account.pubkey,
+                account.account.lamports,
+                account.account.owner,
+                &account.account.data,
+            )
+        }
+
+        for program in config.fuzz.programs.iter() {
+            program_test.add_account(
+                program.address,
+                Account {
+                    lamports: Rent::default().minimum_balance(program.data.len()).max(1),
+                    data: program.data.clone(),
+                    owner: solana_sdk::bpf_loader::id(),
+                    executable: true,
+                    rent_epoch: 0,
+                },
+            );
         }
 
         let rt: tokio::runtime::Runtime = Builder::new_current_thread().enable_all().build()?;
@@ -270,19 +243,4 @@ impl FuzzClient for ProgramTestClientBlocking {
     fn get_rent(&mut self) -> Result<Rent, FuzzClientError> {
         Ok(self.rt.block_on(self.ctx.banks_client.get_rent())?)
     }
-}
-
-fn read_program(program_name: &str) -> Vec<u8> {
-    let genesis_folder = std::env::var("GENESIS_FOLDER")
-        .unwrap_or_else(|err| panic!("Failed to read env variable GENESIS_FOLDER: {}", err));
-
-    let program_path = PathBuf::from(genesis_folder).join(format!("{program_name}.so"));
-
-    let mut file = File::open(&program_path)
-        .unwrap_or_else(|err| panic!("Failed to open \"{}\": {}", program_path.display(), err));
-
-    let mut file_data = Vec::new();
-    file.read_to_end(&mut file_data)
-        .unwrap_or_else(|err| panic!("Failed to read \"{}\": {}", program_path.display(), err));
-    file_data
 }

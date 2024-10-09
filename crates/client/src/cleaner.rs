@@ -39,6 +39,7 @@ impl Cleaner {
         };
         self.clean_anchor_target().await?;
         self.clean_hfuzz_target(&root).await?;
+        self.clean_afl_target(&root).await?;
     }
 
     #[throws]
@@ -47,17 +48,26 @@ impl Cleaner {
     }
     #[throws]
     async fn clean_hfuzz_target(&self, root: &PathBuf) {
-        let hfuzz_target_path = Path::new(root)
-            .join(TESTS_WORKSPACE_DIRECTORY)
-            .join(FUZZ_TEST_DIRECTORY)
-            .join(FUZZING)
-            .join(HFUZZ_TARGET);
+        let hfuzz_target_path = Path::new(root).join(CARGO_TARGET_DIR_DEFAULT_HFUZZ);
         if hfuzz_target_path.exists() {
             fs::remove_dir_all(hfuzz_target_path).await?;
         } else {
             println!(
-                "{SKIP} [{}/{}/{}/{}] directory not found",
-                TESTS_WORKSPACE_DIRECTORY, FUZZ_TEST_DIRECTORY, FUZZING, HFUZZ_TARGET
+                "{SKIP} [{}] directory not found",
+                CARGO_TARGET_DIR_DEFAULT_HFUZZ
+            )
+        }
+    }
+
+    #[throws]
+    async fn clean_afl_target(&self, root: &PathBuf) {
+        let afl_target_path = Path::new(root).join(CARGO_TARGET_DIR_DEFAULT_AFL);
+        if afl_target_path.exists() {
+            fs::remove_dir_all(afl_target_path).await?;
+        } else {
+            println!(
+                "{SKIP} [{}] directory not found",
+                CARGO_TARGET_DIR_DEFAULT_AFL
             )
         }
     }
