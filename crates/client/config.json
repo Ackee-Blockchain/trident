@@ -1,0 +1,5 @@
+{
+    "trident_fuzz": "0.1.0",
+    "trident_derive_accounts_snapshots": "0.0.1",
+    "trident_client": "0.7.0"
+}
