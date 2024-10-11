@@ -1,3 +1,5 @@
+use std::path::Path;
+
 use anyhow::{bail, Error};
 use fehler::throws;
 use trident_client::___private::TestGenerator;
@@ -5,8 +7,10 @@ use trident_client::___private::TestGenerator;
 use crate::{_discover, show_howto};
 
 pub const ANCHOR_TOML: &str = "Anchor.toml";
+pub const TRIDENT_TOML: &str = "Trident.toml";
+
 #[throws]
-pub async fn init() {
+pub async fn init(force: bool) {
     // look for Anchor.toml
     let root = if let Some(r) = _discover(ANCHOR_TOML)? {
         r
@@ -14,9 +18,18 @@ pub async fn init() {
         bail!("It does not seem that Anchor is initialized because the Anchor.toml file was not found in any parent directory!");
     };
 
-    let mut generator: TestGenerator = TestGenerator::new_with_root(root);
+    let mut generator: TestGenerator = TestGenerator::new_with_root(&root)?;
 
-    generator.generate_fuzz().await?;
+    if force {
+        generator.initialize().await?;
+    } else {
+        let root_path = Path::new(&root).join(TRIDENT_TOML);
+        if root_path.exists() {
+            println!("It looks like Trident is already initialized as the Trident.toml was found in {} directory.",root);
+        } else {
+            generator.initialize().await?;
+        }
+    }
 
     show_howto();
 }

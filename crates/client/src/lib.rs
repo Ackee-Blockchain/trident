@@ -69,6 +69,8 @@ mod commander;
 mod source_code_generators;
 mod temp_clone;
 mod test_generator;
+mod utils;
+mod versions_config;
 
 pub mod ___private {
     pub use super::anchor_idl::*;
