@@ -1,29 +1,44 @@
 
 
-# New fuzz test template successfully added.
+# How To start fuzzing.
 
 ## To start fuzzing, follow these steps:
 
-- Derive AccountsSnapshots for each account context in the program:
+- Initialize ***Trident*** using
 
-Include the following dependencies in the Cargo.toml of each program:
+```bash
+trident init
+```
+
+- Derive ***AccountsSnapshots*** for each account context in the program:
+
 ```rust
-trident-derive-accounts-snapshots = "0.8.0"
-trident-fuzz = { version = "0.8.0", optional = true }
+use trident_derive_accounts_snapshots::AccountsSnapshots;
+
+#[derive(AccountsSnapshots, Accounts)]
+pub struct InitializeContext<'info> {
+// ...
+}
+
 ```
 
-- Add the fuzzing feature:
-```toml
-trident-fuzzing = ["dep:trident-fuzz"]
-```
+- Link Account Context Aliases in the ***fuzz_instructions.rs*** with desired Snapshots
 
-- Link Account Context Aliases in the `fuzz_instructions.rs` with desired Snapshots
-For example:
 ```rust
 use hello_world::trident_fuzz_initialize_context_snapshot::InitializeContextAlias;
 type InitializeFnSnapshot<'info> = InitializeContextAlias<'info>;
 ```
 
-- Implement the `todo!` placeholders in `fuzz_instructions.rs` based on the provided descriptions.
+- Implement the ***todo!*** placeholders in ***fuzz_instructions.rs*** based on the provided descriptions.
+
+- Run fuzzing with ***Honggfuzz*** or ***AFL***
+
+```bash
+trident fuzz run-hfuzz
+```
+
+```bash
+trident fuzz run-afl
+```
 
 ### For more details, refer to the Trident documentation: https://ackee.xyz/trident/docs/dev/
