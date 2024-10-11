@@ -1,6 +1,6 @@
 use fehler::{throw, throws};
-use std::path::PathBuf;
-use std::{borrow::Cow, io, process::Stdio, string::FromUtf8Error};
+use std::path::{Path, PathBuf};
+use std::{io, process::Stdio, string::FromUtf8Error};
 use thiserror::Error;
 use tokio::{
     io::AsyncWriteExt,
@@ -38,24 +38,19 @@ pub enum Error {
 /// run tests and do other useful operations.
 #[derive(Default)]
 pub struct Commander {
-    root: Cow<'static, str>,
+    root: PathBuf,
 }
 
 impl Commander {
-    /// Creates a new `Commander` instance with the default root `"../../"`.
-    pub fn new() -> Self {
+    /// Creates a new `Commander` instance with the provided `root`.
+    pub fn with_root(root: &PathBuf) -> Self {
         Self {
-            root: "../../".into(),
+            root: Path::new(&root).to_path_buf(),
         }
     }
 
-    /// Creates a new `Commander` instance with the provided `root`.
-    pub fn with_root(root: impl Into<Cow<'static, str>>) -> Self {
-        Self { root: root.into() }
-    }
-
     #[throws]
-    pub async fn build_anchor_project(&self) {
+    pub async fn build_anchor_project() {
         let success = Command::new("anchor")
             .arg("build")
             .spawn()?
@@ -64,30 +59,6 @@ impl Commander {
             .success();
         if !success {
             throw!(Error::BuildProgramsFailed);
-        }
-    }
-    pub fn program_packages() -> impl Iterator<Item = cargo_metadata::Package> {
-        let cargo_toml_data = cargo_metadata::MetadataCommand::new()
-            .no_deps()
-            .exec()
-            .expect("Cargo.toml reading failed");
-
-        cargo_toml_data.packages.into_iter().filter(|package| {
-            // TODO less error-prone test if the package is a _program_?
-            if let Some("programs") = package.manifest_path.iter().nth_back(2) {
-                return true;
-            }
-            false
-        })
-    }
-    /// Collects and returns a list of program packages using cargo metadata.
-    #[throws]
-    pub async fn collect_program_packages() -> Vec<cargo_metadata::Package> {
-        let packages: Vec<cargo_metadata::Package> = Commander::program_packages().collect();
-        if packages.is_empty() {
-            throw!(Error::NoProgramsFound)
-        } else {
-            packages
         }
     }
 
@@ -116,7 +87,6 @@ impl Commander {
             .arg(
                 "\
             edition=2021,\
-            blank_lines_lower_bound=1,\
             wrap_comments=true,\
             normalize_doc_attributes=true",
             )
@@ -240,7 +210,7 @@ impl Commander {
 }
 
 fn get_crash_dir_and_ext(
-    root: &str,
+    root: &Path,
     target: &str,
     hfuzz_run_args: &str,
     hfuzz_workspace: &str,
@@ -264,7 +234,7 @@ fn get_crash_dir_and_ext(
 
     let crash_path = if let Some(dir) = crash_dir {
         // INFO If path is absolute, it replaces the current path.
-        std::path::Path::new(root).join(dir)
+        root.join(dir)
     } else {
         std::path::Path::new(hfuzz_workspace).join(target)
     };

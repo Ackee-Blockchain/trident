@@ -29,13 +29,23 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Command {
+    #[command(about = "Show the HowTo message.")]
+    How,
     #[command(
         about = "Initialize Trident in the current Anchor workspace.",
-        long_about = "Initialize Trident in the current Anchor workspace.\n\
-        This command creates a new fuzz test template, adds a Trident.toml configuration file,\n\
-        and updates the Cargo.toml and .gitignore files accordingly to integrate Trident."
+        override_usage = "\nTrident will skip initialization if Trident.toml already exists.\
+        \nIf you are sure that you want to proceed with initialization even though the Trident.toml already exists,\
+        \ncall trident init -f / --force."
     )]
-    Init,
+    Init {
+        #[arg(
+            short,
+            long,
+            required = false,
+            help = "Force Trident Initialization. Trident dependencies will be updated based on the version of Trident."
+        )]
+        force: bool,
+    },
     #[command(
         about = "Run fuzz subcommands.",
         override_usage = "With fuzz subcommands you can add new fuzz test \
@@ -59,8 +69,9 @@ pub async fn start() {
     let cli = Cli::parse();
 
     match cli.command {
+        Command::How => command::howto()?,
         Command::Fuzz { subcmd } => command::fuzz(subcmd).await?,
-        Command::Init => command::init().await?,
+        Command::Init { force } => command::init(force).await?,
         Command::Clean => command::clean().await?,
     }
 }
