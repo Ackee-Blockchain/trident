@@ -8,6 +8,7 @@ use crate::{_discover, show_howto};
 
 pub const ANCHOR_TOML: &str = "Anchor.toml";
 pub const TRIDENT_TOML: &str = "Trident.toml";
+pub const SKIP: &str = "\x1b[33mSkip\x1b[0m";
 
 #[throws]
 pub async fn init(force: bool) {
@@ -25,7 +26,7 @@ pub async fn init(force: bool) {
     } else {
         let root_path = Path::new(&root).join(TRIDENT_TOML);
         if root_path.exists() {
-            println!("It looks like Trident is already initialized as the Trident.toml was found in {} directory.",root);
+            println!("{SKIP} It looks like Trident is already initialized as the Trident.toml was found in {} directory.",root);
         } else {
             generator.initialize().await?;
         }
