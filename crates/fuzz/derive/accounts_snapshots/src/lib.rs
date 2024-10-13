@@ -716,13 +716,29 @@ fn generate(accs: &TridentAccountsStruct) -> proc_macro2::TokenStream {
         quote! { #field_name }
     });
 
-    quote! {
-        #[cfg(feature = "trident-fuzzing")]
-        pub mod #module_name{
-            #[cfg(target_os = "solana")]
-            compile_error!("Do not use fuzzing with Production Code");
-            use super::*;
-            impl<'info>trident_fuzz::fuzz_deserialize::FuzzDeserialize<'info> for #snapshot_name<'info> {
+    // CHECK IF STRUCT HAS ANY FIELDS
+    let has_fields = !accs.0.fields.is_empty();
+
+    // USE PHANTOMDATA IF NO FIELDS PRESENT
+    let struct_definition = if has_fields {
+        quote! {
+            pub struct #snapshot_name<'info> {
+                #(#snapshot_fields)*
+            }
+        }
+    } else {
+        quote! {
+            pub struct #snapshot_name<'info> {
+                #[allow(dead_code)]
+                _phantom: std::marker::PhantomData<&'info ()>,
+            }
+        }
+    };
+
+    // IF IT HAS FIELDS JUST FOLLOW STANDARD BEHAVIOR
+    let deserialize_impl = if has_fields {
+        quote! {
+            impl<'info> trident_fuzz::fuzz_deserialize::FuzzDeserialize<'info> for #snapshot_name<'info> {
                 fn deserialize_option(
                     _program_id: &anchor_lang::prelude::Pubkey,
                     accounts: &mut &'info [Option<AccountInfo<'info>>],
@@ -736,9 +752,31 @@ fn generate(accs: &TridentAccountsStruct) -> proc_macro2::TokenStream {
                     })
                 }
             }
-            pub struct #snapshot_name<'info> {
-                #(#snapshot_fields)*
+        }
+    } else {
+        // IF IT HAS NO FIELDS RETURN THE PHANTOM DATA
+        quote! {
+            impl<'info> trident_fuzz::fuzz_deserialize::FuzzDeserialize<'info> for #snapshot_name<'info> {
+                fn deserialize_option(
+                    _program_id: &anchor_lang::prelude::Pubkey,
+                    _accounts: &mut &'info [Option<AccountInfo<'info>>],
+                ) -> core::result::Result<Self, trident_fuzz::error::FuzzingError> {
+                    Ok(Self { _phantom: std::marker::PhantomData })
+                }
             }
+        }
+    };
+
+    quote! {
+        #[cfg(feature = "trident-fuzzing")]
+        pub mod #module_name {
+            #[cfg(target_os = "solana")]
+            compile_error!("Do not use fuzzing with Production Code");
+            use super::*;
+
+            #deserialize_impl
+
+            #struct_definition
         }
     }
 }
