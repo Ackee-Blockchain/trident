@@ -5,4 +5,6 @@ pub struct TridentVersionsConfig {
     pub trident_fuzz: String,
     pub trident_derive_accounts_snapshots: String,
     pub trident_client: String,
+    pub trident_instr_data: String,
+    pub arbitrary: String,
 }

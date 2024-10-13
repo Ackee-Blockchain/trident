@@ -368,8 +368,10 @@ name = "arbitrary-custom-types-4"
 version = "0.1.0"
 dependencies = [
  "anchor-lang",
+ "arbitrary",
  "trident-derive-accounts-snapshots",
  "trident-fuzz",
+ "trident-instr-data",
 ]
 
 [[package]]
@@ -5909,7 +5911,6 @@ dependencies = [
  "thiserror",
  "tokio",
  "toml 0.5.11",
- "trident-derive-accounts-snapshots",
  "trident-derive-displayix",
  "trident-derive-fuzz-test-executor",
  "trident-fuzz",
@@ -5965,6 +5966,15 @@ dependencies = [
  "thiserror",
  "tokio",
  "toml 0.5.11",
+]
+
+[[package]]
+name = "trident-instr-data"
+version = "0.0.1"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.79",
 ]
 
 [[package]]

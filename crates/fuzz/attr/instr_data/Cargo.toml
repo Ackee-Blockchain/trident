@@ -1,0 +1,15 @@
+[package]
+name = "trident-instr-data"
+version = "0.0.1"
+edition = "2021"
+license-file = "../../../../LICENSE"
+readme = "../../../../README.md"
+description = "trident-instr-data"
+
+[lib]
+proc-macro = true
+
+[dependencies]
+syn = { version = "2.0", features = ["full"] }
+quote = "1.0"
+proc-macro2 = "1.0"

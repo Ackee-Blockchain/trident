@@ -5,6 +5,7 @@ declare_id!("CdWkp3CY9CAjBQP73SDCwDDfsumwY7e6DDSjrN5u8Cii");
 const MAGIC_NUMBER: u8 = 254;
 
 use trident_derive_accounts_snapshots::AccountsSnapshots;
+use trident_instr_data::instr_data;
 
 #[program]
 pub mod arbitrary_custom_types_4 {
@@ -74,12 +75,14 @@ pub struct Counter {
     pub count: u64,
 }
 
+#[instr_data]
 #[derive(AnchorDeserialize, AnchorSerialize)]
 pub struct InputUpdatePrameters {
     pub input1: u8,
     pub input2: u8,
 }
 
+#[instr_data]
 #[derive(AnchorDeserialize, AnchorSerialize)]
 pub enum InputUpdateVariant {
     UpdateVariant1,

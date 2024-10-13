@@ -283,7 +283,10 @@ fn get_instruction_ixops(
                         IdlType::Defined {
                             name: _,
                             generics: _,
-                        } => parse_quote!(#arg_name: todo!()),
+                        } => {
+                            let arg_value: syn::Expr = parse_quote!(self.data.#arg_name.clone());
+                            parse_quote!(#arg_name: #arg_value)
+                        }
                         _ => {
                             let arg_value: syn::Expr = parse_quote!(self.data.#arg_name);
                             parse_quote!(#arg_name: #arg_value)

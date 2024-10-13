@@ -15,9 +15,21 @@ no-entrypoint = []
 no-idl = []
 no-log-ix-name = []
 idl-build = ["anchor-lang/idl-build"]
-trident-fuzzing = ["dep:trident-fuzz"]
+trident-fuzzing = ["dep:trident-fuzz", "arbitrary"]
 
 [dependencies]
-trident-derive-accounts-snapshots = { path = "../../../../../crates/fuzz/derive/accounts_snapshots" }
-trident-fuzz = { path = "../../../../../crates/fuzz", optional = true }
 anchor-lang = "0.30.1"
+
+[dependencies.trident-derive-accounts-snapshots]
+path = "../../../../../crates/fuzz/derive/accounts_snapshots"
+
+[dependencies.trident-fuzz]
+path = "../../../../../crates/fuzz"
+optional = true
+
+[dependencies.arbitrary]
+version = "1.3"
+optional = true
+
+[dependencies.trident-instr-data]
+version = "0.0.1"

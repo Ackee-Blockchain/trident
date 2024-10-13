@@ -22,6 +22,20 @@ pub struct InitializeContext<'info> {
 
 ```
 
+- Apply ***instr_data*** for each castom type that is used as Instruction input:
+
+```rust
+use trident_instr_data::instr_data;
+
+#[instr_data]
+#[derive(AnchorDeserialize, AnchorSerialize)]
+pub struct InputUpdatePrameters {
+    pub input1: u8,
+    pub input2: u8,
+}
+
+```
+
 - Link Account Context Aliases in the ***fuzz_instructions.rs*** with desired Snapshots
 
 ```rust

@@ -162,7 +162,10 @@ pub async fn initialize_package_metadata(
         let features_table = ensure_table(&mut cargo_toml_content, "features")?;
 
         features_table.insert("trident-fuzzing".to_owned(), {
-            Value::Array(vec![Value::String("dep:trident-fuzz".to_string())])
+            Value::Array(vec![
+                Value::String("dep:trident-fuzz".to_string()),
+                Value::String("arbitrary".to_string()),
+            ])
         });
 
         // Ensure the required dependencies are present in the 'dependencies' section.
@@ -176,6 +179,27 @@ pub async fn initialize_package_metadata(
                 Value::String(versions_config.trident_derive_accounts_snapshots.clone()),
             );
             Value::Table(snapshots_table)
+        });
+        // Add 'trident-instr-data' dependency in table format.
+        dependencies_table.insert("trident-instr-data".to_owned(), {
+            let mut instr_data = Table::new();
+            instr_data.insert(
+                "version".to_string(),
+                Value::String(versions_config.trident_instr_data.clone()),
+            );
+            Value::Table(instr_data)
+        });
+
+        // Add 'arbitrary' dependency in table format.
+        dependencies_table.insert("arbitrary".to_owned(), {
+            let mut arbitrary = Table::new();
+            arbitrary.insert(
+                "version".to_string(),
+                Value::String(versions_config.arbitrary.clone()),
+            );
+            arbitrary.insert("optional".to_string(), Value::Boolean(true));
+
+            Value::Table(arbitrary)
         });
 
         // Add 'trident-fuzz' dependency with specified attributes if not present.
@@ -212,7 +236,10 @@ pub async fn update_package_metadata(
             );
         } else {
             features_table.entry("trident-fuzzing").or_insert_with(|| {
-                Value::Array(vec![Value::String("dep:trident-fuzz".to_string())])
+                Value::Array(vec![
+                    Value::String("dep:trident-fuzz".to_string()),
+                    Value::String("arbitrary".to_string()),
+                ])
             });
         }
 
@@ -233,6 +260,44 @@ pub async fn update_package_metadata(
                     );
                     Value::Table(snapshots_table)
                 });
+        }
+
+        // Add 'trident-instr-data' dependency in table format.
+        if dependencies_table.contains_key("trident-instr-data") {
+            println!(
+                "{SKIP} 'trident-instr-data' dependency already exists in package: {}",
+                package.name
+            );
+        } else {
+            dependencies_table
+                .entry("trident-instr-data")
+                .or_insert_with(|| {
+                    let mut instr_data = Table::new();
+                    instr_data.insert(
+                        "version".to_string(),
+                        Value::String(versions_config.trident_instr_data.clone()),
+                    );
+                    Value::Table(instr_data)
+                });
+        }
+
+        // Add 'arbitrary' dependency in table format.
+        if dependencies_table.contains_key("arbitrary") {
+            println!(
+                "{SKIP} 'arbitrary' dependency already exists in package: {}",
+                package.name
+            );
+        } else {
+            dependencies_table.entry("arbitrary").or_insert_with(|| {
+                let mut arbitrary = Table::new();
+                arbitrary.insert(
+                    "version".to_string(),
+                    Value::String(versions_config.arbitrary.clone()),
+                );
+                arbitrary.insert("optional".to_string(), Value::Boolean(true));
+
+                Value::Table(arbitrary)
+            });
         }
 
         // Add 'trident-fuzz' dependency with specified attributes if not present.
