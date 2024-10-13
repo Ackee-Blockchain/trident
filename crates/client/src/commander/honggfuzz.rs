@@ -136,7 +136,7 @@ impl Commander {
     pub async fn run_hfuzz_debug(&self, target: String, crash_file_path: String) {
         let config = Config::new();
 
-        let crash_file = std::path::Path::new(&self.root as &str).join(crash_file_path);
+        let crash_file = self.root.join(crash_file_path);
 
         if !crash_file.try_exists()? {
             println!("{ERROR} The crash file [{:?}] not found", crash_file);

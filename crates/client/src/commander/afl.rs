@@ -67,7 +67,7 @@ impl Commander {
     pub async fn run_afl_debug(&self, target: String, crash_file_path: String) {
         let config = Config::new();
 
-        let crash_file = std::path::Path::new(&self.root as &str).join(crash_file_path);
+        let crash_file = self.root.join(crash_file_path);
 
         let cargo_target_dir = config.get_afl_cargo_build_dir();
 

@@ -25,7 +25,8 @@ async fn test_fuzz_instructions() {
         ]);
 
     let fuzz_instructions_code =
-        trident_client::___private::Commander::format_program_code(&fuzz_instructions_code).await?;
+        trident_client::___private::Commander::format_program_code_nightly(&fuzz_instructions_code)
+            .await?;
 
     assert_str_eq!(fuzz_instructions_code, expected_fuzz_instructions_code);
 }

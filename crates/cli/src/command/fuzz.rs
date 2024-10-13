@@ -1,3 +1,5 @@
+use std::path::Path;
+
 use anyhow::{bail, Error};
 
 use clap::Subcommand;
@@ -105,7 +107,7 @@ pub async fn fuzz(subcmd: FuzzCommand) {
         }
     };
 
-    let commander = Commander::with_root(root.clone());
+    let commander = Commander::with_root(&Path::new(&root).to_path_buf());
 
     match subcmd {
         FuzzCommand::Run_Afl { target } => {
@@ -135,7 +137,7 @@ pub async fn fuzz(subcmd: FuzzCommand) {
         }
 
         FuzzCommand::Add => {
-            let mut generator = TestGenerator::new_with_root(root);
+            let mut generator = TestGenerator::new_with_root(&root)?;
             generator.add_fuzz_test().await?;
             show_howto();
         }

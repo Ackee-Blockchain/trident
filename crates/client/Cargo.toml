@@ -17,8 +17,6 @@ pretty_assertions = "1.1.0"
 # TRIDENT
 trident-derive-displayix = { path = "../fuzz/derive/display_ix", version = "0.0.2" }
 trident-derive-fuzz-test-executor = { path = "../fuzz/derive/fuzz_test_executor", version = "0.0.2" }
-trident-derive-accounts-snapshots = { path = "../fuzz/derive/accounts_snapshots", version = "0.0.1" }
-
 trident-fuzz = { path = "../fuzz", version = "0.1.0" }
 
 # ANCHOR

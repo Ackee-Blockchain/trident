@@ -6,3 +6,6 @@ pub use init::init;
 
 mod clean;
 pub use clean::clean;
+
+mod howto;
+pub use howto::howto;
