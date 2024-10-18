@@ -19,7 +19,6 @@ macro_rules! load_template {
 #[derive(Parser)]
 #[command(
     name = "Trident",
-    version = "0.7.0",
     about = "Trident is Rust based fuzzer for Solana programs written using Anchor framework."
 )]
 struct Cli {

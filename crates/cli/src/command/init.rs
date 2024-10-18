@@ -23,14 +23,19 @@ pub async fn init(force: bool) {
 
     if force {
         generator.initialize().await?;
+        show_howto();
     } else {
         let root_path = Path::new(&root).join(TRIDENT_TOML);
         if root_path.exists() {
-            println!("{SKIP} It looks like Trident is already initialized as the Trident.toml was found in {} directory.",root);
+            println!(
+                "{SKIP}: It looks like Trident is already initialized.\n\
+            Trident.toml was found in {} directory.\n\
+            In case you want to reinitialize the workspace use --force/-f flag.",
+                root
+            );
         } else {
             generator.initialize().await?;
+            show_howto();
         }
     }
-
-    show_howto();
 }

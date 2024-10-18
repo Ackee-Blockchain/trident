@@ -28,9 +28,15 @@ project-root
 
 ---
 
+## trident how
+
+ - Print How To message about how to start writting fuzz tests.
+
+---
+
 ## trident fuzz
 
-- This command behavior depends on the subcommands.
+- Behavior depends on the subcommands.
 
 ### trident fuzz run-afl
 

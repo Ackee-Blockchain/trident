@@ -41,7 +41,6 @@ impl Commander {
             }
         }
 
-        println!("{}", cargo_target_dir);
         match config.get_fuzzing_with_stats() {
             true => {
                 // enforce keep output to be true

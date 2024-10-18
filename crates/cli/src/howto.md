@@ -4,6 +4,15 @@
 
 ## To start fuzzing, follow these steps:
 
+- Install ***Honggfuzz***
+
+```bash
+cargo install honggfuzz
+```
+
+For supported versions check https://ackee.xyz/trident/docs/latest/getting-started/getting-started/#supported-versions
+
+
 - Initialize ***Trident*** using
 
 ```bash
