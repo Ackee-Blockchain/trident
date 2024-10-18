@@ -58,7 +58,7 @@ pub enum FuzzCommand {
             \n      \x1b[1m\x1b[4m<PATH_TO_CRASHFILE>:\x1b[0m Path to the crash found during fuzzing.\
             \n\n\x1b[1m\x1b[4mHINT:\x1b[0m By default crashfiles will be stored in the following folders:\
             \n      \x1b[1m\x1b[4mHonggfuzz:\x1b[0m trident-tests/fuzz_tests/fuzzing/honggfuzz/hfuzz_workspace/<TARGET>\
-            \n      \x1b[1m\x1b[4mAFL:\x1b[0m trident-tests/fuzz_tests/fuzzing/afl/afl_workspace/default/crashes\
+            \n      \x1b[1m\x1b[4mAFL:\x1b[0m trident-tests/fuzz_tests/fuzzing/afl/afl_workspace/out/default/crashes\
             \n\n\x1b[1m\x1b[4mEXAMPLE:\x1b[0m\
             \n      trident fuzz debug-afl fuzz_0 trident-tests/fuzz_tests/fuzzing/afl/afl_workspace/out/default/crashes/id...\
             \n\n\x1b[1m\x1b[33mWarning\x1b[0m:\
@@ -81,7 +81,7 @@ pub enum FuzzCommand {
             \n      \x1b[1m\x1b[4m<PATH_TO_CRASHFILE>:\x1b[0m Path to the crash found during fuzzing.\
             \n\n\x1b[1m\x1b[4mHINT:\x1b[0m By default crashfiles will be stored in the following folders:\
             \n      \x1b[1m\x1b[4mHonggfuzz:\x1b[0m trident-tests/fuzz_tests/fuzzing/honggfuzz/hfuzz_workspace/<TARGET>\
-            \n      \x1b[1m\x1b[4mAFL:\x1b[0m trident-tests/fuzz_tests/fuzzing/afl/afl_workspace/default/crashes\
+            \n      \x1b[1m\x1b[4mAFL:\x1b[0m trident-tests/fuzz_tests/fuzzing/afl/afl_workspace/out/default/crashes\
             \n\n\x1b[1m\x1b[4mEXAMPLE:\x1b[0m\
             \n      trident fuzz debug-hfuzz fuzz_0 trident-tests/fuzz_tests/fuzzing/honggfuzz/hfuzz_workspace/fuzz_0/SIGAR...\
             \n\n\x1b[1m\x1b[33mWarning\x1b[0m:\
