@@ -75,6 +75,36 @@ fn get_data(
 
 Or you can customize the Data using the Arbitrary crate. Check [Arbitrary Data](./arbitrary-data.md).
 
+
+### Custom Data Types
+
+If you use Custom Types as Instruction data arguments, you may encounter a problem that the Custom Type does not implement
+
+- [Debug](https://doc.rust-lang.org/std/fmt/trait.Debug.html) trait
+- [Arbitrary](https://docs.rs/arbitrary/latest/arbitrary/trait.Arbitrary.html) trait
+
+### Derive Debug and Arbitrary traits inside the Fuzz Test
+
+You can redefine the custom type within the `fuzz_instructions.rs` file, along with all the necessary traits.
+
+```rust
+// Redefine the Custom Type inside the fuzz_instructions.rs,
+// but this time with all of the required traits.
+#[derive(Arbitrary,Debug, Clone, Copy)]
+pub enum CustomEnumInputFuzz {
+    InputVariant1,
+    InputVariant2,
+    InputVariant3,
+}
+```
+
+
+Then, you would also need to implement the [`std::convert::From<T>`](https://doc.rust-lang.org/std/convert/trait.From.html) trait to enable conversion between the newly defined Custom Type and the Custom Type used within your program.
+
+!!! tip
+
+    Consider checking the [Examples](../examples/examples.md) section for more tips.
+
 ## Get Accounts
 
 This method specifies how the **Accounts** for the corresponding Instruction should be resolved. You can use accounts stored within the **FuzzAccounts Account Storages**, or you can define custom Account using the **client**.

@@ -6109,7 +6109,6 @@ dependencies = [
  "thiserror",
  "tokio",
  "toml 0.5.11",
- "trident-derive-accounts-snapshots",
  "trident-derive-displayix",
  "trident-derive-fuzz-test-executor",
  "trident-fuzz",

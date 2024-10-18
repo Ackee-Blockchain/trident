@@ -12,8 +12,8 @@ description = "Trident is Rust based testing framework providing several conveni
 trident-client = { path = "../client", version = "0.7.0" }
 
 # MISC
-clap = { version = "=4.3.19", features = ["derive"] }
+clap = { version = "4", features = ["derive"] }
 tokio = { version = "1" }
-anyhow = { version = "1.0.45" }
-fehler = { version = "1.0.0" }
+anyhow = { version = "1" }
+fehler = { version = "1" }
 termimad = "0.30.0"
