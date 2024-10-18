@@ -19,7 +19,6 @@ macro_rules! load_template {
 #[derive(Parser)]
 #[command(
     name = "Trident",
-    version = "0.7.0",
     about = "Trident is Rust based fuzzer for Solana programs written using Anchor framework."
 )]
 struct Cli {
@@ -33,16 +32,14 @@ enum Command {
     How,
     #[command(
         about = "Initialize Trident in the current Anchor workspace.",
-        override_usage = "\nTrident will skip initialization if Trident.toml already exists.\
-        \nIf you are sure that you want to proceed with initialization even though the Trident.toml already exists,\
-        \ncall trident init -f / --force."
+        override_usage = "\nTrident will skip initialization if Trident.toml already exists."
     )]
     Init {
         #[arg(
             short,
             long,
             required = false,
-            help = "Force Trident Initialization. Trident dependencies will be updated based on the version of Trident."
+            help = "Force Trident initialization. Trident dependencies will be updated based on the version of Trident CLI."
         )]
         force: bool,
     },
@@ -51,15 +48,18 @@ enum Command {
         override_usage = "With fuzz subcommands you can add new fuzz test \
         template or you can run fuzz test on already initialzied one.\
         \n\n\x1b[1m\x1b[4mEXAMPLE:\x1b[0m\
-        \n    trident add\n    trident fuzz run-afl fuzz_0\
-        \n    trident fuzz debug-hfuzz \x1b[92m<TARGET>\x1b[0m \x1b[92m<PATH_TO_CRASHFILE>\x1b[0m"
+        \n    trident add\
+        \n    trident fuzz run-afl fuzz_0\
+        \n    trident fuzz run-hfuzz fuzz_0\
+        \n    trident fuzz debug-hfuzz fuzz_0 \x1b[92m<PATH_TO_CRASHFILE>\x1b[0m\
+        \n    trident fuzz debug-afl fuzz_0 \x1b[92m<PATH_TO_CRASHFILE>\x1b[0m"
     )]
     Fuzz {
         #[clap(subcommand)]
         subcmd: FuzzCommand,
     },
     #[command(
-        about = "Clean build targets of AFL and Honggfuzz, additionally perform `anchor build`"
+        about = "Clean build targets of AFL and Honggfuzz, additionally perform `anchor clean`"
     )]
     Clean,
 }
