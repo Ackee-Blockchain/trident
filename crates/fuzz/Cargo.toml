@@ -7,8 +7,6 @@ license-file = "../../LICENSE"
 readme = "../../README.md"
 description = "The trident_fuzz crate helps you to write Rust Fuzz Tests for your programs with Trident."
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
 # SOLANA
 solana-sdk = { workspace = true }
@@ -21,16 +19,15 @@ solana-program-test = { workspace = true }
 anchor-lang = { workspace = true, features = ["init-if-needed"] }
 
 # ARBITRARY
-arbitrary = { version = "1.3.0", features = ["derive"] }
+arbitrary = { workspace = true }
 
 # MISC
-thiserror = "1.0.30"
-regex = "1.10.3"
-prettytable = "0.10.0"
-serde = { version = "1.0.136", default-features = false }
-serde_json = "1.0.72"
+thiserror = "1"
+prettytable = "0.10"
+serde = { version = "1", default-features = false }
+serde_json = "1"
 tokio = "1"
-anyhow = "1.0.45"
-fehler = "1.0.0"
-toml = { version = "0.5.8", features = ["preserve_order"] }
-rand = "0.8.5"
+anyhow = "1"
+fehler = "1"
+toml = { version = "0.8", features = ["preserve_order"] }
+rand = "0.8"
