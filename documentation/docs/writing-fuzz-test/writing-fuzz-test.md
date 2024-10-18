@@ -3,9 +3,7 @@ hide:
   - navigation
 ---
 
-## Initialization
-
-### Initialize Fuzz Test
+## Initialize Trident
 
 Initialize Trident in the Anchor-based workspace.
 
@@ -21,66 +19,15 @@ trident init
     - Reads the generated IDL.
     - Based on the IDL creates the fuzzing template.
 
-### Add new Fuzz Test
+!!! tip
 
-!!! info
-
-    This step is optional, `trident init` will generate the first fuzz test template. Use `trident fuzz add` in case you want to add additional Template.
-
-Add new Fuzz Test if Trident is already initialized.
-
-```bash
-trident fuzz add
-```
+    If you have Trident already initialized, you can add new fuzz test using `trident fuzz add`.
 
 
 ## Fill the Fuzz test Template
 
 
 ### Derive AccountsSnapshots
-
-In the `Cargo.toml` file of each of the Anchor-based program within the workspace, define the required dependencies and feature as shown in the example below.
-
-!!! important
-
-    Please pay attention only to the:
-
-    - `trident-fuzzing = ["dep:trident-fuzz"]`.
-    - `trident-derive-accounts-snapshots = "version goes here"`.
-    - `trident-fuzz = { version = "version goes here", optional = true }`.
-    - If you are unsure what versions to use check the [Supported Versions](../installation/installation.md/#supported-versions).
-
-!!! tip
-
-    The feature `trident-fuzzing = ["dep:trident-fuzz"]` ensures that the `AccountsSnapshots` are used only with the Trident.
-
-```toml
-[package]
-name = "..."
-version = "0.1.0"
-description = "Created with Anchor"
-edition = "2021"
-
-[lib]
-crate-type = ["cdylib", "lib"]
-name = "..."
-
-[features]
-default = []
-cpi = ["no-entrypoint"]
-no-entrypoint = []
-no-idl = []
-no-log-ix-name = []
-idl-build = ["anchor-lang/idl-build"]
-trident-fuzzing = ["dep:trident-fuzz"] # !!!!
-
-[dependencies]
-trident-derive-accounts-snapshots = "version goes here" # !!!!
-trident-fuzz = { version = "version goes here", optional = true } # !!!!
-
-
-# ...
-```
 
 For every Account Context specified in the Anchor project derive `AccountsSnapshots` such as:
 
@@ -113,7 +60,7 @@ pub struct InitializeContext<'info> {
 
 ### Link the AccountsSnapshots
 
-Fuzz Instructions use the derived `AccountsSnapshots`. In this case we need to link the derived `AccountsSnapshots` to the corresponding aliases.
+Fuzz Instructions use the derived `AccountsSnapshots`. You need to link the derived `AccountsSnapshots` to the corresponding aliases.
 
 !!! important
 
