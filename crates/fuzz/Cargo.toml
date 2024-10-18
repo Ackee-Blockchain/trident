@@ -34,3 +34,5 @@ anyhow = "1.0.45"
 fehler = "1.0.0"
 toml = { version = "0.5.8", features = ["preserve_order"] }
 rand = "0.8.5"
+litesvm = { path = "../../../litesvm/svm" }
+base64 = "0.22.1"
