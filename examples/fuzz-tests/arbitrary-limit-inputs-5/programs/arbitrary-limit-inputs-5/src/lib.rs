@@ -15,7 +15,7 @@ pub mod arbitrary_limit_inputs_5 {
     use super::*;
 
     pub fn init_vesting(
-        ctx: Context<InitVesting>,
+        ctx: Context<InitVestingContext>,
         recipient: Pubkey,
         amount: u64,
         start_at: u64,

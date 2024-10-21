@@ -11,8 +11,30 @@ incremented upon a breaking change and the patch version will be incremented for
 ## [dev] - Unreleased
 
 
+## [0.8.0] - 2024-10-21
+
+**Added**
+
+- impr/ allow to specify programs and accounts in the Trident Manifest ([207](https://github.com/Ackee-Blockchain/trident/pull/207))
+- impr/ added get_program_id function to the IxOps and FuzzTestExecutor ([199](https://github.com/Ackee-Blockchain/trident/pull/199))
+
+**Changed**
+
+- impr/ improve init command, modify program manifest automatically, add init force, add howto subcommand ([208](https://github.com/Ackee-Blockchain/trident/pull/208))
+- impr/ allow to derive AccountsSnapshots for empty Account Context ([209](https://github.com/Ackee-Blockchain/trident/pull/209))
+- impr/ fuzz flags are read at start of fuzzing session from Config instead of env variable and transaction dispatch was added to increase FuzzTestExecutor readability ([204](https://github.com/Ackee-Blockchain/trident/pull/204))
+- impr/ allow various instructions to be generated in case of multiple programs in the Anchor workspace ([200](https://github.com/Ackee-Blockchain/trident/pull/200))
+- feat/ option to add account into Fuzz Test environment with base64 data ([197](https://github.com/Ackee-Blockchain/trident/pull/197))
+- impr/ instead of parsing source code and creating our IDL, read anchor IDL ([198](https://github.com/Ackee-Blockchain/trident/pull/196))
+
+**Removed**
+
+- del/remove integration tests supported by Trident, this feature adds more unnecessary overhead compared to its value ([196](https://github.com/Ackee-Blockchain/trident/pull/198))
+
 ## [0.7.0] - 2024-08-14
-### Added
+
+**Added**
+
 - impr/ add feature flag to the AccountsSnapshots macro ([183](https://github.com/Ackee-Blockchain/trident/pull/183))
 - feat/ add Support for CPI ([182](https://github.com/Ackee-Blockchain/trident/pull/182))
 - feat/ add option to initialize Trident with Macro/File (for Snapshots) option based on preference ([179](https://github.com/Ackee-Blockchain/trident/pull/179))
@@ -21,17 +43,21 @@ incremented upon a breaking change and the patch version will be incremented for
 - feat/unify dependencies provided by the Trident ([#172](https://github.com/Ackee-Blockchain/trident/pull/172))
 - feat/fuzzer-stats-logging, an optional statistics output for fuzzing session ([#144](https://github.com/Ackee-Blockchain/trident/pull/144))
 
-### Fixed
+**Fixed**
+
 - fix/in case of fuzzing failure throw error instead of only printing message ([#167](https://github.com/Ackee-Blockchain/trident/pull/167))
 - fix/snapshot's zeroed account as optional ([#170](https://github.com/Ackee-Blockchain/trident/pull/170))
 
-### Removed
+**Removed**
+
 - del/remove localnet subcommand ([178](https://github.com/Ackee-Blockchain/trident/pull/178))
 - del/remove unnecessary fuzzing feature as trident is mainly fuzzer ([#176](https://github.com/Ackee-Blockchain/trident/pull/176))
 - del/remove Trident explorer ([#171](https://github.com/Ackee-Blockchain/trident/pull/171))
 
 ## [0.6.0] - 2024-05-20
-### Added
+
+**Added**
+
 - feat/anchor 0.30.0 support ([#148](https://github.com/Ackee-Blockchain/trident/pull/148))
 - fix/allow to process duplicate transactions ([#147](https://github.com/Ackee-Blockchain/trident/pull/147))
 - feat/possibility to implement custom transaction error handling ([#145](https://github.com/Ackee-Blockchain/trident/pull/145))
@@ -62,7 +88,8 @@ incremented upon a breaking change and the patch version will be incremented for
 - feat/automatically add hfuzz_target to .gitignore file ([#99](https://github.com/Ackee-Blockchain/trident/pull/99))
 - feat/support for dynamic templates. ([#98](https://github.com/Ackee-Blockchain/trident/pull/98))
 
-### Fixed
+**Fixed**
+
 - fix/refactored fuzz test executor error handling ([#127](https://github.com/Ackee-Blockchain/trident/pull/127))
 - fix/warn user on composite accounts and continue fuzz test generation ([#133](https://github.com/Ackee-Blockchain/trident/pull/133))
 - fix/progress bar loop lock release ([#132](https://github.com/Ackee-Blockchain/trident/pull/132))
@@ -72,27 +99,38 @@ incremented upon a breaking change and the patch version will be incremented for
 
 
 ## [0.5.0] - 2023-08-28
-### Added
+
+**Added**
+
 - cli: Added trident subcommand `fuzz` to run and debug fuzz tests using honggfuzz-rs.
 - cli: Added trident `--skip-fuzzer` option for `init` subcommand to skip generation of fuzz test templates.
 - client: Added new Cargo feature `fuzzing` that enables optional dependencies related to fuzz testing.
 
 ## [0.4.1] - 2023-08-21
-### Changed
+
+**Changed**
+
 - Upgrade Solana (`=1.16.6`) and Anchor framework (`=0.28.0`) versions.
-### Fixed
+
+**Fixed**
+
 - Implemented Anchor Client logic was not able to work with newer version of Anchor. Fixed with `async_rpc` and `async` feature.
 - Trident init IDL Parse Error on newer version of Rust, fixed with updated `accounts` token.
 
 
 ## [0.3.0] - 2022-09-23
-### Changed
+
+**Changed**
+
 - Upgrade Solana (`~1.10`) and Anchor framework (`~0.25`) versions
 
-### Added
+**Added**
+
 - Custom Solana RPC error reporter. If the Solana RPC error is thrown, the error code, message and data (logs) are reported to the output.
 - Custom imports in the `.program_client`. User is able to import custom types and structures into program client. The import part of the code would not be re-generated.
 
 ## [0.2.0] - 2022-07-27
-### Added
+
+**Added**
+
 - Trident is now configurable. This requires `Trident.toml` file to exist in the project's root directory - without this file the execution will fail. To solve this re-run `trident init` or just create an empty `Trident.toml` file in the project's root directory.

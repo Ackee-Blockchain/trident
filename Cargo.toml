@@ -1,21 +1,20 @@
 [workspace]
-members = ["crates/cli", "crates/client", "crates/test", "crates/fuzz"]
+members = ["crates/cli", "crates/client", "crates/fuzz"]
 exclude = ["examples/"]
 resolver = "1"
 
 
 [workspace.dependencies]
 # ANCHOR
-anchor-client = ">=0.29.0"
-anchor-syn = ">=0.29.0"
-anchor-lang = ">=0.29.0"
+anchor-syn = "0.30.1"
+anchor-lang = "0.30.1"
+anchor-lang-idl-spec = "0.1.0"
 
+# ARBITRARY
+arbitrary = { version = "1.3.0", features = ["derive"] }
 
 # SOLANA
 solana-sdk = "1.17.4"
-solana-cli-output = "1.17.4"
-solana-transaction-status = "1.17.4"
-solana-account-decoder = "1.17.4"
 solana-program = "1.17.4"
 solana-banks-client = "1.17.4"
 solana-program-runtime = "1.17.4"

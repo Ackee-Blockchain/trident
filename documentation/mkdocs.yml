@@ -4,43 +4,37 @@ repo_url: https://github.com/Ackee-Blockchain/trident
 repo_name: Ackee-Blockchain/trident
 edit_uri: edit/master/docs
 site_description: Trident is a Rust-based testing framework providing several convenient developer tools for testing Solana programs written in Anchor.
-site_author: Ackee Blockchain
+site_author: Ackee Blockchain Security
 
 
 nav:
-  - Trident:
-    - index.md
-    - home/home-installation.md
-    - Fuzz Tests:
-      - fuzzing/fuzzing-introduction.md
-      - Initialization:
-          - fuzzing/initialization/fuzzing-initialization-fuzz.md
-          - fuzzing/initialization/fuzzing-initialization-fuzz-add.md
-          - fuzzing/initialization/fuzzing-initialization-all.md
-      - fuzzing/fuzzing-lifecycle.md
-      - How-To write Fuzz Test:
-          - fuzzing/howto/fuzzing-howto-p0.md
-          - fuzzing/howto/fuzzing-howto-p1.md
-          - fuzzing/howto/fuzzing-howto-p2.md
-          - fuzzing/howto/fuzzing-howto-p3.md
-          - fuzzing/howto/fuzzing-howto-p4.md
-          - fuzzing/howto/fuzzing-howto-p5.md
-          - fuzzing/howto/fuzzing-howto-p6.md
-          - fuzzing/howto/fuzzing-howto-p7.md
-      - fuzzing/fuzzing-run-debug.md
-      - fuzzing/fuzzing-current-limitations.md
-      - fuzzing/fuzzing-examples.md
-    - Integration Tests:
-      - integration-tests/poc-introduction.md
-      - Initialization:
-          - integration-tests/initialization/poc-initialization-poc.md
-          - integration-tests/initialization/poc-initialization-program-client.md
-          - integration-tests/initialization/poc-initialization-all.md
-      - How-To write Integration Test:
-          - integration-tests/howto/poc-howto-p0.md
-          - integration-tests/howto/poc-howto-p1.md
-      - integration-tests/poc-run.md
-      - integration-tests/poc-examples.md
+  - Installation:
+      - installation/installation.md
+  - Writing Fuzz Test:
+      - writing-fuzz-test/writing-fuzz-test.md
+  - Fuzz Test Features:
+      - features/features.md
+      - Features:
+        - features/account-storages.md
+        - features/fuzz-instructions.md
+        - features/instructions-sequences.md
+        - features/genesis-accounts.md
+        - features/invariant-checks.md
+        - features/arbitrary-data.md
+        - features/fuzzing-statistics.md
+        - features/error-handlers.md
+        - features/trident-manifest.md
+      - Extra:
+        - features/lifecycle.md
+        - features/limitations.md
+  - Commands:
+        - commands/commands.md
+  - Examples:
+        - examples/examples.md
+  - FAQ:
+        - faq/faq.md
+  - Get Help:
+        - get-help/get-help.md
   - CHANGELOG.md
 
 # Beware this is strongly dependent on names of folders , example:
@@ -51,8 +45,6 @@ theme:
   logo: 'images/logo.png'
   favicon: 'images/favicon.ico'
   custom_dir: docs/overrides
-  font:
-    text: Inter
   # https://squidfunk.github.io/mkdocs-material/setup/changing-the-colors/?h=palette+sw#color-palette-toggle
   palette:
     # Palette toggle for light mode
@@ -70,8 +62,6 @@ theme:
   features:
   # https://squidfunk.github.io/mkdocs-material/setup/setting-up-navigation/#navigation-tabs
     - navigation.tabs
-  # https://squidfunk.github.io/mkdocs-material/setup/setting-up-navigation/#navigation-expansion
-    - navigation.expand
   # https://squidfunk.github.io/mkdocs-material/setup/setting-up-navigation/#back-to-top-button
     - navigation.top
   # https://squidfunk.github.io/mkdocs-material/setup/setting-up-navigation/#section-index-pages
@@ -80,8 +70,10 @@ theme:
     - content.code.copy
   # https://squidfunk.github.io/mkdocs-material/setup/setting-up-navigation/#navigation-sections
     - navigation.sections
-  # may be used 
+  # may be used
     # - navigation.footer
+  icon:
+    repo: fontawesome/brands/github
 
 # https://squidfunk.github.io/mkdocs-material/setup/setting-up-the-footer/?h=social#social-links
 extra:
@@ -108,6 +100,10 @@ plugins:
 # https://squidfunk.github.io/mkdocs-material/customization/?h=extra+css#additional-css
 extra_css:
   - stylesheets/extra.css
+  - stylesheets/asciinema-player.css
+
+extra_javascript:
+  - js/asciinema-player.min.js
 
 
 markdown_extensions:
@@ -123,6 +119,13 @@ markdown_extensions:
   - pymdownx.superfences
   - pymdownx.tasklist:
       custom_checkbox: true
+  - admonition
+  - attr_list
+  - md_in_html
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.details
 
 exclude_docs: |
   requirements.txt.

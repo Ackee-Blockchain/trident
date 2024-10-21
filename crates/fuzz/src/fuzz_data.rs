@@ -6,12 +6,12 @@ use arbitrary::Arbitrary;
 use arbitrary::Unstructured;
 use solana_sdk::account::Account;
 use solana_sdk::instruction::AccountMeta;
-use solana_sdk::pubkey::Pubkey;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::error::Error;
 use std::fmt::Display;
 
+use crate::config::Config;
 use crate::error::*;
 use crate::fuzz_client::FuzzClient;
 use crate::fuzz_test_executor::FuzzTestExecutor;
@@ -56,8 +56,8 @@ where
 {
     pub fn run_with_runtime(
         &self,
-        program_id: Pubkey,
         client: &mut impl FuzzClient,
+        config: &Config,
     ) -> core::result::Result<(), Box<dyn Error + 'static>> {
         // solana_logger::setup_with_default("off");
         // #[cfg(fuzzing_debug)]
@@ -85,7 +85,7 @@ where
             eprintln!("\x1b[34mCurrently processing\x1b[0m: {}", fuzz_ix);
 
             if fuzz_ix
-                .run_fuzzer(program_id, &self.accounts, client, &mut sent_txs)
+                .run_fuzzer(&self.accounts, client, &mut sent_txs, config)
                 .is_err()
             {
                 // for now skip following instructions in case of error and move to the next fuzz iteration

@@ -1,73 +1,58 @@
 [package]
 name = "trident-client"
-version = "0.7.0"
+version = "0.8.0"
 edition = "2021"
 repository = "https://github.com/Ackee-Blockchain/trident"
 license-file = "../../LICENSE"
 readme = "../../README.md"
 description = "The trident_client crate helps you build and deploy an Anchor program to a local cluster and run a test suite against it."
 
-[build-dependencies]
-anyhow = { version = "1.0.45", features = ["std"], default-features = false }
-
-[dev-dependencies]
-pretty_assertions = "1.1.0"
 
 [dependencies]
 # TRIDENT
-trident-derive-displayix = { path = "../fuzz/derive/display_ix", version = "0.0.2" }
-trident-derive-fuzz-deserialize = { path = "../fuzz/derive/fuzz_deserialize", version = "0.0.2" }
-trident-derive-fuzz-test-executor = { path = "../fuzz/derive/fuzz_test_executor", version = "0.0.2" }
-trident-derive-accounts-snapshots = { path = "../fuzz/derive/accounts_snapshots", version = "0.0.1" }
-
-trident-test = { path = "../test", version = "0.3.3" }
-trident-fuzz = { path = "../fuzz", version = "0.1.0" }
-
+trident-derive-displayix = { path = "../fuzz/derive/display_ix", version = "0.0.3" }
+trident-derive-fuzz-test-executor = { path = "../fuzz/derive/fuzz_test_executor", version = "0.0.3" }
+trident-fuzz = { path = "../fuzz", version = "0.2.0" }
+trident-derive-accounts-snapshots = { path = "../fuzz/derive/accounts_snapshots", version = "0.0.2" }
 # ANCHOR
 # INFO: Anchor-spl is here as dependency only to activate the idl-build feature, so that
 # users do not have to do it manually in their program's Cargo.toml
 anchor-lang = { workspace = true, features = ["init-if-needed"] }
 anchor-syn = { workspace = true }
-anchor-client = { workspace = true, features = ["async"] }
+anchor-lang-idl-spec = { workspace = true }
 
 # SOLANA
 solana-sdk = { workspace = true }
-solana-cli-output = { workspace = true }
-solana-transaction-status = { workspace = true }
-solana-account-decoder = { workspace = true }
-spl-token = { workspace = true }
-spl-associated-token-account = { workspace = true }
 solana-program-test = { workspace = true }
 
 
 # HONGGFUZZ
 honggfuzz = { version = "0.5.55" }
+
+#AFL
+afl = { version = "0.15.10" }
+
 # ARBITRARY
-arbitrary = { version = "1.3.0", features = ["derive"] }
+arbitrary = { workspace = true }
 
 
 # MISC
-shellexpand = "3.1.0"
 tokio = "1"
-serde_json = "1.0.72"
-serde = { version = "1.0.136", default-features = false }
-bincode = "1.3.3"
-borsh = "0.10.3"
-futures = "0.3.18"
-fehler = "1.0.0"
-thiserror = "1.0.30"
-ed25519-dalek = "1.0.1"
-serial_test = "2.0.0"
-anyhow = "1.0.45"
-cargo_metadata = "0.17.0"
-syn = { version = "1.0.109", features = ["visit"] }
-quote = "1.0.14"
-heck = { version = "0.4.0", default-features = false }
-toml = { version = "0.5.8", features = ["preserve_order"] }
-log = "0.4"
-rstest = "0.18.1"
-proc-macro2 = { version = "1.0.66", default-features = false }
+serde_json = "1"
+serde = { version = "1", default-features = false }
+bincode = "1"
+futures = "0.3"
+fehler = "1"
+thiserror = "1"
+anyhow = "1"
+cargo_metadata = "0.18"
 quinn-proto = { version = "0.10.6", features = ["arbitrary"] }
-pathdiff = "0.2.1"
-indicatif = "0.17.8"
-regex = "1.10.3"
+syn = { version = "2", features = ["visit", "full"] }
+quote = "1"
+toml = { version = "0.8", features = ["preserve_order"] }
+pathdiff = "0.2"
+convert_case = "0.6"
+
+
+[dev-dependencies]
+pretty_assertions = "1.1.0"

@@ -5,30 +5,49 @@ use anchor_lang::solana_program::account_info::AccountInfo;
 use solana_sdk::{account::Account, instruction::AccountMeta};
 
 use crate::fuzz_client::FuzzClient;
-use crate::fuzz_deserialize::FuzzDeserialize;
 
 use crate::error::*;
+use crate::ix_ops::IxOps;
 pub struct Snapshot<'info, T> {
     before: Vec<Option<Account>>,
     before_acc_inf: Vec<Option<AccountInfo<'info>>>,
     after: Vec<Option<Account>>,
     after_acc_inf: Vec<Option<AccountInfo<'info>>>,
-    metas: &'info [AccountMeta],
+    metas: Vec<AccountMeta>,
     ix: &'info T,
 }
 
 impl<'info, T> Snapshot<'info, T>
 where
-    T: FuzzDeserialize<'info>,
+    T: IxOps<'info>,
 {
-    pub fn new(metas: &'info [AccountMeta], ix: &'info T) -> Snapshot<'info, T> {
+    pub fn new_empty(ix: &'info T) -> Snapshot<'info, T> {
+        let capacity = 0;
+        Self {
+            before: Vec::with_capacity(capacity),
+            before_acc_inf: Vec::with_capacity(capacity),
+            after: Vec::with_capacity(capacity),
+            after_acc_inf: Vec::with_capacity(capacity),
+            metas: vec![],
+            ix,
+        }
+    }
+    pub fn add_metas(&mut self, metas: &[AccountMeta]) {
+        let capacity = metas.len();
+        self.before = Vec::with_capacity(capacity);
+        self.before_acc_inf = Vec::with_capacity(capacity);
+        self.after = Vec::with_capacity(capacity);
+        self.after_acc_inf = Vec::with_capacity(capacity);
+        self.metas = metas.to_vec();
+    }
+    pub fn new(metas: &[AccountMeta], ix: &'info T) -> Snapshot<'info, T> {
         let capacity = metas.len();
         Self {
             before: Vec::with_capacity(capacity),
             before_acc_inf: Vec::with_capacity(capacity),
             after: Vec::with_capacity(capacity),
             after_acc_inf: Vec::with_capacity(capacity),
-            metas,
+            metas: metas.to_vec(),
             ix,
         }
     }
@@ -57,7 +76,7 @@ where
         &mut self,
         client: &mut impl FuzzClient,
     ) -> Result<Vec<Option<Account>>, FuzzClientErrorWithOrigin> {
-        client.get_accounts(self.metas)
+        client.get_accounts(&self.metas)
     }
 
     fn calculate_account_info(
@@ -95,15 +114,15 @@ where
         }
     }
 
-    pub fn get_raw_pre_ix_accounts(&'info mut self) -> Vec<Option<AccountInfo<'info>>> {
+    pub fn get_raw_pre_ix_accounts(&'info mut self) -> &[Option<AccountInfo<'info>>] {
         Self::set_missing_accounts_to_default(&mut self.before);
-        Self::calculate_account_info(&mut self.before, self.metas)
+        self.before_acc_inf = Self::calculate_account_info(&mut self.before, &self.metas);
+        &self.before_acc_inf
     }
 
     pub fn get_snapshot(
         &'info mut self,
-        program_id: &solana_sdk::pubkey::Pubkey,
-    ) -> Result<(T::Ix, T::Ix), FuzzingErrorWithOrigin> {
+    ) -> Result<(T::IxSnapshot, T::IxSnapshot), FuzzingErrorWithOrigin> {
         // When user passes an account that is not initialized, the runtime will provide
         // a default empty account to the program. If the uninitialized account is of type
         // AccountInfo, Signer or UncheckedAccount, Anchor will not return an error. However
@@ -114,16 +133,19 @@ where
         Self::set_missing_accounts_to_default(&mut self.before);
         Self::set_missing_accounts_to_default(&mut self.after);
 
-        self.before_acc_inf = Self::calculate_account_info(&mut self.before, self.metas);
-        self.after_acc_inf = Self::calculate_account_info(&mut self.after, self.metas);
+        self.before_acc_inf = Self::calculate_account_info(&mut self.before, &self.metas);
+        self.after_acc_inf = Self::calculate_account_info(&mut self.after, &self.metas);
+
+        let mut remaining_accounts_before: &[Option<AccountInfo<'info>>] = &self.before_acc_inf;
+        let mut remaining_accounts_after: &[Option<AccountInfo<'info>>] = &self.after_acc_inf;
 
         let pre_ix = self
             .ix
-            .deserialize_option(program_id, &mut self.before_acc_inf)
+            .deserialize_accounts(&mut remaining_accounts_before)
             .map_err(|e| e.with_context(Context::Pre))?;
         let post_ix = self
             .ix
-            .deserialize_option(program_id, &mut self.after_acc_inf)
+            .deserialize_accounts(&mut remaining_accounts_after)
             .map_err(|e| e.with_context(Context::Post))?;
         Ok((pre_ix, post_ix))
     }

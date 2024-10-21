@@ -1,78 +1,55 @@
-on:
-  workflow_dispatch:
-  pull_request:
-  push:
-    branches: [master]
-
 name: Lint crates
 
+on:
+  workflow_dispatch:
+  pull_request:  # Workflow can be triggered by either a manual dispatch or a pull request
+
+
 jobs:
+  Lint-Workspace:
+    name: Lint Workspace
+    runs-on: ubuntu-20.04
+    steps:
+      - run: echo "Starting Lint-Workspace"
+
+  lint:
+    name: Lint
+    needs: Lint-Workspace
+    # This job runs on an Ubuntu 20.04 runner
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3  # Checkout the code from the repository
+
+      # https://github.com/Swatinem/rust-cache
+      - name: Cache Rust and its Packages
+        # Cache Rust dependencies using Swatinem's rust-cache action to speed up builds
+        uses: Swatinem/rust-cache@v2
+        with:
+          prefix-key: "lint" # Using a locally shared cache key
+          shared-key: "trident-rust-cache"  # Use a shared cache key across multiple jobs to reuse cache
+          cache-directories: "~/.rustup" # Additional non workspace directories to be cached, separated by newlines.
+
+      - name: Setup Rust Environment
+        # Set up the Rust environment (e.g., install nightly, Rust components)
+        uses: ./.github/actions/setup-rust/
+
+      - name: Cargo build
+        # Build the Trident workspace
+        run: cargo build --release --all-features
+      - name: Cargo fmt
+        # Run cargo fmt to check if the code is formatted correctly
+        run: cargo fmt --check
+      - name: Cargo clippy
+        # Run Clippy to check for code linting issues and fail on warnings
+        run: cargo clippy -- -D warnings
+      - name: Cargo test
+        # Run tests to ensure the project works as expected
+        run: cargo test
+
+
   checks:
+    name: Lint-Workspace (Checks)
+    needs: lint
     runs-on: ubuntu-20.04
-    needs:
-      - cli
-      - client
-      - test
     steps:
-      - run: echo "Done"
-  cli:
-    runs-on: ubuntu-20.04
-    defaults:
-      run:
-        working-directory: crates/cli
-    steps:
-      - uses: actions/checkout@v3
-      - uses: ./.github/actions/setup-rust/
-        id: rust-setup
-      - uses: Swatinem/rust-cache@v2
-        name: Cache Rust and it's packages
-      - name: Cargo build
-        run: cargo build
-      - name: Cargo fmt
-        run: cargo fmt -- --check
-      - name: Cargo clippy
-        run: cargo clippy -- -D warnings
-      - name: Cargo test
-        run: cargo test
-
-  client:
-    runs-on: ubuntu-20.04
-    defaults:
-      run:
-        working-directory: crates/client
-    steps:
-      - uses: actions/checkout@v3
-      - uses: ./.github/actions/setup-rust/
-        id: rust-setup
-      - uses: Swatinem/rust-cache@v2
-        name: Cache Rust and it's packages
-      - name: Cargo build
-        run: cargo build
-      - name: Cargo fmt
-        run: cargo fmt -- --check
-      - name: Cargo clippy
-        run: cargo clippy -- -D warnings
-      - name: Cargo test
-        run: cargo test
-
-  test:
-    runs-on: ubuntu-20.04
-    defaults:
-      run:
-        working-directory: crates/test
-    steps:
-      - uses: actions/checkout@v3
-      - uses: ./.github/actions/setup-rust/
-        id: rust-setup
-      - uses: Swatinem/rust-cache@v2
-        name: Cache Rust and it's packages
-      - name: Install cargo packages
-        run: cargo install cargo-expand
-      - name: Cargo build
-        run: cargo build
-      - name: Cargo fmt
-        run: cargo fmt -- --check
-      - name: Cargo clippy
-        run: cargo clippy -- -D warnings
-      - name: Cargo test
-        run: cargo test
+      - run: echo "Lint Workspace completed successfully"

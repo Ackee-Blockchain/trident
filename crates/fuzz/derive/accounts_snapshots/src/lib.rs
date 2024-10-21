@@ -1,4 +1,5 @@
 use anchor_syn::{AccountField, AccountTy};
+use convert_case::{Case, Casing};
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 use syn::parse::{Parse, ParseStream};
@@ -611,9 +612,10 @@ fn deserialize_option_account_loader(
 
 fn generate(accs: &TridentAccountsStruct) -> proc_macro2::TokenStream {
     let context_name = &accs.0.ident;
-    let snapshot_name = syn::Ident::new(&format!("{}Snapshot", context_name), context_name.span());
+    let snapshot_name = syn::Ident::new(&format!("{}Alias", context_name), context_name.span());
+    let context_name_snake_case = context_name.to_string().to_case(Case::Snake);
     let module_name = syn::Ident::new(
-        &format!("trident_fuzz_{}_snapshot", context_name),
+        &format!("trident_fuzz_{}_snapshot", context_name_snake_case),
         context_name.span(),
     );
 
@@ -714,16 +716,32 @@ fn generate(accs: &TridentAccountsStruct) -> proc_macro2::TokenStream {
         quote! { #field_name }
     });
 
-    quote! {
-        #[cfg(feature = "trident-fuzzing")]
-        pub mod #module_name{
-            #[cfg(target_os = "solana")]
-            compile_error!("Do not use fuzzing with Production Code");
-            use super::*;
-            impl<'info> #snapshot_name<'info> {
-                pub fn deserialize_option(
+    // CHECK IF STRUCT HAS ANY FIELDS
+    let has_fields = !accs.0.fields.is_empty();
+
+    // USE PHANTOMDATA IF NO FIELDS PRESENT
+    let struct_definition = if has_fields {
+        quote! {
+            pub struct #snapshot_name<'info> {
+                #(#snapshot_fields)*
+            }
+        }
+    } else {
+        quote! {
+            pub struct #snapshot_name<'info> {
+                #[allow(dead_code)]
+                _phantom: std::marker::PhantomData<&'info ()>,
+            }
+        }
+    };
+
+    // IF IT HAS FIELDS JUST FOLLOW STANDARD BEHAVIOR
+    let deserialize_impl = if has_fields {
+        quote! {
+            impl<'info> trident_fuzz::fuzz_deserialize::FuzzDeserialize<'info> for #snapshot_name<'info> {
+                fn deserialize_option(
                     _program_id: &anchor_lang::prelude::Pubkey,
-                    accounts: &'info mut [Option<AccountInfo<'info>>],
+                    accounts: &mut &'info [Option<AccountInfo<'info>>],
                 ) -> core::result::Result<Self, trident_fuzz::error::FuzzingError> {
                     let mut accounts_iter = accounts.iter();
 
@@ -734,9 +752,31 @@ fn generate(accs: &TridentAccountsStruct) -> proc_macro2::TokenStream {
                     })
                 }
             }
-            pub struct #snapshot_name<'info> {
-                #(#snapshot_fields)*
+        }
+    } else {
+        // IF IT HAS NO FIELDS RETURN THE PHANTOM DATA
+        quote! {
+            impl<'info> trident_fuzz::fuzz_deserialize::FuzzDeserialize<'info> for #snapshot_name<'info> {
+                fn deserialize_option(
+                    _program_id: &anchor_lang::prelude::Pubkey,
+                    _accounts: &mut &'info [Option<AccountInfo<'info>>],
+                ) -> core::result::Result<Self, trident_fuzz::error::FuzzingError> {
+                    Ok(Self { _phantom: std::marker::PhantomData })
+                }
             }
+        }
+    };
+
+    quote! {
+        #[cfg(feature = "trident-fuzzing")]
+        pub mod #module_name {
+            #[cfg(target_os = "solana")]
+            compile_error!("Do not use fuzzing with Production Code");
+            use super::*;
+
+            #deserialize_impl
+
+            #struct_definition
         }
     }
 }

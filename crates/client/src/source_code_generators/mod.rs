@@ -1,3 +1,2 @@
-pub mod fuzzer_generator;
-pub mod program_client_generator;
-pub mod snapshot_generator;
+pub mod fuzz_instructions_generator;
+pub mod test_fuzz_generator;

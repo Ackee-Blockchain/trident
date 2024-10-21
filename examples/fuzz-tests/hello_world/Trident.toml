@@ -1,7 +1,3 @@
-[test]
-validator_startup_timeout = 15000
-
-
 [honggfuzz]
 # Timeout in seconds (default: 10)
 timeout = 10
@@ -14,7 +10,7 @@ keep_output = false
 # Disable ANSI console; use simple log output (default: false)
 verbose = false
 # Exit upon seeing the first crash (default: false)
-exit_upon_crash = true
+exit_upon_crash = false
 # Maximal number of mutations per one run (default: 6)
 mutations_per_run = 6
 # Target compilation directory, (default: "" ["trident-tests/fuzz_tests/fuzzing/hfuzz_target"]).

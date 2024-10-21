@@ -1,82 +1,143 @@
+use std::path::Path;
+
 use anyhow::{bail, Error};
 
 use clap::Subcommand;
 use fehler::throws;
 use trident_client::___private::{Commander, TestGenerator};
 
-use crate::_discover;
-
-use super::SnapshotsType;
+use crate::{_discover, show_howto};
 
 pub const TRIDENT_TOML: &str = "Trident.toml";
 
 #[derive(Subcommand)]
 #[allow(non_camel_case_types)]
 pub enum FuzzCommand {
-    /// Run fuzz target
-    Run {
-        /// Name of the fuzz target
+    #[command(about = "Generate new Fuzz Test template.")]
+    Add,
+    // #[command(
+    //     about = "Run the AFL on desired fuzz test.",
+    //     override_usage = "Specify the desired fuzz \x1b[92m<TARGET>\x1b[0m.\
+    //         \n      \x1b[1m\x1b[4m<TARGET>:\x1b[0m Name of the desired fuzz template to execute (for example fuzz_0).\
+    //         \n\n\x1b[1m\x1b[4mEXAMPLE:\x1b[0m\
+    //         \n      trident fuzz run-afl fuzz_0"
+    // )]
+    // Run_Afl {
+    //     #[arg(
+    //         required = true,
+    //         help = "Name of the desired fuzz template to execute (for example fuzz_0)."
+    //     )]
+    //     target: String,
+    // },
+    #[command(
+        about = "Run the Honggfuzz on desired fuzz test.",
+        override_usage = "Specify the desired fuzz \x1b[92m<TARGET>\x1b[0m.\
+            \n      \x1b[1m\x1b[4m<TARGET>:\x1b[0m Name of the desired fuzz template to execute (for example fuzz_0).\
+            \n\n\x1b[1m\x1b[4mEXAMPLE:\x1b[0m\
+            \n      trident fuzz run-hfuzz fuzz_0"
+    )]
+    Run_Hfuzz {
+        #[arg(
+            required = true,
+            help = "Name of the desired fuzz template to execute (for example fuzz_0)."
+        )]
         target: String,
-        /// Trident will return exit code 1 in case of found crash files in the crash folder. This is checked before and after the fuzz test run.
-        #[arg(short, long)]
+        #[arg(
+            short,
+            long,
+            required = false,
+            help = "Run the Honggfuzz with exit code, i.e. if it discovers crash the Trident will exit with exit code 1."
+        )]
         with_exit_code: bool,
     },
-    /// Debug fuzz target with crash file
-    Run_Debug {
-        /// Name of the fuzz target
+
+    // #[command(
+    //     about = "Debug found crash using the AFL on desired fuzz test.",
+    //     override_usage = "Specify the desired fuzz \x1b[92m<TARGET>\x1b[0m and \x1b[92m<PATH_TO_CRASHFILE>\x1b[0m.\
+    //         \n      \x1b[1m\x1b[4m<TARGET>:\x1b[0m Name of the desired fuzz template to debug (for example fuzz_0).\
+    //         \n      \x1b[1m\x1b[4m<PATH_TO_CRASHFILE>:\x1b[0m Path to the crash found during fuzzing.\
+    //         \n\n\x1b[1m\x1b[4mHINT:\x1b[0m By default crashfiles will be stored in the following folders:\
+    //         \n      \x1b[1m\x1b[4mHonggfuzz:\x1b[0m trident-tests/fuzz_tests/fuzzing/honggfuzz/hfuzz_workspace/<TARGET>\
+    //         \n      \x1b[1m\x1b[4mAFL:\x1b[0m trident-tests/fuzz_tests/fuzzing/afl/afl_workspace/out/default/crashes\
+    //         \n\n\x1b[1m\x1b[4mEXAMPLE:\x1b[0m\
+    //         \n      trident fuzz debug-afl fuzz_0 trident-tests/fuzz_tests/fuzzing/afl/afl_workspace/out/default/crashes/id...\
+    //         \n\n\x1b[1m\x1b[33mWarning\x1b[0m:\
+    //         \n      Do not mix fuzz templates and crashfiles. If the crash was found with fuzz_0, then debug it with fuzz_0."
+    // )]
+    // Debug_Afl {
+    //     #[arg(
+    //         required = true,
+    //         help = "Name of the desired fuzz template to execute (for example fuzz_0)"
+    //     )]
+    //     target: String,
+    //     #[arg(required = true, help = "Path to the crash found during fuzzing")]
+    //     crash_file_path: String,
+    // },
+    #[command(
+        about = "Debug found crash using the Honggfuzz on desired fuzz test.",
+        override_usage = "Specify the desired fuzz \x1b[92m<TARGET>\x1b[0m and \x1b[92m<PATH_TO_CRASHFILE>\x1b[0m.\
+            \n      \x1b[1m\x1b[4m<TARGET>:\x1b[0m Name of the desired fuzz template to debug (for example fuzz_0).\
+            \n      \x1b[1m\x1b[4m<PATH_TO_CRASHFILE>:\x1b[0m Path to the crash found during fuzzing.\
+            \n\n\x1b[1m\x1b[4mHINT:\x1b[0m By default crashfiles will be stored in the following folders:\
+            \n      \x1b[1m\x1b[4mHonggfuzz:\x1b[0m trident-tests/fuzz_tests/fuzzing/honggfuzz/hfuzz_workspace/<TARGET>\
+            \n\n\x1b[1m\x1b[4mEXAMPLE:\x1b[0m\
+            \n      trident fuzz debug-hfuzz fuzz_0 trident-tests/fuzz_tests/fuzzing/honggfuzz/hfuzz_workspace/fuzz_0/SIGAR...\
+            \n\n\x1b[1m\x1b[33mWarning\x1b[0m:\
+            \n      Do not mix fuzz templates and crashfiles. If the crash was found with fuzz_0, then debug it with fuzz_0."
+    )]
+    Debug_Hfuzz {
+        #[arg(
+            required = true,
+            help = "Name of the desired fuzz template to execute (for example fuzz_0)"
+        )]
         target: String,
-        /// Path to the crash file
+        #[arg(required = true, help = "Path to the crash found during fuzzing")]
         crash_file_path: String,
-    },
-    /// Add new fuzz test. Explicit fuzz test name is not yet supported. Implicit name is fuzz_ID, where ID is automatically derived.
-    Add {
-        #[clap(default_value = "file")]
-        snapshots_type: SnapshotsType,
     },
 }
 
 #[throws]
-pub async fn fuzz(root: Option<String>, subcmd: FuzzCommand) {
-    let root = match root {
-        Some(r) => r,
-        _ => {
-            let root = _discover(TRIDENT_TOML)?;
-            if let Some(r) = root {
-                r
-            } else {
-                bail!("It does not seem that Trident is initialized because the Trident.toml file was not found in any parent directory!");
-            }
+pub async fn fuzz(subcmd: FuzzCommand) {
+    let root = match _discover(TRIDENT_TOML)? {
+        Some(root) => root,
+        None => {
+            bail!("It does not seem that Trident is initialized because the Trident.toml file was not found in any parent directory!");
         }
     };
 
-    let commander = Commander::with_root(root.clone());
+    let commander = Commander::with_root(&Path::new(&root).to_path_buf());
 
     match subcmd {
-        FuzzCommand::Run {
+        // FuzzCommand::Run_Afl { target } => {
+        //     commander.run_afl(target).await?;
+        // }
+        FuzzCommand::Run_Hfuzz {
             target,
             with_exit_code,
         } => {
             if with_exit_code {
-                commander.run_fuzzer_with_exit_code(target).await?;
+                commander.run_honggfuzz_with_exit_code(target).await?;
             } else {
-                commander.run_fuzzer(target).await?;
+                commander.run_honggfuzz(target).await?;
             }
         }
-        FuzzCommand::Run_Debug {
+        // FuzzCommand::Debug_Afl {
+        //     target,
+        //     crash_file_path,
+        // } => {
+        //     commander.run_afl_debug(target, crash_file_path).await?;
+        // }
+        FuzzCommand::Debug_Hfuzz {
             target,
             crash_file_path,
         } => {
-            commander.run_fuzzer_debug(target, crash_file_path).await?;
+            commander.run_hfuzz_debug(target, crash_file_path).await?;
         }
 
-        FuzzCommand::Add { snapshots_type } => {
-            // generate generator with root so that we do not need to again
-            // look for root within the generator
-            let mut generator = match snapshots_type {
-                SnapshotsType::Macro => TestGenerator::new_with_root(root, false),
-                SnapshotsType::File => TestGenerator::new_with_root(root, true),
-            };
+        FuzzCommand::Add => {
+            let mut generator = TestGenerator::new_with_root(&root)?;
             generator.add_fuzz_test().await?;
+            show_howto();
         }
     };
 }

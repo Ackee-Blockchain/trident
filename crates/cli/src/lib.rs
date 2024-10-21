@@ -1,18 +1,26 @@
 use anyhow::Error;
 use anyhow::{Context, Result};
 use clap::{Parser, Subcommand};
-use command::{SnapshotsType, TestsType};
 use fehler::throws;
 
 // subcommand functions to call and nested subcommands
 mod command;
 // bring nested subcommand enums into scope
 use command::FuzzCommand;
+use termimad::MadSkin;
 
-use command::KeyPairCommand;
+macro_rules! load_template {
+    ($file:expr) => {
+        include_str!(concat!(env!("CARGO_MANIFEST_DIR"), $file))
+    };
+}
 
+/// Simple program to greet a person
 #[derive(Parser)]
-#[clap(version, propagate_version = true)]
+#[command(
+    name = "Trident",
+    about = "Trident is Rust based fuzzer for Solana programs written using Anchor framework."
+)]
 struct Cli {
     #[clap(subcommand)]
     command: Command,
@@ -20,41 +28,35 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Command {
-    /// Create or update a `program_client` crate
-    Build {
-        /// Anchor project root
-        #[clap(short, long)]
-        root: Option<String>,
+    #[command(about = "Show the HowTo message.")]
+    How,
+    #[command(
+        about = "Initialize Trident in the current Anchor workspace.",
+        override_usage = "\nTrident will skip initialization if Trident.toml already exists."
+    )]
+    Init {
+        #[arg(
+            short,
+            long,
+            required = false,
+            help = "Force Trident initialization. Trident dependencies will be updated based on the version of Trident CLI."
+        )]
+        force: bool,
     },
-    /// Get information about a keypair
-    KeyPair {
-        #[clap(subcommand)]
-        subcmd: KeyPairCommand,
-    },
-    /// Run program Integration tests
-    Test {
-        /// Anchor project root
-        #[clap(short, long)]
-        root: Option<String>,
-    },
-    /// Run and debug Fuzz tests
+    #[command(
+        about = "Run fuzz subcommands.",
+        override_usage = "With fuzz subcommands you can add new fuzz test \
+        template or you can run fuzz test on already initialzied one.\
+        \n\n\x1b[1m\x1b[4mEXAMPLE:\x1b[0m\
+        \n    trident add\
+        \n    trident fuzz run-hfuzz fuzz_0\
+        \n    trident fuzz debug-hfuzz \x1b[92m<FUZZ_TARGET>\x1b[0m \x1b[92m<PATH_TO_CRASHFILE>\x1b[0m"
+    )]
     Fuzz {
-        /// Anchor project root
-        #[clap(short, long)]
-        root: Option<String>,
         #[clap(subcommand)]
         subcmd: FuzzCommand,
     },
-    /// Initialize test environment
-    Init {
-        /// Specifies the types of tests for which the frameworks should be initialized.
-        #[clap(default_value = "fuzz")]
-        tests_type: TestsType,
-        /// Specifies type of Accounts Snapshots, i.e used derive macro or generated file
-        #[clap(default_value = "file")]
-        snapshots_type: SnapshotsType,
-    },
-    /// Removes target contents except for KeyPair and removes hfuzz_target folder
+    #[command(about = "Clean Honggfuzz build targets ,additionally perform `anchor clean`")]
     Clean,
 }
 
@@ -63,14 +65,9 @@ pub async fn start() {
     let cli = Cli::parse();
 
     match cli.command {
-        Command::Build { root } => command::build(root).await?,
-        Command::KeyPair { subcmd } => command::keypair(subcmd)?,
-        Command::Test { root } => command::test(root).await?,
-        Command::Fuzz { root, subcmd } => command::fuzz(root, subcmd).await?,
-        Command::Init {
-            tests_type,
-            snapshots_type,
-        } => command::init(tests_type, snapshots_type).await?,
+        Command::How => command::howto()?,
+        Command::Fuzz { subcmd } => command::fuzz(subcmd).await?,
+        Command::Init { force } => command::init(force).await?,
         Command::Clean => command::clean().await?,
     }
 }
@@ -100,4 +97,14 @@ fn _discover(target: &str) -> Result<Option<String>> {
     }
 
     Ok(None)
+}
+
+fn show_howto() {
+    let markdown_input = load_template!("/src/howto.md");
+
+    // Create a MadSkin for styling the Markdown.
+    let skin = MadSkin::default();
+
+    // Print the markdown content to the terminal.
+    skin.print_text(markdown_input);
 }

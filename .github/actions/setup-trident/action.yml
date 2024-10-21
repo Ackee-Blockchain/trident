@@ -1,17 +1,10 @@
 name: "Setup Trident"
-description: "Setup Trident"
 
 runs:
+  # This setup does not use caching, so it always installs Trident fresh
   using: "composite"
   steps:
-    - uses: actions/cache@v3
-      name: Cache Trident
-      id: cache-trident
-      with:
-        path: |
-          ~/.cache/trident/
-          ~/.local/share/trident/
-        key: trident-${{ runner.os }}-v0000
+    # Install Trident from the local crates/cli directory
     - name: Install Trident
       run: cargo install --path crates/cli
       shell: bash

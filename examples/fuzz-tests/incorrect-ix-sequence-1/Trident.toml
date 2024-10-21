@@ -1,7 +1,3 @@
-[test]
-validator_startup_timeout = 15000
-
-
 [honggfuzz]
 # Timeout in seconds (default: 10)
 timeout = 10

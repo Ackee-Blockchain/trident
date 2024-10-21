@@ -1,13 +1,11 @@
 [package]
 name = "trident-fuzz"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 repository = "https://github.com/Ackee-Blockchain/trident"
 license-file = "../../LICENSE"
 readme = "../../README.md"
 description = "The trident_fuzz crate helps you to write Rust Fuzz Tests for your programs with Trident."
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 # SOLANA
@@ -19,22 +17,17 @@ solana-program-test = { workspace = true }
 
 # ANCHOR
 anchor-lang = { workspace = true, features = ["init-if-needed"] }
-anchor-syn = { workspace = true }
-
 
 # ARBITRARY
-arbitrary = { version = "1.3.0", features = ["derive"] }
-
+arbitrary = { workspace = true }
 
 # MISC
-thiserror = "1.0.30"
-syn = { version = "1.0.109", features = ["visit"] }
-proc-macro2 = { version = "1.0.66", default-features = false }
-quote = "1.0.14"
-heck = { version = "0.4.0", default-features = false }
-regex = "1.10.3"
-prettytable = "0.10.0"
-serde = { version = "1.0.136", default-features = false }
-serde_json = "1.0.72"
+thiserror = "1"
+prettytable = "0.10"
+serde = { version = "1", default-features = false }
+serde_json = "1"
 tokio = "1"
-convert_case = "0.6.0"
+anyhow = "1"
+fehler = "1"
+toml = { version = "0.8", features = ["preserve_order"] }
+rand = "0.8"
