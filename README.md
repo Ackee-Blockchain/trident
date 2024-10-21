@@ -12,7 +12,7 @@
 # Trident
 
 <p align="left">
-  Rust-based framework to Fuzz and Integration test Solana programs to help you ship secure code.
+  Rust-based framework to Fuzz Solana programs, designed to help you ship secure code.
 <p>
 
 <p align="left">
@@ -40,10 +40,10 @@
       <img src="https://img.shields.io/github/actions/workflow/status/Ackee-Blockchain/trident/lint.yml?label=Lint&colorA=f6f8fa&style=flat" alt="Lint">
     </picture>
   </a>
-  <a href="https://github.com/Ackee-Blockchain/trident/actions/workflows/run_examples.yml" target="_blank" rel="noopener noreferrer">
+  <a href="https://github.com/Ackee-Blockchain/trident/actions/workflows/fuzz.yml" target="_blank" rel="noopener noreferrer">
     <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/actions/workflow/status/Ackee-Blockchain/trident/run_examples.yml?label=Test%20Escrow%20and%20Turnstile&colorA=21262d&style=flat">
-      <img src="https://img.shields.io/github/actions/workflow/status/Ackee-Blockchain/trident/run_examples.yml?label=Test%20Escrow%20and%20Turnstile&colorA=f6f8fa&style=flat" alt="Test Escrow and Turnstile">
+      <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/github/actions/workflow/status/Ackee-Blockchain/trident/fuzz.yml?label=Test%20Fuzz%20Tests&colorA=21262d&style=flat">
+      <img src="https://img.shields.io/github/actions/workflow/status/Ackee-Blockchain/trident/fuzz.yml?label=Test%20Fuzz%20Tests&colorA=f6f8fa&style=flat" alt="Test Escrow and Turnstile">
     </picture>
   </a>
 </p>
@@ -55,7 +55,7 @@
 For documentation and guides, visit [ackee.xyz/trident/docs](https://ackee.xyz/trident/docs/).
 
 ## Prerequisites
-Check [Supported versions](https://ackee.xyz/trident/docs/home/home-installation/#supported-versions) section for further details.
+Check [Supported versions](https://ackee.xyz/trident/docs/latest/installation/installation/#supported-versions) section for further details.
 - Install [Rust](https://www.rust-lang.org/tools/install)
 - Install [Solana tool suite](https://docs.solana.com/cli/install-solana-cli-tools)
 - Install [Anchor](https://www.anchor-lang.com/docs/installation)
