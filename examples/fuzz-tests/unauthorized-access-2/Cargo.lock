@@ -65,9 +65,9 @@ dependencies = [
 
 [[package]]
 name = "afl"
-version = "0.15.10"
+version = "0.15.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c21e10b6947189c5ff61343b5354e9ad1c1722bd47b69cd0a6b49e5fa7f7ecf6"
+checksum = "80bb240a3b9ff18002142c1a736e98046461d51a694d687c3e7329b456ab0fe4"
 dependencies = [
  "home",
  "libc",
@@ -965,9 +965,9 @@ dependencies = [
 
 [[package]]
 name = "cargo_metadata"
-version = "0.17.0"
+version = "0.18.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e7daec1a2a2129eeba1644b220b4647ec537b0b5d4bfd6876fcc5a540056b592"
+checksum = "2d886547e41f740c616ae73108f6eb70afe6d940c7bc697cb30f13daec073037"
 dependencies = [
  "camino",
  "cargo-platform",
@@ -2933,9 +2933,9 @@ checksum = "57c0d7b74b563b49d38dae00a0c37d4d6de9b432382b2892f0574ddcae73fd0a"
 
 [[package]]
 name = "pathdiff"
-version = "0.2.1"
+version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8835116a5c179084a830efb3adc117ab007512b535bc1a21c991d3b32a6b44dd"
+checksum = "d61c5ce1153ab5b689d0c074c4e7fc613e942dfb7dd9eea5ab202d2ad91fe361"
 
 [[package]]
 name = "pbkdf2"
@@ -5756,7 +5756,6 @@ version = "0.5.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f4f7f0dd8d50a853a531c426359045b1998f04219d88799810762cd4ad314234"
 dependencies = [
- "indexmap 1.9.3",
  "serde",
 ]
 
@@ -5766,6 +5765,7 @@ version = "0.8.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a1ed1f98e3fdc28d6d910e6737ae6ab1a93bf1985935a1193e68f93eeb68d24e"
 dependencies = [
+ "indexmap 2.6.0",
  "serde",
  "serde_spanned",
  "toml_datetime",
@@ -5879,28 +5879,22 @@ dependencies = [
  "anyhow",
  "arbitrary",
  "bincode",
- "borsh 0.10.4",
  "cargo_metadata",
  "convert_case",
  "fehler",
  "futures",
  "honggfuzz",
- "indicatif",
- "log",
  "pathdiff",
- "proc-macro2",
  "quinn-proto",
  "quote",
- "regex",
  "serde",
  "serde_json",
  "solana-program-test",
  "solana-sdk",
- "syn 1.0.109",
+ "syn 2.0.79",
  "thiserror",
  "tokio",
- "toml 0.5.11",
- "trident-derive-accounts-snapshots",
+ "toml 0.8.19",
  "trident-derive-displayix",
  "trident-derive-fuzz-test-executor",
  "trident-fuzz",
@@ -5945,7 +5939,6 @@ dependencies = [
  "fehler",
  "prettytable",
  "rand 0.8.5",
- "regex",
  "serde",
  "serde_json",
  "solana-banks-client",
@@ -5955,7 +5948,7 @@ dependencies = [
  "spl-token",
  "thiserror",
  "tokio",
- "toml 0.5.11",
+ "toml 0.8.19",
 ]
 
 [[package]]
