@@ -216,9 +216,7 @@ max_file_size = 1048576
 save_all = false
 ```
 
----
-
-## [afl]
+<!-- ## [afl]
 
 #### cargo_target_dir
 - Target compilation directory, (default: "" ["trident-tests/fuzz_tests/fuzzing/afl/afl_target"]).
@@ -286,7 +284,7 @@ override_file = true
 bytes_count = 20
 ```
 
----
+--- -->
 
 !!! tip
 

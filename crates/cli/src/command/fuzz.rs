@@ -15,20 +15,20 @@ pub const TRIDENT_TOML: &str = "Trident.toml";
 pub enum FuzzCommand {
     #[command(about = "Generate new Fuzz Test template.")]
     Add,
-    #[command(
-        about = "Run the AFL on desired fuzz test.",
-        override_usage = "Specify the desired fuzz \x1b[92m<TARGET>\x1b[0m.\
-            \n      \x1b[1m\x1b[4m<TARGET>:\x1b[0m Name of the desired fuzz template to execute (for example fuzz_0).\
-            \n\n\x1b[1m\x1b[4mEXAMPLE:\x1b[0m\
-            \n      trident fuzz run-afl fuzz_0"
-    )]
-    Run_Afl {
-        #[arg(
-            required = true,
-            help = "Name of the desired fuzz template to execute (for example fuzz_0)."
-        )]
-        target: String,
-    },
+    // #[command(
+    //     about = "Run the AFL on desired fuzz test.",
+    //     override_usage = "Specify the desired fuzz \x1b[92m<TARGET>\x1b[0m.\
+    //         \n      \x1b[1m\x1b[4m<TARGET>:\x1b[0m Name of the desired fuzz template to execute (for example fuzz_0).\
+    //         \n\n\x1b[1m\x1b[4mEXAMPLE:\x1b[0m\
+    //         \n      trident fuzz run-afl fuzz_0"
+    // )]
+    // Run_Afl {
+    //     #[arg(
+    //         required = true,
+    //         help = "Name of the desired fuzz template to execute (for example fuzz_0)."
+    //     )]
+    //     target: String,
+    // },
     #[command(
         about = "Run the Honggfuzz on desired fuzz test.",
         override_usage = "Specify the desired fuzz \x1b[92m<TARGET>\x1b[0m.\
@@ -51,29 +51,28 @@ pub enum FuzzCommand {
         with_exit_code: bool,
     },
 
-    #[command(
-        about = "Debug found crash using the AFL on desired fuzz test.",
-        override_usage = "Specify the desired fuzz \x1b[92m<TARGET>\x1b[0m and \x1b[92m<PATH_TO_CRASHFILE>\x1b[0m.\
-            \n      \x1b[1m\x1b[4m<TARGET>:\x1b[0m Name of the desired fuzz template to debug (for example fuzz_0).\
-            \n      \x1b[1m\x1b[4m<PATH_TO_CRASHFILE>:\x1b[0m Path to the crash found during fuzzing.\
-            \n\n\x1b[1m\x1b[4mHINT:\x1b[0m By default crashfiles will be stored in the following folders:\
-            \n      \x1b[1m\x1b[4mHonggfuzz:\x1b[0m trident-tests/fuzz_tests/fuzzing/honggfuzz/hfuzz_workspace/<TARGET>\
-            \n      \x1b[1m\x1b[4mAFL:\x1b[0m trident-tests/fuzz_tests/fuzzing/afl/afl_workspace/out/default/crashes\
-            \n\n\x1b[1m\x1b[4mEXAMPLE:\x1b[0m\
-            \n      trident fuzz debug-afl fuzz_0 trident-tests/fuzz_tests/fuzzing/afl/afl_workspace/out/default/crashes/id...\
-            \n\n\x1b[1m\x1b[33mWarning\x1b[0m:\
-            \n      Do not mix fuzz templates and crashfiles. If the crash was found with fuzz_0, then debug it with fuzz_0."
-    )]
-    Debug_Afl {
-        #[arg(
-            required = true,
-            help = "Name of the desired fuzz template to execute (for example fuzz_0)"
-        )]
-        target: String,
-        #[arg(required = true, help = "Path to the crash found during fuzzing")]
-        crash_file_path: String,
-    },
-
+    // #[command(
+    //     about = "Debug found crash using the AFL on desired fuzz test.",
+    //     override_usage = "Specify the desired fuzz \x1b[92m<TARGET>\x1b[0m and \x1b[92m<PATH_TO_CRASHFILE>\x1b[0m.\
+    //         \n      \x1b[1m\x1b[4m<TARGET>:\x1b[0m Name of the desired fuzz template to debug (for example fuzz_0).\
+    //         \n      \x1b[1m\x1b[4m<PATH_TO_CRASHFILE>:\x1b[0m Path to the crash found during fuzzing.\
+    //         \n\n\x1b[1m\x1b[4mHINT:\x1b[0m By default crashfiles will be stored in the following folders:\
+    //         \n      \x1b[1m\x1b[4mHonggfuzz:\x1b[0m trident-tests/fuzz_tests/fuzzing/honggfuzz/hfuzz_workspace/<TARGET>\
+    //         \n      \x1b[1m\x1b[4mAFL:\x1b[0m trident-tests/fuzz_tests/fuzzing/afl/afl_workspace/out/default/crashes\
+    //         \n\n\x1b[1m\x1b[4mEXAMPLE:\x1b[0m\
+    //         \n      trident fuzz debug-afl fuzz_0 trident-tests/fuzz_tests/fuzzing/afl/afl_workspace/out/default/crashes/id...\
+    //         \n\n\x1b[1m\x1b[33mWarning\x1b[0m:\
+    //         \n      Do not mix fuzz templates and crashfiles. If the crash was found with fuzz_0, then debug it with fuzz_0."
+    // )]
+    // Debug_Afl {
+    //     #[arg(
+    //         required = true,
+    //         help = "Name of the desired fuzz template to execute (for example fuzz_0)"
+    //     )]
+    //     target: String,
+    //     #[arg(required = true, help = "Path to the crash found during fuzzing")]
+    //     crash_file_path: String,
+    // },
     #[command(
         about = "Debug found crash using the Honggfuzz on desired fuzz test.",
         override_usage = "Specify the desired fuzz \x1b[92m<TARGET>\x1b[0m and \x1b[92m<PATH_TO_CRASHFILE>\x1b[0m.\
@@ -81,7 +80,6 @@ pub enum FuzzCommand {
             \n      \x1b[1m\x1b[4m<PATH_TO_CRASHFILE>:\x1b[0m Path to the crash found during fuzzing.\
             \n\n\x1b[1m\x1b[4mHINT:\x1b[0m By default crashfiles will be stored in the following folders:\
             \n      \x1b[1m\x1b[4mHonggfuzz:\x1b[0m trident-tests/fuzz_tests/fuzzing/honggfuzz/hfuzz_workspace/<TARGET>\
-            \n      \x1b[1m\x1b[4mAFL:\x1b[0m trident-tests/fuzz_tests/fuzzing/afl/afl_workspace/out/default/crashes\
             \n\n\x1b[1m\x1b[4mEXAMPLE:\x1b[0m\
             \n      trident fuzz debug-hfuzz fuzz_0 trident-tests/fuzz_tests/fuzzing/honggfuzz/hfuzz_workspace/fuzz_0/SIGAR...\
             \n\n\x1b[1m\x1b[33mWarning\x1b[0m:\
@@ -110,9 +108,9 @@ pub async fn fuzz(subcmd: FuzzCommand) {
     let commander = Commander::with_root(&Path::new(&root).to_path_buf());
 
     match subcmd {
-        FuzzCommand::Run_Afl { target } => {
-            commander.run_afl(target).await?;
-        }
+        // FuzzCommand::Run_Afl { target } => {
+        //     commander.run_afl(target).await?;
+        // }
         FuzzCommand::Run_Hfuzz {
             target,
             with_exit_code,
@@ -123,12 +121,12 @@ pub async fn fuzz(subcmd: FuzzCommand) {
                 commander.run_honggfuzz(target).await?;
             }
         }
-        FuzzCommand::Debug_Afl {
-            target,
-            crash_file_path,
-        } => {
-            commander.run_afl_debug(target, crash_file_path).await?;
-        }
+        // FuzzCommand::Debug_Afl {
+        //     target,
+        //     crash_file_path,
+        // } => {
+        //     commander.run_afl_debug(target, crash_file_path).await?;
+        // }
         FuzzCommand::Debug_Hfuzz {
             target,
             crash_file_path,

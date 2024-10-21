@@ -40,14 +40,10 @@ type InitializeFnSnapshot<'info> = InitializeContextAlias<'info>;
 
 - Implement the ***todo!*** placeholders in ***fuzz_instructions.rs*** based on the provided descriptions.
 
-- Run fuzzing with ***Honggfuzz*** or ***AFL***
+- Run fuzzing with ***Honggfuzz***
 
 ```bash
 trident fuzz run-hfuzz <FUZZ_TARGET>
-```
-
-```bash
-trident fuzz run-afl <FUZZ_TARGET>
 ```
 
 ### For more details, refer to the Trident documentation: https://ackee.xyz/trident/docs/dev/

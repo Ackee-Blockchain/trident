@@ -38,13 +38,13 @@ project-root
 
 - Behavior depends on the subcommands.
 
-### trident fuzz run-afl
+<!-- ### trident fuzz run-afl
 
-- Run AFL on the specified Fuzz Target (i.e. the Fuzz Template, for example fuzz_0).
+- Run AFL on the specified Fuzz Target (i.e. the Fuzz Template, for example fuzz_0). -->
 
-#### Output
+<!-- #### Output
 
-TBD
+TBD -->
 
 ### trident fuzz run-hfuzz
 
@@ -77,13 +77,13 @@ TBD
 ---------------------------------- [ LOGS ] ------------------/ honggfuzz 2.6 /-
 ```
 
-### trident fuzz debug-afl
+<!-- ### trident fuzz debug-afl
 
 - Run AFL debug on the specified Fuzz Target (i.e. the Fuzz Template, for example fuzz_0), with specified crash file, to see where the crash file found an issue.
 
 #### Output
 
-TBD
+TBD -->
 
 ### trident fuzz debug-hfuzz
 
@@ -112,4 +112,4 @@ TBD
 
 ## trident clean
 
-- Calls `anchor clean` and cleans targets created by the underlying Honggfuzz and AFL. Crashfiles and Fuzzing Inputs are preserved.
+- Calls `anchor clean` and cleans targets created by the underlying Honggfuzz. Crashfiles and Fuzzing Inputs are preserved.

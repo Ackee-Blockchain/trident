@@ -132,7 +132,7 @@ Each Instruction in the Fuzz Test has to have defined the following functions:
 
 ### Run Fuzz Test
 
-In principle there are two possible fuzzing engines that the Trident supports, [Honggfuzz](https://github.com/google/honggfuzz) and [AFL](https://aflplus.plus/).
+<!-- In principle there are two possible fuzzing engines that the Trident supports, [Honggfuzz](https://github.com/google/honggfuzz) and [AFL](https://aflplus.plus/). -->
 
 To execute the desired fuzz test using the Honggfuzz, run:
 
@@ -142,13 +142,13 @@ To execute the desired fuzz test using the Honggfuzz, run:
 trident fuzz run-hfuzz <TARGET_NAME>
 ```
 
-To execute the desired fuzz test using the AFL, run:
+<!-- To execute the desired fuzz test using the AFL, run: -->
 
-```bash
+<!-- ```bash
 # Replace <TARGET_NAME> with the name of particular
 # fuzz test (for example: "fuzz_0")
 trident fuzz run-afl <TARGET_NAME>
-```
+``` -->
 
 
 
@@ -161,19 +161,19 @@ To debug your program using Honggfuzz with values from a crash file:
 trident fuzz debug-hfuzz <TARGET_NAME> <CRASH_FILE_PATH>
 ```
 
-To debug your program using AFL with values from a crash file:
+<!-- To debug your program using AFL with values from a crash file: -->
 
-```bash
+<!-- ```bash
 # fuzzer will run the <TARGET_NAME> with the specified <CRASH_FILE_PATH>
 trident fuzz debug-afl <TARGET_NAME> <CRASH_FILE_PATH>
-```
+``` -->
 
 !!! tip
 
     By default, the crashfiles are stored in the
 
     - `trident-tests/fuzz_tests/fuzzing/honggfuzz/hfuzz_workspace/<FUZZ_TARGET>` for Hongfuzz and
-    - `trident-tests/fuzz_tests/fuzzing/afl/afl_workspace/out/default/crashes` for the AFL.
+    <!-- - `trident-tests/fuzz_tests/fuzzing/afl/afl_workspace/out/default/crashes` for the AFL. -->
 
 
 !!! tip
