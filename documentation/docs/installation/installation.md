@@ -5,10 +5,6 @@ hide:
 
 # Installation
 
-!!! tip
-
-    Docker Image down below.
-
 !!! important
 
     **Prerequisite**
@@ -67,6 +63,7 @@ cargo install trident-cli
 | ***{{ config.site_name }} CLI*** | ***Anchor*** | ***Solana*** | ***Rust*** | ***Honggfuzz*** |
 |-:|-:|-:|-:|-:|
 | :material-developer-board: ***`develop`*** | `0.30.1` | `^1.17.4` | `nightly` | `0.5.56` |
+| :material-tag: ***`0.8.0`*** | `0.30.1` | `^1.17.4` | `nightly` | `0.5.56` |
 | :material-tag: ***`0.7.0`*** | `>=0.29.*`<sup>1</sup> | `^1.17.4` | `nightly` | `0.5.56` |
 | :material-tag: ***`0.6.0`*** | `>=0.29.*`<sup>1</sup> | `^1.17` | `nightly` | `0.5.55` |
 | :material-tag: ***`0.5.0`*** | `~0.28.*` | `=1.16.6` | - | - |
@@ -79,8 +76,3 @@ cargo install trident-cli
 cargo update anchor-client@0.30.0 --precise 0.29.0
 cargo update anchor-spl@0.30.0 --precise 0.29.0
 ```
-
-
-## Docker Image
-
-TBD

@@ -10,6 +10,9 @@ incremented upon a breaking change and the patch version will be incremented for
 
 ## [dev] - Unreleased
 
+
+## [0.8.0] - 2024-10-21
+
 **Added**
 
 - impr/ allow to specify programs and accounts in the Trident Manifest ([207](https://github.com/Ackee-Blockchain/trident/pull/207))

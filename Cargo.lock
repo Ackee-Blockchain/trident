@@ -956,9 +956,9 @@ checksum = "1fd0f2584146f6f2ef48085050886acf353beff7305ebd1ae69500e27c67f64b"
 
 [[package]]
 name = "bytes"
-version = "1.7.2"
+version = "1.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "428d9aa8fbc0670b7b8d6030a7fadd0f86151cae55e4dbbece15f3780a3dfaf3"
+checksum = "9ac0150caa2ae65ca5bd83f25c7de183dea78d4d366469f148435e2acfbad0da"
 
 [[package]]
 name = "bzip2"
@@ -6128,7 +6128,7 @@ dependencies = [
 
 [[package]]
 name = "trident-cli"
-version = "0.7.0"
+version = "0.8.0"
 dependencies = [
  "anyhow",
  "clap 4.5.20",
@@ -6140,7 +6140,7 @@ dependencies = [
 
 [[package]]
 name = "trident-client"
-version = "0.7.0"
+version = "0.8.0"
 dependencies = [
  "afl",
  "anchor-lang",
@@ -6166,14 +6166,26 @@ dependencies = [
  "thiserror",
  "tokio",
  "toml 0.8.19",
+ "trident-derive-accounts-snapshots",
  "trident-derive-displayix",
  "trident-derive-fuzz-test-executor",
  "trident-fuzz",
 ]
 
 [[package]]
-name = "trident-derive-displayix"
+name = "trident-derive-accounts-snapshots"
 version = "0.0.2"
+dependencies = [
+ "anchor-syn",
+ "convert_case",
+ "proc-macro2",
+ "quote",
+ "syn 1.0.109",
+]
+
+[[package]]
+name = "trident-derive-displayix"
+version = "0.0.3"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -6182,7 +6194,7 @@ dependencies = [
 
 [[package]]
 name = "trident-derive-fuzz-test-executor"
-version = "0.0.2"
+version = "0.0.3"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -6191,7 +6203,7 @@ dependencies = [
 
 [[package]]
 name = "trident-fuzz"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "anchor-lang",
  "anyhow",
