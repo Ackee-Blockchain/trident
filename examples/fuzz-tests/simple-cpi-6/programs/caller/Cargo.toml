@@ -18,7 +18,15 @@ idl-build = ["anchor-lang/idl-build"]
 trident-fuzzing = ["dep:trident-fuzz"]
 
 [dependencies]
-trident-derive-accounts-snapshots = { path = "../../../../../crates/fuzz/derive/accounts_snapshots" }
-trident-fuzz = { path = "../../../../../crates/fuzz", optional = true }
 anchor-lang = "0.30.1"
-callee = { path = "../callee", features = ["cpi"] }
+
+[dependencies.trident-derive-accounts-snapshots]
+path = "../../../../../crates/fuzz/derive/accounts_snapshots"
+
+[dependencies.trident-fuzz]
+path = "../../../../../crates/fuzz"
+optional = true
+
+[dependencies.callee]
+path = "../callee"
+features = ["cpi"]

@@ -1,5 +1,6 @@
 [workspace]
 members = ["programs/*", "trident-tests/fuzz_tests"]
+
 [profile.release]
 overflow-checks = true
 lto = "fat"
