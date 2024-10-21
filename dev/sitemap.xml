@@ -9,75 +9,103 @@
          <lastmod>2024-10-21</lastmod>
     </url>
     <url>
-         <loc>https://ackee.xyz/trident/docs/dev/commands/commands/</loc>
+         <loc>https://ackee.xyz/trident/docs/dev/fuzzing/fuzzing-current-limitations/</loc>
          <lastmod>2024-10-21</lastmod>
     </url>
     <url>
-         <loc>https://ackee.xyz/trident/docs/dev/examples/examples/</loc>
+         <loc>https://ackee.xyz/trident/docs/dev/fuzzing/fuzzing-examples/</loc>
          <lastmod>2024-10-21</lastmod>
     </url>
     <url>
-         <loc>https://ackee.xyz/trident/docs/dev/faq/faq/</loc>
+         <loc>https://ackee.xyz/trident/docs/dev/fuzzing/fuzzing-introduction/</loc>
          <lastmod>2024-10-21</lastmod>
     </url>
     <url>
-         <loc>https://ackee.xyz/trident/docs/dev/features/account-storages/</loc>
+         <loc>https://ackee.xyz/trident/docs/dev/fuzzing/fuzzing-lifecycle/</loc>
          <lastmod>2024-10-21</lastmod>
     </url>
     <url>
-         <loc>https://ackee.xyz/trident/docs/dev/features/arbitrary-data/</loc>
+         <loc>https://ackee.xyz/trident/docs/dev/fuzzing/fuzzing-run-debug/</loc>
          <lastmod>2024-10-21</lastmod>
     </url>
     <url>
-         <loc>https://ackee.xyz/trident/docs/dev/features/error-handlers/</loc>
+         <loc>https://ackee.xyz/trident/docs/dev/fuzzing/howto/fuzzing-howto-p0/</loc>
          <lastmod>2024-10-21</lastmod>
     </url>
     <url>
-         <loc>https://ackee.xyz/trident/docs/dev/features/features/</loc>
+         <loc>https://ackee.xyz/trident/docs/dev/fuzzing/howto/fuzzing-howto-p1/</loc>
          <lastmod>2024-10-21</lastmod>
     </url>
     <url>
-         <loc>https://ackee.xyz/trident/docs/dev/features/fuzz-instructions/</loc>
+         <loc>https://ackee.xyz/trident/docs/dev/fuzzing/howto/fuzzing-howto-p2/</loc>
          <lastmod>2024-10-21</lastmod>
     </url>
     <url>
-         <loc>https://ackee.xyz/trident/docs/dev/features/fuzzing-statistics/</loc>
+         <loc>https://ackee.xyz/trident/docs/dev/fuzzing/howto/fuzzing-howto-p3/</loc>
          <lastmod>2024-10-21</lastmod>
     </url>
     <url>
-         <loc>https://ackee.xyz/trident/docs/dev/features/genesis-accounts/</loc>
+         <loc>https://ackee.xyz/trident/docs/dev/fuzzing/howto/fuzzing-howto-p4/</loc>
          <lastmod>2024-10-21</lastmod>
     </url>
     <url>
-         <loc>https://ackee.xyz/trident/docs/dev/features/instructions-sequences/</loc>
+         <loc>https://ackee.xyz/trident/docs/dev/fuzzing/howto/fuzzing-howto-p5/</loc>
          <lastmod>2024-10-21</lastmod>
     </url>
     <url>
-         <loc>https://ackee.xyz/trident/docs/dev/features/invariant-checks/</loc>
+         <loc>https://ackee.xyz/trident/docs/dev/fuzzing/howto/fuzzing-howto-p6/</loc>
          <lastmod>2024-10-21</lastmod>
     </url>
     <url>
-         <loc>https://ackee.xyz/trident/docs/dev/features/lifecycle/</loc>
+         <loc>https://ackee.xyz/trident/docs/dev/fuzzing/howto/fuzzing-howto-p7/</loc>
          <lastmod>2024-10-21</lastmod>
     </url>
     <url>
-         <loc>https://ackee.xyz/trident/docs/dev/features/limitations/</loc>
+         <loc>https://ackee.xyz/trident/docs/dev/fuzzing/initialization/fuzzing-initialization-all/</loc>
          <lastmod>2024-10-21</lastmod>
     </url>
     <url>
-         <loc>https://ackee.xyz/trident/docs/dev/features/trident-manifest/</loc>
+         <loc>https://ackee.xyz/trident/docs/dev/fuzzing/initialization/fuzzing-initialization-fuzz-add/</loc>
          <lastmod>2024-10-21</lastmod>
     </url>
     <url>
-         <loc>https://ackee.xyz/trident/docs/dev/get-help/get-help/</loc>
+         <loc>https://ackee.xyz/trident/docs/dev/fuzzing/initialization/fuzzing-initialization-fuzz/</loc>
          <lastmod>2024-10-21</lastmod>
     </url>
     <url>
-         <loc>https://ackee.xyz/trident/docs/dev/installation/installation/</loc>
+         <loc>https://ackee.xyz/trident/docs/dev/home/home-installation/</loc>
          <lastmod>2024-10-21</lastmod>
     </url>
     <url>
-         <loc>https://ackee.xyz/trident/docs/dev/writing-fuzz-test/writing-fuzz-test/</loc>
+         <loc>https://ackee.xyz/trident/docs/dev/integration-tests/poc-examples/</loc>
+         <lastmod>2024-10-21</lastmod>
+    </url>
+    <url>
+         <loc>https://ackee.xyz/trident/docs/dev/integration-tests/poc-introduction/</loc>
+         <lastmod>2024-10-21</lastmod>
+    </url>
+    <url>
+         <loc>https://ackee.xyz/trident/docs/dev/integration-tests/poc-run/</loc>
+         <lastmod>2024-10-21</lastmod>
+    </url>
+    <url>
+         <loc>https://ackee.xyz/trident/docs/dev/integration-tests/howto/poc-howto-p0/</loc>
+         <lastmod>2024-10-21</lastmod>
+    </url>
+    <url>
+         <loc>https://ackee.xyz/trident/docs/dev/integration-tests/howto/poc-howto-p1/</loc>
+         <lastmod>2024-10-21</lastmod>
+    </url>
+    <url>
+         <loc>https://ackee.xyz/trident/docs/dev/integration-tests/initialization/poc-initialization-all/</loc>
+         <lastmod>2024-10-21</lastmod>
+    </url>
+    <url>
+         <loc>https://ackee.xyz/trident/docs/dev/integration-tests/initialization/poc-initialization-poc/</loc>
+         <lastmod>2024-10-21</lastmod>
+    </url>
+    <url>
+         <loc>https://ackee.xyz/trident/docs/dev/integration-tests/initialization/poc-initialization-program-client/</loc>
          <lastmod>2024-10-21</lastmod>
     </url>
 </urlset>
