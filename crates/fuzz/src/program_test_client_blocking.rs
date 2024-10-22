@@ -3,6 +3,7 @@ use solana_program_test::ProgramTest;
 use solana_program_test::ProgramTestContext;
 use solana_sdk::account::Account;
 use solana_sdk::account_info::AccountInfo;
+use solana_sdk::clock::Clock;
 use solana_sdk::entrypoint::ProgramResult;
 use solana_sdk::system_program::ID as SYSTEM_PROGRAM_ID;
 use solana_sdk::{
@@ -242,5 +243,27 @@ impl FuzzClient for ProgramTestClientBlocking {
 
     fn get_rent(&mut self) -> Result<Rent, FuzzClientError> {
         Ok(self.rt.block_on(self.ctx.banks_client.get_rent())?)
+    }
+    fn forward_in_time(&mut self, seconds: i64) -> Result<(), FuzzClientError> {
+        // Get the current clock state from the program test context.
+        let mut clock = self
+            .rt
+            .block_on(self.ctx.banks_client.get_sysvar::<Clock>())?;
+
+        // Calculate the new timestamp after advancing time.
+        let new_timestamp = clock.unix_timestamp.saturating_add(seconds);
+
+        // Update the Clock instance with the new timestamp.
+        clock.unix_timestamp = new_timestamp;
+
+        // Update the sysvar in the program test context with the new Clock state.
+        self.ctx.set_sysvar(&clock);
+        Ok(())
+    }
+    fn warp_to_slot(&mut self, warp_slot: u64) {
+        let _ = self.ctx.warp_to_slot(warp_slot);
+    }
+    fn warp_to_epoch(&mut self, warp_epoch: u64) {
+        let _ = self.ctx.warp_to_epoch(warp_epoch);
     }
 }

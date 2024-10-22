@@ -13,6 +13,15 @@ use crate::error::*;
 
 /// A trait providing methods to read and write (manipulate) accounts
 pub trait FuzzClient {
+    /// Warp to specific epoch
+    fn warp_to_epoch(&mut self, warp_epoch: u64);
+
+    /// Warp to specific slot
+    fn warp_to_slot(&mut self, warp_slot: u64);
+
+    /// Forward in time by the desired number of seconds
+    fn forward_in_time(&mut self, seconds: i64) -> Result<(), FuzzClientError>;
+
     /// Create an empty account and add lamports to it
     fn set_account(&mut self, lamports: u64) -> Keypair;
 

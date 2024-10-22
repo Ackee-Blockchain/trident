@@ -10,6 +10,9 @@ incremented upon a breaking change and the patch version will be incremented for
 
 ## [dev] - Unreleased
 
+**Added**
+
+- add/ add support for Clock sysvar manipulations with the client(i.e. warp to slot/epoch and forward in time) ([217](https://github.com/Ackee-Blockchain/trident/pull/217))
 
 ## [0.8.0] - 2024-10-21
 
