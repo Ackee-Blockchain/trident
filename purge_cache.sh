@@ -13,6 +13,8 @@ fi
 SITEMAP_URL="https://ackee.xyz/trident/docs/latest/sitemap.xml"
 PURGE_URLS=$(curl -s $SITEMAP_URL | grep -Eo '<loc>[^<]*' | cut -d '>' -f 2)
 
+PURGE_URLS+=" https://ackee.xyz/trident/docs/index.html"
+PURGE_URLS+=" https://ackee.xyz/trident/docs/latest"
 PURGE_URLS+=" https://ackee.xyz/trident/docs/versions.json"
 PURGE_URLS+=" https://ackee.xyz/trident/docs/latest/search/search_index.json"
 
