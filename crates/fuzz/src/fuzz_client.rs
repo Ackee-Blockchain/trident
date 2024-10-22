@@ -2,8 +2,9 @@
 
 use anchor_lang::prelude::Rent;
 use anchor_lang::solana_program::hash::Hash;
-
+use anchor_lang::solana_program::stake::state::Lockup;
 use solana_sdk::account::{Account, AccountSharedData};
+use solana_sdk::clock::{Clock, Epoch};
 use solana_sdk::instruction::AccountMeta;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
@@ -38,6 +39,35 @@ pub trait FuzzClient {
         decimals: u8,
         owner: &Pubkey,
         freeze_authority: Option<Pubkey>,
+    ) -> Pubkey;
+
+    /// Create a vote account
+    fn set_vote_account(
+        &mut self,
+        node_pubkey: &Pubkey, // validator identity
+        authorized_voter: &Pubkey,
+        authorized_withdrawer: &Pubkey,
+        commission: u8,
+        clock: &Clock,
+    ) -> Pubkey;
+
+    /// Create a delegated stake account
+    fn set_delegated_stake_account(
+        &mut self,
+        voter_pubkey: Pubkey, // vote account delegated to
+        staker: Pubkey,
+        withdrawer: Pubkey,
+        stake: u64,
+        activation_epoch: Epoch,
+        deactivation_epoch: Option<Epoch>,
+        lockup: Option<Lockup>,
+    ) -> Pubkey;
+
+    fn set_initialized_stake_account(
+        &mut self,
+        staker: Pubkey,
+        withdrawer: Pubkey,
+        lockup: Option<Lockup>,
     ) -> Pubkey;
 
     /// Get the Keypair of the client's payer account
