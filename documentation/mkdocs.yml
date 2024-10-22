@@ -96,6 +96,8 @@ plugins:
       minify_html: true
   - git-revision-date-localized:
       type: timeago
+  - mike:
+      canonical_version: latest
 
 # https://squidfunk.github.io/mkdocs-material/customization/?h=extra+css#additional-css
 extra_css:
