@@ -1,83 +1,83 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
-         <loc>https://ackee.xyz/trident/docs/dev/</loc>
+         <loc>https://ackee.xyz/trident/docs/latest/</loc>
          <lastmod>2024-10-22</lastmod>
     </url>
     <url>
-         <loc>https://ackee.xyz/trident/docs/dev/CHANGELOG/</loc>
+         <loc>https://ackee.xyz/trident/docs/latest/CHANGELOG/</loc>
          <lastmod>2024-10-22</lastmod>
     </url>
     <url>
-         <loc>https://ackee.xyz/trident/docs/dev/commands/commands/</loc>
+         <loc>https://ackee.xyz/trident/docs/latest/commands/commands/</loc>
          <lastmod>2024-10-22</lastmod>
     </url>
     <url>
-         <loc>https://ackee.xyz/trident/docs/dev/examples/examples/</loc>
+         <loc>https://ackee.xyz/trident/docs/latest/examples/examples/</loc>
          <lastmod>2024-10-22</lastmod>
     </url>
     <url>
-         <loc>https://ackee.xyz/trident/docs/dev/faq/faq/</loc>
+         <loc>https://ackee.xyz/trident/docs/latest/faq/faq/</loc>
          <lastmod>2024-10-22</lastmod>
     </url>
     <url>
-         <loc>https://ackee.xyz/trident/docs/dev/features/account-storages/</loc>
+         <loc>https://ackee.xyz/trident/docs/latest/features/account-storages/</loc>
          <lastmod>2024-10-22</lastmod>
     </url>
     <url>
-         <loc>https://ackee.xyz/trident/docs/dev/features/arbitrary-data/</loc>
+         <loc>https://ackee.xyz/trident/docs/latest/features/arbitrary-data/</loc>
          <lastmod>2024-10-22</lastmod>
     </url>
     <url>
-         <loc>https://ackee.xyz/trident/docs/dev/features/error-handlers/</loc>
+         <loc>https://ackee.xyz/trident/docs/latest/features/error-handlers/</loc>
          <lastmod>2024-10-22</lastmod>
     </url>
     <url>
-         <loc>https://ackee.xyz/trident/docs/dev/features/features/</loc>
+         <loc>https://ackee.xyz/trident/docs/latest/features/features/</loc>
          <lastmod>2024-10-22</lastmod>
     </url>
     <url>
-         <loc>https://ackee.xyz/trident/docs/dev/features/fuzz-instructions/</loc>
+         <loc>https://ackee.xyz/trident/docs/latest/features/fuzz-instructions/</loc>
          <lastmod>2024-10-22</lastmod>
     </url>
     <url>
-         <loc>https://ackee.xyz/trident/docs/dev/features/fuzzing-statistics/</loc>
+         <loc>https://ackee.xyz/trident/docs/latest/features/fuzzing-statistics/</loc>
          <lastmod>2024-10-22</lastmod>
     </url>
     <url>
-         <loc>https://ackee.xyz/trident/docs/dev/features/genesis-accounts/</loc>
+         <loc>https://ackee.xyz/trident/docs/latest/features/genesis-accounts/</loc>
          <lastmod>2024-10-22</lastmod>
     </url>
     <url>
-         <loc>https://ackee.xyz/trident/docs/dev/features/instructions-sequences/</loc>
+         <loc>https://ackee.xyz/trident/docs/latest/features/instructions-sequences/</loc>
          <lastmod>2024-10-22</lastmod>
     </url>
     <url>
-         <loc>https://ackee.xyz/trident/docs/dev/features/invariant-checks/</loc>
+         <loc>https://ackee.xyz/trident/docs/latest/features/invariant-checks/</loc>
          <lastmod>2024-10-22</lastmod>
     </url>
     <url>
-         <loc>https://ackee.xyz/trident/docs/dev/features/lifecycle/</loc>
+         <loc>https://ackee.xyz/trident/docs/latest/features/lifecycle/</loc>
          <lastmod>2024-10-22</lastmod>
     </url>
     <url>
-         <loc>https://ackee.xyz/trident/docs/dev/features/limitations/</loc>
+         <loc>https://ackee.xyz/trident/docs/latest/features/limitations/</loc>
          <lastmod>2024-10-22</lastmod>
     </url>
     <url>
-         <loc>https://ackee.xyz/trident/docs/dev/features/trident-manifest/</loc>
+         <loc>https://ackee.xyz/trident/docs/latest/features/trident-manifest/</loc>
          <lastmod>2024-10-22</lastmod>
     </url>
     <url>
-         <loc>https://ackee.xyz/trident/docs/dev/get-help/get-help/</loc>
+         <loc>https://ackee.xyz/trident/docs/latest/get-help/get-help/</loc>
          <lastmod>2024-10-22</lastmod>
     </url>
     <url>
-         <loc>https://ackee.xyz/trident/docs/dev/installation/installation/</loc>
+         <loc>https://ackee.xyz/trident/docs/latest/installation/installation/</loc>
          <lastmod>2024-10-22</lastmod>
     </url>
     <url>
-         <loc>https://ackee.xyz/trident/docs/dev/writing-fuzz-test/writing-fuzz-test/</loc>
+         <loc>https://ackee.xyz/trident/docs/latest/writing-fuzz-test/writing-fuzz-test/</loc>
          <lastmod>2024-10-22</lastmod>
     </url>
 </urlset>
