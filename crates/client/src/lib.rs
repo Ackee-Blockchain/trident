@@ -36,6 +36,9 @@ pub mod fuzzing {
     /// trident macros
     pub use trident_fuzz::convert_entry;
     pub use trident_fuzz::fuzz_trident;
+    pub use trident_fuzz::middle_sequence;
+    pub use trident_fuzz::post_sequence;
+    pub use trident_fuzz::pre_sequence;
     pub use trident_fuzz::show_account;
     pub use trident_fuzz::*;
 
