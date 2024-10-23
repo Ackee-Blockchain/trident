@@ -10,5 +10,6 @@ pub mod fuzz_client;
 pub mod fuzz_deserialize;
 pub mod fuzz_test_executor;
 pub mod fuzz_trident;
+pub mod instructions_sequence;
 pub mod ix_ops;
 pub mod transaction_executor;
