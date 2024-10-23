@@ -41,13 +41,8 @@ impl<T> AccountsStorage<T> {
         }
     }
 
-    /// Gets a reference to the account with the given account ID
-    pub fn get(&self, account_id: AccountId) -> Option<&T> {
-        self.accounts.get(&account_id)
-    }
-
     /// Returns a mutable reference to the underlying HashMap that stores accounts with IDs as keys
-    pub fn storage(&mut self) -> &mut HashMap<AccountId, T> {
+    fn storage(&mut self) -> &mut HashMap<AccountId, T> {
         &mut self.accounts
     }
 }
@@ -71,6 +66,12 @@ impl AccountsStorage<Keypair> {
             .or_insert_with(|| client.set_account(lamports));
         key.insecure_clone()
     }
+    pub fn get(&self, account_id: AccountId) -> Keypair {
+        match self.accounts.get(&account_id) {
+            Some(v) => v.insecure_clone(),
+            None => Keypair::new(),
+        }
+    }
 }
 
 impl AccountsStorage<TokenStore> {
@@ -86,7 +87,7 @@ impl AccountsStorage<TokenStore> {
         is_native: Option<u64>,
         delegated_amount: u64,
         close_authority: Option<Pubkey>,
-    ) -> Option<Pubkey> {
+    ) -> Pubkey {
         let key = self.accounts.entry(account_id).or_insert_with(|| {
             let key = client.set_token_account(
                 mint,
@@ -99,7 +100,13 @@ impl AccountsStorage<TokenStore> {
             );
             TokenStore { pubkey: key }
         });
-        Some(key.pubkey)
+        key.pubkey
+    }
+    pub fn get(&self, account_id: AccountId) -> Pubkey {
+        match self.accounts.get(&account_id) {
+            Some(v) => v.pubkey,
+            None => Pubkey::default(),
+        }
     }
 }
 
@@ -111,12 +118,18 @@ impl AccountsStorage<MintStore> {
         decimals: u8,
         owner: &Pubkey,
         freeze_authority: Option<Pubkey>,
-    ) -> Option<Pubkey> {
+    ) -> Pubkey {
         let key = self.accounts.entry(account_id).or_insert_with(|| {
             let key = client.set_mint_account(decimals, owner, freeze_authority);
             MintStore { pubkey: key }
         });
-        Some(key.pubkey)
+        key.pubkey
+    }
+    pub fn get(&self, account_id: AccountId) -> Pubkey {
+        match self.accounts.get(&account_id) {
+            Some(v) => v.pubkey,
+            None => Pubkey::default(),
+        }
     }
 }
 
@@ -126,18 +139,28 @@ impl AccountsStorage<PdaStore> {
         account_id: AccountId,
         seeds: &[&[u8]],
         program_id: &Pubkey,
-    ) -> Option<&PdaStore> {
-        let key = self.accounts.entry(account_id).or_insert(
-            if let Some((key, _)) = Pubkey::try_find_program_address(seeds, program_id) {
-                let seeds_vec: Vec<_> = seeds.iter().map(|&s| s.to_vec()).collect();
-                PdaStore {
-                    pubkey: key,
-                    seeds: seeds_vec,
+    ) -> Pubkey {
+        match self.accounts.get(&account_id) {
+            Some(v) => v.pubkey,
+            None => {
+                if let Some((key, _)) = Pubkey::try_find_program_address(seeds, program_id) {
+                    let seeds_vec: Vec<_> = seeds.iter().map(|&s| s.to_vec()).collect();
+                    let pda_store = PdaStore {
+                        pubkey: key,
+                        seeds: seeds_vec,
+                    };
+                    self.accounts.insert(account_id, pda_store);
+                    key
+                } else {
+                    Pubkey::default()
                 }
-            } else {
-                return None;
-            },
-        );
-        Some(key)
+            }
+        }
+    }
+    pub fn get(&self, account_id: AccountId) -> Pubkey {
+        match self.accounts.get(&account_id) {
+            Some(v) => v.pubkey,
+            None => Pubkey::default(),
+        }
     }
 }

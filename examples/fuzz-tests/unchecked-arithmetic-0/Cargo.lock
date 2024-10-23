@@ -971,9 +971,9 @@ dependencies = [
 
 [[package]]
 name = "cargo_metadata"
-version = "0.17.0"
+version = "0.18.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e7daec1a2a2129eeba1644b220b4647ec537b0b5d4bfd6876fcc5a540056b592"
+checksum = "2d886547e41f740c616ae73108f6eb70afe6d940c7bc697cb30f13daec073037"
 dependencies = [
  "camino",
  "cargo-platform",
@@ -5766,7 +5766,6 @@ version = "0.5.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f4f7f0dd8d50a853a531c426359045b1998f04219d88799810762cd4ad314234"
 dependencies = [
- "indexmap 1.9.3",
  "serde",
 ]
 
@@ -5776,6 +5775,7 @@ version = "0.8.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a1ed1f98e3fdc28d6d910e6737ae6ab1a93bf1985935a1193e68f93eeb68d24e"
 dependencies = [
+ "indexmap 2.4.0",
  "serde",
  "serde_spanned",
  "toml_datetime",
@@ -5880,7 +5880,7 @@ dependencies = [
 
 [[package]]
 name = "trident-client"
-version = "0.7.0"
+version = "0.8.0"
 dependencies = [
  "afl",
  "anchor-lang",
@@ -5889,27 +5889,22 @@ dependencies = [
  "anyhow",
  "arbitrary",
  "bincode",
- "borsh 0.10.3",
  "cargo_metadata",
  "convert_case",
  "fehler",
  "futures",
  "honggfuzz",
- "indicatif",
- "log",
  "pathdiff",
- "proc-macro2",
  "quinn-proto",
  "quote",
- "regex",
  "serde",
  "serde_json",
  "solana-program-test",
  "solana-sdk",
- "syn 1.0.109",
+ "syn 2.0.76",
  "thiserror",
  "tokio",
- "toml 0.5.11",
+ "toml 0.8.19",
  "trident-derive-accounts-snapshots",
  "trident-derive-displayix",
  "trident-derive-fuzz-test-executor",
@@ -5918,7 +5913,7 @@ dependencies = [
 
 [[package]]
 name = "trident-derive-accounts-snapshots"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
  "anchor-syn",
  "convert_case",
@@ -5929,7 +5924,7 @@ dependencies = [
 
 [[package]]
 name = "trident-derive-displayix"
-version = "0.0.2"
+version = "0.0.3"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -5938,7 +5933,7 @@ dependencies = [
 
 [[package]]
 name = "trident-derive-fuzz-test-executor"
-version = "0.0.2"
+version = "0.0.3"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -5947,7 +5942,7 @@ dependencies = [
 
 [[package]]
 name = "trident-fuzz"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "anchor-lang",
  "anyhow",
@@ -5955,7 +5950,6 @@ dependencies = [
  "fehler",
  "prettytable",
  "rand 0.8.5",
- "regex",
  "serde",
  "serde_json",
  "solana-banks-client",
@@ -5965,7 +5959,7 @@ dependencies = [
  "spl-token",
  "thiserror",
  "tokio",
- "toml 0.5.11",
+ "toml 0.8.19",
 ]
 
 [[package]]

@@ -6079,7 +6079,7 @@ dependencies = [
 
 [[package]]
 name = "trident-client"
-version = "0.7.0"
+version = "0.8.0"
 dependencies = [
  "afl",
  "anchor-lang",
@@ -6104,6 +6104,7 @@ dependencies = [
  "thiserror",
  "tokio",
  "toml 0.8.19",
+ "trident-derive-accounts-snapshots",
  "trident-derive-displayix",
  "trident-derive-fuzz-test-executor",
  "trident-fuzz",
@@ -6111,7 +6112,7 @@ dependencies = [
 
 [[package]]
 name = "trident-derive-accounts-snapshots"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
  "anchor-syn",
  "convert_case",
@@ -6122,7 +6123,7 @@ dependencies = [
 
 [[package]]
 name = "trident-derive-displayix"
-version = "0.0.2"
+version = "0.0.3"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -6131,7 +6132,7 @@ dependencies = [
 
 [[package]]
 name = "trident-derive-fuzz-test-executor"
-version = "0.0.2"
+version = "0.0.3"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -6140,7 +6141,7 @@ dependencies = [
 
 [[package]]
 name = "trident-fuzz"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "anchor-lang",
  "anyhow",
