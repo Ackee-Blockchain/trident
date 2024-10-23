@@ -7,19 +7,19 @@ use dummy_example::ID as PROGRAM_ID_DUMMY_EXAMPLE;
 use fuzz_instructions::FuzzInstruction;
 const PROGRAM_NAME_DUMMY_2: &str = "dummy_2";
 const PROGRAM_NAME_DUMMY_EXAMPLE: &str = "dummy_example";
-struct MyFuzzData;
+struct InstructionsSequence;
 /// Define instruction sequences for invocation.
-/// `pre_ixs` runs at the start, `ixs` in the middle, and `post_ixs` at the end.
-/// For example, to call `InitializeFn` at the start of each fuzzing iteration:
+/// `pre` runs at the start, `middle` in the middle, and `post` at the end.
+/// For example, to call `InitializeFn`, `UpdateFn` and then `WithdrawFn` during
+/// each fuzzing iteration:
 /// ```
-/// fn pre_ixs(u: &mut arbitrary::Unstructured) ->
-/// arbitrary::Result<Vec<FuzzInstruction>> {
-///     let init = FuzzInstruction::InitializeFn(InitializeFn::arbitrary(u)?);
-///     Ok(vec![init])
-/// }
+/// impl FuzzDataBuilder<FuzzInstruction> for InstructionsSequence {
+///     pre_sequence!(InitializeFn,UpdateFn);
+///     middle_sequence!(WithdrawFn);
+///}
 /// ```
 /// For more details, see: https://ackee.xyz/trident/docs/latest/features/instructions-sequences/#instructions-sequences
-impl FuzzDataBuilder<FuzzInstruction> for MyFuzzData {}
+impl FuzzDataBuilder<FuzzInstruction> for InstructionsSequence {}
 /// `fn fuzz_iteration` runs during every fuzzing iteration.
 /// Modification is not required.
 fn fuzz_iteration<T: FuzzTestExecutor<U> + std::fmt::Display, U>(
@@ -45,5 +45,5 @@ fn fuzz_iteration<T: FuzzTestExecutor<U> + std::fmt::Display, U>(
 }
 fn main() {
     let config = Config::new();
-    fuzz_trident ! (fuzz_ix : FuzzInstruction , | fuzz_data : MyFuzzData | { fuzz_iteration (fuzz_data , & config) ; });
+    fuzz_trident ! (fuzz_ix : FuzzInstruction , | fuzz_data : InstructionsSequence | { fuzz_iteration (fuzz_data , & config) ; });
 }

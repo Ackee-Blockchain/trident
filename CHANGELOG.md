@@ -16,6 +16,7 @@ incremented upon a breaking change and the patch version will be incremented for
 
 **Added**
 
+- add pre_sequence!, middle_sequence! and post_sequence! for easier sequence definition ([220](https://github.com/Ackee-Blockchain/trident/pull/220))
 - add/ add support for Clock sysvar manipulations with the client(i.e. warp to slot/epoch and forward in time) ([217](https://github.com/Ackee-Blockchain/trident/pull/217))
 
 ## [0.8.0] - 2024-10-21

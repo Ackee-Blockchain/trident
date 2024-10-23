@@ -8,21 +8,21 @@ use unchecked_arithmetic_0::entry as entry_unchecked_arithmetic_0;
 use unchecked_arithmetic_0::ID as PROGRAM_ID_UNCHECKED_ARITHMETIC_0;
 
 const PROGRAM_NAME_UNCHECKED_ARITHMETIC_0: &str = "unchecked_arithmetic_0";
-
-struct MyFuzzData;
-
-impl FuzzDataBuilder<FuzzInstruction> for MyFuzzData {
-    fn pre_ixs(u: &mut arbitrary::Unstructured) -> arbitrary::Result<Vec<FuzzInstruction>> {
-        let init = FuzzInstruction::Initialize(Initialize::arbitrary(u)?);
-        Ok(vec![init])
-    }
-    fn ixs(u: &mut arbitrary::Unstructured) -> arbitrary::Result<Vec<FuzzInstruction>> {
-        let update = FuzzInstruction::Update(Update::arbitrary(u)?);
-        Ok(vec![update])
-    }
-    fn post_ixs(_u: &mut arbitrary::Unstructured) -> arbitrary::Result<Vec<FuzzInstruction>> {
-        Ok(vec![])
-    }
+struct InstructionsSequence;
+/// Define instruction sequences for invocation.
+/// `pre` runs at the start, `middle` in the middle, and `post` at the end.
+/// For example, to call `InitializeFn`, `UpdateFn` and then `WithdrawFn` during
+/// each fuzzing iteration:
+/// ```
+/// impl FuzzDataBuilder<FuzzInstruction> for InstructionsSequence {
+///     pre_sequence!(InitializeFn,UpdateFn);
+///     middle_sequence!(WithdrawFn);
+///}
+/// ```
+/// For more details, see: https://ackee.xyz/trident/docs/dev/features/instructions-sequences/#instructions-sequences
+impl FuzzDataBuilder<FuzzInstruction> for InstructionsSequence {
+    pre_sequence!(Initialize);
+    middle_sequence!(Update);
 }
 
 fn fuzz_iteration<T: FuzzTestExecutor<U> + std::fmt::Display, U>(
@@ -44,5 +44,5 @@ fn fuzz_iteration<T: FuzzTestExecutor<U> + std::fmt::Display, U>(
 fn main() {
     let config = Config::new();
 
-    fuzz_trident ! (fuzz_ix : FuzzInstruction , | fuzz_data : MyFuzzData | { fuzz_iteration (fuzz_data , & config) ; });
+    fuzz_trident ! (fuzz_ix : FuzzInstruction , | fuzz_data : InstructionsSequence | { fuzz_iteration (fuzz_data , & config) ; });
 }
