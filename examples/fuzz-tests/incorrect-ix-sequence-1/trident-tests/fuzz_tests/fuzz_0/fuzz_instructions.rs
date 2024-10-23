@@ -133,15 +133,11 @@ impl<'info> IxOps<'info> for EndRegistrations {
             5 * LAMPORTS_PER_SOL,
         );
         let signers = vec![author.clone()];
-        let state = fuzz_accounts
-            .state
-            .get_or_create_account(
-                self.accounts.state,
-                &[author.pubkey().as_ref(), STATE_SEED.as_ref()],
-                &incorrect_ix_sequence_1::ID,
-            )
-            .ok_or(FuzzingError::Custom(4))?
-            .pubkey();
+        let state = fuzz_accounts.state.get_or_create_account(
+            self.accounts.state,
+            &[author.pubkey().as_ref(), STATE_SEED.as_ref()],
+            &incorrect_ix_sequence_1::ID,
+        );
         let acc_meta = incorrect_ix_sequence_1::accounts::EndRegistration {
             author: author.pubkey(),
             state,
@@ -188,16 +184,11 @@ impl<'info> IxOps<'info> for Initialize {
             5 * LAMPORTS_PER_SOL,
         );
         let signers = vec![author.clone()];
-        let state = fuzz_accounts
-            .state
-            .get_or_create_account(
-                self.accounts.state,
-                &[author.pubkey().as_ref(), STATE_SEED.as_ref()],
-                &incorrect_ix_sequence_1::ID,
-            )
-            .ok_or(FuzzingError::Custom(1))?
-            .pubkey();
-
+        let state = fuzz_accounts.state.get_or_create_account(
+            self.accounts.state,
+            &[author.pubkey().as_ref(), STATE_SEED.as_ref()],
+            &incorrect_ix_sequence_1::ID,
+        );
         let acc_meta = incorrect_ix_sequence_1::accounts::Initialize {
             author: author.pubkey(),
             state,
@@ -253,29 +244,21 @@ impl<'info> IxOps<'info> for Invest {
             client,
             5 * LAMPORTS_PER_SOL,
         );
-        let state = fuzz_accounts
-            .state
-            .get_or_create_account(
-                self.accounts.state,
-                &[project_author.pubkey().as_ref(), STATE_SEED.as_ref()],
-                &incorrect_ix_sequence_1::ID,
-            )
-            .ok_or(FuzzingError::Custom(5))?
-            .pubkey();
+        let state = fuzz_accounts.state.get_or_create_account(
+            self.accounts.state,
+            &[project_author.pubkey().as_ref(), STATE_SEED.as_ref()],
+            &incorrect_ix_sequence_1::ID,
+        );
 
-        let project = fuzz_accounts
-            .project
-            .get_or_create_account(
-                self.accounts.project,
-                &[
-                    project_author.pubkey().as_ref(),
-                    state.as_ref(),
-                    PROJECT_SEED.as_ref(),
-                ],
-                &incorrect_ix_sequence_1::ID,
-            )
-            .ok_or(FuzzingError::Custom(6))?
-            .pubkey();
+        let project = fuzz_accounts.project.get_or_create_account(
+            self.accounts.project,
+            &[
+                project_author.pubkey().as_ref(),
+                state.as_ref(),
+                PROJECT_SEED.as_ref(),
+            ],
+            &incorrect_ix_sequence_1::ID,
+        );
         let acc_meta = incorrect_ix_sequence_1::accounts::Invest {
             investor: investor.pubkey(),
             project,
@@ -324,29 +307,21 @@ impl<'info> IxOps<'info> for Register {
             5 * LAMPORTS_PER_SOL,
         );
         let signers = vec![project_author.clone()];
-        let state = fuzz_accounts
-            .state
-            .get_or_create_account(
-                self.accounts.state,
-                &[project_author.pubkey().as_ref(), STATE_SEED.as_ref()],
-                &incorrect_ix_sequence_1::ID,
-            )
-            .ok_or(FuzzingError::Custom(2))?
-            .pubkey();
+        let state = fuzz_accounts.state.get_or_create_account(
+            self.accounts.state,
+            &[project_author.pubkey().as_ref(), STATE_SEED.as_ref()],
+            &incorrect_ix_sequence_1::ID,
+        );
 
-        let project = fuzz_accounts
-            .project
-            .get_or_create_account(
-                self.accounts.project,
-                &[
-                    project_author.pubkey().as_ref(),
-                    state.as_ref(),
-                    PROJECT_SEED.as_ref(),
-                ],
-                &incorrect_ix_sequence_1::ID,
-            )
-            .ok_or(FuzzingError::Custom(3))?
-            .pubkey();
+        let project = fuzz_accounts.project.get_or_create_account(
+            self.accounts.project,
+            &[
+                project_author.pubkey().as_ref(),
+                state.as_ref(),
+                PROJECT_SEED.as_ref(),
+            ],
+            &incorrect_ix_sequence_1::ID,
+        );
 
         let acc_meta = incorrect_ix_sequence_1::accounts::Register {
             project_author: project_author.pubkey(),

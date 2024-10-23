@@ -122,57 +122,47 @@ impl<'info> IxOps<'info> for InitVesting {
         // and also we can easily link to Withdraw
         let mint = fuzz_accounts
             .mint
-            .get_or_create_account(0, client, 6, &sender.pubkey(), None)
-            .unwrap();
+            .get_or_create_account(0, client, 6, &sender.pubkey(), None);
 
-        let sender_token_account = fuzz_accounts
-            .sender_token_account
-            .get_or_create_account(
-                self.accounts.sender_token_account,
-                client,
-                mint,
-                sender.pubkey(),
-                u64::MAX,
-                None,
-                None,
-                0,
-                None,
-            )
-            .unwrap();
+        let sender_token_account = fuzz_accounts.sender_token_account.get_or_create_account(
+            self.accounts.sender_token_account,
+            client,
+            mint,
+            sender.pubkey(),
+            u64::MAX,
+            None,
+            None,
+            0,
+            None,
+        );
 
         let recipient = fuzz_accounts.recipient.get_or_create_account(
             self.data.recipient,
             client,
             10 * LAMPORTS_PER_SOL,
         );
-        let escrow = fuzz_accounts
-            .escrow
-            .get_or_create_account(
-                self.accounts.escrow,
-                &[recipient.pubkey().as_ref(), b"ESCROW_SEED"],
-                &incorrect_integer_arithmetic_3::ID,
-            )
-            .unwrap();
+        let escrow = fuzz_accounts.escrow.get_or_create_account(
+            self.accounts.escrow,
+            &[recipient.pubkey().as_ref(), b"ESCROW_SEED"],
+            &incorrect_integer_arithmetic_3::ID,
+        );
 
-        let escrow_token_account = fuzz_accounts
-            .escrow_token_account
-            .get_or_create_account(
-                self.accounts.escrow_token_account,
-                client,
-                mint,
-                sender.pubkey(),
-                0,
-                None,
-                None,
-                0,
-                None,
-            )
-            .unwrap();
+        let escrow_token_account = fuzz_accounts.escrow_token_account.get_or_create_account(
+            self.accounts.escrow_token_account,
+            client,
+            mint,
+            sender.pubkey(),
+            0,
+            None,
+            None,
+            0,
+            None,
+        );
 
         let acc_meta = incorrect_integer_arithmetic_3::accounts::InitVesting {
             sender: sender.pubkey(),
             sender_token_account,
-            escrow: escrow.pubkey(),
+            escrow,
             escrow_token_account,
             mint,
             token_program: anchor_spl::token::ID,
@@ -223,65 +213,53 @@ impl<'info> IxOps<'info> for WithdrawUnlocked {
 
         // INFO use constant Account ID, so we will not generate multiple mints,
         // and also we can easily link to Initialize
-        let mint = fuzz_accounts
-            .mint
-            .get_or_create_account(0, client, 6, &recipient.pubkey(), None)
-            .unwrap();
+        let mint =
+            fuzz_accounts
+                .mint
+                .get_or_create_account(0, client, 6, &recipient.pubkey(), None);
 
-        let recipient_token_account = fuzz_accounts
-            .recipient_token_account
-            .get_or_create_account(
-                self.accounts.recipient_token_account,
-                client,
-                mint,
-                recipient.pubkey(),
-                0,
-                None,
-                None,
-                0,
-                None,
-            )
-            .unwrap();
+        let recipient_token_account = fuzz_accounts.recipient_token_account.get_or_create_account(
+            self.accounts.recipient_token_account,
+            client,
+            mint,
+            recipient.pubkey(),
+            0,
+            None,
+            None,
+            0,
+            None,
+        );
 
-        let escrow = fuzz_accounts
-            .escrow
-            .get_or_create_account(
-                self.accounts.escrow,
-                &[recipient.pubkey().as_ref(), b"ESCROW_SEED"],
-                &incorrect_integer_arithmetic_3::ID,
-            )
-            .unwrap();
+        let escrow = fuzz_accounts.escrow.get_or_create_account(
+            self.accounts.escrow,
+            &[recipient.pubkey().as_ref(), b"ESCROW_SEED"],
+            &incorrect_integer_arithmetic_3::ID,
+        );
 
-        let escrow_pda_authority = fuzz_accounts
-            .escrow_pda_authority
-            .get_or_create_account(
-                self.accounts.escrow_pda_authority,
-                &[b"ESCROW_PDA_AUTHORITY"],
-                &incorrect_integer_arithmetic_3::ID,
-            )
-            .unwrap();
+        let escrow_pda_authority = fuzz_accounts.escrow_pda_authority.get_or_create_account(
+            self.accounts.escrow_pda_authority,
+            &[b"ESCROW_PDA_AUTHORITY"],
+            &incorrect_integer_arithmetic_3::ID,
+        );
 
-        let escrow_token_account = fuzz_accounts
-            .escrow_token_account
-            .get_or_create_account(
-                self.accounts.escrow_token_account,
-                client,
-                mint,
-                escrow_pda_authority.pubkey(),
-                u64::MAX,
-                None,
-                None,
-                0,
-                None,
-            )
-            .unwrap();
+        let escrow_token_account = fuzz_accounts.escrow_token_account.get_or_create_account(
+            self.accounts.escrow_token_account,
+            client,
+            mint,
+            escrow_pda_authority,
+            u64::MAX,
+            None,
+            None,
+            0,
+            None,
+        );
 
         let acc_meta = incorrect_integer_arithmetic_3::accounts::WithdrawUnlocked {
             recipient: recipient.pubkey(),
             recipient_token_account,
-            escrow: escrow.pubkey(),
+            escrow,
             escrow_token_account,
-            escrow_pda_authority: escrow_pda_authority.pubkey(),
+            escrow_pda_authority,
             mint,
             token_program: anchor_spl::token::ID,
             system_program: solana_sdk::system_program::ID,

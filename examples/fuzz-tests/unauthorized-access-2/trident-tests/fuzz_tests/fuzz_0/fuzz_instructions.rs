@@ -105,21 +105,18 @@ impl<'info> IxOps<'info> for Initialize {
             10 * LAMPORTS_PER_SOL,
         );
 
-        let escrow = fuzz_accounts
-            .escrow
-            .get_or_create_account(
-                self.accounts.escrow,
-                &[
-                    author.pubkey().as_ref(),
-                    receiver.pubkey().as_ref(),
-                    ESCROW_SEED.as_ref(),
-                ],
-                &unauthorized_access_2::ID,
-            )
-            .unwrap();
+        let escrow = fuzz_accounts.escrow.get_or_create_account(
+            self.accounts.escrow,
+            &[
+                author.pubkey().as_ref(),
+                receiver.pubkey().as_ref(),
+                ESCROW_SEED.as_ref(),
+            ],
+            &unauthorized_access_2::ID,
+        );
         let acc_meta = unauthorized_access_2::accounts::Initialize {
             author: author.pubkey(),
-            escrow: escrow.pubkey(),
+            escrow,
             system_program: solana_sdk::system_program::ID,
         }
         .to_account_metas(None);
@@ -164,22 +161,19 @@ impl<'info> IxOps<'info> for Withdraw {
             10 * LAMPORTS_PER_SOL,
         );
 
-        let escrow = fuzz_accounts
-            .escrow
-            .get_or_create_account(
-                self.accounts.escrow,
-                &[
-                    receiver.pubkey().as_ref(),
-                    receiver.pubkey().as_ref(),
-                    ESCROW_SEED.as_ref(),
-                ],
-                &unauthorized_access_2::ID,
-            )
-            .unwrap();
+        let escrow = fuzz_accounts.escrow.get_or_create_account(
+            self.accounts.escrow,
+            &[
+                receiver.pubkey().as_ref(),
+                receiver.pubkey().as_ref(),
+                ESCROW_SEED.as_ref(),
+            ],
+            &unauthorized_access_2::ID,
+        );
 
         let acc_meta = unauthorized_access_2::accounts::Withdraw {
             receiver: receiver.pubkey(),
-            escrow: escrow.pubkey(),
+            escrow,
             system_program: solana_sdk::system_program::ID,
         }
         .to_account_metas(None);
