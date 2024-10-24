@@ -70,18 +70,15 @@ impl<'info> IxOps<'info> for InitializeFn {
             5 * LAMPORTS_PER_SOL,
         );
 
-        let hello_world_account = fuzz_accounts
-            .hello_world_account
-            .get_or_create_account(
-                self.accounts.hello_world_account,
-                &[b"hello_world_seed"],
-                &hello_world::ID,
-            )
-            .unwrap();
+        let hello_world_account = fuzz_accounts.hello_world_account.get_or_create_account(
+            self.accounts.hello_world_account,
+            &[b"hello_world_seed"],
+            &hello_world::ID,
+        );
         let signers = vec![author.clone()];
         let acc_meta = hello_world::accounts::InitializeContext {
             author: author.pubkey(),
-            hello_world_account: hello_world_account.pubkey(),
+            hello_world_account,
             system_program: solana_sdk::system_program::ID,
         }
         .to_account_metas(None);

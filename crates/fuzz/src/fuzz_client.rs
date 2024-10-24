@@ -4,15 +4,52 @@ use anchor_lang::prelude::Rent;
 use anchor_lang::solana_program::hash::Hash;
 
 use solana_sdk::account::{Account, AccountSharedData};
+use solana_sdk::clock::{Clock, Epoch};
 use solana_sdk::instruction::AccountMeta;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
+use solana_sdk::stake::state::Lockup;
+use solana_sdk::sysvar::Sysvar;
 use solana_sdk::transaction::VersionedTransaction;
 
 use crate::error::*;
 
 /// A trait providing methods to read and write (manipulate) accounts
 pub trait FuzzClient {
+    /// Create a initialzied stake account
+    fn set_initialized_stake_account(
+        &mut self,
+        staker: Pubkey,
+        withdrawer: Pubkey,
+        lockup: Option<Lockup>,
+    ) -> Pubkey;
+
+    /// Create a delegated stake account
+    #[allow(clippy::too_many_arguments)]
+    fn set_delegated_stake_account(
+        &mut self,
+        voter_pubkey: Pubkey, // vote account delegated to
+        staker: Pubkey,
+        withdrawer: Pubkey,
+        stake: u64,
+        activation_epoch: Epoch,
+        deactivation_epoch: Option<Epoch>,
+        lockup: Option<Lockup>,
+    ) -> Pubkey;
+
+    /// Get the cluster rent
+    fn get_sysvar<T: Sysvar>(&mut self) -> T;
+
+    /// Create a vote account
+    fn set_vote_account(
+        &mut self,
+        node_pubkey: &Pubkey, // validator identity
+        authorized_voter: &Pubkey,
+        authorized_withdrawer: &Pubkey,
+        commission: u8,
+        clock: &Clock,
+    ) -> Pubkey;
+
     /// Warp to specific epoch
     fn warp_to_epoch(&mut self, warp_epoch: u64);
 

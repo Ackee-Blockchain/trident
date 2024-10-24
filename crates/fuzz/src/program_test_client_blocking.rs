@@ -2,10 +2,24 @@ use solana_program_runtime::invoke_context::BuiltinFunctionWithContext;
 use solana_program_test::ProgramTest;
 use solana_program_test::ProgramTestContext;
 use solana_sdk::account::Account;
+use solana_sdk::account::WritableAccount;
 use solana_sdk::account_info::AccountInfo;
 use solana_sdk::clock::Clock;
+use solana_sdk::clock::Epoch;
 use solana_sdk::entrypoint::ProgramResult;
+use solana_sdk::native_token::LAMPORTS_PER_SOL;
+use solana_sdk::stake::stake_flags::StakeFlags;
+use solana_sdk::stake::state::Authorized;
+use solana_sdk::stake::state::Delegation;
+use solana_sdk::stake::state::Lockup;
+use solana_sdk::stake::state::Meta;
+use solana_sdk::stake::state::Stake;
+use solana_sdk::stake::state::StakeStateV2;
 use solana_sdk::system_program::ID as SYSTEM_PROGRAM_ID;
+use solana_sdk::sysvar::Sysvar;
+use solana_sdk::vote::state::VoteInit;
+use solana_sdk::vote::state::VoteState;
+use solana_sdk::vote::state::VoteStateVersions;
 use solana_sdk::{
     account::AccountSharedData, hash::Hash, instruction::AccountMeta, program_option::COption,
     program_pack::Pack, pubkey::Pubkey, rent::Rent, signature::Keypair, signature::Signer,
@@ -106,6 +120,45 @@ macro_rules! convert_entry {
 }
 
 impl FuzzClient for ProgramTestClientBlocking {
+    fn set_vote_account(
+        &mut self,
+        node_pubkey: &Pubkey,
+        authorized_voter: &Pubkey,
+        authorized_withdrawer: &Pubkey,
+        commission: u8,
+        clock: &Clock,
+    ) -> Pubkey {
+        let vote_account = Keypair::new();
+
+        let rent = Rent::default();
+        let lamports = rent.minimum_balance(VoteState::size_of());
+        let mut account = AccountSharedData::new(
+            lamports,
+            VoteState::size_of(),
+            &solana_sdk::vote::program::ID,
+        );
+
+        let vote_state = VoteState::new(
+            &VoteInit {
+                node_pubkey: *node_pubkey,
+                authorized_voter: *authorized_voter,
+                authorized_withdrawer: *authorized_withdrawer,
+                commission,
+            },
+            clock,
+        );
+
+        VoteState::serialize(
+            &VoteStateVersions::Current(Box::new(vote_state)),
+            account.data_as_mut_slice(),
+        )
+        .unwrap();
+
+        self.ctx.set_account(&vote_account.pubkey(), &account);
+
+        vote_account.pubkey()
+    }
+
     fn set_account(&mut self, lamports: u64) -> Keypair {
         let owner = Keypair::new();
         let account = AccountSharedData::new(lamports, 0, &SYSTEM_PROGRAM_ID);
@@ -265,5 +318,95 @@ impl FuzzClient for ProgramTestClientBlocking {
     }
     fn warp_to_epoch(&mut self, warp_epoch: u64) {
         let _ = self.ctx.warp_to_epoch(warp_epoch);
+    }
+    fn get_sysvar<T: Sysvar>(&mut self) -> T {
+        match self.rt.block_on(self.ctx.banks_client.get_sysvar::<T>()) {
+            Ok(sysvar) => sysvar,
+            Err(_) => T::default(),
+        }
+    }
+    fn set_delegated_stake_account(
+        &mut self,
+        voter_pubkey: Pubkey, // vote account delegated to
+        staker: Pubkey,
+        withdrawer: Pubkey,
+        stake: u64,
+        activation_epoch: Epoch,
+        deactivation_epoch: Option<Epoch>,
+        lockup: Option<Lockup>,
+    ) -> Pubkey {
+        let stake_account = Keypair::new();
+
+        let rent = Rent::default();
+        let rent_exempt_lamports = rent.minimum_balance(StakeStateV2::size_of());
+        let minimum_delegation = LAMPORTS_PER_SOL; // TODO: a way to get minimum delegation with feature set?
+        let minimum_lamports = rent_exempt_lamports.saturating_add(minimum_delegation);
+
+        let stake_state = StakeStateV2::Stake(
+            Meta {
+                authorized: Authorized { staker, withdrawer },
+                lockup: lockup.unwrap_or_default(),
+                rent_exempt_reserve: rent_exempt_lamports,
+            },
+            Stake {
+                delegation: Delegation {
+                    stake,
+                    activation_epoch,
+                    voter_pubkey,
+                    deactivation_epoch: if let Some(epoch) = deactivation_epoch {
+                        epoch
+                    } else {
+                        u64::MAX
+                    },
+                    ..Delegation::default()
+                },
+                ..Stake::default()
+            },
+            StakeFlags::default(),
+        );
+        let account = AccountSharedData::new_data_with_space(
+            if stake > minimum_lamports {
+                stake
+            } else {
+                minimum_lamports
+            },
+            &stake_state,
+            StakeStateV2::size_of(),
+            &solana_sdk::stake::program::ID,
+        )
+        .unwrap();
+
+        self.ctx.set_account(&stake_account.pubkey(), &account);
+
+        stake_account.pubkey()
+    }
+
+    fn set_initialized_stake_account(
+        &mut self,
+        staker: Pubkey,
+        withdrawer: Pubkey,
+        lockup: Option<Lockup>,
+    ) -> Pubkey {
+        let stake_account = Keypair::new();
+
+        let rent = Rent::default();
+        let rent_exempt_lamports = rent.minimum_balance(StakeStateV2::size_of());
+
+        let stake_state = StakeStateV2::Initialized(Meta {
+            authorized: Authorized { staker, withdrawer },
+            lockup: lockup.unwrap_or_default(),
+            rent_exempt_reserve: rent_exempt_lamports,
+        });
+        let account = AccountSharedData::new_data_with_space(
+            rent_exempt_lamports,
+            &stake_state,
+            StakeStateV2::size_of(),
+            &solana_sdk::stake::program::ID,
+        )
+        .unwrap();
+
+        self.ctx.set_account(&stake_account.pubkey(), &account);
+
+        stake_account.pubkey()
     }
 }
