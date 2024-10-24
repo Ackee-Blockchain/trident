@@ -1,7 +1,12 @@
 #![allow(dead_code)]
 use std::collections::HashMap;
 
-use solana_sdk::{pubkey::Pubkey, signature::Keypair};
+use solana_sdk::{
+    clock::{Clock, Epoch},
+    pubkey::Pubkey,
+    signature::Keypair,
+    stake::state::Lockup,
+};
 
 use crate::{fuzz_client::FuzzClient, AccountId};
 
@@ -25,6 +30,13 @@ pub struct MintStore {
 
 pub struct ProgramStore {
     pub pubkey: u8,
+}
+pub struct VoteAccountStore {
+    pub pubkey: Pubkey,
+}
+
+pub struct StakeAccountStore {
+    pub pubkey: Pubkey,
 }
 
 pub struct AccountsStorage<T> {
@@ -156,6 +168,88 @@ impl AccountsStorage<PdaStore> {
                 }
             }
         }
+    }
+    pub fn get(&self, account_id: AccountId) -> Pubkey {
+        match self.accounts.get(&account_id) {
+            Some(v) => v.pubkey,
+            None => Pubkey::default(),
+        }
+    }
+}
+
+impl AccountsStorage<VoteAccountStore> {
+    #[allow(clippy::too_many_arguments)]
+    pub fn get_or_create_account(
+        &mut self,
+        account_id: AccountId,
+        client: &mut impl FuzzClient,
+        node_pubkey: &Pubkey,
+        authorized_voter: &Pubkey,
+        authorized_withdrawer: &Pubkey,
+        commission: u8,
+        clock: &Clock,
+    ) -> Pubkey {
+        let key = self.accounts.entry(account_id).or_insert_with(|| {
+            let key = client.set_vote_account(
+                node_pubkey,
+                authorized_voter,
+                authorized_withdrawer,
+                commission,
+                clock,
+            );
+            VoteAccountStore { pubkey: key }
+        });
+        key.pubkey
+    }
+    pub fn get(&self, account_id: AccountId) -> Pubkey {
+        match self.accounts.get(&account_id) {
+            Some(v) => v.pubkey,
+            None => Pubkey::default(),
+        }
+    }
+}
+
+impl AccountsStorage<StakeAccountStore> {
+    #[allow(clippy::too_many_arguments)]
+    pub fn get_or_create_delegated_account(
+        &mut self,
+        account_id: AccountId,
+        client: &mut impl FuzzClient,
+        voter_pubkey: Pubkey,
+        staker: Pubkey,
+        withdrawer: Pubkey,
+        stake: u64,
+        activation_epoch: Epoch,
+        deactivation_epoch: Option<Epoch>,
+        lockup: Option<Lockup>,
+    ) -> Pubkey {
+        let key = self.accounts.entry(account_id).or_insert_with(|| {
+            let key = client.set_delegated_stake_account(
+                voter_pubkey,
+                staker,
+                withdrawer,
+                stake,
+                activation_epoch,
+                deactivation_epoch,
+                lockup,
+            );
+            StakeAccountStore { pubkey: key }
+        });
+        key.pubkey
+    }
+    pub fn get_or_create_initialized_account(
+        &mut self,
+        account_id: AccountId,
+        client: &mut impl FuzzClient,
+        staker: Pubkey,
+        withdrawer: Pubkey,
+        lockup: Option<Lockup>,
+    ) -> Pubkey {
+        let key = self.accounts.entry(account_id).or_insert_with(|| {
+            let key = client.set_initialized_stake_account(staker, withdrawer, lockup);
+            StakeAccountStore { pubkey: key }
+        });
+        key.pubkey
     }
     pub fn get(&self, account_id: AccountId) -> Pubkey {
         match self.accounts.get(&account_id) {
