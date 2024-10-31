@@ -2,6 +2,7 @@
 use std::collections::HashMap;
 
 use solana_sdk::{
+    account::AccountSharedData,
     clock::{Clock, Epoch},
     pubkey::Pubkey,
     signature::Keypair,
@@ -29,7 +30,7 @@ pub struct MintStore {
 }
 
 pub struct ProgramStore {
-    pub pubkey: u8,
+    pub pubkey: Pubkey,
 }
 pub struct VoteAccountStore {
     pub pubkey: Pubkey,
@@ -53,9 +54,17 @@ impl<T> AccountsStorage<T> {
         }
     }
 
-    /// Returns a mutable reference to the underlying HashMap that stores accounts with IDs as keys
-    fn storage(&mut self) -> &mut HashMap<AccountId, T> {
-        &mut self.accounts
+    pub fn set_custom(
+        &mut self,
+        account_id: AccountId,
+        client: &mut impl FuzzClient,
+        address: Pubkey,
+        account: AccountSharedData,
+    ) where
+        T: From<Pubkey>,
+    {
+        client.set_account_custom(&address, &account);
+        self.accounts.insert(account_id, T::from(address));
     }
 }
 
@@ -82,6 +91,63 @@ impl AccountsStorage<Keypair> {
         match self.accounts.get(&account_id) {
             Some(v) => v.insecure_clone(),
             None => Keypair::new(),
+        }
+    }
+}
+
+impl AccountsStorage<ProgramStore> {
+    pub fn get_or_create_account(
+        &mut self,
+        account_id: AccountId,
+        _client: &mut impl FuzzClient,
+        program_id: Pubkey,
+    ) -> Pubkey {
+        let program_id = self
+            .accounts
+            .entry(account_id)
+            .or_insert_with(|| ProgramStore { pubkey: program_id });
+        program_id.pubkey
+    }
+    pub fn get(&self, account_id: AccountId) -> Pubkey {
+        match self.accounts.get(&account_id) {
+            Some(v) => v.pubkey,
+            None => Pubkey::new_unique(),
+        }
+    }
+}
+impl From<Pubkey> for TokenStore {
+    fn from(pubkey: Pubkey) -> Self {
+        TokenStore { pubkey }
+    }
+}
+impl From<Pubkey> for MintStore {
+    fn from(pubkey: Pubkey) -> Self {
+        MintStore { pubkey }
+    }
+}
+
+impl From<Pubkey> for ProgramStore {
+    fn from(pubkey: Pubkey) -> Self {
+        ProgramStore { pubkey }
+    }
+}
+
+impl From<Pubkey> for VoteAccountStore {
+    fn from(pubkey: Pubkey) -> Self {
+        VoteAccountStore { pubkey }
+    }
+}
+
+impl From<Pubkey> for StakeAccountStore {
+    fn from(pubkey: Pubkey) -> Self {
+        StakeAccountStore { pubkey }
+    }
+}
+impl From<Pubkey> for PdaStore {
+    fn from(pubkey: Pubkey) -> Self {
+        PdaStore {
+            pubkey,
+            seeds: Vec::new(), // Note: This creates empty seeds
         }
     }
 }
@@ -140,7 +206,7 @@ impl AccountsStorage<MintStore> {
     pub fn get(&self, account_id: AccountId) -> Pubkey {
         match self.accounts.get(&account_id) {
             Some(v) => v.pubkey,
-            None => Pubkey::default(),
+            None => Pubkey::new_unique(),
         }
     }
 }
@@ -164,7 +230,7 @@ impl AccountsStorage<PdaStore> {
                     self.accounts.insert(account_id, pda_store);
                     key
                 } else {
-                    Pubkey::default()
+                    Pubkey::new_unique()
                 }
             }
         }
@@ -172,7 +238,7 @@ impl AccountsStorage<PdaStore> {
     pub fn get(&self, account_id: AccountId) -> Pubkey {
         match self.accounts.get(&account_id) {
             Some(v) => v.pubkey,
-            None => Pubkey::default(),
+            None => Pubkey::new_unique(),
         }
     }
 }
@@ -204,7 +270,7 @@ impl AccountsStorage<VoteAccountStore> {
     pub fn get(&self, account_id: AccountId) -> Pubkey {
         match self.accounts.get(&account_id) {
             Some(v) => v.pubkey,
-            None => Pubkey::default(),
+            None => Pubkey::new_unique(),
         }
     }
 }
@@ -254,7 +320,7 @@ impl AccountsStorage<StakeAccountStore> {
     pub fn get(&self, account_id: AccountId) -> Pubkey {
         match self.accounts.get(&account_id) {
             Some(v) => v.pubkey,
-            None => Pubkey::default(),
+            None => Pubkey::new_unique(),
         }
     }
 }
