@@ -29,7 +29,7 @@ pub fn generate_source_code(idl_instructions: &[Idl]) -> String {
         ///     Ok(vec![init])
         /// }
         /// ```
-        /// For more details, see: https://ackee.xyz/trident/docs/dev/features/instructions-sequences/#instructions-sequences
+        /// For more details, see: https://ackee.xyz/trident/docs/latest/features/instructions-sequences/#instructions-sequences
         impl FuzzDataBuilder<FuzzInstruction> for MyFuzzData {}
 
         /// `fn fuzz_iteration` runs during every fuzzing iteration.

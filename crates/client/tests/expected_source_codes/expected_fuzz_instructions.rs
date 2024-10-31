@@ -23,7 +23,7 @@ pub struct InitializeIxDummy2Accounts {
 /// To do this, redefine the type in the fuzz test and implement the `From`
 /// trait
 /// to convert it into the type defined in the program.
-/// For more details, see: https://ackee.xyz/trident/docs/dev/features/arbitrary-data/#custom-data-types
+/// For more details, see: https://ackee.xyz/trident/docs/latest/features/fuzz-instructions/#custom-data-types
 #[derive(Arbitrary, Debug)]
 pub struct InitializeIxDummy2Data {
     pub _var1: bool,
@@ -73,7 +73,7 @@ pub struct InitializeIxDummyExampleAccounts {
 /// To do this, redefine the type in the fuzz test and implement the `From`
 /// trait
 /// to convert it into the type defined in the program.
-/// For more details, see: https://ackee.xyz/trident/docs/dev/features/arbitrary-data/#custom-data-types
+/// For more details, see: https://ackee.xyz/trident/docs/latest/features/fuzz-instructions/#custom-data-types
 #[derive(Arbitrary, Debug)]
 pub struct InitializeIxDummyExampleData {
     pub _var1: bool,
@@ -111,7 +111,7 @@ impl<'info> IxOps<'info> for InitializeIxDummy2 {
     /// Definition of the Instruction data.
     /// Use randomly generated data from the fuzzer using `self.data.arg_name`
     /// or customize the data as needed.
-    /// For more details, visit: https://ackee.xyz/trident/docs/dev/features/fuzz-instructions/#get-data
+    /// For more details, visit: https://ackee.xyz/trident/docs/latest/features/fuzz-instructions/#get-data
     fn get_data(
         &self,
         _client: &mut impl FuzzClient,
@@ -148,7 +148,7 @@ impl<'info> IxOps<'info> for InitializeIxDummy2 {
     /// `fuzz_accounts.account_name.get_or_create_account()`.
     /// If no signers are required, leave the vector empty.
     /// For AccountMetas use <program>::accounts::<corresponding_metas>
-    /// For more details, see: https://ackee.xyz/trident/docs/dev/features/fuzz-instructions/#get-accounts
+    /// For more details, see: https://ackee.xyz/trident/docs/latest/features/fuzz-instructions/#get-accounts
     fn get_accounts(
         &self,
         client: &mut impl FuzzClient,
@@ -172,7 +172,7 @@ impl<'info> IxOps<'info> for InitializeIxDummyExample {
     /// Definition of the Instruction data.
     /// Use randomly generated data from the fuzzer using `self.data.arg_name`
     /// or customize the data as needed.
-    /// For more details, visit: https://ackee.xyz/trident/docs/dev/features/fuzz-instructions/#get-data
+    /// For more details, visit: https://ackee.xyz/trident/docs/latest/features/fuzz-instructions/#get-data
     fn get_data(
         &self,
         _client: &mut impl FuzzClient,
@@ -209,7 +209,7 @@ impl<'info> IxOps<'info> for InitializeIxDummyExample {
     /// `fuzz_accounts.account_name.get_or_create_account()`.
     /// If no signers are required, leave the vector empty.
     /// For AccountMetas use <program>::accounts::<corresponding_metas>
-    /// For more details, see: https://ackee.xyz/trident/docs/dev/features/fuzz-instructions/#get-accounts
+    /// For more details, see: https://ackee.xyz/trident/docs/latest/features/fuzz-instructions/#get-accounts
     fn get_accounts(
         &self,
         client: &mut impl FuzzClient,
@@ -220,8 +220,8 @@ impl<'info> IxOps<'info> for InitializeIxDummyExample {
         Ok((signers, acc_meta))
     }
 }
-/// Use AccountsStorage<T> where T can be one of:
-/// Keypair, PdaStore, TokenStore, MintStore, ProgramStore
+/// Check supported AccountsStorages at
+/// https://ackee.xyz/trident/docs/latest/features/account-storages/
 #[derive(Default)]
 pub struct FuzzAccounts {
     signer_dummy_2: AccountsStorage<todo!()>,

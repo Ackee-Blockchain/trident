@@ -49,8 +49,8 @@ pub fn generate_source_code(idls: &[Idl]) -> String {
 
         #(#all_instructions_ixops_impls)*
 
-        /// Use AccountsStorage<T> where T can be one of:
-        /// Keypair, PdaStore, TokenStore, MintStore, ProgramStore
+        /// Check supported AccountsStorages at
+        /// https://ackee.xyz/trident/docs/latest/features/account-storages/
         #[derive(Default)]
         pub struct FuzzAccounts {
             #(#all_fuzz_accounts),*
@@ -219,7 +219,7 @@ fn get_instruction_inputs(
                 /// Custom data types must derive `Debug` and `Arbitrary`.
                 /// To do this, redefine the type in the fuzz test and implement the `From` trait
                 /// to convert it into the type defined in the program.
-                /// For more details, see: https://ackee.xyz/trident/docs/dev/features/arbitrary-data/#custom-data-types
+                /// For more details, see: https://ackee.xyz/trident/docs/latest/features/fuzz-instructions/#custom-data-types
                 #[derive(Arbitrary, Debug)]
                 pub struct #instruction_data_name {
                      #(pub #parameters),*
@@ -309,7 +309,7 @@ fn get_instruction_ixops(
                     /// Definition of the Instruction data.
                     /// Use randomly generated data from the fuzzer using `self.data.arg_name`
                     /// or customize the data as needed.
-                    /// For more details, visit: https://ackee.xyz/trident/docs/dev/features/fuzz-instructions/#get-data
+                    /// For more details, visit: https://ackee.xyz/trident/docs/latest/features/fuzz-instructions/#get-data
                     fn get_data(
                         &self,
                         _client: &mut impl FuzzClient,
@@ -322,10 +322,11 @@ fn get_instruction_ixops(
                     }
 
                     /// Definition of of the accounts required by the Instruction.
-                    /// To utilize accounts stored in `FuzzAccounts`, use `fuzz_accounts.account_name.get_or_create_account()`.
+                    /// To utilize accounts stored in `FuzzAccounts`, use
+                    /// `fuzz_accounts.account_name.get_or_create_account()`.
                     /// If no signers are required, leave the vector empty.
                     /// For AccountMetas use <program>::accounts::<corresponding_metas>
-                    /// For more details, see: https://ackee.xyz/trident/docs/dev/features/fuzz-instructions/#get-accounts
+                    /// For more details, see: https://ackee.xyz/trident/docs/latest/features/fuzz-instructions/#get-accounts
                     fn get_accounts(
                     &self,
                     client: &mut impl FuzzClient,

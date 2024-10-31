@@ -22,6 +22,9 @@ Instead, Trident generates random **AccountIDs** which are indexes to **Account 
     - PDA
     - Token Account
     - Program account
+    - Stake account
+    - Vote account
+
 
     Then use the corresponding AccountsStorage.
 
