@@ -17,7 +17,7 @@ fn tx_error_handler(
     &self,
     e: FuzzClientErrorWithOrigin,
     ix_data: Self::IxData,
-    pre_ix_acc_infos: &'info mut [Option<AccountInfo<'info>>],
+    pre_ix_acc_infos: &[SnapshotAccount],,
 ) -> Result<(), FuzzClientErrorWithOrigin> {
     Err(e)
 }

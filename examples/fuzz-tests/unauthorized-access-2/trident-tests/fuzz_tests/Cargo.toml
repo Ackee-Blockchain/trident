@@ -18,4 +18,3 @@ path = "../../../../../crates/client"
 
 [dependencies.unauthorized-access-2]
 path = "../../programs/unauthorized-access-2"
-features = ["trident-fuzzing"]

@@ -148,128 +148,128 @@ pub fn ensure_table<'a>(content: &'a mut Value, table_name: &str) -> Result<&'a 
         .as_table_mut()
         .ok_or(Error::ParsingCargoTomlDependenciesFailed)
 }
-#[throws]
-pub async fn initialize_package_metadata(
-    packages: &[Package],
-    versions_config: &TridentVersionsConfig,
-) {
-    for package in packages {
-        let manifest_path = package.manifest_path.as_std_path();
-        let cargo_toml_content = fs::read_to_string(&manifest_path).await?;
-        let mut cargo_toml: Value = toml::from_str(&cargo_toml_content)?;
+// #[throws]
+// pub async fn initialize_package_metadata(
+//     packages: &[Package],
+//     versions_config: &TridentVersionsConfig,
+// ) {
+//     for package in packages {
+//         let manifest_path = package.manifest_path.as_std_path();
+//         let cargo_toml_content = fs::read_to_string(&manifest_path).await?;
+//         let mut cargo_toml: Value = toml::from_str(&cargo_toml_content)?;
 
-        // Ensure the 'trident-fuzzing' feature exists with the required dependency.
-        let features_table = ensure_table(&mut cargo_toml, "features")?;
+//         // Ensure the 'trident-fuzzing' feature exists with the required dependency.
+//         let features_table = ensure_table(&mut cargo_toml, "features")?;
 
-        features_table.insert(
-            "trident-fuzzing".to_string(),
-            Value::Array(vec![Value::String("dep:trident-fuzz".to_string())]),
-        );
+//         features_table.insert(
+//             "trident-fuzzing".to_string(),
+//             Value::Array(vec![Value::String("dep:trident-fuzz".to_string())]),
+//         );
 
-        // Ensure the required dependencies are present in the 'dependencies' section.
-        let dependencies_table = ensure_table(&mut cargo_toml, "dependencies")?;
+//         // Ensure the required dependencies are present in the 'dependencies' section.
+//         let dependencies_table = ensure_table(&mut cargo_toml, "dependencies")?;
 
-        // Add 'trident-derive-accounts-snapshots' dependency in table format.
-        dependencies_table.insert(
-            "trident-derive-accounts-snapshots".to_string(),
-            Value::Table({
-                let mut snapshots_table = toml::Table::new();
-                snapshots_table.insert(
-                    "version".to_string(),
-                    Value::String(versions_config.trident_derive_accounts_snapshots.clone()),
-                );
-                snapshots_table
-            }),
-        );
+//         // Add 'trident-derive-accounts-snapshots' dependency in table format.
+//         dependencies_table.insert(
+//             "trident-derive-accounts-snapshots".to_string(),
+//             Value::Table({
+//                 let mut snapshots_table = toml::Table::new();
+//                 snapshots_table.insert(
+//                     "version".to_string(),
+//                     Value::String(versions_config.trident_derive_accounts_snapshots.clone()),
+//                 );
+//                 snapshots_table
+//             }),
+//         );
 
-        // Add 'trident-fuzz' dependency with specified attributes if not present.
-        dependencies_table.insert(
-            "trident-fuzz".to_string(),
-            Value::Table({
-                let mut trident_fuzz_table = toml::Table::new();
-                trident_fuzz_table.insert(
-                    "version".to_string(),
-                    Value::String(versions_config.trident_fuzz.clone()),
-                );
-                trident_fuzz_table.insert("optional".to_string(), Value::Boolean(true));
-                trident_fuzz_table
-            }),
-        );
+//         // Add 'trident-fuzz' dependency with specified attributes if not present.
+//         dependencies_table.insert(
+//             "trident-fuzz".to_string(),
+//             Value::Table({
+//                 let mut trident_fuzz_table = toml::Table::new();
+//                 trident_fuzz_table.insert(
+//                     "version".to_string(),
+//                     Value::String(versions_config.trident_fuzz.clone()),
+//                 );
+//                 trident_fuzz_table.insert("optional".to_string(), Value::Boolean(true));
+//                 trident_fuzz_table
+//             }),
+//         );
 
-        // Write the updated Cargo.toml back to the file.
-        fs::write(&manifest_path, toml::to_string(&cargo_toml).unwrap()).await?;
-    }
-}
+//         // Write the updated Cargo.toml back to the file.
+//         fs::write(&manifest_path, toml::to_string(&cargo_toml).unwrap()).await?;
+//     }
+// }
 
-#[throws]
-pub async fn update_package_metadata(
-    packages: &[Package],
-    versions_config: &TridentVersionsConfig,
-) {
-    for package in packages {
-        let manifest_path = package.manifest_path.as_std_path();
-        let cargo_toml_content = fs::read_to_string(&manifest_path).await?;
-        let mut cargo_toml: Value = toml::from_str(&cargo_toml_content)?;
+// #[throws]
+// pub async fn update_package_metadata(
+//     packages: &[Package],
+//     versions_config: &TridentVersionsConfig,
+// ) {
+//     for package in packages {
+//         let manifest_path = package.manifest_path.as_std_path();
+//         let cargo_toml_content = fs::read_to_string(&manifest_path).await?;
+//         let mut cargo_toml: Value = toml::from_str(&cargo_toml_content)?;
 
-        // Ensure the 'trident-fuzzing' feature exists with the required dependency.
-        let features_table = ensure_table(&mut cargo_toml, "features")?;
-        if features_table.contains_key("trident-fuzzing") {
-            println!(
-                "{SKIP} 'trident-fuzzing' feature already exists in package: {}",
-                package.name
-            );
-        } else {
-            features_table.insert(
-                "trident-fuzzing".to_string(),
-                Value::Array(vec![Value::String("dep:trident-fuzz".to_string())]),
-            );
-        }
+//         // Ensure the 'trident-fuzzing' feature exists with the required dependency.
+//         let features_table = ensure_table(&mut cargo_toml, "features")?;
+//         if features_table.contains_key("trident-fuzzing") {
+//             println!(
+//                 "{SKIP} 'trident-fuzzing' feature already exists in package: {}",
+//                 package.name
+//             );
+//         } else {
+//             features_table.insert(
+//                 "trident-fuzzing".to_string(),
+//                 Value::Array(vec![Value::String("dep:trident-fuzz".to_string())]),
+//             );
+//         }
 
-        // Ensure the required dependencies are present in the 'dependencies' section.
-        let dependencies_table = ensure_table(&mut cargo_toml, "dependencies")?;
+//         // Ensure the required dependencies are present in the 'dependencies' section.
+//         let dependencies_table = ensure_table(&mut cargo_toml, "dependencies")?;
 
-        // Add 'trident-derive-accounts-snapshots' dependency in table format.
-        if dependencies_table.contains_key("trident-derive-accounts-snapshots") {
-            println!("{SKIP} 'trident-derive-accounts-snapshots' dependency already exists in package: {}", package.name);
-        } else {
-            dependencies_table.insert(
-                "trident-derive-accounts-snapshots".to_string(),
-                Value::Table({
-                    let mut snapshots_table = toml::Table::new();
-                    snapshots_table.insert(
-                        "version".to_string(),
-                        Value::String(versions_config.trident_derive_accounts_snapshots.clone()),
-                    );
-                    snapshots_table
-                }),
-            );
-        }
+//         // Add 'trident-derive-accounts-snapshots' dependency in table format.
+//         if dependencies_table.contains_key("trident-derive-accounts-snapshots") {
+//             println!("{SKIP} 'trident-derive-accounts-snapshots' dependency already exists in package: {}", package.name);
+//         } else {
+//             dependencies_table.insert(
+//                 "trident-derive-accounts-snapshots".to_string(),
+//                 Value::Table({
+//                     let mut snapshots_table = toml::Table::new();
+//                     snapshots_table.insert(
+//                         "version".to_string(),
+//                         Value::String(versions_config.trident_derive_accounts_snapshots.clone()),
+//                     );
+//                     snapshots_table
+//                 }),
+//             );
+//         }
 
-        // Add 'trident-fuzz' dependency with specified attributes if not present.
-        if dependencies_table.contains_key("trident-fuzz") {
-            println!(
-                "{SKIP} 'trident-fuzz' dependency already exists in package: {}",
-                package.name
-            );
-        } else {
-            dependencies_table.insert(
-                "trident-fuzz".to_string(),
-                Value::Table({
-                    let mut trident_fuzz_table = toml::Table::new();
-                    trident_fuzz_table.insert(
-                        "version".to_string(),
-                        Value::String(versions_config.trident_fuzz.clone()),
-                    );
-                    trident_fuzz_table.insert("optional".to_string(), Value::Boolean(true));
-                    trident_fuzz_table
-                }),
-            );
-        }
+//         // Add 'trident-fuzz' dependency with specified attributes if not present.
+//         if dependencies_table.contains_key("trident-fuzz") {
+//             println!(
+//                 "{SKIP} 'trident-fuzz' dependency already exists in package: {}",
+//                 package.name
+//             );
+//         } else {
+//             dependencies_table.insert(
+//                 "trident-fuzz".to_string(),
+//                 Value::Table({
+//                     let mut trident_fuzz_table = toml::Table::new();
+//                     trident_fuzz_table.insert(
+//                         "version".to_string(),
+//                         Value::String(versions_config.trident_fuzz.clone()),
+//                     );
+//                     trident_fuzz_table.insert("optional".to_string(), Value::Boolean(true));
+//                     trident_fuzz_table
+//                 }),
+//             );
+//         }
 
-        // Write the updated Cargo.toml back to the file.
-        fs::write(&manifest_path, toml::to_string(&cargo_toml).unwrap()).await?;
-    }
-}
+//         // Write the updated Cargo.toml back to the file.
+//         fs::write(&manifest_path, toml::to_string(&cargo_toml).unwrap()).await?;
+//     }
+// }
 
 #[throws]
 pub async fn add_workspace_member(root: &Path, member: &str) {
@@ -383,10 +383,10 @@ pub async fn initialize_fuzz_tests_manifest(
                     "path".to_string(),
                     Value::String(relative_path_str.to_owned()),
                 );
-                package_entry.insert(
-                    "features".to_string(),
-                    Value::Array(vec![Value::String("trident-fuzzing".to_string())]),
-                );
+                // package_entry.insert(
+                //     "features".to_string(),
+                //     Value::Array(vec![Value::String("trident-fuzzing".to_string())]),
+                // );
                 package_entry
             }),
         );

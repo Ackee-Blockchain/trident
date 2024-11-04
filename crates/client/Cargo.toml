@@ -13,7 +13,6 @@ description = "The trident_client crate helps you build and deploy an Anchor pro
 trident-derive-displayix = { path = "../fuzz/derive/display_ix", version = "0.0.3" }
 trident-derive-fuzz-test-executor = { path = "../fuzz/derive/fuzz_test_executor", version = "0.0.3" }
 trident-fuzz = { path = "../fuzz", version = "0.2.0" }
-trident-derive-accounts-snapshots = { path = "../fuzz/derive/accounts_snapshots", version = "0.0.2" }
 # ANCHOR
 # INFO: Anchor-spl is here as dependency only to activate the idl-build feature, so that
 # users do not have to do it manually in their program's Cargo.toml

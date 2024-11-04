@@ -3,7 +3,7 @@
 use anchor_lang::prelude::Rent;
 use anchor_lang::solana_program::hash::Hash;
 
-use solana_sdk::account::{Account, AccountSharedData};
+use solana_sdk::account::AccountSharedData;
 use solana_sdk::clock::{Clock, Epoch};
 use solana_sdk::instruction::AccountMeta;
 use solana_sdk::pubkey::Pubkey;
@@ -90,13 +90,13 @@ pub trait FuzzClient {
     fn payer(&self) -> Keypair;
 
     /// Get the account at the given address
-    fn get_account(&mut self, key: &Pubkey) -> Result<Option<Account>, FuzzClientError>;
+    fn get_account(&mut self, key: &Pubkey) -> Result<AccountSharedData, FuzzClientError>;
 
     /// Get accounts based on the supplied meta information
     fn get_accounts(
         &mut self,
         metas: &[AccountMeta],
-    ) -> Result<Vec<Option<Account>>, FuzzClientErrorWithOrigin>;
+    ) -> Result<Vec<AccountSharedData>, FuzzClientErrorWithOrigin>;
 
     /// Get last blockhash
     fn get_last_blockhash(&self) -> Hash;
