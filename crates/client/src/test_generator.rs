@@ -72,7 +72,7 @@ impl TestGenerator {
 
         update_gitignore(&self.root, CARGO_TARGET_DIR_DEFAULT_HFUZZ)?;
         // update_gitignore(&self.root, CARGO_TARGET_DIR_DEFAULT_AFL)?;
-        initialize_package_metadata(&self.program_packages, &self.versions_config).await?;
+        // initialize_package_metadata(&self.program_packages, &self.versions_config).await?;
     }
 
     #[throws]
@@ -84,7 +84,7 @@ impl TestGenerator {
         self.generate_source_codes().await?;
         self.add_new_fuzz_test().await?;
 
-        update_package_metadata(&self.program_packages, &self.versions_config).await?;
+        // update_package_metadata(&self.program_packages, &self.versions_config).await?;
     }
 
     #[throws]

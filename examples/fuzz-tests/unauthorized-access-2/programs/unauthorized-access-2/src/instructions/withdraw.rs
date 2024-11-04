@@ -1,14 +1,12 @@
 use crate::state::{Escrow, ESCROW_SEED};
 use anchor_lang::prelude::*;
 
-use trident_derive_accounts_snapshots::AccountsSnapshots;
-
 pub fn _withdraw(_ctx: Context<Withdraw>) -> Result<()> {
     // close will transfer everything to the receiver
     Ok(())
 }
 
-#[derive(Accounts, AccountsSnapshots)]
+#[derive(Accounts)]
 pub struct Withdraw<'info> {
     #[account(mut)]
     pub receiver: Signer<'info>,

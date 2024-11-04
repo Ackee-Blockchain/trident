@@ -14,15 +14,11 @@ pub fn fuzz_test_executor(input: TokenStream) -> TokenStream {
                 quote! {
                     #enum_name::#variant_name (ix) => {
 
-                        // snapshot has to live as long as ix, thus we declare it here
-                        let mut snaphot = Snapshot::new_empty(ix);
-
                         if cfg!(honggfuzz){
                             TransactionExecutor::process_transaction_honggfuzz(
                                 &self.to_context_string(),
                                 client,
                                 ix,
-                                &mut snaphot,
                                 sent_txs,
                                 config,
                                 accounts
@@ -32,7 +28,6 @@ pub fn fuzz_test_executor(input: TokenStream) -> TokenStream {
                                 &self.to_context_string(),
                                 client,
                                 ix,
-                                &mut snaphot,
                                 sent_txs,
                                 config,
                                 accounts

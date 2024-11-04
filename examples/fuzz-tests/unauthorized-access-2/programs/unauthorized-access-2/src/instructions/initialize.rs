@@ -2,8 +2,6 @@ use anchor_lang::{prelude::*, system_program};
 
 use crate::state::{Escrow, ESCROW_SEED};
 
-use trident_derive_accounts_snapshots::AccountsSnapshots;
-
 pub fn _initialize(ctx: Context<Initialize>, receiver: Pubkey, amount: u64) -> Result<()> {
     let escorw = &mut ctx.accounts.escrow;
 
@@ -26,7 +24,7 @@ pub fn _initialize(ctx: Context<Initialize>, receiver: Pubkey, amount: u64) -> R
     Ok(())
 }
 
-#[derive(Accounts, AccountsSnapshots)]
+#[derive(Accounts)]
 #[instruction(receiver: Pubkey)]
 pub struct Initialize<'info> {
     #[account(mut)]

@@ -2,21 +2,18 @@
 
 use crate::error::*;
 use crate::fuzz_client::FuzzClient;
-use crate::fuzz_deserialize::FuzzDeserialize;
-use anchor_lang::solana_program::account_info::AccountInfo;
+use crate::snapshot::SnapshotAccount;
 use anchor_lang::InstructionData;
 use solana_sdk::instruction::AccountMeta;
 use solana_sdk::signature::Keypair;
 
 /// A trait providing methods to prepare data and accounts for the fuzzed instructions and allowing
 /// users to implement custom invariants checks and transactions error handling.
-pub trait IxOps<'info> {
+pub trait IxOps {
     /// The data to be passed as instruction data parameter
     type IxData: InstructionData;
     /// The accounts to be passed as instruction accounts
     type IxAccounts;
-    /// The structure to which the instruction accounts will be deserialized
-    type IxSnapshot: FuzzDeserialize<'info>;
 
     /// Specify Program ID to which the Instruction corresponds. This is particularly helpful when using multiple
     /// programs in the workspace, to differentiate between possible program calls.
@@ -49,8 +46,8 @@ pub trait IxOps<'info> {
     #[allow(unused_variables)]
     fn check(
         &self,
-        pre_ix: Self::IxSnapshot,
-        post_ix: Self::IxSnapshot,
+        pre_ix: &[SnapshotAccount],
+        post_ix: &[SnapshotAccount],
         ix_data: Self::IxData,
     ) -> Result<(), FuzzingError> {
         Ok(())
@@ -80,19 +77,8 @@ pub trait IxOps<'info> {
         &self,
         e: FuzzClientErrorWithOrigin,
         ix_data: Self::IxData,
-        pre_ix_acc_infos: &mut &'info [Option<AccountInfo<'info>>],
+        pre_ix_acc_infos: &[SnapshotAccount],
     ) -> Result<(), FuzzClientErrorWithOrigin> {
         Err(e)
-    }
-
-    /// A method implemented for each instruction variant.
-    /// This method calls the corresponding `deserialize_option`, which is defined
-    /// by deriving the `AccountsSnapshot` macro.
-    /// No changes are needed for this function.
-    fn deserialize_accounts(
-        &self,
-        accounts: &mut &'info [Option<AccountInfo<'info>>],
-    ) -> Result<Self::IxSnapshot, FuzzingError> {
-        Self::IxSnapshot::deserialize_option(&self.get_program_id(), accounts)
     }
 }

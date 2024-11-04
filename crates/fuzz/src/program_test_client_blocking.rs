@@ -256,18 +256,20 @@ impl FuzzClient for ProgramTestClientBlocking {
         self.ctx.payer.insecure_clone()
     }
 
-    fn get_account(&mut self, key: &Pubkey) -> Result<Option<Account>, FuzzClientError> {
+    fn get_account(&mut self, key: &Pubkey) -> Result<AccountSharedData, FuzzClientError> {
         Ok(self
             .rt
             .block_on(self.ctx.banks_client.get_account_with_commitment(
                 *key,
                 solana_sdk::commitment_config::CommitmentLevel::Confirmed,
-            ))?)
+            ))?
+            .unwrap_or_default()
+            .into())
     }
     fn get_accounts(
         &mut self,
         metas: &[AccountMeta],
-    ) -> Result<Vec<Option<Account>>, FuzzClientErrorWithOrigin> {
+    ) -> Result<Vec<AccountSharedData>, FuzzClientErrorWithOrigin> {
         let result: Vec<_> = metas
             .iter()
             .map(|m| {
@@ -320,10 +322,9 @@ impl FuzzClient for ProgramTestClientBlocking {
         let _ = self.ctx.warp_to_epoch(warp_epoch);
     }
     fn get_sysvar<T: Sysvar>(&mut self) -> T {
-        match self.rt.block_on(self.ctx.banks_client.get_sysvar::<T>()) {
-            Ok(sysvar) => sysvar,
-            Err(_) => T::default(),
-        }
+        self.rt
+            .block_on(self.ctx.banks_client.get_sysvar::<T>())
+            .unwrap_or_default()
     }
     fn set_delegated_stake_account(
         &mut self,

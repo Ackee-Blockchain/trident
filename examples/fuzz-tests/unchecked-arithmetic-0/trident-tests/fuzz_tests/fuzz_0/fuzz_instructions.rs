@@ -1,11 +1,6 @@
 use solana_sdk::native_token::LAMPORTS_PER_SOL;
 use trident_client::fuzzing::*;
 
-use unchecked_arithmetic_0::trident_fuzz_initialize_snapshot::InitializeAlias;
-use unchecked_arithmetic_0::trident_fuzz_update_snapshot::UpdateAlias;
-
-type InitializeSnapshot<'info> = InitializeAlias<'info>;
-type UpdateSnapshot<'info> = UpdateAlias<'info>;
 #[derive(Arbitrary, DisplayIx, FuzzTestExecutor)]
 pub enum FuzzInstruction {
     Initialize(Initialize),
@@ -39,10 +34,9 @@ pub struct UpdateData {
     pub input1: u8,
     pub input2: u8,
 }
-impl<'info> IxOps<'info> for Initialize {
+impl IxOps for Initialize {
     type IxData = unchecked_arithmetic_0::instruction::Initialize;
     type IxAccounts = FuzzAccounts;
-    type IxSnapshot = InitializeSnapshot<'info>;
     fn get_program_id(&self) -> solana_sdk::pubkey::Pubkey {
         unchecked_arithmetic_0::ID
     }
@@ -79,10 +73,9 @@ impl<'info> IxOps<'info> for Initialize {
         Ok((vec![user, counter], acc_meta))
     }
 }
-impl<'info> IxOps<'info> for Update {
+impl IxOps for Update {
     type IxData = unchecked_arithmetic_0::instruction::Update;
     type IxAccounts = FuzzAccounts;
-    type IxSnapshot = UpdateSnapshot<'info>;
     fn get_program_id(&self) -> solana_sdk::pubkey::Pubkey {
         unchecked_arithmetic_0::ID
     }

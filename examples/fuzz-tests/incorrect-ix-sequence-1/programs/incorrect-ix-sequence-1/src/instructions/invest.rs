@@ -5,8 +5,6 @@ use crate::{
     state::{Project, State, PROJECT_SEED, STATE_SEED},
 };
 
-use trident_derive_accounts_snapshots::AccountsSnapshots;
-
 pub fn _invest(ctx: Context<Invest>, amount: u64) -> Result<()> {
     let project = &mut ctx.accounts.project;
     let state = &mut ctx.accounts.state;
@@ -43,7 +41,7 @@ pub fn _invest(ctx: Context<Invest>, amount: u64) -> Result<()> {
     Ok(())
 }
 
-#[derive(Accounts, AccountsSnapshots)]
+#[derive(Accounts)]
 pub struct Invest<'info> {
     #[account(mut)]
     pub investor: Signer<'info>,

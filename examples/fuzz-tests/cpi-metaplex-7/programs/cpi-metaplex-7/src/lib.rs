@@ -9,8 +9,6 @@ use mpl_token_metadata::{
     ID as MPL_METADATA_PROGRAM,
 };
 
-use trident_derive_accounts_snapshots::AccountsSnapshots;
-
 declare_id!("3XtULmXDGS867VbBXiPkjYr4EMjytGW8X12F6BS23Zcw");
 
 #[program]
@@ -35,7 +33,7 @@ pub mod cpi_metaplex_7 {
     }
 }
 
-#[derive(AccountsSnapshots, Accounts)]
+#[derive(Accounts)]
 pub struct Initialize<'info> {
     #[account(mut)]
     pub signer: Signer<'info>,

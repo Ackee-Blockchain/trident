@@ -1,5 +1,4 @@
 use anchor_lang::prelude::*;
-use trident_derive_accounts_snapshots::AccountsSnapshots;
 
 declare_id!("FtevoQoDMv6ZB3N9Lix5Tbjs8EVuNL8vDSqG9kzaZPit");
 
@@ -14,7 +13,7 @@ pub mod hello_world {
     }
 }
 
-#[derive(Accounts, AccountsSnapshots)]
+#[derive(Accounts)]
 pub struct InitializeContext<'info> {
     #[account(mut)]
     pub author: Signer<'info>,

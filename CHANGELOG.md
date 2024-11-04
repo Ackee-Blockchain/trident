@@ -10,6 +10,10 @@ incremented upon a breaking change and the patch version will be incremented for
 
 ## [dev] - Unreleased
 
+**Removed**
+
+- removed unnecesarry deserialization with AccountsSnapshots, to deserialize data implementation AccountDeserialize can be used ([221](https://github.com/Ackee-Blockchain/trident/pull/221))
+
 **Changed**
 
 - improve manipulations with AccountsStorages in get_accounts() function ([219](https://github.com/Ackee-Blockchain/trident/pull/219))

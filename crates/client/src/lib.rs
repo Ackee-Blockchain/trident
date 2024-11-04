@@ -8,6 +8,7 @@ pub mod fuzzing {
     /// anchor_lang
     pub use anchor_lang;
     pub use anchor_lang::solana_program::hash::Hash;
+    pub use anchor_lang::AccountDeserialize;
     pub use anchor_lang::InstructionData;
     pub use anchor_lang::Key;
     pub use anchor_lang::ToAccountInfo;
@@ -15,10 +16,13 @@ pub mod fuzzing {
 
     /// solana_sdk
     pub use solana_sdk;
+    pub use solana_sdk::account::AccountSharedData;
+    pub use solana_sdk::account::ReadableAccount;
     pub use solana_sdk::account_info::AccountInfo;
     pub use solana_sdk::entrypoint::ProcessInstruction;
     pub use solana_sdk::instruction::AccountMeta;
     pub use solana_sdk::instruction::Instruction;
+    pub use solana_sdk::native_token::LAMPORTS_PER_SOL;
     pub use solana_sdk::pubkey::Pubkey;
     pub use solana_sdk::signer::keypair::Keypair;
     pub use solana_sdk::signer::Signer;
@@ -60,6 +64,7 @@ pub mod fuzzing {
     pub use trident_fuzz::ix_ops::IxOps;
     pub use trident_fuzz::program_test_client_blocking::ProgramTestClientBlocking;
     pub use trident_fuzz::snapshot::Snapshot;
+    pub use trident_fuzz::snapshot::SnapshotAccount;
     pub use trident_fuzz::transaction_executor::TransactionExecutor;
 
     pub use std::cell::RefCell;

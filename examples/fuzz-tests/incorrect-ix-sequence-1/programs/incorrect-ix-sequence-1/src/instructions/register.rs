@@ -2,8 +2,6 @@ pub use anchor_lang::prelude::*;
 
 use crate::state::{Project, State, PROJECT_SEED, STATE_SEED};
 
-use trident_derive_accounts_snapshots::AccountsSnapshots;
-
 pub fn _register(ctx: Context<Register>) -> Result<()> {
     let project = &mut ctx.accounts.project;
 
@@ -14,7 +12,7 @@ pub fn _register(ctx: Context<Register>) -> Result<()> {
     Ok(())
 }
 
-#[derive(Accounts, AccountsSnapshots)]
+#[derive(Accounts)]
 pub struct Register<'info> {
     #[account(mut)]
     pub project_author: Signer<'info>,
