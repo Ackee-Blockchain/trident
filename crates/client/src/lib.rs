@@ -58,7 +58,6 @@ pub mod fuzzing {
     pub use trident_fuzz::fuzz_client::FuzzClient;
     pub use trident_fuzz::fuzz_data::build_ix_fuzz_data;
     pub use trident_fuzz::fuzz_data::*;
-    pub use trident_fuzz::fuzz_deserialize::FuzzDeserialize;
     pub use trident_fuzz::fuzz_stats::FuzzingStatistics;
     pub use trident_fuzz::fuzz_test_executor::FuzzTestExecutor;
     pub use trident_fuzz::ix_ops::IxOps;
