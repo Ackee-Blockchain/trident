@@ -19,5 +19,7 @@ solana-program = "1.17.4"
 solana-banks-client = "1.17.4"
 solana-program-runtime = "1.17.4"
 solana-program-test = "1.17.4"
+solana-vote-program = "1.17.4"
+solana-stake-program = "1.17.4"
 spl-associated-token-account = { version = "2", features = ["no-entrypoint"] }
 spl-token = { version = "4", features = ["no-entrypoint"] }

@@ -136,6 +136,7 @@ impl IxOps for InitVesting {
         );
         let escrow = fuzz_accounts.escrow.get_or_create_account(
             self.accounts.escrow,
+            client,
             &[recipient.pubkey().as_ref(), b"ESCROW_SEED"],
             &incorrect_integer_arithmetic_3::ID,
         );
@@ -224,12 +225,14 @@ impl IxOps for WithdrawUnlocked {
 
         let escrow = fuzz_accounts.escrow.get_or_create_account(
             self.accounts.escrow,
+            client,
             &[recipient.pubkey().as_ref(), b"ESCROW_SEED"],
             &incorrect_integer_arithmetic_3::ID,
         );
 
         let escrow_pda_authority = fuzz_accounts.escrow_pda_authority.get_or_create_account(
             self.accounts.escrow_pda_authority,
+            client,
             &[b"ESCROW_PDA_AUTHORITY"],
             &incorrect_integer_arithmetic_3::ID,
         );
@@ -313,11 +316,11 @@ pub struct FuzzAccounts {
     sender_token_account: AccountsStorage<TokenStore>,
     escrow_token_account: AccountsStorage<TokenStore>,
     escrow_pda_authority: AccountsStorage<PdaStore>,
-    sender: AccountsStorage<Keypair>,
+    sender: AccountsStorage<KeypairStore>,
     // No need to fuzz System Program
     // _system_program: AccountsStorage<ProgramStore>,
     recipient_token_account: AccountsStorage<TokenStore>,
-    recipient: AccountsStorage<Keypair>,
+    recipient: AccountsStorage<KeypairStore>,
     mint: AccountsStorage<MintStore>,
     escrow: AccountsStorage<PdaStore>,
 }

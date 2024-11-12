@@ -100,6 +100,7 @@ impl IxOps for Initialize {
 
         let escrow = fuzz_accounts.escrow.get_or_create_account(
             self.accounts.escrow,
+            client,
             &[
                 author.pubkey().as_ref(),
                 receiver.pubkey().as_ref(),
@@ -155,6 +156,7 @@ impl IxOps for Withdraw {
 
         let escrow = fuzz_accounts.escrow.get_or_create_account(
             self.accounts.escrow,
+            client,
             &[
                 receiver.pubkey().as_ref(),
                 receiver.pubkey().as_ref(),
@@ -200,9 +202,9 @@ impl IxOps for Withdraw {
 /// Keypair, PdaStore, TokenStore, MintStore, ProgramStore
 #[derive(Default)]
 pub struct FuzzAccounts {
-    receiver: AccountsStorage<Keypair>,
+    receiver: AccountsStorage<KeypairStore>,
     // No need to fuzz system_program
     // system_program: AccountsStorage<ProgramStore>,
-    author: AccountsStorage<Keypair>,
+    author: AccountsStorage<KeypairStore>,
     escrow: AccountsStorage<PdaStore>,
 }

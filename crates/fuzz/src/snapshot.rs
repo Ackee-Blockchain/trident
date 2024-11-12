@@ -75,13 +75,15 @@ impl Snapshot {
         &mut self,
         client: &mut impl FuzzClient,
     ) -> Result<Vec<SnapshotAccount>, FuzzClientErrorWithOrigin> {
-        let accounts = client.get_accounts(&self.metas)?;
-        let snapshot_accounts = accounts
-            .into_iter()
-            .zip(self.metas.iter())
-            .map(|(account, meta)| SnapshotAccount {
-                address: meta.pubkey,
-                account,
+        let snapshot_accounts = self
+            .metas
+            .iter()
+            .map(|meta| {
+                let account = client.get_account(&meta.pubkey);
+                SnapshotAccount {
+                    address: meta.pubkey,
+                    account,
+                }
             })
             .collect();
 

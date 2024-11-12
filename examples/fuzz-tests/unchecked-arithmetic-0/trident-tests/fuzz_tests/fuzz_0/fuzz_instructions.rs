@@ -124,8 +124,8 @@ pub struct FuzzAccounts {
     // the user account, just named differently. Therefore, we will use only
     // the generated user accounts for both 'user' and 'authority account' fields
     // in this fuzz test. Additionally, there is no need to fuzz the 'system_program' account.
-    user: AccountsStorage<Keypair>,
-    counter: AccountsStorage<Keypair>,
+    user: AccountsStorage<KeypairStore>,
+    counter: AccountsStorage<KeypairStore>,
     // authority: AccountsStorage<Keypair>,
     // system_program: AccountsStorage<ProgramStore>,
 }
