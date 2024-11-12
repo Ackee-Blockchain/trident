@@ -124,6 +124,7 @@ impl IxOps for EndRegistrations {
         let signers = vec![author.clone()];
         let state = fuzz_accounts.state.get_or_create_account(
             self.accounts.state,
+            client,
             &[author.pubkey().as_ref(), STATE_SEED.as_ref()],
             &incorrect_ix_sequence_1::ID,
         );
@@ -174,6 +175,7 @@ impl IxOps for Initialize {
         let signers = vec![author.clone()];
         let state = fuzz_accounts.state.get_or_create_account(
             self.accounts.state,
+            client,
             &[author.pubkey().as_ref(), STATE_SEED.as_ref()],
             &incorrect_ix_sequence_1::ID,
         );
@@ -233,12 +235,14 @@ impl IxOps for Invest {
         );
         let state = fuzz_accounts.state.get_or_create_account(
             self.accounts.state,
+            client,
             &[project_author.pubkey().as_ref(), STATE_SEED.as_ref()],
             &incorrect_ix_sequence_1::ID,
         );
 
         let project = fuzz_accounts.project.get_or_create_account(
             self.accounts.project,
+            client,
             &[
                 project_author.pubkey().as_ref(),
                 state.as_ref(),
@@ -295,12 +299,14 @@ impl IxOps for Register {
         let signers = vec![project_author.clone()];
         let state = fuzz_accounts.state.get_or_create_account(
             self.accounts.state,
+            client,
             &[project_author.pubkey().as_ref(), STATE_SEED.as_ref()],
             &incorrect_ix_sequence_1::ID,
         );
 
         let project = fuzz_accounts.project.get_or_create_account(
             self.accounts.project,
+            client,
             &[
                 project_author.pubkey().as_ref(),
                 state.as_ref(),
@@ -349,11 +355,11 @@ impl IxOps for Register {
 /// Keypair, PdaStore, TokenStore, MintStore, ProgramStore
 #[derive(Default)]
 pub struct FuzzAccounts {
-    project_author: AccountsStorage<Keypair>,
-    author: AccountsStorage<Keypair>,
+    project_author: AccountsStorage<KeypairStore>,
+    author: AccountsStorage<KeypairStore>,
     project: AccountsStorage<PdaStore>,
     // There is no need to fuzz the 'system_program' account.
     // system_program: AccountsStorage<ProgramStore>,
-    investor: AccountsStorage<Keypair>,
+    investor: AccountsStorage<KeypairStore>,
     state: AccountsStorage<PdaStore>,
 }

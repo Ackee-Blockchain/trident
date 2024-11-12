@@ -2,30 +2,14 @@ use solana_program_runtime::invoke_context::BuiltinFunctionWithContext;
 use solana_program_test::ProgramTest;
 use solana_program_test::ProgramTestContext;
 use solana_sdk::account::Account;
-use solana_sdk::account::WritableAccount;
 use solana_sdk::account_info::AccountInfo;
 use solana_sdk::clock::Clock;
-use solana_sdk::clock::Epoch;
 use solana_sdk::entrypoint::ProgramResult;
-use solana_sdk::native_token::LAMPORTS_PER_SOL;
-use solana_sdk::stake::stake_flags::StakeFlags;
-use solana_sdk::stake::state::Authorized;
-use solana_sdk::stake::state::Delegation;
-use solana_sdk::stake::state::Lockup;
-use solana_sdk::stake::state::Meta;
-use solana_sdk::stake::state::Stake;
-use solana_sdk::stake::state::StakeStateV2;
-use solana_sdk::system_program::ID as SYSTEM_PROGRAM_ID;
 use solana_sdk::sysvar::Sysvar;
-use solana_sdk::vote::state::VoteInit;
-use solana_sdk::vote::state::VoteState;
-use solana_sdk::vote::state::VoteStateVersions;
 use solana_sdk::{
-    account::AccountSharedData, hash::Hash, instruction::AccountMeta, program_option::COption,
-    program_pack::Pack, pubkey::Pubkey, rent::Rent, signature::Keypair, signature::Signer,
+    account::AccountSharedData, hash::Hash, pubkey::Pubkey, rent::Rent, signature::Keypair,
     transaction::VersionedTransaction,
 };
-use spl_token::state::Mint;
 use tokio::runtime::Builder;
 
 use crate::config::Config;
@@ -120,166 +104,27 @@ macro_rules! convert_entry {
 }
 
 impl FuzzClient for ProgramTestClientBlocking {
-    fn set_vote_account(
-        &mut self,
-        node_pubkey: &Pubkey,
-        authorized_voter: &Pubkey,
-        authorized_withdrawer: &Pubkey,
-        commission: u8,
-        clock: &Clock,
-    ) -> Pubkey {
-        let vote_account = Keypair::new();
-
-        let rent = Rent::default();
-        let lamports = rent.minimum_balance(VoteState::size_of());
-        let mut account = AccountSharedData::new(
-            lamports,
-            VoteState::size_of(),
-            &solana_sdk::vote::program::ID,
-        );
-
-        let vote_state = VoteState::new(
-            &VoteInit {
-                node_pubkey: *node_pubkey,
-                authorized_voter: *authorized_voter,
-                authorized_withdrawer: *authorized_withdrawer,
-                commission,
-            },
-            clock,
-        );
-
-        VoteState::serialize(
-            &VoteStateVersions::Current(Box::new(vote_state)),
-            account.data_as_mut_slice(),
-        )
-        .unwrap();
-
-        self.ctx.set_account(&vote_account.pubkey(), &account);
-
-        vote_account.pubkey()
-    }
-
-    fn set_account(&mut self, lamports: u64) -> Keypair {
-        let owner = Keypair::new();
-        let account = AccountSharedData::new(lamports, 0, &SYSTEM_PROGRAM_ID);
-        self.ctx.set_account(&owner.pubkey(), &account);
-        owner
-    }
-
-    fn set_token_account(
-        &mut self,
-        mint: Pubkey,
-        owner: Pubkey,
-        amount: u64,
-        delegate: Option<Pubkey>,
-        is_native: Option<u64>,
-        delegated_amount: u64,
-        close_authority: Option<Pubkey>,
-    ) -> Pubkey {
-        let mint_account_key = Keypair::new().pubkey();
-
-        let delegate = match delegate {
-            Some(a) => COption::Some(a),
-            _ => COption::None,
-        };
-
-        let is_native = match is_native {
-            Some(a) => COption::Some(a),
-            _ => COption::None,
-        };
-
-        let close_authority = match close_authority {
-            Some(a) => COption::Some(a),
-            _ => COption::None,
-        };
-
-        let r = Rent::default();
-        let lamports = r.minimum_balance(spl_token::state::Account::LEN);
-
-        let mut account =
-            AccountSharedData::new(lamports, spl_token::state::Account::LEN, &spl_token::id());
-
-        let token_account = spl_token::state::Account {
-            mint,
-            owner,
-            amount,
-            delegate,
-            state: spl_token::state::AccountState::Initialized,
-            is_native,
-            delegated_amount,
-            close_authority,
-        };
-
-        let mut data = vec![0u8; spl_token::state::Account::LEN];
-        spl_token::state::Account::pack(token_account, &mut data[..]).unwrap();
-        account.set_data_from_slice(&data);
-        self.ctx.set_account(&mint_account_key, &account);
-
-        mint_account_key
-    }
-
-    fn set_mint_account(
-        &mut self,
-        decimals: u8,
-        owner: &Pubkey,
-        freeze_authority: Option<Pubkey>,
-    ) -> Pubkey {
-        let mint_account = Keypair::new();
-
-        let authority = match freeze_authority {
-            Some(a) => COption::Some(a),
-            _ => COption::None,
-        };
-
-        let r = Rent::default();
-        let lamports = r.minimum_balance(Mint::LEN);
-
-        let mut account = AccountSharedData::new(lamports, Mint::LEN, &spl_token::id());
-
-        let mint = Mint {
-            is_initialized: true,
-            mint_authority: COption::Some(*owner),
-            freeze_authority: authority,
-            decimals,
-            ..Default::default()
-        };
-
-        let mut data = vec![0u8; Mint::LEN];
-        Mint::pack(mint, &mut data[..]).unwrap();
-        account.set_data_from_slice(&data);
-        self.ctx.set_account(&mint_account.pubkey(), &account);
-
-        mint_account.pubkey()
-    }
-
     fn payer(&self) -> Keypair {
         self.ctx.payer.insecure_clone()
     }
 
-    fn get_account(&mut self, key: &Pubkey) -> Result<AccountSharedData, FuzzClientError> {
-        Ok(self
+    fn get_account(&mut self, key: &Pubkey) -> AccountSharedData {
+        let account = self
             .rt
             .block_on(self.ctx.banks_client.get_account_with_commitment(
                 *key,
                 solana_sdk::commitment_config::CommitmentLevel::Confirmed,
-            ))?
-            .unwrap_or_default()
-            .into())
+            ))
+            .unwrap_or_default();
+        match account {
+            Some(account) => account.into(),
+            None => {
+                let account = AccountSharedData::new(0, 0, &solana_sdk::system_program::ID);
+                self.ctx.set_account(key, &account);
+                account
+            }
+        }
     }
-    fn get_accounts(
-        &mut self,
-        metas: &[AccountMeta],
-    ) -> Result<Vec<AccountSharedData>, FuzzClientErrorWithOrigin> {
-        let result: Vec<_> = metas
-            .iter()
-            .map(|m| {
-                self.get_account(&m.pubkey)
-                    .map_err(|e| e.with_origin(Origin::Account(m.pubkey)))
-            })
-            .collect();
-        result.into_iter().collect()
-    }
-
     fn get_last_blockhash(&self) -> Hash {
         self.ctx.last_blockhash
     }
@@ -296,9 +141,6 @@ impl FuzzClient for ProgramTestClientBlocking {
         self.ctx.set_account(address, account);
     }
 
-    fn get_rent(&mut self) -> Result<Rent, FuzzClientError> {
-        Ok(self.rt.block_on(self.ctx.banks_client.get_rent())?)
-    }
     fn forward_in_time(&mut self, seconds: i64) -> Result<(), FuzzClientError> {
         // Get the current clock state from the program test context.
         let mut clock = self
@@ -325,89 +167,5 @@ impl FuzzClient for ProgramTestClientBlocking {
         self.rt
             .block_on(self.ctx.banks_client.get_sysvar::<T>())
             .unwrap_or_default()
-    }
-    fn set_delegated_stake_account(
-        &mut self,
-        voter_pubkey: Pubkey, // vote account delegated to
-        staker: Pubkey,
-        withdrawer: Pubkey,
-        stake: u64,
-        activation_epoch: Epoch,
-        deactivation_epoch: Option<Epoch>,
-        lockup: Option<Lockup>,
-    ) -> Pubkey {
-        let stake_account = Keypair::new();
-
-        let rent = Rent::default();
-        let rent_exempt_lamports = rent.minimum_balance(StakeStateV2::size_of());
-        let minimum_delegation = LAMPORTS_PER_SOL; // TODO: a way to get minimum delegation with feature set?
-        let minimum_lamports = rent_exempt_lamports.saturating_add(minimum_delegation);
-
-        let stake_state = StakeStateV2::Stake(
-            Meta {
-                authorized: Authorized { staker, withdrawer },
-                lockup: lockup.unwrap_or_default(),
-                rent_exempt_reserve: rent_exempt_lamports,
-            },
-            Stake {
-                delegation: Delegation {
-                    stake,
-                    activation_epoch,
-                    voter_pubkey,
-                    deactivation_epoch: if let Some(epoch) = deactivation_epoch {
-                        epoch
-                    } else {
-                        u64::MAX
-                    },
-                    ..Delegation::default()
-                },
-                ..Stake::default()
-            },
-            StakeFlags::default(),
-        );
-        let account = AccountSharedData::new_data_with_space(
-            if stake > minimum_lamports {
-                stake
-            } else {
-                minimum_lamports
-            },
-            &stake_state,
-            StakeStateV2::size_of(),
-            &solana_sdk::stake::program::ID,
-        )
-        .unwrap();
-
-        self.ctx.set_account(&stake_account.pubkey(), &account);
-
-        stake_account.pubkey()
-    }
-
-    fn set_initialized_stake_account(
-        &mut self,
-        staker: Pubkey,
-        withdrawer: Pubkey,
-        lockup: Option<Lockup>,
-    ) -> Pubkey {
-        let stake_account = Keypair::new();
-
-        let rent = Rent::default();
-        let rent_exempt_lamports = rent.minimum_balance(StakeStateV2::size_of());
-
-        let stake_state = StakeStateV2::Initialized(Meta {
-            authorized: Authorized { staker, withdrawer },
-            lockup: lockup.unwrap_or_default(),
-            rent_exempt_reserve: rent_exempt_lamports,
-        });
-        let account = AccountSharedData::new_data_with_space(
-            rent_exempt_lamports,
-            &stake_state,
-            StakeStateV2::size_of(),
-            &solana_sdk::stake::program::ID,
-        )
-        .unwrap();
-
-        self.ctx.set_account(&stake_account.pubkey(), &account);
-
-        stake_account.pubkey()
     }
 }

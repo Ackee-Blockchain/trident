@@ -153,8 +153,8 @@ impl IxOps for Update {
 /// Keypair, PdaStore, TokenStore, MintStore, ProgramStore
 #[derive(Default)]
 pub struct FuzzAccounts {
-    user: AccountsStorage<Keypair>,
-    counter: AccountsStorage<Keypair>,
+    user: AccountsStorage<KeypairStore>,
+    counter: AccountsStorage<KeypairStore>,
     // _authority: AccountsStorage<todo!()>,
     // _system_program: AccountsStorage<todo!()>,
 }

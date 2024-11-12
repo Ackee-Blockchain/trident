@@ -186,6 +186,7 @@ impl IxOps for InitVesting {
         );
         let escrow = fuzz_accounts.escrow.get_or_create_account(
             self.accounts.escrow,
+            client,
             &[recipient.pubkey().as_ref(), b"ESCROW_SEED"],
             &arbitrary_limit_inputs_5::ID,
         );
@@ -274,12 +275,14 @@ impl IxOps for WithdrawUnlocked {
 
         let escrow = fuzz_accounts.escrow.get_or_create_account(
             self.accounts.escrow,
+            client,
             &[recipient.pubkey().as_ref(), b"ESCROW_SEED"],
             &arbitrary_limit_inputs_5::ID,
         );
 
         let escrow_pda_authority = fuzz_accounts.escrow_pda_authority.get_or_create_account(
             self.accounts.escrow_pda_authority,
+            client,
             &[b"ESCROW_PDA_AUTHORITY"],
             &arbitrary_limit_inputs_5::ID,
         );
@@ -363,11 +366,11 @@ pub struct FuzzAccounts {
     sender_token_account: AccountsStorage<TokenStore>,
     escrow_token_account: AccountsStorage<TokenStore>,
     escrow_pda_authority: AccountsStorage<PdaStore>,
-    sender: AccountsStorage<Keypair>,
+    sender: AccountsStorage<KeypairStore>,
     // No need to fuzz System Program
     // _system_program: AccountsStorage<ProgramStore>,
     recipient_token_account: AccountsStorage<TokenStore>,
-    recipient: AccountsStorage<Keypair>,
+    recipient: AccountsStorage<KeypairStore>,
     mint: AccountsStorage<MintStore>,
     escrow: AccountsStorage<PdaStore>,
 }

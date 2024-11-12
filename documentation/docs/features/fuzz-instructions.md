@@ -128,6 +128,7 @@ Insert a new record into AccountsStorage based on the `account_id`. If a record 
     ```rust
     let hello_world_account = fuzz_accounts.hello_world_account.get_or_create_account(
         self.accounts.hello_world_account,
+        client,
         &[b"hello_world_seed"],
         &hello_world::ID,
     );

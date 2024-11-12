@@ -68,6 +68,14 @@ pub mod fuzzing {
 
     pub use std::cell::RefCell;
     pub use std::collections::HashMap;
+
+    pub use trident_fuzz::accounts_storage::KeypairStore;
+    pub use trident_fuzz::accounts_storage::MintStore;
+    pub use trident_fuzz::accounts_storage::PdaStore;
+    pub use trident_fuzz::accounts_storage::ProgramStore;
+    pub use trident_fuzz::accounts_storage::StakeStore;
+    pub use trident_fuzz::accounts_storage::TokenStore;
+    pub use trident_fuzz::accounts_storage::VoteStore;
 }
 
 mod anchor_idl;

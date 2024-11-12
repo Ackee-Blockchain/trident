@@ -6057,21 +6057,9 @@ dependencies = [
  "thiserror",
  "tokio",
  "toml 0.8.19",
- "trident-derive-accounts-snapshots",
  "trident-derive-displayix",
  "trident-derive-fuzz-test-executor",
  "trident-fuzz",
-]
-
-[[package]]
-name = "trident-derive-accounts-snapshots"
-version = "0.0.2"
-dependencies = [
- "anchor-syn",
- "convert_case",
- "proc-macro2",
- "quote",
- "syn 1.0.109",
 ]
 
 [[package]]
@@ -6108,6 +6096,8 @@ dependencies = [
  "solana-program-runtime",
  "solana-program-test",
  "solana-sdk",
+ "solana-stake-program",
+ "solana-vote-program",
  "spl-token",
  "thiserror",
  "tokio",

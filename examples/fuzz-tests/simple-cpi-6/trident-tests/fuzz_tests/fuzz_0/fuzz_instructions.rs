@@ -134,5 +134,5 @@ impl IxOps for InitializeCaller {
 #[derive(Default)]
 pub struct FuzzAccounts {
     _program: AccountsStorage<ProgramStore>,
-    signer_caller: AccountsStorage<Keypair>,
+    signer_caller: AccountsStorage<KeypairStore>,
 }

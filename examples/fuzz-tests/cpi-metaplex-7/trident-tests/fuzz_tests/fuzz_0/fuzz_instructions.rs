@@ -100,9 +100,9 @@ impl IxOps for Initialize {
 #[derive(Default)]
 pub struct FuzzAccounts {
     _metadata_account: AccountsStorage<PdaStore>,
-    mint: AccountsStorage<Keypair>,
+    mint: AccountsStorage<KeypairStore>,
     _mpl_token_metadata: AccountsStorage<ProgramStore>,
-    signer: AccountsStorage<Keypair>,
+    signer: AccountsStorage<KeypairStore>,
     _system_program: AccountsStorage<ProgramStore>,
     _token_program: AccountsStorage<ProgramStore>,
 }

@@ -16,6 +16,7 @@ incremented upon a breaking change and the patch version will be incremented for
 
 **Changed**
 
+- improve AccountsStorage module structure and remove unnecessary methods in FuzzClient ([223](https://github.com/Ackee-Blockchain/trident/pull/223))
 - improve manipulations with AccountsStorages in get_accounts() function ([219](https://github.com/Ackee-Blockchain/trident/pull/219))
 
 **Added**

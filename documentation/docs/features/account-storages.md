@@ -18,19 +18,20 @@ Instead, Trident generates random **AccountIDs** which are indexes to **Account 
 
     Currently, supported types of Account Storages:
 
-    - Signer
-    - PDA
-    - Token Account
-    - Program account
-    - Stake account
-    - Vote account
+    - Signer (KeypairStore)
+    - Program Derived Address (PdaStore)
+    - Token Account (TokenStore)
+    - Mint Account (MintStore)
+    - Program Account (ProgramStore)
+    - Stake Account (StakeStore)
+    - Vote Account (VoteStore)
 
 
     Then use the corresponding AccountsStorage.
 
 ```rust
 pub struct FuzzAccounts {
-    signer: AccountsStorage<Keypair>,
+    signer: AccountsStorage<KeypairStore>,
     some_pda: AccountsStorage<PdaStore>,
     token_vault: AccountsStorage<TokenStore>,
     mint: AccountsStorage<MintStore>,

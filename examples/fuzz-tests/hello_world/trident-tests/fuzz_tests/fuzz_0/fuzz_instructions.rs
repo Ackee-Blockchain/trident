@@ -67,6 +67,7 @@ impl IxOps for InitializeFn {
 
         let hello_world_account = fuzz_accounts.hello_world_account.get_or_create_account(
             self.accounts.hello_world_account,
+            client,
             &[b"hello_world_seed"],
             &hello_world::ID,
         );
@@ -99,7 +100,7 @@ impl IxOps for InitializeFn {
 /// Keypair, PdaStore, TokenStore, MintStore, ProgramStore
 #[derive(Default)]
 pub struct FuzzAccounts {
-    author: AccountsStorage<Keypair>,
+    author: AccountsStorage<KeypairStore>,
     hello_world_account: AccountsStorage<PdaStore>,
     // No need to fuzz system_program
     // system_program: AccountsStorage<todo!()>,
