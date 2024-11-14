@@ -5,24 +5,20 @@ use fuzz_instructions::FuzzInstruction;
 use unauthorized_access_2::entry as entry_unauthorized_access_2;
 use unauthorized_access_2::ID as PROGRAM_ID_UNAUTHORIZED_ACCESS_2;
 const PROGRAM_NAME_UNAUTHORIZED_ACCESS_2: &str = "unauthorized_access_2";
-struct MyFuzzData;
+struct InstructionsSequence;
 /// Define instruction sequences for invocation.
-/// `pre_ixs` runs at the start, `ixs` in the middle, and `post_ixs` at the end.
-/// For example, to call `InitializeFn` at the start of each fuzzing iteration:
+/// `pre` runs at the start, `middle` in the middle, and `post` at the end.
+/// For example, to call `InitializeFn`, `UpdateFn` and then `WithdrawFn` during
+/// each fuzzing iteration:
 /// ```
-/// fn pre_ixs(u: &mut arbitrary::Unstructured) ->
-/// arbitrary::Result<Vec<FuzzInstruction>> {
-///     let init = FuzzInstruction::InitializeFn(InitializeFn::arbitrary(u)?);
-///     Ok(vec![init])
-/// }
+/// impl FuzzDataBuilder<FuzzInstruction> for InstructionsSequence {
+///     pre_sequence!(InitializeFn,UpdateFn);
+///     middle_sequence!(WithdrawFn);
+///}
 /// ```
 /// For more details, see: https://ackee.xyz/trident/docs/dev/features/instructions-sequences/#instructions-sequences
-impl FuzzDataBuilder<FuzzInstruction> for MyFuzzData {
-    fn pre_ixs(u: &mut arbitrary::Unstructured) -> arbitrary::Result<Vec<FuzzInstruction>> {
-        let init_ix = FuzzInstruction::Initialize(Initialize::arbitrary(u)?);
-
-        Ok(vec![init_ix])
-    }
+impl FuzzDataBuilder<FuzzInstruction> for InstructionsSequence {
+    pre_sequence!(Initialize);
 }
 /// `fn fuzz_iteration` runs during every fuzzing iteration.
 /// Modification is not required.
@@ -41,5 +37,5 @@ fn fuzz_iteration<T: FuzzTestExecutor<U> + std::fmt::Display, U>(
 }
 fn main() {
     let config = Config::new();
-    fuzz_trident ! (fuzz_ix : FuzzInstruction , | fuzz_data : MyFuzzData | { fuzz_iteration (fuzz_data , & config) ; });
+    fuzz_trident ! (fuzz_ix : FuzzInstruction , | fuzz_data : InstructionsSequence | { fuzz_iteration (fuzz_data , & config) ; });
 }

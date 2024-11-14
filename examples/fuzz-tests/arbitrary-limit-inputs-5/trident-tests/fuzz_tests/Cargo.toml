@@ -18,4 +18,3 @@ path = "../../../../../crates/client"
 
 [dependencies.arbitrary-limit-inputs-5]
 path = "../../programs/arbitrary-limit-inputs-5"
-features = ["trident-fuzzing"]

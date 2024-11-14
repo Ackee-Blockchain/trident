@@ -1,5 +1,5 @@
 #![allow(dead_code)]
-
+#![allow(unexpected_cfgs)]
 use anchor_lang::solana_program::account_info::{Account as AccountTrait, AccountInfo};
 use anchor_lang::solana_program::hash::Hash;
 use arbitrary::Arbitrary;
@@ -69,7 +69,7 @@ where
         //         fuzz_target=info",
         // );
 
-        #[cfg(fuzzing_debug)]
+        #[cfg(feature = "fuzzing_debug")]
         {
             eprintln!("\x1b[34mInstructions sequence\x1b[0m:");
             for ix in self.iter() {
@@ -81,7 +81,7 @@ where
         let mut sent_txs: HashMap<Hash, ()> = HashMap::new();
 
         for fuzz_ix in &mut self.iter() {
-            #[cfg(fuzzing_debug)]
+            #[cfg(feature = "fuzzing_debug")]
             eprintln!("\x1b[34mCurrently processing\x1b[0m: {}", fuzz_ix);
 
             if fuzz_ix

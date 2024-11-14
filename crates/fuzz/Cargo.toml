@@ -1,6 +1,6 @@
 [package]
 name = "trident-fuzz"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2021"
 repository = "https://github.com/Ackee-Blockchain/trident"
 license-file = "../../LICENSE"
@@ -11,9 +11,11 @@ description = "The trident_fuzz crate helps you to write Rust Fuzz Tests for you
 # SOLANA
 solana-sdk = { workspace = true }
 solana-banks-client = { workspace = true }
-spl-token = { workspace = true }
+solana-stake-program = { workspace = true }
+solana-vote-program = { workspace = true }
 solana-program-runtime = { workspace = true }
 solana-program-test = { workspace = true }
+spl-token = { workspace = true }
 
 # ANCHOR
 anchor-lang = { workspace = true, features = ["init-if-needed"] }

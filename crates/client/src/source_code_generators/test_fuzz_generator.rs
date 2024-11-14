@@ -1,5 +1,4 @@
 use anchor_lang_idl_spec::Idl;
-use convert_case::{Case, Casing};
 use quote::{format_ident, ToTokens};
 use syn::parse_quote;
 
@@ -17,20 +16,21 @@ pub fn generate_source_code(idl_instructions: &[Idl]) -> String {
 
         #(#program_names)*
 
-        struct MyFuzzData;
+        struct InstructionsSequence;
 
 
         /// Define instruction sequences for invocation.
-        /// `pre_ixs` runs at the start, `ixs` in the middle, and `post_ixs` at the end.
-        /// For example, to call `InitializeFn` at the start of each fuzzing iteration:
+        /// `pre` runs at the start, `middle` in the middle, and `post` at the end.
+        /// For example, to call `InitializeFn`, `UpdateFn` and then `WithdrawFn` during each fuzzing iteration:
         /// ```
-        /// fn pre_ixs(u: &mut arbitrary::Unstructured) -> arbitrary::Result<Vec<FuzzInstruction>> {
-        ///     let init = FuzzInstruction::InitializeFn(InitializeFn::arbitrary(u)?);
-        ///     Ok(vec![init])
-        /// }
+        /// use fuzz_instructions::{InitializeFn, UpdateFn, WithdrawFn};
+        /// impl FuzzDataBuilder<FuzzInstruction> for InstructionsSequence {
+        ///     pre_sequence!(InitializeFn,UpdateFn);
+        ///     middle_sequence!(WithdrawFn);
+        ///}
         /// ```
-        /// For more details, see: https://ackee.xyz/trident/docs/dev/features/instructions-sequences/#instructions-sequences
-        impl FuzzDataBuilder<FuzzInstruction> for MyFuzzData {}
+        /// For more details, see: https://ackee.xyz/trident/docs/latest/features/instructions-sequences/#instructions-sequences
+        impl FuzzDataBuilder<FuzzInstruction> for InstructionsSequence {}
 
         /// `fn fuzz_iteration` runs during every fuzzing iteration.
         /// Modification is not required.
@@ -47,7 +47,7 @@ pub fn generate_source_code(idl_instructions: &[Idl]) -> String {
 
         fn main() {
             let config = Config::new();
-            fuzz_trident!(fuzz_ix: FuzzInstruction, |fuzz_data: MyFuzzData| {
+            fuzz_trident!(fuzz_ix: FuzzInstruction, |fuzz_data: InstructionsSequence| {
 
                 fuzz_iteration(fuzz_data,&config);
 
@@ -63,7 +63,7 @@ fn get_program_names(idl_instructions: &[Idl]) -> Vec<syn::Stmt> {
         .iter()
         .map(|idl| {
             let program_name = &idl.metadata.name;
-            let program_name_upper = idl.metadata.name.to_case(Case::UpperSnake);
+            let program_name_upper = &idl.metadata.name;
             let program_name_ident = format_ident!("PROGRAM_NAME_{}", program_name_upper);
 
             parse_quote!(const #program_name_ident: &str = #program_name;)
@@ -75,8 +75,8 @@ fn get_program_imports(idl_instructions: &[Idl]) -> Vec<syn::ItemUse> {
     idl_instructions
         .iter()
         .flat_map(|idl| {
-            let program_name = idl.metadata.name.to_case(Case::Snake);
-            let program_name_upper = idl.metadata.name.to_case(Case::UpperSnake);
+            let program_name = &idl.metadata.name;
+            let program_name_upper = &idl.metadata.name;
             let program_name_ident = format_ident!("{}", program_name);
             let program_entry_ident = format_ident!("entry_{}", program_name);
             let program_id_name_ident = format_ident!("PROGRAM_ID_{}", program_name_upper);
@@ -97,8 +97,8 @@ fn get_fuzzing_programs(idl_instructions: &[Idl]) -> (Vec<syn::Stmt>, syn::ExprA
     let fuzzing_programs: Vec<syn::Stmt> = idl_instructions
         .iter()
         .map(|idl| {
-            let program_name = idl.metadata.name.to_case(Case::Snake);
-            let program_name_upper = idl.metadata.name.to_case(Case::UpperSnake);
+            let program_name = &idl.metadata.name;
+            let program_name_upper = &idl.metadata.name;
             let fuzzing_program_name_ident = format_ident!("fuzzing_program_{}", program_name);
             let program_id_name_ident = format_ident!("PROGRAM_ID_{}", program_name_upper);
             let program_name_ident = format_ident!("PROGRAM_NAME_{}", program_name_upper);

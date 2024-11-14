@@ -8,6 +8,7 @@ pub mod fuzzing {
     /// anchor_lang
     pub use anchor_lang;
     pub use anchor_lang::solana_program::hash::Hash;
+    pub use anchor_lang::AccountDeserialize;
     pub use anchor_lang::InstructionData;
     pub use anchor_lang::Key;
     pub use anchor_lang::ToAccountInfo;
@@ -15,10 +16,13 @@ pub mod fuzzing {
 
     /// solana_sdk
     pub use solana_sdk;
+    pub use solana_sdk::account::AccountSharedData;
+    pub use solana_sdk::account::ReadableAccount;
     pub use solana_sdk::account_info::AccountInfo;
     pub use solana_sdk::entrypoint::ProcessInstruction;
     pub use solana_sdk::instruction::AccountMeta;
     pub use solana_sdk::instruction::Instruction;
+    pub use solana_sdk::native_token::LAMPORTS_PER_SOL;
     pub use solana_sdk::pubkey::Pubkey;
     pub use solana_sdk::signer::keypair::Keypair;
     pub use solana_sdk::signer::Signer;
@@ -36,6 +40,9 @@ pub mod fuzzing {
     /// trident macros
     pub use trident_fuzz::convert_entry;
     pub use trident_fuzz::fuzz_trident;
+    pub use trident_fuzz::middle_sequence;
+    pub use trident_fuzz::post_sequence;
+    pub use trident_fuzz::pre_sequence;
     pub use trident_fuzz::show_account;
     pub use trident_fuzz::*;
 
@@ -51,16 +58,24 @@ pub mod fuzzing {
     pub use trident_fuzz::fuzz_client::FuzzClient;
     pub use trident_fuzz::fuzz_data::build_ix_fuzz_data;
     pub use trident_fuzz::fuzz_data::*;
-    pub use trident_fuzz::fuzz_deserialize::FuzzDeserialize;
     pub use trident_fuzz::fuzz_stats::FuzzingStatistics;
     pub use trident_fuzz::fuzz_test_executor::FuzzTestExecutor;
     pub use trident_fuzz::ix_ops::IxOps;
     pub use trident_fuzz::program_test_client_blocking::ProgramTestClientBlocking;
     pub use trident_fuzz::snapshot::Snapshot;
+    pub use trident_fuzz::snapshot::SnapshotAccount;
     pub use trident_fuzz::transaction_executor::TransactionExecutor;
 
     pub use std::cell::RefCell;
     pub use std::collections::HashMap;
+
+    pub use trident_fuzz::accounts_storage::KeypairStore;
+    pub use trident_fuzz::accounts_storage::MintStore;
+    pub use trident_fuzz::accounts_storage::PdaStore;
+    pub use trident_fuzz::accounts_storage::ProgramStore;
+    pub use trident_fuzz::accounts_storage::StakeStore;
+    pub use trident_fuzz::accounts_storage::TokenStore;
+    pub use trident_fuzz::accounts_storage::VoteStore;
 }
 
 mod anchor_idl;

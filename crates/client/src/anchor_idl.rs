@@ -1,6 +1,5 @@
 use anchor_lang_idl_spec::Idl;
 use cargo_metadata::Package;
-use convert_case::{Case, Casing};
 
 use std::error::Error;
 use std::fs::{self, File};
@@ -13,13 +12,9 @@ pub fn load_idls(
 ) -> Result<Vec<Idl>, Box<dyn Error>> {
     let mut idls = Vec::new();
 
-    let package_names: Vec<String> = program_packages
+    let mut package_names = program_packages
         .iter()
-        .map(|package| {
-            let name = &package.name;
-            name.to_case(Case::Snake)
-        })
-        .collect();
+        .map(|package| package.name.replace("-", "_"));
 
     // Read the directory and iterate over each entry
     for entry in fs::read_dir(dir_path)? {
@@ -34,7 +29,7 @@ pub fn load_idls(
             let package_name = idl_name_str.trim_end_matches(".json");
 
             // Check if the package name is in the list of known packages
-            if package_names.iter().any(|name| name == package_name) {
+            if package_names.any(|package| package == package_name) {
                 // Open the file in read-only mode
                 let mut file = File::open(&path)?;
 

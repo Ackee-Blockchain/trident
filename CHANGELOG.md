@@ -10,6 +10,21 @@ incremented upon a breaking change and the patch version will be incremented for
 
 ## [dev] - Unreleased
 
+## [0.8.1] - 2024-11-14
+
+**Removed**
+
+- removed unnecesarry deserialization with AccountsSnapshots, to deserialize data implementation AccountDeserialize can be used ([221](https://github.com/Ackee-Blockchain/trident/pull/221))
+
+**Changed**
+
+- improve AccountsStorage module structure and remove unnecessary methods in FuzzClient ([223](https://github.com/Ackee-Blockchain/trident/pull/223))
+- improve manipulations with AccountsStorages in get_accounts() function ([219](https://github.com/Ackee-Blockchain/trident/pull/219))
+
+**Added**
+
+- add pre_sequence!, middle_sequence! and post_sequence! for easier sequence definition ([220](https://github.com/Ackee-Blockchain/trident/pull/220))
+- add/ add support for Clock sysvar manipulations with the client(i.e. warp to slot/epoch and forward in time) ([217](https://github.com/Ackee-Blockchain/trident/pull/217))
 
 ## [0.8.0] - 2024-10-21
 

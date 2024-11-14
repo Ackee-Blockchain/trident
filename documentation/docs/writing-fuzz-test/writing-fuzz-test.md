@@ -26,59 +26,6 @@ trident init
 
 ## Fill the Fuzz test Template
 
-
-### Derive AccountsSnapshots
-
-For every Account Context specified in the Anchor project derive `AccountsSnapshots` such as:
-
-```rust
-// ...
-
-use trident_derive_accounts_snapshots::AccountsSnapshots;
-
-// ...
-
-
-#[derive(Accounts, AccountsSnapshots)]
-pub struct InitializeContext<'info> {
-    #[account(mut)]
-    pub author: Signer<'info>,
-    #[account(
-        init,
-        payer=author,
-        space=8+100,
-        seeds=[b"hello_world_seed"],
-        bump
-    )]
-    pub hello_world_account: Account<'info, StoreHelloWorld>,
-    pub system_program: Program<'info, System>,
-    // ...
-
-}
-
-```
-
-### Link the AccountsSnapshots
-
-Fuzz Instructions use the derived `AccountsSnapshots`. You need to link the derived `AccountsSnapshots` to the corresponding aliases.
-
-!!! important
-
-    Modules where the Contexts (with the derived AccountsSnapshots) are specified need to be public.
-
-```rust
-// fuzz_instructions.rs
-
-use hello_world::trident_fuzz_initialize_context_snapshot::InitializeContextAlias;
-
-type InitializeFnSnapshot<'info> = InitializeContextAlias<'info>;
-
-```
-
-!!! tip
-
-    For more examples, check the [Examples](../examples/examples.md).
-
 ### Define Fuzz Accounts
 
 Define `AccountsStorage` type for each Account you would like to use.
