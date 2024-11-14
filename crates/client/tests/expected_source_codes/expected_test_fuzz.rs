@@ -1,12 +1,12 @@
 use trident_client::fuzzing::*;
 mod fuzz_instructions;
 use dummy_2::entry as entry_dummy_2;
-use dummy_2::ID as PROGRAM_ID_DUMMY_2;
+use dummy_2::ID as PROGRAM_ID_dummy_2;
 use dummy_example::entry as entry_dummy_example;
-use dummy_example::ID as PROGRAM_ID_DUMMY_EXAMPLE;
+use dummy_example::ID as PROGRAM_ID_dummy_example;
 use fuzz_instructions::FuzzInstruction;
-const PROGRAM_NAME_DUMMY_2: &str = "dummy_2";
-const PROGRAM_NAME_DUMMY_EXAMPLE: &str = "dummy_example";
+const PROGRAM_NAME_dummy_2: &str = "dummy_2";
+const PROGRAM_NAME_dummy_example: &str = "dummy_example";
 struct InstructionsSequence;
 /// Define instruction sequences for invocation.
 /// `pre` runs at the start, `middle` in the middle, and `post` at the end.
@@ -27,13 +27,13 @@ fn fuzz_iteration<T: FuzzTestExecutor<U> + std::fmt::Display, U>(
     config: &Config,
 ) {
     let fuzzing_program_dummy_2 = FuzzingProgram::new(
-        PROGRAM_NAME_DUMMY_2,
-        &PROGRAM_ID_DUMMY_2,
+        PROGRAM_NAME_dummy_2,
+        &PROGRAM_ID_dummy_2,
         processor!(convert_entry!(entry_dummy_2)),
     );
     let fuzzing_program_dummy_example = FuzzingProgram::new(
-        PROGRAM_NAME_DUMMY_EXAMPLE,
-        &PROGRAM_ID_DUMMY_EXAMPLE,
+        PROGRAM_NAME_dummy_example,
+        &PROGRAM_ID_dummy_example,
         processor!(convert_entry!(entry_dummy_example)),
     );
     let mut client = ProgramTestClientBlocking::new(

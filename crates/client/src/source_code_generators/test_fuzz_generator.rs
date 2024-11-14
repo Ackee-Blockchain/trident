@@ -1,5 +1,4 @@
 use anchor_lang_idl_spec::Idl;
-use convert_case::{Case, Casing};
 use quote::{format_ident, ToTokens};
 use syn::parse_quote;
 
@@ -63,7 +62,7 @@ fn get_program_names(idl_instructions: &[Idl]) -> Vec<syn::Stmt> {
         .iter()
         .map(|idl| {
             let program_name = &idl.metadata.name;
-            let program_name_upper = idl.metadata.name.to_case(Case::UpperSnake);
+            let program_name_upper = &idl.metadata.name;
             let program_name_ident = format_ident!("PROGRAM_NAME_{}", program_name_upper);
 
             parse_quote!(const #program_name_ident: &str = #program_name;)
@@ -75,8 +74,8 @@ fn get_program_imports(idl_instructions: &[Idl]) -> Vec<syn::ItemUse> {
     idl_instructions
         .iter()
         .flat_map(|idl| {
-            let program_name = idl.metadata.name.to_case(Case::Snake);
-            let program_name_upper = idl.metadata.name.to_case(Case::UpperSnake);
+            let program_name = &idl.metadata.name;
+            let program_name_upper = &idl.metadata.name;
             let program_name_ident = format_ident!("{}", program_name);
             let program_entry_ident = format_ident!("entry_{}", program_name);
             let program_id_name_ident = format_ident!("PROGRAM_ID_{}", program_name_upper);
@@ -97,8 +96,8 @@ fn get_fuzzing_programs(idl_instructions: &[Idl]) -> (Vec<syn::Stmt>, syn::ExprA
     let fuzzing_programs: Vec<syn::Stmt> = idl_instructions
         .iter()
         .map(|idl| {
-            let program_name = idl.metadata.name.to_case(Case::Snake);
-            let program_name_upper = idl.metadata.name.to_case(Case::UpperSnake);
+            let program_name = &idl.metadata.name;
+            let program_name_upper = &idl.metadata.name;
             let fuzzing_program_name_ident = format_ident!("fuzzing_program_{}", program_name);
             let program_id_name_ident = format_ident!("PROGRAM_ID_{}", program_name_upper);
             let program_name_ident = format_ident!("PROGRAM_NAME_{}", program_name_upper);
