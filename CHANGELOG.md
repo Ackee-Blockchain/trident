@@ -10,6 +10,8 @@ incremented upon a breaking change and the patch version will be incremented for
 
 ## [dev] - Unreleased
 
+## [0.8.1] - 2024-11-14
+
 **Removed**
 
 - removed unnecesarry deserialization with AccountsSnapshots, to deserialize data implementation AccountDeserialize can be used ([221](https://github.com/Ackee-Blockchain/trident/pull/221))

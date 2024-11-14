@@ -23,6 +23,7 @@ pub fn generate_source_code(idl_instructions: &[Idl]) -> String {
         /// `pre` runs at the start, `middle` in the middle, and `post` at the end.
         /// For example, to call `InitializeFn`, `UpdateFn` and then `WithdrawFn` during each fuzzing iteration:
         /// ```
+        /// use fuzz_instructions::{InitializeFn, UpdateFn, WithdrawFn};
         /// impl FuzzDataBuilder<FuzzInstruction> for InstructionsSequence {
         ///     pre_sequence!(InitializeFn,UpdateFn);
         ///     middle_sequence!(WithdrawFn);

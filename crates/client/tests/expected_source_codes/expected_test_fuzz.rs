@@ -13,6 +13,7 @@ struct InstructionsSequence;
 /// For example, to call `InitializeFn`, `UpdateFn` and then `WithdrawFn` during
 /// each fuzzing iteration:
 /// ```
+/// use fuzz_instructions::{InitializeFn, UpdateFn, WithdrawFn};
 /// impl FuzzDataBuilder<FuzzInstruction> for InstructionsSequence {
 ///     pre_sequence!(InitializeFn,UpdateFn);
 ///     middle_sequence!(WithdrawFn);
