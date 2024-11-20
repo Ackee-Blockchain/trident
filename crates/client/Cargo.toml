@@ -10,46 +10,23 @@ description = "The trident_client crate helps you build and deploy an Anchor pro
 
 [dependencies]
 # TRIDENT
-trident-derive-displayix = { path = "../fuzz/derive/display_ix", version = "0.0.4" }
-trident-derive-fuzz-test-executor = { path = "../fuzz/derive/fuzz_test_executor", version = "0.0.4" }
 trident-fuzz = { path = "../fuzz", version = "0.2.1" }
+
 # ANCHOR
-# INFO: Anchor-spl is here as dependency only to activate the idl-build feature, so that
-# users do not have to do it manually in their program's Cargo.toml
-anchor-lang = { workspace = true, features = ["init-if-needed"] }
-anchor-syn = { workspace = true }
 anchor-lang-idl-spec = { workspace = true }
 
-# SOLANA
-solana-sdk = { workspace = true }
-solana-program-test = { workspace = true }
-
-
-# HONGGFUZZ
-honggfuzz = { version = "0.5.55" }
-
-#AFL
-afl = { version = "0.15.10" }
-
-# ARBITRARY
-arbitrary = { workspace = true }
-
-
 # MISC
-tokio = "1"
+tokio = { version = "1", features = ["full"] }
 serde_json = "1"
 serde = { version = "1", default-features = false }
 bincode = "1"
-futures = "0.3"
 fehler = "1"
 thiserror = "1"
 anyhow = "1"
 cargo_metadata = "0.18"
-quinn-proto = { version = "0.10.6", features = ["arbitrary"] }
 syn = { version = "2", features = ["visit", "full"] }
 quote = "1"
 toml = { version = "0.8", features = ["preserve_order"] }
-pathdiff = "0.2"
 convert_case = "0.6"
 
 

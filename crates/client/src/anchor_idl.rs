@@ -1,4 +1,3 @@
-use anchor_lang_idl_spec::Idl;
 use cargo_metadata::Package;
 
 use std::error::Error;
@@ -6,11 +5,16 @@ use std::fs::{self, File};
 use std::io::Read;
 use std::path::PathBuf;
 
+use crate::___private::AnchorVersion;
+use crate::commander::Commander;
+use crate::source_code_generators;
+
 pub fn load_idls(
     dir_path: PathBuf,
     program_packages: &[Package],
-) -> Result<Vec<Idl>, Box<dyn Error>> {
-    let mut idls = Vec::new();
+) -> Result<AnchorVersion, Box<dyn Error>> {
+    let mut anchor_version: AnchorVersion =
+        Commander::get_anchor_version().unwrap_or_default().into();
 
     let mut package_names = program_packages
         .iter()
@@ -38,18 +42,26 @@ pub fn load_idls(
                 file.read_to_string(&mut json_content)?;
 
                 // Parse the string of data into an Idl struct
-                match serde_json::from_str::<Idl>(&json_content) {
-                    Ok(parsed_idl) => {
-                        idls.push(parsed_idl);
+                match anchor_version {
+                    AnchorVersion::Unknown => todo!(),
+                    AnchorVersion::V29(ref mut vec) => {
+                        match serde_json::from_str::<source_code_generators::anchor_29::types::Idl>(
+                            &json_content,
+                        ) {
+                            Ok(idl) => vec.push(idl),
+                            Err(e) => panic!("Unable to parse IDL: {}", e),
+                        }
                     }
-                    Err(e) => {
-                        eprintln!("Failed to parse {}: {}", path.display(), e);
-                        // Continue to the next file on failure
+                    AnchorVersion::V30(ref mut vec) => {
+                        match serde_json::from_str::<anchor_lang_idl_spec::Idl>(&json_content) {
+                            Ok(idl) => vec.push(idl),
+                            Err(e) => panic!("Unable to parse IDL: {}", e),
+                        }
                     }
                 }
             }
         }
     }
 
-    Ok(idls)
+    Ok(anchor_version)
 }

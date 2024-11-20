@@ -344,8 +344,8 @@ pub async fn add_bin_target(cargo_path: &PathBuf, name: &str, path: &str) {
 #[throws]
 pub async fn initialize_fuzz_tests_manifest(
     versions_config: &TridentVersionsConfig,
-    packages: &[Package],
-    cargo_dir: &PathBuf,
+    _packages: &[Package],
+    cargo_dir: &Path,
 ) {
     let cargo_path = cargo_dir.join("Cargo.toml");
 
@@ -355,42 +355,42 @@ pub async fn initialize_fuzz_tests_manifest(
     // Ensure the required dependencies are present in the 'dependencies' section.
     let dependencies_table = ensure_table(&mut cargo_toml, "dependencies")?;
 
-    // Add 'trident-client' dependency in table format.
+    // Add 'trident-fuzz' dependency in table format.
     dependencies_table.insert(
-        "trident-client".to_string(),
+        "trident-fuzz".to_string(),
         Value::Table({
             let mut trident_client = toml::Table::new();
             trident_client.insert(
                 "version".to_string(),
-                Value::String(versions_config.trident_client.clone()),
+                Value::String(versions_config.trident_fuzz.clone()),
             );
             trident_client
         }),
     );
 
-    for package in packages {
-        let manifest_path = package.manifest_path.parent().unwrap().as_std_path();
-        let relative_path = pathdiff::diff_paths(manifest_path, cargo_dir).unwrap();
+    // for package in packages {
+    //     let manifest_path = package.manifest_path.parent().unwrap().as_std_path();
+    //     let relative_path = pathdiff::diff_paths(manifest_path, cargo_dir).unwrap();
 
-        let relative_path_str = relative_path.to_str().unwrap_or_default();
+    //     let relative_path_str = relative_path.to_str().unwrap_or_default();
 
-        let package_name = package.name.clone();
-        dependencies_table.insert(
-            package_name,
-            Value::Table({
-                let mut package_entry = toml::Table::new();
-                package_entry.insert(
-                    "path".to_string(),
-                    Value::String(relative_path_str.to_owned()),
-                );
-                // package_entry.insert(
-                //     "features".to_string(),
-                //     Value::Array(vec![Value::String("trident-fuzzing".to_string())]),
-                // );
-                package_entry
-            }),
-        );
-    }
+    //     let package_name = package.name.clone();
+    //     dependencies_table.insert(
+    //         package_name,
+    //         Value::Table({
+    //             let mut package_entry = toml::Table::new();
+    //             package_entry.insert(
+    //                 "path".to_string(),
+    //                 Value::String(relative_path_str.to_owned()),
+    //             );
+    //             // package_entry.insert(
+    //             //     "features".to_string(),
+    //             //     Value::Array(vec![Value::String("trident-fuzzing".to_string())]),
+    //             // );
+    //             package_entry
+    //         }),
+    //     );
+    // }
 
     fs::write(cargo_path, toml::to_string(&cargo_toml).unwrap()).await?;
 }
@@ -398,8 +398,8 @@ pub async fn initialize_fuzz_tests_manifest(
 #[throws]
 pub async fn update_fuzz_tests_manifest(
     versions_config: &TridentVersionsConfig,
-    packages: &[Package],
-    cargo_dir: &PathBuf,
+    _packages: &[Package],
+    cargo_dir: &Path,
 ) {
     let cargo_path = cargo_dir.join("Cargo.toml");
 
@@ -409,37 +409,35 @@ pub async fn update_fuzz_tests_manifest(
     // Ensure the required dependencies are present in the 'dependencies' section.
     let dependencies_table = ensure_table(&mut cargo_toml, "dependencies")?;
 
-    // Add 'trident-client' dependency in table format.
-    dependencies_table
-        .entry("trident-client")
-        .or_insert_with(|| {
-            let mut trident_client = toml::Table::new();
-            trident_client.insert(
-                "version".to_string(),
-                Value::String(versions_config.trident_client.clone()),
-            );
-            Value::Table(trident_client)
-        });
+    // Add 'trident-fuzz' dependency in table format.
+    dependencies_table.entry("trident-fuzz").or_insert_with(|| {
+        let mut trident_client = toml::Table::new();
+        trident_client.insert(
+            "version".to_string(),
+            Value::String(versions_config.trident_fuzz.clone()),
+        );
+        Value::Table(trident_client)
+    });
 
-    for package in packages {
-        let manifest_path = package.manifest_path.parent().unwrap().as_std_path();
-        let relative_path = pathdiff::diff_paths(manifest_path, cargo_dir).unwrap();
+    // for package in packages {
+    //     let manifest_path = package.manifest_path.parent().unwrap().as_std_path();
+    //     let relative_path = pathdiff::diff_paths(manifest_path, cargo_dir).unwrap();
 
-        let relative_path_str = relative_path.to_str().unwrap_or_default();
+    //     let relative_path_str = relative_path.to_str().unwrap_or_default();
 
-        dependencies_table.entry(&package.name).or_insert_with(|| {
-            let mut package_entry = toml::Table::new();
-            package_entry.insert(
-                "path".to_string(),
-                Value::String(relative_path_str.to_owned()),
-            );
-            package_entry.insert(
-                "features".to_string(),
-                Value::Array(vec![Value::String("trident-fuzzing".to_string())]),
-            );
-            Value::Table(package_entry)
-        });
-    }
+    //     dependencies_table.entry(&package.name).or_insert_with(|| {
+    //         let mut package_entry = toml::Table::new();
+    //         package_entry.insert(
+    //             "path".to_string(),
+    //             Value::String(relative_path_str.to_owned()),
+    //         );
+    //         package_entry.insert(
+    //             "features".to_string(),
+    //             Value::Array(vec![Value::String("trident-fuzzing".to_string())]),
+    //         );
+    //         Value::Table(package_entry)
+    //     });
+    // }
 
     fs::write(cargo_path, toml::to_string(&cargo_toml).unwrap()).await?;
 }

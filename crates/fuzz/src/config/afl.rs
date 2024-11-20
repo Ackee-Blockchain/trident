@@ -4,6 +4,8 @@ use crate::config::constants::*;
 use rand::RngCore;
 use serde::Deserialize;
 
+use super::find_full_path;
+
 #[derive(Debug, Deserialize, Clone, Hash, PartialEq, Eq)]
 pub enum BuildArgument {
     CargoTargetDir,
@@ -102,9 +104,16 @@ impl From<_Afl> for Afl {
             .and_then(|value| if value.is_empty() { None } else { Some(value) })
             .unwrap_or(CARGO_TARGET_DIR_DEFAULT_AFL.to_owned());
 
+        let cargo_target_dir_full_path = find_full_path(&cargo_target_dir)
+            .expect("Failed to obtain full path to the AFL Target Directory");
+
         _self.build_args.insert(
             BuildArgument::CargoTargetDir,
-            AflArg::new("", "--target-dir", &cargo_target_dir),
+            AflArg::new(
+                "",
+                "--target-dir",
+                cargo_target_dir_full_path.to_str().unwrap(),
+            ),
         );
 
         // afl_workspace_in
@@ -113,9 +122,12 @@ impl From<_Afl> for Afl {
             .and_then(|value| if value.is_empty() { None } else { Some(value) })
             .unwrap_or(AFL_WORKSPACE_DEFAULT_IN.to_owned());
 
+        let afl_workspace_in_full_path = find_full_path(&afl_workspace_in)
+            .expect("Failed to obtain full path to the AFL Workspace-In Directory");
+
         _self.fuzz_args.insert(
             FuzzArgument::AflWorkspaceIn,
-            AflArg::new("-i", "", &afl_workspace_in),
+            AflArg::new("-i", "", afl_workspace_in_full_path.to_str().unwrap()),
         );
 
         // afl_workspace_out
@@ -124,9 +136,12 @@ impl From<_Afl> for Afl {
             .and_then(|value| if value.is_empty() { None } else { Some(value) })
             .unwrap_or(AFL_WORKSPACE_DEFAULT_OUT.to_owned());
 
+        let afl_workspace_out_full_path = find_full_path(&afl_workspace_out)
+            .expect("Failed to obtain full path to the AFL Workspace-Out Directory");
+
         _self.fuzz_args.insert(
             FuzzArgument::AflWorkspaceOut,
-            AflArg::new("-o", "", &afl_workspace_out),
+            AflArg::new("-o", "", afl_workspace_out_full_path.to_str().unwrap()),
         );
 
         // execs

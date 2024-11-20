@@ -1,6 +1,5 @@
 #![allow(dead_code)]
 
-use solana_banks_client::BanksClientError;
 use solana_sdk::pubkey::Pubkey;
 use std::fmt::{Debug, Display};
 use thiserror::Error;
@@ -11,9 +10,6 @@ pub enum FuzzClientError {
     Custom(u32),
     #[error("Not able to initialize client: {0}")]
     ClientInitError(#[from] std::io::Error),
-    // Box for Error variant too Long warnings
-    #[error("Banks Client Error: {0}")]
-    BanksError(Box<BanksClientError>),
 }
 
 #[derive(Debug, Error)]
@@ -36,12 +32,6 @@ pub enum FuzzingError {
     DataMismatch,
     #[error("Unable to obtain Data\n")]
     UnableToObtainData,
-}
-
-impl From<BanksClientError> for FuzzClientError {
-    fn from(value: BanksClientError) -> Self {
-        Self::BanksError(Box::new(value))
-    }
 }
 
 impl FuzzClientError {

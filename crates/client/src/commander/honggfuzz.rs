@@ -1,4 +1,5 @@
 use fehler::{throw, throws};
+use std::path::Path;
 use std::process;
 use std::{os::unix::process::CommandExt, process::Stdio};
 use tokio::process::Command;
@@ -135,7 +136,15 @@ impl Commander {
     pub async fn run_hfuzz_debug(&self, target: String, crash_file_path: String) {
         let config = Config::new();
 
-        let crash_file = self.root.join(crash_file_path);
+        let crash_file = Path::new(&crash_file_path);
+
+        let crash_file = if crash_file.is_absolute() {
+            crash_file
+        } else {
+            let cwd = std::env::current_dir()?;
+
+            &cwd.join(crash_file)
+        };
 
         if !crash_file.try_exists()? {
             println!("{ERROR} The crash file [{:?}] not found", crash_file);

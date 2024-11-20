@@ -1,11 +1,14 @@
+use base64::{prelude::BASE64_STANDARD, Engine};
+use serde::{Deserialize, Serialize};
+use solana_sdk::{
+    account::{AccountSharedData, WritableAccount},
+    pubkey::Pubkey,
+};
 use std::{
     fs,
     path::{Path, PathBuf},
     str::FromStr,
 };
-
-use serde::{Deserialize, Serialize};
-use solana_sdk::pubkey::Pubkey;
 
 use super::discover_root;
 
@@ -86,16 +89,7 @@ pub struct FuzzProgram {
 #[derive(Debug, Deserialize, Clone)]
 pub struct FuzzAccount {
     pub pubkey: Pubkey,
-    pub account: Account,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct Account {
-    pub lamports: u64,
-    pub data: String,
-    pub owner: Pubkey,
-    pub executable: bool,
-    pub rent_epoch: u64,
+    pub account: AccountSharedData,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -155,13 +149,15 @@ fn read_and_parse_account(filename: &str) -> FuzzAccount {
         )
     });
 
-    let account = Account {
-        lamports: account_raw.account.lamports,
-        data: data_base_64.to_string(),
-        owner: owner_address,
-        executable: account_raw.account.executable,
-        rent_epoch: account_raw.account.rent_epoch,
-    };
+    let account = AccountSharedData::create(
+        account_raw.account.lamports,
+        BASE64_STANDARD
+            .decode(data_base_64)
+            .unwrap_or_else(|_| panic!("Failed to decode base64 data of {}", filename)),
+        owner_address,
+        account_raw.account.executable,
+        account_raw.account.rent_epoch,
+    );
 
     FuzzAccount { pubkey, account }
 }

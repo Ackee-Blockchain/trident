@@ -3,6 +3,8 @@ use std::collections::HashMap;
 
 use crate::config::constants::*;
 
+use super::find_full_path;
+
 #[derive(Debug, Deserialize, Clone, Hash, PartialEq, Eq)]
 pub enum FuzzArgument {
     Timeout,
@@ -145,11 +147,11 @@ pub struct _HonggFuzz {
     /// --mutations_per_run
     pub mutations_per_run: Option<u16>,
     #[serde(default)]
-    /// Target compilation directory, defaults to "trident-tests/fuzz_tests/fuzzing/hfuzz_target" to not clash with cargo build's default target directory.
+    /// Target compilation directory, defaults to "trident-tests/fuzzing/hfuzz_target" to not clash with cargo build's default target directory.
     /// CARGO_TARGET_DIR env variable
     pub cargo_target_dir: Option<String>,
     #[serde(default)]
-    /// Honggfuzz working directory, defaults to "trident-tests/fuzz_tests/fuzzing/hfuzz_workspace".
+    /// Honggfuzz working directory, defaults to "trident-tests/fuzzing/hfuzz_workspace".
     /// HFUZZ_WORKSPACE env variable
     pub hfuzz_workspace: Option<String>,
     #[serde(default)]
@@ -244,9 +246,13 @@ impl From<_HonggFuzz> for HonggFuzz {
             .and_then(|value| if value.is_empty() { None } else { Some(value) })
             .unwrap_or(CARGO_TARGET_DIR_DEFAULT_HFUZZ.to_owned());
 
-        _self
-            .env_variables
-            .insert(EnvVariable::CargoTargetDir, cargo_target_dir);
+        let cargo_target_dir_full_path = find_full_path(&cargo_target_dir)
+            .expect("Failed to obtain full path to the Honggfuzz Target Directory");
+
+        _self.env_variables.insert(
+            EnvVariable::CargoTargetDir,
+            cargo_target_dir_full_path.to_str().unwrap().to_string(),
+        );
 
         // hfuzz_workspace
         let hfuzz_workspace = _f
@@ -254,9 +260,13 @@ impl From<_HonggFuzz> for HonggFuzz {
             .and_then(|value| if value.is_empty() { None } else { Some(value) })
             .unwrap_or(HFUZZ_WORKSPACE_DEFAULT_HFUZZ.to_owned());
 
-        _self
-            .env_variables
-            .insert(EnvVariable::HfuzzWorkspace, hfuzz_workspace);
+        let hfuzz_workspace_full_path = find_full_path(&hfuzz_workspace)
+            .expect("Failed to obtain full path to the Honggfuzz Workspace Directory");
+
+        _self.env_variables.insert(
+            EnvVariable::HfuzzWorkspace,
+            hfuzz_workspace_full_path.to_str().unwrap().to_string(),
+        );
 
         // crashdir
         let crash_dir = _f.crashdir.unwrap_or_default();

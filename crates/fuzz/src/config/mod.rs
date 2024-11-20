@@ -11,7 +11,10 @@ use honggfuzz::*;
 use anyhow::Context;
 use fehler::throw;
 use serde::Deserialize;
-use std::{env, fs, io, path::PathBuf};
+use std::{
+    env, fs, io,
+    path::{Path, PathBuf},
+};
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -154,123 +157,15 @@ pub fn discover_root() -> Result<PathBuf, Error> {
     throw!(Error::BadWorkspace)
 }
 
-// #[cfg(test)]
-// mod tests {
+pub fn find_full_path(input: &str) -> Result<PathBuf, std::io::Error> {
+    let path = Path::new(input);
 
-//     use super::*;
-//     #[test]
-//     fn test_merge_and_precedence1() {
-//         let config = Config {
-//             honggfuzz: HonggFuzz::default(),
-//             afl: Afl::default(),
-//             fuzz: Fuzz::default(),
-//         };
+    // If the path is absolute, return it directly
+    if path.is_absolute() {
+        return Ok(path.to_path_buf());
+    }
 
-//         let env_var_string = config.get_honggfuzz_args(String::default());
-//         assert_eq!(
-//             env_var_string,
-//             "-t 10 -N 0 -r 6 -e fuzz --run_time 0 -F 1048576 "
-//         );
-//     }
-//     #[test]
-//     fn test_merge_and_precedence2() {
-//         let config = Config {
-//             honggfuzz: HonggFuzz::default(),
-//             afl: Afl::default(),
+    let root = discover_root().expect("Failed to obtain Anchor root");
 
-//             fuzz: Fuzz::default(),
-//         };
-
-//         let env_var_string = config.get_honggfuzz_args("-t 0 -N10 --exit_upon_crash".to_string());
-
-//         assert_eq!(
-//             env_var_string,
-//             "-t 10 -N 0 -r 6 -e fuzz --run_time 0 -F 1048576 -t 0 -N10 --exit_upon_crash"
-//         );
-//     }
-//     #[test]
-//     fn test_merge_and_precedence3() {
-//         let config = Config {
-//             honggfuzz: HonggFuzz::default(),
-//             afl: Afl::default(),
-
-//             fuzz: Fuzz::default(),
-//         };
-//         let env_var_string =
-//             config.get_honggfuzz_args("-t 100 -N 5000 -Q -v --exit_upon_crash".to_string());
-//         assert_eq!(
-//             env_var_string,
-//             "-t 10 -N 0 -r 6 -e fuzz --run_time 0 -F 1048576 -t 100 -N 5000 -Q -v --exit_upon_crash"
-//         );
-//     }
-//     #[test]
-//     fn test_merge_and_precedence4() {
-//         let config = Config {
-//             honggfuzz: HonggFuzz::default(),
-//             afl: Afl::default(),
-
-//             fuzz: Fuzz::default(),
-//         };
-
-//         let env_var_string = config.get_honggfuzz_args("-t 10 -N 500 -Q -v --exit_upon_crash -n 15 --mutations_per_run 8 --verifier -W random_dir --crashdir random_dir5 --run_time 666".to_string());
-//         assert_eq!(
-//             env_var_string,
-//             "-t 10 -N 0 -r 6 -e fuzz --run_time 0 -F 1048576 -t 10 -N 500 -Q -v --exit_upon_crash -n 15 --mutations_per_run 8 --verifier -W random_dir --crashdir random_dir5 --run_time 666"
-//         );
-//     }
-//     #[test]
-//     fn test_merge_and_precedence5() {
-//         let config = Config {
-//             honggfuzz: HonggFuzz::default(),
-//             afl: Afl::default(),
-
-//             fuzz: Fuzz::default(),
-//         };
-
-//         let env_var_string = config.get_honggfuzz_args("-t 10 -N 500 -Q -v --exit_upon_crash -n 15 --verifier -W random_dir --crashdir random_dir5 --run_time 666".to_string());
-//         assert_eq!(
-//             env_var_string,
-//             "-t 10 -N 0 -r 6 -e fuzz --run_time 0 -F 1048576 -t 10 -N 500 -Q -v --exit_upon_crash -n 15 --verifier -W random_dir --crashdir random_dir5 --run_time 666"
-//         );
-//     }
-//     #[test]
-//     fn test_obtain_env_variables() {
-//         let config = Config {
-//             honggfuzz: HonggFuzz::default(),
-//             afl: Afl::default(),
-
-//             fuzz: Fuzz::default(),
-//         };
-
-//         let cargo_target_dir = config.get_env_arg(&EnvVariable::CargoTargetDir);
-
-//         assert_eq!(cargo_target_dir, CARGO_TARGET_DIR_DEFAULT_HFUZZ);
-//         let hfuzz_workspace = config.get_env_arg(&EnvVariable::HfuzzWorkspace);
-//         assert_eq!(hfuzz_workspace, HFUZZ_WORKSPACE_DEFAULT_HFUZZ);
-//     }
-//     #[test]
-//     fn test_obtain_env_variables2() {
-//         let mut config = Config {
-//             honggfuzz: HonggFuzz::default(),
-//             afl: Afl::default(),
-
-//             fuzz: Fuzz::default(),
-//         };
-
-//         config
-//             .honggfuzz
-//             .env_variables
-//             .insert(EnvVariable::CargoTargetDir, "new_value_x".to_owned());
-
-//         config
-//             .honggfuzz
-//             .env_variables
-//             .insert(EnvVariable::HfuzzWorkspace, "new_value_y".to_owned());
-
-//         let cargo_target_dir = config.get_env_arg(&EnvVariable::CargoTargetDir);
-
-//         assert_eq!(cargo_target_dir, "new_value_x");
-//         let hfuzz_workspace = config.get_env_arg(&EnvVariable::HfuzzWorkspace);
-//         assert_eq!(hfuzz_workspace, "new_value_y");
-//     }
-// }
+    Ok(root.join(path))
+}

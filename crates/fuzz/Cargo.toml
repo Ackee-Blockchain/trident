@@ -8,17 +8,31 @@ readme = "../../README.md"
 description = "The trident_fuzz crate helps you to write Rust Fuzz Tests for your programs with Trident."
 
 [dependencies]
+trident-derive-displayix = { path = "../fuzz/derive/display_ix", version = "0.0.4" }
+trident-derive-fuzz-test-executor = { path = "../fuzz/derive/fuzz_test_executor", version = "0.0.4" }
+
 # SOLANA
 solana-sdk = { workspace = true }
-solana-banks-client = { workspace = true }
-solana-stake-program = { workspace = true }
-solana-vote-program = { workspace = true }
-solana-program-runtime = { workspace = true }
-solana-program-test = { workspace = true }
 spl-token = { workspace = true }
+solana-program-runtime = { workspace = true }
+solana-system-program = { workspace = true }
+solana-compute-budget = { workspace = true }
+solana-svm = { workspace = true }
+solana-bpf-loader-program = { workspace = true }
+solana-vote-program = { workspace = true }
+solana-stake-program = { workspace = true }
+solana-config-program = { workspace = true }
+solana-compute-budget-program = { workspace = true }
+solana-address-lookup-table-program = { workspace = true }
+solana-loader-v4-program = { workspace = true }
+solana-logger = { workspace = true }
 
-# ANCHOR
-anchor-lang = { workspace = true, features = ["init-if-needed"] }
+
+# HONGGFUZZ
+honggfuzz = { workspace = true }
+
+#AFL
+afl = { workspace = true }
 
 # ARBITRARY
 arbitrary = { workspace = true }
@@ -33,3 +47,7 @@ anyhow = "1"
 fehler = "1"
 toml = { version = "0.8", features = ["preserve_order"] }
 rand = "0.8"
+log = "*"
+bincode = "1.3"
+byteorder = "1.5.0"
+base64 = "0.22.1"
