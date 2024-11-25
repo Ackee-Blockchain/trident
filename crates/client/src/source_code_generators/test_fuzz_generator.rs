@@ -63,7 +63,7 @@ fn get_program_names(idl_instructions: &[Idl]) -> Vec<syn::Stmt> {
         .iter()
         .map(|idl| {
             let program_name = &idl.metadata.name;
-            let program_name_upper = &idl.metadata.name;
+            let program_name_upper = program_name.to_uppercase();
             let program_name_ident = format_ident!("PROGRAM_NAME_{}", program_name_upper);
 
             parse_quote!(const #program_name_ident: &str = #program_name;)
@@ -76,7 +76,7 @@ fn get_program_imports(idl_instructions: &[Idl]) -> Vec<syn::ItemUse> {
         .iter()
         .flat_map(|idl| {
             let program_name = &idl.metadata.name;
-            let program_name_upper = &idl.metadata.name;
+            let program_name_upper = program_name.to_uppercase();
             let program_name_ident = format_ident!("{}", program_name);
             let program_entry_ident = format_ident!("entry_{}", program_name);
             let program_id_name_ident = format_ident!("PROGRAM_ID_{}", program_name_upper);
@@ -98,7 +98,7 @@ fn get_fuzzing_programs(idl_instructions: &[Idl]) -> (Vec<syn::Stmt>, syn::ExprA
         .iter()
         .map(|idl| {
             let program_name = &idl.metadata.name;
-            let program_name_upper = &idl.metadata.name;
+            let program_name_upper = program_name.to_uppercase();
             let fuzzing_program_name_ident = format_ident!("fuzzing_program_{}", program_name);
             let program_id_name_ident = format_ident!("PROGRAM_ID_{}", program_name_upper);
             let program_name_ident = format_ident!("PROGRAM_NAME_{}", program_name_upper);
