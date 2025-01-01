@@ -1,6 +1,7 @@
-use crate::___private::AnchorVersion;
+use crate::___private::test_fuzz_generator;
 use crate::commander::{Commander, Error as CommanderError};
 use crate::constants::*;
+use crate::source_code_generators::fuzz_instructions_generator;
 use crate::versions_config::TridentVersionsConfig;
 use crate::{construct_path, load_template, utils::*};
 use cargo_metadata::Package;
@@ -12,6 +13,7 @@ use std::{
     path::{Path, PathBuf},
 };
 use thiserror::Error;
+use trident_idl_spec::Idl;
 
 #[derive(Error, Debug)]
 pub enum Error {
@@ -38,7 +40,7 @@ pub enum Error {
 pub struct TestGenerator {
     pub root: PathBuf,
     pub program_packages: Vec<Package>,
-    pub anchor_idls: AnchorVersion,
+    pub anchor_idls: Vec<Idl>,
     pub test_fuzz: String,
     pub fuzz_instructions: String,
     pub versions_config: TridentVersionsConfig,
@@ -52,7 +54,7 @@ impl TestGenerator {
         Self {
             root: Path::new(&root).to_path_buf(),
             program_packages: Vec::default(),
-            anchor_idls: AnchorVersion::default(),
+            anchor_idls: Vec::default(),
             fuzz_instructions: String::default(),
             test_fuzz: String::default(),
             versions_config,
@@ -79,6 +81,8 @@ impl TestGenerator {
         self.load_programs_idl()?;
         self.generate_source_codes().await?;
         self.add_new_fuzz_test().await?;
+
+        // update_package_metadata(&self.program_packages, &self.versions_config).await?;
     }
 
     #[throws]
@@ -89,8 +93,9 @@ impl TestGenerator {
 
     #[throws]
     async fn generate_source_codes(&mut self) {
-        let test_fuzz = self.anchor_idls.test_fuzz_generator();
-        let fuzz_instructions = self.anchor_idls.fuzz_instructions_generator();
+        let test_fuzz = test_fuzz_generator::generate_source_code(&self.anchor_idls);
+        let fuzz_instructions =
+            fuzz_instructions_generator::generate_source_code(&self.anchor_idls);
 
         self.test_fuzz = Commander::format_program_code_nightly(&test_fuzz).await?;
         self.fuzz_instructions = Commander::format_program_code_nightly(&fuzz_instructions).await?;
@@ -101,8 +106,7 @@ impl TestGenerator {
         let target_path = construct_path!(self.root, "target/idl/");
 
         // TODO consider optionally excluding packages
-        self.anchor_idls =
-            crate::anchor_idl::load_idls(target_path, &self.program_packages).unwrap();
+        self.anchor_idls = crate::idl_loader::load_idls(target_path).unwrap();
     }
 
     #[throws]
@@ -138,7 +142,7 @@ impl TestGenerator {
         )
         .await?;
 
-        add_workspace_member(&self.root, TESTS_WORKSPACE_DIRECTORY).await?;
+        // add_workspace_member(&self.root, &format!("{TESTS_WORKSPACE_DIRECTORY}",)).await?;
     }
     #[throws]
     pub async fn initialize_new_fuzz_test(&self) {
@@ -176,6 +180,10 @@ impl TestGenerator {
         )
         .await?;
 
-        add_workspace_member(&self.root, TESTS_WORKSPACE_DIRECTORY).await?;
+        // add_workspace_member(
+        //     &self.root,
+        //     &format!("{TESTS_WORKSPACE_DIRECTORY}/{FUZZ_TEST_DIRECTORY}",),
+        // )
+        // .await?;
     }
 }

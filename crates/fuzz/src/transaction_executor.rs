@@ -3,13 +3,14 @@ use std::cell::RefCell;
 use solana_sdk::instruction::Instruction;
 
 use crate::{
-    config::Config,
     error::{FuzzClientErrorWithOrigin, Origin},
     fuzz_client::FuzzClient,
     fuzz_stats::FuzzingStatistics,
     ix_ops::IxOps,
     snapshot::Snapshot,
 };
+
+use trident_config::Config;
 
 pub struct TransactionExecutor;
 
@@ -52,7 +53,7 @@ impl TransactionExecutor {
             stats_logger.increase_invoked(instruction_name.to_owned());
 
             let tx_result = client
-                .process_instruction(ixx)
+                .process_instructions(&[ixx])
                 .map_err(|e| e.with_origin(Origin::Instruction(instruction_name.to_owned())));
             match tx_result {
                 Ok(_) => {
@@ -81,7 +82,7 @@ impl TransactionExecutor {
             }
         } else {
             let tx_result = client
-                .process_instruction(ixx)
+                .process_instructions(&[ixx])
                 .map_err(|e| e.with_origin(Origin::Instruction(instruction_name.to_owned())));
             match tx_result {
                 Ok(_) => {

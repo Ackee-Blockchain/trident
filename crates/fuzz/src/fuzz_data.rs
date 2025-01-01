@@ -6,9 +6,9 @@ use std::cell::RefCell;
 use std::error::Error;
 use std::fmt::Display;
 
-use crate::config::Config;
 use crate::fuzz_client::FuzzClient;
 use crate::fuzz_test_executor::FuzzTestExecutor;
+use trident_config::Config;
 
 pub struct FuzzData<T, U> {
     pub pre_ixs: Vec<T>,
@@ -73,14 +73,16 @@ where
         }
 
         for fuzz_ix in &mut self.iter() {
-            #[cfg(feature = "fuzzing_debug")]
-            eprintln!("\x1b[34mCurrently processing\x1b[0m: {}", fuzz_ix);
+            // #[cfg(feature = "fuzzing_debug")]
+            println!("\x1b[34mCurrently processing\x1b[0m: {}", fuzz_ix);
 
             if fuzz_ix.run_fuzzer(&self.accounts, client, config).is_err() {
                 // for now skip following instructions in case of error and move to the next fuzz iteration
+                client.clear_accounts();
                 return Ok(());
             }
         }
+        client.clear_accounts();
         Ok(())
     }
 }

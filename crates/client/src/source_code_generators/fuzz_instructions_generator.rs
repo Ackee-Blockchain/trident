@@ -1,14 +1,15 @@
 use std::collections::{hash_map::Entry, HashMap};
 
-use anchor_lang_idl_spec::{Idl, IdlInstructionAccount, IdlPda};
 use quote::{quote, ToTokens};
+
+use trident_idl_spec::{Idl, IdlInstructionAccount, IdlInstructionAccountItem, IdlPda};
 
 use super::{
     get_fuzz_accounts, get_instruction_inputs, get_instruction_ixops, get_instruction_variants,
     get_types,
 };
 
-pub(crate) enum ProgramAccount {
+pub(crate) enum InstructionAccount {
     // writable | signer
     Keypair(bool, bool),
     // writable | signer (PDA cannot be signer, but keep it simple)
@@ -28,13 +29,14 @@ pub fn generate_source_code(idls: &[Idl]) -> String {
 
     // Iterate over each IDL to generate various parts of the code
     for idl in idls {
+        let instruction_accounts = get_ix_accounts(idl);
         let program_accounts = get_program_accounts(idl);
 
         all_instructions.extend(get_instruction_variants(idl));
         all_instruction_inputs.extend(get_instruction_inputs(idl));
-        all_instructions_ixops_impls.extend(get_instruction_ixops(idl, &program_accounts));
-        all_fuzz_accounts.extend(get_fuzz_accounts(idl, &program_accounts));
-        all_types.extend(get_types(idl));
+        all_instructions_ixops_impls.extend(get_instruction_ixops(idl, &instruction_accounts));
+        all_fuzz_accounts.extend(get_fuzz_accounts(idl, &instruction_accounts));
+        all_types.extend(get_types(idl, program_accounts));
     }
 
     // Define the Rust module with all generated code
@@ -67,21 +69,17 @@ pub fn generate_source_code(idls: &[Idl]) -> String {
     module_definition.into_token_stream().to_string()
 }
 
-fn get_program_accounts(idl: &Idl) -> HashMap<String, Option<ProgramAccount>> {
+fn get_ix_accounts(idl: &Idl) -> HashMap<String, Option<InstructionAccount>> {
     idl.instructions.iter().fold(
-        HashMap::<String, Option<ProgramAccount>>::new(),
+        HashMap::<String, Option<InstructionAccount>>::new(),
         |mut program_accounts, instruction| {
             for account in &instruction.accounts {
                 match account {
-                    anchor_lang_idl_spec::IdlInstructionAccountItem::Composite(
-                        idl_instruction_accounts,
-                    ) => panic!(
+                    IdlInstructionAccountItem::Composite(idl_instruction_accounts) => panic!(
                         "Composite accounts not supported. Composite account with name {} found",
                         idl_instruction_accounts.name
                     ),
-                    anchor_lang_idl_spec::IdlInstructionAccountItem::Single(
-                        idl_instruction_account,
-                    ) => {
+                    IdlInstructionAccountItem::Single(idl_instruction_account) => {
                         let account_name = &idl_instruction_account.name;
                         let program_account = decide_program_account_type(idl_instruction_account);
 
@@ -105,25 +103,34 @@ fn get_program_accounts(idl: &Idl) -> HashMap<String, Option<ProgramAccount>> {
 
 fn decide_program_account_type(
     idl_instruction_account: &IdlInstructionAccount,
-) -> Option<ProgramAccount> {
+) -> Option<InstructionAccount> {
     if let Some(address) = &idl_instruction_account.address {
-        Some(ProgramAccount::Constant(
+        Some(InstructionAccount::Constant(
             address.to_string(),
             idl_instruction_account.writable,
             idl_instruction_account.signer,
         ))
     } else if idl_instruction_account.signer {
-        Some(ProgramAccount::Keypair(
+        Some(InstructionAccount::Keypair(
             idl_instruction_account.writable,
             idl_instruction_account.signer,
         ))
     } else {
         idl_instruction_account.pda.as_ref().map(|idl_pda| {
-            ProgramAccount::Pda(
+            InstructionAccount::Pda(
                 idl_pda.clone(),
                 idl_instruction_account.writable,
                 idl_instruction_account.signer,
             )
         })
     }
+}
+
+fn get_program_accounts(idl: &Idl) -> HashMap<String, Vec<u8>> {
+    idl.accounts
+        .iter()
+        .fold(HashMap::new(), |mut program_accounts, account| {
+            program_accounts.insert(account.name.clone(), account.discriminator.clone());
+            program_accounts
+        })
 }

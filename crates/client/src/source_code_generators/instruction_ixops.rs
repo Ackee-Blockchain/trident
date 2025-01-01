@@ -1,16 +1,19 @@
 use std::collections::HashMap;
 
-use anchor_lang_idl_spec::{Idl, IdlInstruction, IdlInstructionAccount, IdlInstructionAccountItem};
 use convert_case::{Case, Casing};
 use quote::format_ident;
 use syn::parse_quote;
 
-use super::fuzz_instructions_generator::ProgramAccount;
+use trident_idl_spec::{
+    Idl, IdlInstruction, IdlInstructionAccount, IdlInstructionAccountItem, IdlType,
+};
+
+use super::fuzz_instructions_generator::InstructionAccount;
 
 // Generate implementation of IxOps trait for each instruction
 pub(crate) fn get_instruction_ixops(
     idl: &Idl,
-    program_accounts: &HashMap<String, Option<ProgramAccount>>,
+    program_accounts: &HashMap<String, Option<InstructionAccount>>,
 ) -> Vec<syn::ItemImpl> {
     // let module_name: syn::Ident = parse_str(&idl.metadata.name).unwrap();
     let program_name = &idl.metadata.name;
@@ -92,7 +95,7 @@ pub(crate) fn get_instruction_ixops(
 
 fn get_accounts(
     instruction: &IdlInstruction,
-    program_accounts: &HashMap<String, Option<ProgramAccount>>,
+    program_accounts: &HashMap<String, Option<InstructionAccount>>,
     program_name: &str,
 ) -> Vec<syn::Block> {
     let mut account_implementations = vec![];
@@ -115,7 +118,7 @@ fn get_accounts(
 
 fn get_data(
     instruction: &IdlInstruction,
-    _program_accounts: &HashMap<String, Option<ProgramAccount>>,
+    _program_accounts: &HashMap<String, Option<InstructionAccount>>,
     _program_name: &str,
 ) -> Vec<syn::Block> {
     let mut args_implementations = vec![];
@@ -124,7 +127,7 @@ fn get_data(
         let arg_name = &arg.name;
         let ident_short = format_ident!("{}", arg_name);
         match arg.ty {
-            anchor_lang_idl_spec::IdlType::Pubkey => {
+            IdlType::Pubkey => {
                 let pubkey_arg = parse_quote!({
                     let #ident_short: Pubkey = todo!();
                     args.extend(borsh::to_vec(&#ident_short).unwrap());
@@ -145,7 +148,7 @@ fn get_data(
 
 fn process_single_account(
     single: &IdlInstructionAccount,
-    program_accounts: &HashMap<String, Option<ProgramAccount>>,
+    program_accounts: &HashMap<String, Option<InstructionAccount>>,
     program_name: &str,
 ) -> syn::Block {
     let account_name = &single.name;
@@ -156,15 +159,15 @@ fn process_single_account(
 
     match program_account {
         Some(account_type) => match account_type {
-            ProgramAccount::Keypair(writable, signer) => {
+            InstructionAccount::Keypair(writable, signer) => {
                 handle_keypair_account(&ident_short, &ident_long, *writable, *signer)
             }
 
-            ProgramAccount::Pda(_idl_pda, writable, _signer) => {
+            InstructionAccount::Pda(_idl_pda, writable, _signer) => {
                 handle_pda_account(&ident_short, &ident_long, *writable)
             }
 
-            ProgramAccount::Constant(address, writable, signer) => {
+            InstructionAccount::Constant(address, writable, signer) => {
                 handle_constant_account(address, *writable, *signer)
             }
         },

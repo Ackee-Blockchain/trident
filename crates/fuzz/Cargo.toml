@@ -10,34 +10,28 @@ description = "The trident_fuzz crate helps you to write Rust Fuzz Tests for you
 [dependencies]
 trident-derive-displayix = { path = "../fuzz/derive/display_ix", version = "0.0.4" }
 trident-derive-fuzz-test-executor = { path = "../fuzz/derive/fuzz_test_executor", version = "0.0.4" }
+trident-config = { path = "../config", version = "0.0.1" }
 
-# SOLANA
+trident-svm = { git = "https://github.com/Ackee-Blockchain/trident-svm", version = "0.1.0" }
+
+
+# Solana
 solana-sdk = { workspace = true }
 spl-token = { workspace = true }
-solana-program-runtime = { workspace = true }
-solana-system-program = { workspace = true }
-solana-compute-budget = { workspace = true }
 solana-svm = { workspace = true }
-solana-bpf-loader-program = { workspace = true }
 solana-vote-program = { workspace = true }
 solana-stake-program = { workspace = true }
-solana-config-program = { workspace = true }
-solana-compute-budget-program = { workspace = true }
-solana-address-lookup-table-program = { workspace = true }
-solana-loader-v4-program = { workspace = true }
-solana-logger = { workspace = true }
 
-
-# HONGGFUZZ
+# Honggfuzz
 honggfuzz = { workspace = true }
 
-#AFL
+# Afl
 afl = { workspace = true }
 
-# ARBITRARY
+# Arbitrary
 arbitrary = { workspace = true }
 
-# MISC
+# Misc
 thiserror = "1"
 prettytable = "0.10"
 serde = { version = "1", default-features = false }

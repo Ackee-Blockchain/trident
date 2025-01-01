@@ -4,8 +4,9 @@ use std::io::{Read, Write};
 use std::process::Stdio;
 use std::{fs::File, path::Path};
 use tokio::{io::AsyncWriteExt, process::Command};
-use trident_fuzz::config::afl::AflSeed;
-use trident_fuzz::config::Config;
+
+use trident_config::afl::AflSeed;
+use trident_config::Config;
 
 use super::{Commander, Error};
 
