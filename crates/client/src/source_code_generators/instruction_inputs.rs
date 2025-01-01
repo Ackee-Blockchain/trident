@@ -2,13 +2,12 @@ use convert_case::{Case, Casing};
 use quote::format_ident;
 use syn::parse_quote;
 
-use super::{
-    idl_type_to_syn_type,
-    types::{Idl, IdlInstruction},
-};
+use trident_idl_spec::{idl_type_to_syn_type, Idl, IdlInstruction, IdlInstructionAccountItem};
 
 // Generate input structures for each instruction
 pub(crate) fn get_instruction_inputs(idl: &Idl) -> Vec<syn::ItemStruct> {
+    let _program_name = idl.metadata.name.to_case(Case::UpperCamel);
+
     idl.instructions
         .iter()
         .fold(Vec::new(), |mut instructions_data, instruction| {
@@ -63,14 +62,16 @@ fn get_instruction_accounts(instruction: &IdlInstruction) -> Vec<syn::FnArg> {
     instruction.accounts.iter().fold(
         Vec::new(),
         |mut account_parameters, account| match account {
-            super::types::IdlAccountItem::IdlAccount(idl_account) => {
-                let name = format_ident!("{}", idl_account.name);
-                let account: syn::FnArg = parse_quote!(#name: AccountId);
-                account_parameters.push(account);
-                account_parameters
-            }
-            super::types::IdlAccountItem::IdlAccounts(_idl_accounts) => {
+            IdlInstructionAccountItem::Composite(_composite) => {
                 panic!("Composite Accounts are not supported yet!")
+            }
+            IdlInstructionAccountItem::Single(single) => {
+                if single.address.is_none() {
+                    let name = format_ident!("{}", single.name);
+                    let account: syn::FnArg = parse_quote!(#name: AccountId);
+                    account_parameters.push(account);
+                }
+                account_parameters
             }
         },
     )
@@ -82,7 +83,7 @@ fn get_instruction_arguments(instruction: &IdlInstruction) -> Vec<syn::FnArg> {
         .iter()
         .fold(Vec::new(), |mut data_parameters, arg| {
             let arg_name = format_ident!("{}", arg.name);
-            let (arg_type, _is_custom) = idl_type_to_syn_type(&arg.ty, 0);
+            let (arg_type, _is_custom) = idl_type_to_syn_type(&arg.ty, 0, true);
             let parameter: syn::FnArg = parse_quote!(#arg_name: #arg_type);
             data_parameters.push(parameter);
             data_parameters

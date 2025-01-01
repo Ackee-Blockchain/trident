@@ -2,9 +2,9 @@
 
 use std::cell::RefCell;
 
-use crate::config::Config;
 use crate::error::FuzzClientErrorWithOrigin;
 use crate::fuzz_client::FuzzClient;
+use trident_config::Config;
 
 pub trait FuzzTestExecutor<T> {
     fn run_fuzzer(

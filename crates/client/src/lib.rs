@@ -3,7 +3,7 @@
 //!
 //! Trident could be useful for writing Rust dApps, too.
 
-mod anchor_idl;
+mod idl_loader;
 mod cleaner;
 mod commander;
 mod source_code_generators;
@@ -12,7 +12,7 @@ mod utils;
 mod versions_config;
 
 pub mod ___private {
-    pub use super::anchor_idl::*;
+    pub use super::idl_loader::*;
     pub use super::cleaner::*;
     pub use super::commander::Commander;
     pub use super::commander::Error;

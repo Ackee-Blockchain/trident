@@ -1,5 +1,5 @@
 [workspace]
-members = ["programs/*", "trident-tests"]
+members = ["programs/*"]
 
 [profile.release]
 overflow-checks = true

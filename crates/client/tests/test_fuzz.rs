@@ -3,10 +3,10 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use anchor_lang_idl_spec::Idl;
 use anyhow::Error;
 use fehler::throws;
 use pretty_assertions::assert_str_eq;
+use trident_idl_spec::Idl;
 
 #[throws]
 #[tokio::test]

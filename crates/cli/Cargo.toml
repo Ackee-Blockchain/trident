@@ -8,10 +8,11 @@ readme = "../../README.md"
 description = "Trident is Rust based testing framework providing several convenient developer tools for testing Solana programs written in Anchor."
 
 [dependencies]
-# TRIDENT
+
+# Trident
 trident-client = { path = "../client", version = "0.8.1" }
 
-# MISC
+# Misc
 clap = { version = "4", features = ["derive"] }
 tokio = { version = "1" }
 anyhow = { version = "1" }

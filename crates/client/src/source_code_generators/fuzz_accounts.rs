@@ -1,15 +1,16 @@
-use anchor_lang_idl_spec::{Idl, IdlInstructionAccountItem};
+use trident_idl_spec::{Idl, IdlInstructionAccountItem};
+
 use convert_case::{Case, Casing};
 use quote::format_ident;
 use std::collections::HashMap;
 use syn::parse_quote;
 
-use super::fuzz_instructions_generator::ProgramAccount;
+use super::fuzz_instructions_generator::InstructionAccount;
 
 // Generate accounts for fuzzing
 pub(crate) fn get_fuzz_accounts(
     idl: &Idl,
-    program_accounts: &HashMap<String, Option<ProgramAccount>>,
+    program_accounts: &HashMap<String, Option<InstructionAccount>>,
 ) -> Vec<syn::FnArg> {
     let program_name = idl.metadata.name.to_case(Case::Snake);
 
@@ -33,17 +34,17 @@ pub(crate) fn get_fuzz_accounts(
                                 format_ident!("{}_{}", &single.name, program_name);
                             match program_account {
                                 Some(program_account) => match program_account {
-                                    ProgramAccount::Keypair(_, _) => {
+                                    InstructionAccount::Keypair(_, _) => {
                                         let account =
                                             parse_quote! { #name: AccountsStorage<KeypairStore> };
                                         fuzz_accounts.entry(name).or_insert(account);
                                     }
-                                    ProgramAccount::Pda(_idl_pda, _, _) => {
+                                    InstructionAccount::Pda(_idl_pda, _, _) => {
                                         let account =
                                             parse_quote! { #name: AccountsStorage<PdaStore> };
                                         fuzz_accounts.entry(name).or_insert(account);
                                     }
-                                    ProgramAccount::Constant(_, _, _) => {}
+                                    InstructionAccount::Constant(_, _, _) => {}
                                 },
                                 None => {
                                     let account =

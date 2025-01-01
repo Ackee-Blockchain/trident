@@ -1,7 +1,7 @@
 use serde::Deserialize;
 use std::collections::HashMap;
 
-use crate::config::constants::*;
+use crate::constants::*;
 
 use super::find_full_path;
 

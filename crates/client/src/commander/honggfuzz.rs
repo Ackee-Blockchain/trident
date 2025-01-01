@@ -3,8 +3,9 @@ use std::path::Path;
 use std::process;
 use std::{os::unix::process::CommandExt, process::Stdio};
 use tokio::process::Command;
-use trident_fuzz::config::honggfuzz::EnvVariable;
-use trident_fuzz::config::Config;
+
+use trident_config::honggfuzz::EnvVariable;
+use trident_config::Config;
 
 use crate::constants::*;
 

@@ -55,10 +55,13 @@ impl AccountsStorage<PdaStore> {
                         seeds: (seeds_vec, *program_id),
                     };
                     self.accounts.insert(account_id, pda_store);
-                    client.set_account_custom(
-                        &key,
-                        &AccountSharedData::new(0, 0, &solana_sdk::system_program::ID),
-                    );
+
+                    // this returns default if account does not exists
+                    let account = client.get_account(&key);
+
+                    // so set account to default if it does not exists, or overwrite
+                    // with what is already set.
+                    client.set_account_custom(&key, &account);
                     key
                 } else {
                     Pubkey::new_unique()

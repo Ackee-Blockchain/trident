@@ -1,6 +1,6 @@
-use anchor_lang_idl_spec::Idl;
 use quote::ToTokens;
 use syn::parse_quote;
+use trident_idl_spec::Idl;
 
 pub fn generate_source_code(_idl_instructions: &[Idl]) -> String {
     // let program_imports = get_program_imports(idl_instructions);
@@ -39,7 +39,7 @@ pub fn generate_source_code(_idl_instructions: &[Idl]) -> String {
         }
         fn main() {
             let config = Config::new();
-            let mut client = TridentSVM::new(&[], &config);
+            let mut client = TridentSVM::new_client(&[], &config);
             fuzz_trident ! (fuzz_ix : FuzzInstruction , | fuzz_data : InstructionsSequence | { fuzz_iteration (fuzz_data , & config,&mut client) ; });
         }
     };

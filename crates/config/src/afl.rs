@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::config::constants::*;
+use crate::constants::*;
 use rand::RngCore;
 use serde::Deserialize;
 

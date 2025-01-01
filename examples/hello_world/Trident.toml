@@ -2,7 +2,7 @@
 # Timeout in seconds (default: 10)
 timeout = 10
 # Number of fuzzing iterations (default: 0 [no limit])
-iterations = 1000
+iterations = 10000
 # Number of concurrent fuzzing threads (default: 0 [number of CPUs / 2])
 threads = 0
 # Don't close children's stdin, stdout, stderr; can be noisy (default: false)
@@ -35,8 +35,3 @@ allow_duplicate_txs = false
 # Trident will show statistics after the fuzzing session. This option forces use of honggfuzz parameter
 # `keep_output` as true in order to be able to catch fuzzer stdout. (default: false)
 fuzzing_with_stats = true
-
-
-[[fuzz.programs]]
-address = "FtevoQoDMv6ZB3N9Lix5Tbjs8EVuNL8vDSqG9kzaZPit"
-program = "target/deploy/hello_world.so"

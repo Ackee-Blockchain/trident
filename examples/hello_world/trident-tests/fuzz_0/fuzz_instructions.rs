@@ -24,8 +24,6 @@ pub struct InitializeFnAccounts {
 #[derive(Arbitrary, Debug, BorshDeserialize, BorshSerialize)]
 pub struct InitializeFnData {
     pub input: u8,
-    pub custom: StoreHelloWorld,
-    pub recipient: AccountId,
 }
 ///IxOps implementation for `InitializeFn` with all required functions.
 impl IxOps for InitializeFn {
@@ -49,11 +47,7 @@ impl IxOps for InitializeFn {
     ) -> Result<Vec<u8>, FuzzingError> {
         let mut args: Vec<u8> = self.get_discriminator();
         {
-            args.extend(borsh::to_vec(&self.data.custom).unwrap());
-        }
-        {
-            let recipient: Pubkey = todo!();
-            args.extend(borsh::to_vec(&recipient).unwrap());
+            args.extend(borsh::to_vec(&self.data.input).unwrap());
         }
         Ok(args)
     }
@@ -106,10 +100,7 @@ pub struct FuzzAccounts {
     author_hello_world: AccountsStorage<KeypairStore>,
     hello_world_account_hello_world: AccountsStorage<PdaStore>,
 }
-/// Custom Types defined within the Solana Program
-/// These are important in order to be able to Serialize/Deserialize
-/// all possible instruction inputs.
-#[derive(Arbitrary, Debug, BorshDeserialize, BorshSerialize, Clone)]
+#[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
 pub struct StoreHelloWorld {
     input: u8,
 }

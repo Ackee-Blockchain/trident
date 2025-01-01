@@ -9,13 +9,13 @@ description = "The trident_client crate helps you build and deploy an Anchor pro
 
 
 [dependencies]
-# TRIDENT
+
+# Trident
 trident-fuzz = { path = "../fuzz", version = "0.2.1" }
+trident-idl-spec = { git = "https://github.com/Ackee-Blockchain/trident-idl-spec", version = "0.0.1" }
+trident-config = { path = "../config", version = "0.0.1" }
 
-# ANCHOR
-anchor-lang-idl-spec = { workspace = true }
-
-# MISC
+# Misc
 tokio = { version = "1", features = ["full"] }
 serde_json = "1"
 serde = { version = "1", default-features = false }
@@ -28,6 +28,7 @@ syn = { version = "2", features = ["visit", "full"] }
 quote = "1"
 toml = { version = "0.8", features = ["preserve_order"] }
 convert_case = "0.6"
+pathdiff = "0.2"
 
 
 [dev-dependencies]

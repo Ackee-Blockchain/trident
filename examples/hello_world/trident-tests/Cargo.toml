@@ -2,13 +2,7 @@
 name = "fuzz_0"
 path = "fuzz_0/test_fuzz.rs"
 
-[[bin]]
-name = "fuzz_1"
-path = "fuzz_1/test_fuzz.rs"
-
-[[bin]]
-name = "fuzz_2"
-path = "fuzz_2/test_fuzz.rs"
+[workspace]
 
 [package]
 name = "fuzz_tests"
@@ -19,6 +13,13 @@ edition = "2021"
 [dependencies]
 arbitrary = "1.3.0"
 borsh = "1.5.3"
+solana-sdk = "~2.0"
 
 [dependencies.trident-fuzz]
-path = "../../../../crates/fuzz"
+path = "../../../crates/fuzz"
+
+[dependencies.hello_world]
+path = "../programs/hello_world"
+
+[dependencies.trident-syscall-stubs-v1]
+git = "https://github.com/Ackee-Blockchain/trident-syscall-stubs-v1"

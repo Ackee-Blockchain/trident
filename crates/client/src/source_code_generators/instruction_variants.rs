@@ -1,6 +1,6 @@
-use anchor_lang_idl_spec::Idl;
 use convert_case::{Case, Casing};
 use syn::{parse_quote, parse_str};
+use trident_idl_spec::Idl;
 
 // Generate instruction variants for the enum
 pub(crate) fn get_instruction_variants(idl: &Idl) -> Vec<syn::Variant> {
