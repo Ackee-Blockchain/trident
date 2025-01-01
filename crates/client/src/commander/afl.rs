@@ -9,6 +9,7 @@ use trident_config::afl::AflSeed;
 use trident_config::Config;
 
 use super::{Commander, Error};
+use rand::RngCore;
 
 impl Commander {
     /// Runs fuzzer on the given target.
@@ -30,11 +31,11 @@ impl Commander {
             std::fs::create_dir_all(afl_workspace_in_path)?;
 
             for x in initial_seeds {
-                create_seed_file(afl_workspace_in_path, x)?;
+                create_seed_file(afl_workspace_in_path, &x)?;
             }
         } else if afl_workspace_in_path.is_dir() {
             for x in initial_seeds {
-                create_seed_file(afl_workspace_in_path, x)?;
+                create_seed_file(afl_workspace_in_path, &x)?;
             }
         } else {
             throw!(Error::BadAFLWorkspace)
@@ -111,17 +112,52 @@ impl Commander {
 }
 
 fn create_seed_file(path: &Path, seed: &AflSeed) -> std::io::Result<()> {
+    let (bytes, override_file) = obtain_seed(seed);
+
     let file_path = path.join(&seed.file_name);
 
     if file_path.exists() {
-        if seed.override_file {
+        if override_file {
             let mut file = File::create(file_path)?;
-            file.write_all(&seed.seed)?;
+            file.write_all(&bytes)?;
         }
     } else {
         let mut file = File::create(file_path)?;
-        file.write_all(&seed.seed)?;
+        file.write_all(&bytes)?;
     }
 
     Ok(())
+}
+
+fn obtain_seed(value: &AflSeed) -> (Vec<u8>, bool) {
+    match value.bytes_count {
+        Some(number_of_random_bytes) => {
+            if number_of_random_bytes > 0 {
+                let mut rng = rand::rngs::OsRng;
+                let mut seed = vec![0u8; number_of_random_bytes];
+                rng.fill_bytes(&mut seed);
+                (seed, value.override_file.unwrap_or_default())
+            } else {
+                let seed_as_bytes = value
+                    .seed
+                    .clone()
+                    .unwrap_or_else(|| panic!("Seed value is empty for seed {}", value.file_name));
+
+                (
+                    seed_as_bytes.as_bytes().to_vec(),
+                    value.override_file.unwrap_or_default(),
+                )
+            }
+        }
+        None => {
+            let seed_as_bytes = value
+                .seed
+                .clone()
+                .unwrap_or_else(|| panic!("Seed value is empty for seed {}", value.file_name));
+            (
+                seed_as_bytes.as_bytes().to_vec(),
+                value.override_file.unwrap_or_default(),
+            )
+        }
+    }
 }

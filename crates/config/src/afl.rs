@@ -1,276 +1,138 @@
-use std::collections::HashMap;
-
-use crate::constants::*;
-use rand::RngCore;
+use crate::{
+    argument::Argument,
+    constants::*,
+    utils::{arg_to_string_afl, resolve_path},
+};
 use serde::Deserialize;
-
-use super::find_full_path;
-
-#[derive(Debug, Deserialize, Clone, Hash, PartialEq, Eq)]
-pub enum BuildArgument {
-    CargoTargetDir,
-}
-
-#[derive(Debug, Deserialize, Clone, Hash, PartialEq, Eq)]
-pub enum FuzzArgument {
-    AflWorkspaceIn,
-    AflWorkspaceOut,
-    Execs,
-    Seconds,
-}
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct Afl {
-    pub build_args: HashMap<BuildArgument, AflArg>,
-    pub fuzz_args: HashMap<FuzzArgument, AflArg>,
-    pub seeds: Vec<AflSeed>,
+    // cargo_target_dir
+    // --target-dir
+    pub cargo_target_dir: Option<String>,
+    // afl_workspace_in
+    // -i
+    pub afl_workspace_in: Option<String>,
+    // afl_workspace_out
+    // -o
+    pub afl_workspace_out: Option<String>,
+    // execs
+    // -E
+    pub iterations: Option<u64>,
+    // seconds
+    // -V
+    pub timeout: Option<u64>,
+    // seeds
+    // -s
+    pub seeds: Option<Vec<AflSeed>>,
 }
 
 impl Afl {
-    pub fn get_cargo_build_dir(&self) -> Option<&AflArg> {
-        self.build_args.get(&BuildArgument::CargoTargetDir)
-    }
-    pub fn get_workspace_in(&self) -> Option<&AflArg> {
-        self.fuzz_args.get(&FuzzArgument::AflWorkspaceIn)
-    }
-    pub fn get_workspace_out(&self) -> Option<&AflArg> {
-        self.fuzz_args.get(&FuzzArgument::AflWorkspaceOut)
-    }
-    pub fn get_execs(&self) -> Option<&AflArg> {
-        self.fuzz_args.get(&FuzzArgument::Execs)
-    }
-    pub fn get_seconds(&self) -> Option<&AflArg> {
-        self.fuzz_args.get(&FuzzArgument::Seconds)
-    }
-    pub fn get_collect_build_args(&self) -> Vec<String> {
-        self.build_args
-            .values()
-            .flat_map(|arg| {
-                let val = arg.val.clone().unwrap_or_default();
-                if let Some(opt) = &arg.short_opt {
-                    vec![opt.clone(), val]
-                } else if let Some(opt) = &arg.long_opt {
-                    vec![opt.clone(), val]
-                } else {
-                    vec![]
-                }
-            })
-            .collect()
-    }
-    pub fn get_collect_fuzz_args(&self) -> Vec<String> {
-        self.fuzz_args
-            .values()
-            .flat_map(|arg| {
-                let val = arg.val.clone().unwrap_or_default();
-                if let Some(opt) = &arg.short_opt {
-                    vec![opt.clone(), val]
-                } else if let Some(opt) = &arg.long_opt {
-                    vec![opt.clone(), val]
-                } else {
-                    vec![]
-                }
-            })
-            .collect()
-    }
-}
-
-#[derive(Default, Debug, Deserialize, Clone)]
-pub struct _Afl {
-    #[serde(default)]
-    pub cargo_target_dir: Option<String>,
-    #[serde(default)]
-    pub afl_workspace_in: Option<String>,
-    #[serde(default)]
-    pub afl_workspace_out: Option<String>,
-    #[serde(default)]
-    pub execs: Option<u64>,
-    #[serde(default)]
-    pub seconds: Option<u64>,
-    #[serde(default)]
-    pub seeds: Option<Vec<_AflSeed>>,
-}
-
-impl From<_Afl> for Afl {
-    fn from(_f: _Afl) -> Self {
-        let mut _self = Self {
-            seeds: vec![],
-            fuzz_args: HashMap::new(),
-            build_args: HashMap::new(),
-        };
-
+    pub fn get_cargo_build_dir(&self) -> Option<Argument> {
         // cargo_target_dir
-        let cargo_target_dir = _f
-            .cargo_target_dir
-            .and_then(|value| if value.is_empty() { None } else { Some(value) })
-            .unwrap_or(CARGO_TARGET_DIR_DEFAULT_AFL.to_owned());
-
-        let cargo_target_dir_full_path = find_full_path(&cargo_target_dir)
-            .expect("Failed to obtain full path to the AFL Target Directory");
-
-        _self.build_args.insert(
-            BuildArgument::CargoTargetDir,
-            AflArg::new(
+        if let Some(cargo_target_dir) = &self.cargo_target_dir {
+            let cargo_target_dir_full_path = resolve_path(cargo_target_dir);
+            Some(Argument::new(
                 "",
                 "--target-dir",
-                cargo_target_dir_full_path.to_str().unwrap(),
-            ),
-        );
-
+                Some(cargo_target_dir_full_path.to_str().unwrap()),
+            ))
+        } else {
+            Some(Argument::new(
+                "",
+                "--target-dir",
+                Some(CARGO_TARGET_DIR_DEFAULT_AFL),
+            ))
+        }
+    }
+    pub fn get_workspace_in(&self) -> Option<Argument> {
         // afl_workspace_in
-        let afl_workspace_in = _f
-            .afl_workspace_in
-            .and_then(|value| if value.is_empty() { None } else { Some(value) })
-            .unwrap_or(AFL_WORKSPACE_DEFAULT_IN.to_owned());
-
-        let afl_workspace_in_full_path = find_full_path(&afl_workspace_in)
-            .expect("Failed to obtain full path to the AFL Workspace-In Directory");
-
-        _self.fuzz_args.insert(
-            FuzzArgument::AflWorkspaceIn,
-            AflArg::new("-i", "", afl_workspace_in_full_path.to_str().unwrap()),
-        );
-
+        if let Some(afl_workspace_in) = &self.afl_workspace_in {
+            let afl_workspace_in_full_path = resolve_path(afl_workspace_in);
+            Some(Argument::new(
+                "-i",
+                "",
+                Some(afl_workspace_in_full_path.to_str().unwrap()),
+            ))
+        } else {
+            Some(Argument::new("-i", "", Some(AFL_WORKSPACE_DEFAULT_IN)))
+        }
+    }
+    pub fn get_workspace_out(&self) -> Option<Argument> {
         // afl_workspace_out
-        let afl_workspace_out = _f
-            .afl_workspace_out
-            .and_then(|value| if value.is_empty() { None } else { Some(value) })
-            .unwrap_or(AFL_WORKSPACE_DEFAULT_OUT.to_owned());
-
-        let afl_workspace_out_full_path = find_full_path(&afl_workspace_out)
-            .expect("Failed to obtain full path to the AFL Workspace-Out Directory");
-
-        _self.fuzz_args.insert(
-            FuzzArgument::AflWorkspaceOut,
-            AflArg::new("-o", "", afl_workspace_out_full_path.to_str().unwrap()),
-        );
-
+        if let Some(afl_workspace_out) = &self.afl_workspace_out {
+            let afl_workspace_out_full_path = resolve_path(afl_workspace_out);
+            Some(Argument::new(
+                "-o",
+                "",
+                Some(afl_workspace_out_full_path.to_str().unwrap()),
+            ))
+        } else {
+            Some(Argument::new("-o", "", Some(AFL_WORKSPACE_DEFAULT_OUT)))
+        }
+    }
+    pub fn get_execs(&self) -> Option<Argument> {
         // execs
-        let execs = _f.execs.unwrap_or(0);
-        if execs > 0 {
-            _self.fuzz_args.insert(
-                FuzzArgument::Execs,
-                AflArg::new("-E", "", &execs.to_string()),
-            );
-        }
-
+        self.iterations
+            .as_ref()
+            .map(|iterations| Argument::new("-E", "", Some(&iterations.to_string())))
+    }
+    pub fn get_seconds(&self) -> Option<Argument> {
         // seconds
-        let seconds = _f.seconds.unwrap_or(0);
-        if seconds > 0 {
-            _self.fuzz_args.insert(
-                FuzzArgument::Seconds,
-                AflArg::new("-V", "", &seconds.to_string()),
-            );
-        }
-
-        if let Some(seeds) = _f.seeds {
-            for x in seeds {
-                _self.seeds.push(x.into());
-            }
+        self.timeout
+            .as_ref()
+            .map(|timeout| Argument::new("-V", "", Some(&timeout.to_string())))
+    }
+    pub fn get_seeds(&self) -> Vec<AflSeed> {
+        // seeds
+        if let Some(seeds) = &self.seeds {
+            seeds.clone()
         } else {
-            _self.seeds.push(_AflSeed::default().into());
+            vec![AflSeed::default()]
         }
+    }
+    pub fn get_collect_build_args(&self) -> Vec<String> {
+        let mut result = vec![];
 
-        _self
+        if let Some(cargo_target_dir) = self.get_cargo_build_dir() {
+            result.extend(arg_to_string_afl(&cargo_target_dir));
+        }
+        result
+    }
+    pub fn get_collect_fuzz_args(&self) -> Vec<String> {
+        let mut result = vec![];
+
+        if let Some(afl_workspace_in) = self.get_workspace_in() {
+            result.extend(arg_to_string_afl(&afl_workspace_in));
+        }
+        if let Some(afl_workspace_out) = self.get_workspace_out() {
+            result.extend(arg_to_string_afl(&afl_workspace_out));
+        }
+        if let Some(execs) = self.get_execs() {
+            result.extend(arg_to_string_afl(&execs));
+        }
+        if let Some(seconds) = self.get_seconds() {
+            result.extend(arg_to_string_afl(&seconds));
+        }
+        result
     }
 }
 
 #[derive(Debug, Deserialize, Clone)]
-pub struct AflArg {
-    pub short_opt: Option<String>,
-    pub long_opt: Option<String>,
-    pub val: Option<String>,
-}
-impl AflArg {
-    pub fn new(short_opt: &str, long_opt: &str, val: &str) -> Self {
-        let short_opt = if short_opt.is_empty() {
-            None
-        } else {
-            Some(short_opt.to_owned())
-        };
-        let long_opt = if long_opt.is_empty() {
-            None
-        } else {
-            Some(long_opt.to_owned())
-        };
-        let val = if val.is_empty() {
-            None
-        } else {
-            Some(val.to_owned())
-        };
-        Self {
-            short_opt,
-            long_opt,
-            val,
-        }
-    }
-}
-
-#[derive(Debug, Deserialize, Clone)]
-pub struct _AflSeed {
+pub struct AflSeed {
     pub file_name: String,
     pub seed: Option<String>,
     pub override_file: Option<bool>,
     pub bytes_count: Option<usize>,
 }
 
-#[derive(Debug, Deserialize, Clone)]
-pub struct AflSeed {
-    pub file_name: String,
-    pub seed: Vec<u8>,
-    pub override_file: bool,
-}
-
-impl Default for _AflSeed {
+impl Default for AflSeed {
     fn default() -> Self {
         Self {
             file_name: DEFAULT_SEED_FILENAME.to_string(),
             seed: Some(DEFAULT_SEED.to_string()),
             override_file: Some(false),
             bytes_count: None,
-        }
-    }
-}
-
-impl From<_AflSeed> for AflSeed {
-    fn from(value: _AflSeed) -> Self {
-        match value.bytes_count {
-            Some(number_of_random_bytes) => {
-                if number_of_random_bytes > 0 {
-                    let mut rng = rand::rngs::OsRng;
-                    let mut seed = vec![0u8; number_of_random_bytes];
-                    rng.fill_bytes(&mut seed);
-                    Self {
-                        file_name: value.file_name,
-                        seed,
-                        override_file: value.override_file.unwrap_or_default(),
-                    }
-                } else {
-                    let seed_as_bytes = value
-                        .seed
-                        .and_then(|value| if value.is_empty() { None } else { Some(value) })
-                        .unwrap_or(DEFAULT_SEED.to_string())
-                        .as_bytes()
-                        .to_vec();
-                    Self {
-                        file_name: value.file_name,
-                        seed: seed_as_bytes,
-                        override_file: value.override_file.unwrap_or_default(),
-                    }
-                }
-            }
-            None => {
-                let seed_as_bytes = value
-                    .seed
-                    .and_then(|value| if value.is_empty() { None } else { Some(value) })
-                    .unwrap_or(DEFAULT_SEED.to_string())
-                    .as_bytes()
-                    .to_vec();
-                Self {
-                    file_name: value.file_name,
-                    seed: seed_as_bytes,
-                    override_file: value.override_file.unwrap_or_default(),
-                }
-            }
         }
     }
 }
@@ -282,9 +144,12 @@ mod tests {
     impl Afl {
         fn clean() -> Self {
             Self {
-                fuzz_args: HashMap::new(),
-                build_args: HashMap::new(),
-                seeds: vec![],
+                cargo_target_dir: None,
+                afl_workspace_in: None,
+                afl_workspace_out: None,
+                iterations: None,
+                timeout: None,
+                seeds: None,
             }
         }
     }
@@ -293,62 +158,87 @@ mod tests {
     fn test_cargo_target_dir() {
         let mut afl = Afl::clean();
 
-        afl.build_args.insert(
-            BuildArgument::CargoTargetDir,
-            AflArg::new("", "--target-dir", CARGO_TARGET_DIR_DEFAULT_AFL),
-        );
+        let target_dir = "/foo/bar".to_string();
+
+        afl.cargo_target_dir = Some(target_dir);
 
         let arg = afl.get_collect_build_args();
-        assert_eq!(arg, vec!["--target-dir", CARGO_TARGET_DIR_DEFAULT_AFL]);
+        assert_eq!(arg, vec!["--target-dir", "/foo/bar"]);
     }
     #[test]
     fn test_workspace_in() {
         let mut afl = Afl::clean();
 
         // afl_workspace_in
-        afl.fuzz_args.insert(
-            FuzzArgument::AflWorkspaceIn,
-            AflArg::new("-i", "", AFL_WORKSPACE_DEFAULT_IN),
-        );
+        afl.afl_workspace_in = Some("/foo/bar/dead/beef".to_string());
 
         let arg = afl.get_collect_fuzz_args();
-        assert_eq!(arg, vec!["-i", AFL_WORKSPACE_DEFAULT_IN]);
+        assert_eq!(
+            arg,
+            vec![
+                "-i",
+                "/foo/bar/dead/beef",
+                "-o",
+                "trident-tests/fuzzing/afl/afl_workspace/out"
+            ]
+        );
     }
     #[test]
     fn test_workspace_out() {
         let mut afl = Afl::clean();
 
         // afl_workspace_out
-        afl.fuzz_args.insert(
-            FuzzArgument::AflWorkspaceOut,
-            AflArg::new("-o", "", AFL_WORKSPACE_DEFAULT_OUT),
-        );
+        afl.afl_workspace_out = Some("/foo/bar/dead/beef/out".to_string());
 
         let arg = afl.get_collect_fuzz_args();
-        assert_eq!(arg, vec!["-o", AFL_WORKSPACE_DEFAULT_OUT]);
+        assert_eq!(
+            arg,
+            vec![
+                "-i",
+                "trident-tests/fuzzing/afl/afl_workspace/in",
+                "-o",
+                "/foo/bar/dead/beef/out"
+            ]
+        );
     }
     #[test]
     fn test_execs() {
         let mut afl = Afl::clean();
 
         // execs
-        afl.fuzz_args
-            .insert(FuzzArgument::Execs, AflArg::new("-E", "", &555.to_string()));
+        afl.iterations = Some(555);
 
         let arg = afl.get_collect_fuzz_args();
-        assert_eq!(arg, vec!["-E", "555"]);
+        assert_eq!(
+            arg,
+            vec![
+                "-i",
+                "trident-tests/fuzzing/afl/afl_workspace/in",
+                "-o",
+                "trident-tests/fuzzing/afl/afl_workspace/out",
+                "-E",
+                "555"
+            ]
+        );
     }
     #[test]
     fn test_seconds() {
         let mut afl = Afl::clean();
 
         // seconds
-        afl.fuzz_args.insert(
-            FuzzArgument::Seconds,
-            AflArg::new("-V", "", &15.to_string()),
-        );
+        afl.timeout = Some(15);
 
         let arg = afl.get_collect_fuzz_args();
-        assert_eq!(arg, vec!["-V", "15"]);
+        assert_eq!(
+            arg,
+            vec![
+                "-i",
+                "trident-tests/fuzzing/afl/afl_workspace/in",
+                "-o",
+                "trident-tests/fuzzing/afl/afl_workspace/out",
+                "-V",
+                "15"
+            ]
+        );
     }
 }

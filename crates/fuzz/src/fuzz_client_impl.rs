@@ -14,8 +14,7 @@ impl FuzzClient for TridentSVM<'_> {
     fn new_client(programs: &[ProgramEntrypoint], config: &Config) -> Self {
         let sbf_programs =
             config
-                .fuzz
-                .programs
+                .programs()
                 .iter()
                 .fold(Vec::new(), |mut sbf_programs, config_program| {
                     let target = SBFTargets::new(
@@ -28,17 +27,18 @@ impl FuzzClient for TridentSVM<'_> {
                     sbf_programs
                 });
 
-        let permanent_accounts = config.fuzz.accounts.iter().fold(
-            Vec::new(),
-            |mut permanent_accounts, config_account| {
-                let account = TridentAccountSharedData::new(
-                    config_account.pubkey,
-                    config_account.account.clone(),
-                );
-                permanent_accounts.push(account);
-                permanent_accounts
-            },
-        );
+        let permanent_accounts =
+            config
+                .accounts()
+                .iter()
+                .fold(Vec::new(), |mut permanent_accounts, config_account| {
+                    let account = TridentAccountSharedData::new(
+                        config_account.pubkey,
+                        config_account.account.clone(),
+                    );
+                    permanent_accounts.push(account);
+                    permanent_accounts
+                });
 
         TridentSVM::new(programs, &sbf_programs, &permanent_accounts)
     }

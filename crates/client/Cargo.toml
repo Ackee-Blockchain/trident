@@ -29,6 +29,7 @@ quote = "1"
 toml = { version = "0.8", features = ["preserve_order"] }
 convert_case = "0.6"
 pathdiff = "0.2"
+rand = "0.8"
 
 
 [dev-dependencies]
