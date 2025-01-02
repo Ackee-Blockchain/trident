@@ -115,65 +115,61 @@ impl Config {
         full_path.to_str().unwrap().to_string()
     }
     pub fn get_afl_build_args(&self) -> Vec<String> {
-        if let Some(afl) = &self.afl {
-            afl.get_collect_build_args()
-        } else {
-            Vec::default()
-        }
+        self.afl
+            .as_ref()
+            .map(|afl| afl.get_collect_build_args())
+            .unwrap_or_default()
     }
     pub fn get_afl_fuzz_args(&self) -> Vec<String> {
-        if let Some(afl) = &self.afl {
-            afl.get_collect_fuzz_args()
-        } else {
-            Vec::default()
-        }
+        self.afl
+            .as_ref()
+            .map(|afl| afl.get_collect_fuzz_args())
+            .unwrap_or_default()
     }
 
     pub fn get_initial_seed(&self) -> Vec<AflSeed> {
-        if let Some(afl) = &self.afl {
-            afl.get_seeds()
-        } else {
-            // if nothing is provided, use the default seed
-            vec![AflSeed::default()]
-        }
+        self.afl
+            .as_ref()
+            .map(|afl| afl.get_seeds())
+            .unwrap_or_else(|| vec![AflSeed::default()])
     }
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // fuzz
     pub fn get_fuzzing_with_stats(&self) -> bool {
-        if let Some(fuzz) = &self.fuzz {
-            fuzz.get_fuzzing_with_stats()
-        } else {
-            false
-        }
+        self.fuzz
+            .as_ref()
+            .map(|fuzz| fuzz.get_fuzzing_with_stats())
+            .unwrap_or_default()
     }
     pub fn get_allow_duplicate_txs(&self) -> bool {
-        if let Some(fuzz) = &self.fuzz {
-            fuzz.get_allow_duplicate_txs()
-        } else {
-            false
-        }
+        self.fuzz
+            .as_ref()
+            .map(|fuzz| fuzz.get_allow_duplicate_txs())
+            .unwrap_or_default()
     }
 
     pub fn programs(&self) -> Vec<FuzzProgram> {
-        if let Some(fuzz) = &self.fuzz {
-            if let Some(programs) = &fuzz.programs {
-                programs.iter().map(FuzzProgram::from).collect()
-            } else {
-                Vec::default()
-            }
-        } else {
-            Vec::default()
-        }
+        self.fuzz
+            .as_ref()
+            .map(|fuzz| {
+                if let Some(programs) = &fuzz.programs {
+                    programs.iter().map(FuzzProgram::from).collect()
+                } else {
+                    Vec::default()
+                }
+            })
+            .unwrap_or_default()
     }
     pub fn accounts(&self) -> Vec<FuzzAccount> {
-        if let Some(fuzz) = &self.fuzz {
-            if let Some(accounts) = &fuzz.accounts {
-                accounts.iter().map(FuzzAccount::from).collect()
-            } else {
-                Vec::default()
-            }
-        } else {
-            Vec::default()
-        }
+        self.fuzz
+            .as_ref()
+            .map(|fuzz| {
+                if let Some(accounts) = &fuzz.accounts {
+                    accounts.iter().map(FuzzAccount::from).collect()
+                } else {
+                    Vec::default()
+                }
+            })
+            .unwrap_or_default()
     }
 }

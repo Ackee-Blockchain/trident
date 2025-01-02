@@ -267,7 +267,7 @@ mod tests {
         honggfuzz.timeout = Some(timeout);
 
         let arg = honggfuzz.get_collect_fuzz_args();
-        assert_eq!(arg, vec!["-t 10"]);
+        assert_eq!(arg, vec!["-t", "10"]);
     }
     #[test]
     fn test_iterations() {
@@ -278,7 +278,7 @@ mod tests {
         honggfuzz.iterations = Some(iterations);
 
         let arg = honggfuzz.get_collect_fuzz_args();
-        assert_eq!(arg, vec!["-N 1000"]);
+        assert_eq!(arg, vec!["-N", "1000"]);
     }
     #[test]
     fn test_threads() {
@@ -289,7 +289,7 @@ mod tests {
         honggfuzz.threads = Some(threads);
 
         let arg = honggfuzz.get_collect_fuzz_args();
-        assert_eq!(arg, vec!["-n 15"]);
+        assert_eq!(arg, vec!["-n", "15"]);
     }
     #[test]
     fn test_keep_output() {
@@ -299,7 +299,7 @@ mod tests {
         honggfuzz.keep_output = Some(true);
 
         let arg = honggfuzz.get_collect_fuzz_args();
-        assert_eq!(arg, vec!["-Q"]);
+        assert_eq!(arg, vec!["-Q", ""]);
     }
     #[test]
     fn test_verbose() {
@@ -309,7 +309,7 @@ mod tests {
         honggfuzz.verbose = Some(true);
 
         let arg = honggfuzz.get_collect_fuzz_args();
-        assert_eq!(arg, vec!["-v"]);
+        assert_eq!(arg, vec!["-v", ""]);
     }
     #[test]
     fn test_exit_upon_crash() {
@@ -319,7 +319,7 @@ mod tests {
         honggfuzz.exit_upon_crash = Some(true);
 
         let arg = honggfuzz.get_collect_fuzz_args();
-        assert_eq!(arg, vec!["--exit_upon_crash"]);
+        assert_eq!(arg, vec!["--exit_upon_crash", ""]);
     }
     #[test]
     fn test_mutations_per_run() {
@@ -330,7 +330,7 @@ mod tests {
         honggfuzz.mutations_per_run = Some(mutations_per_run);
 
         let arg = honggfuzz.get_collect_fuzz_args();
-        assert_eq!(arg, vec!["-r 33"]);
+        assert_eq!(arg, vec!["-r", "33"]);
     }
     #[test]
     fn test_crashdir() {
@@ -340,7 +340,7 @@ mod tests {
         honggfuzz.crashdir = Some(crash_dir.to_string());
 
         let arg = honggfuzz.get_collect_fuzz_args();
-        assert_eq!(arg, vec!["--crashdir crashdir1"]);
+        assert_eq!(arg, vec!["--crashdir", "crashdir1"]);
     }
     #[test]
     fn test_extension() {
@@ -351,7 +351,7 @@ mod tests {
         honggfuzz.extension = Some(extension.to_string());
 
         let arg = honggfuzz.get_collect_fuzz_args();
-        assert_eq!(arg, vec!["-e sol"]);
+        assert_eq!(arg, vec!["-e", "sol"]);
     }
     #[test]
     fn test_run_time() {
@@ -362,7 +362,7 @@ mod tests {
         honggfuzz.run_time = Some(run_time);
 
         let arg = honggfuzz.get_collect_fuzz_args();
-        assert_eq!(arg, vec!["--run_time 13"]);
+        assert_eq!(arg, vec!["--run_time", "13"]);
     }
     #[test]
     fn test_max_file_size() {
@@ -373,7 +373,7 @@ mod tests {
         honggfuzz.max_file_size = Some(max_file_size);
 
         let arg = honggfuzz.get_collect_fuzz_args();
-        assert_eq!(arg, vec!["-F 500"]);
+        assert_eq!(arg, vec!["-F", "500"]);
     }
     #[test]
     fn test_save_all() {
@@ -383,7 +383,7 @@ mod tests {
         honggfuzz.save_all = Some(true);
 
         let arg = honggfuzz.get_collect_fuzz_args();
-        assert_eq!(arg, vec!["-u"]);
+        assert_eq!(arg, vec!["-u", ""]);
     }
     #[test]
     fn test_cargo_target_dir() {
