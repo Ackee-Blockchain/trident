@@ -17,13 +17,20 @@ impl Commander {
     pub async fn run_afl(&self, target: String) {
         let config = Config::new();
 
+        // build args without cargo target dir
         let build_args = config.get_afl_build_args();
+        // fuzz args without afl workspace in and out
         let fuzz_args = config.get_afl_fuzz_args();
 
-        let mut target_path = config.get_afl_target_path();
-        target_path.push_str(&target);
+        // cargo target directory
+        let cargo_target_dir = config.get_afl_target_dir();
 
+        // afl workspace in and out
         let afl_workspace_in = config.get_afl_workspace_in();
+        let afl_workspace_out = config.get_afl_workspace_out();
+
+        let full_target_path = config.get_afl_target_path(&target);
+
         let afl_workspace_in_path = Path::new(&afl_workspace_in);
         let initial_seeds = config.get_initial_seed();
 
@@ -49,6 +56,7 @@ impl Commander {
             .env("RUSTFLAGS", rustflags)
             .arg("afl")
             .arg("build")
+            .args(["--target-dir", &cargo_target_dir])
             .args(build_args)
             .args(["--bin", &target])
             .spawn()?;
@@ -57,8 +65,10 @@ impl Commander {
         let mut child = Command::new("cargo")
             .arg("afl")
             .arg("fuzz")
+            .args(["-i", &afl_workspace_in])
+            .args(["-o", &afl_workspace_out])
             .args(fuzz_args)
-            .arg(&target_path)
+            .arg(&full_target_path)
             .spawn()?;
 
         Self::handle_child(&mut child).await?;
@@ -66,17 +76,17 @@ impl Commander {
 
     /// Runs fuzzer on the given target.
     #[throws]
-    pub async fn run_afl_debug(&self, target: String, crash_file_path: String) {
+    pub async fn run_afl_debug(&self, target: String, crash_file: String) {
         let config = Config::new();
 
-        let crash_file = Path::new(&crash_file_path);
+        let crash_file_path = Path::new(&crash_file);
 
-        let crash_file = if crash_file.is_absolute() {
-            crash_file
+        let crash_file = if crash_file_path.is_absolute() {
+            crash_file_path
         } else {
             let cwd = std::env::current_dir()?;
 
-            &cwd.join(crash_file)
+            &cwd.join(crash_file_path)
         };
 
         if !crash_file.try_exists()? {
@@ -84,7 +94,8 @@ impl Commander {
             throw!(Error::CrashFileNotFound);
         }
 
-        let cargo_target_dir = config.get_afl_cargo_build_dir();
+        // cargo target directory
+        let cargo_target_dir = config.get_afl_target_dir();
 
         let mut rustflags = std::env::var("RUSTFLAGS").unwrap_or_default();
 

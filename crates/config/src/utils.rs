@@ -17,23 +17,7 @@ pub(crate) fn resolve_path(filename: &str) -> PathBuf {
     }
 }
 
-pub(crate) fn arg_to_string_hfuzz(arg: &Argument) -> String {
-    if let Some(opt) = &arg.short_opt {
-        match &arg.value {
-            Some(value) => format!("{} {}", opt, value),
-            None => opt.to_string(),
-        }
-    } else if let Some(opt) = &arg.long_opt {
-        match &arg.value {
-            Some(value) => format!("{} {}", opt, value),
-            None => opt.to_string(),
-        }
-    } else {
-        "".to_string()
-    }
-}
-
-pub(crate) fn arg_to_string_afl(arg: &Argument) -> Vec<String> {
+pub(crate) fn arg_to_string(arg: &Argument) -> Vec<String> {
     let val = arg.value.clone().unwrap_or_default();
     if let Some(opt) = &arg.short_opt {
         vec![opt.clone(), val]

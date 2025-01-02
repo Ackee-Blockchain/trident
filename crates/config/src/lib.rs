@@ -14,7 +14,7 @@ pub mod utils;
 use serde::Deserialize;
 use std::{fs, io};
 use thiserror::Error;
-use utils::discover_root;
+use utils::{discover_root, resolve_path};
 
 #[derive(Error, Debug)]
 pub enum Error {
@@ -50,6 +50,8 @@ impl Config {
         _config
     }
 
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // honggfuzz
     pub fn get_honggfuzz_args(&self, cli_input: String) -> String {
         if let Some(honggfuzz) = &self.honggfuzz {
             let mut args = honggfuzz.get_collect_fuzz_args();
@@ -59,87 +61,74 @@ impl Config {
             String::default()
         }
     }
-    pub fn get_honggfuzz_target_dir(&self) -> String {
-        if let Some(honggfuzz) = &self.honggfuzz {
-            honggfuzz.get_cargo_target_dir().value
-        } else {
-            CARGO_TARGET_DIR_DEFAULT_HFUZZ.to_string()
-        }
-    }
     pub fn get_honggfuzz_workspace(&self) -> String {
-        if let Some(honggfuzz) = &self.honggfuzz {
-            honggfuzz.get_hfuzz_workspace().value
-        } else {
-            HFUZZ_WORKSPACE_DEFAULT_HFUZZ.to_string()
-        }
+        let path = self
+            .honggfuzz
+            .as_ref()
+            .map(|honggfuzz| honggfuzz.get_hfuzz_workspace().value)
+            .unwrap_or_else(|| HFUZZ_WORKSPACE_DEFAULT_HFUZZ.to_string());
+        let full_path = resolve_path(&path);
+        full_path.to_str().unwrap().to_string()
     }
-
+    pub fn get_honggfuzz_target_dir(&self) -> String {
+        let path = self
+            .honggfuzz
+            .as_ref()
+            .map(|honggfuzz| honggfuzz.get_cargo_target_dir().value)
+            .unwrap_or_else(|| CARGO_TARGET_DIR_DEFAULT_HFUZZ.to_string());
+        let full_path = resolve_path(&path);
+        full_path.to_str().unwrap().to_string()
+    }
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // afl
+    pub fn get_afl_target_dir(&self) -> String {
+        let path = self
+            .afl
+            .as_ref()
+            .map(|afl| afl.get_cargo_target_dir().value.unwrap())
+            .unwrap_or_else(|| CARGO_TARGET_DIR_DEFAULT_AFL.to_string());
+        let full_path = resolve_path(&path);
+        full_path.to_str().unwrap().to_string()
+    }
+    pub fn get_afl_target_path(&self, target: &str) -> String {
+        let mut afl_target_dir = self.get_afl_target_dir();
+        afl_target_dir.push_str("/debug/");
+        afl_target_dir.push_str(target);
+        afl_target_dir
+    }
+    pub fn get_afl_workspace_in(&self) -> String {
+        let path = self
+            .afl
+            .as_ref()
+            .map(|afl| afl.get_workspace_in().value.unwrap())
+            .unwrap_or_else(|| AFL_WORKSPACE_DEFAULT_IN.to_string());
+        let full_path = resolve_path(&path);
+        full_path.to_str().unwrap().to_string()
+    }
+    pub fn get_afl_workspace_out(&self) -> String {
+        let path = self
+            .afl
+            .as_ref()
+            .map(|afl| afl.get_workspace_out().value.unwrap())
+            .unwrap_or_else(|| AFL_WORKSPACE_DEFAULT_OUT.to_string());
+        let full_path = resolve_path(&path);
+        full_path.to_str().unwrap().to_string()
+    }
     pub fn get_afl_build_args(&self) -> Vec<String> {
         if let Some(afl) = &self.afl {
             afl.get_collect_build_args()
         } else {
-            // if nothing is provided, use the default target dir
-            vec![format!("--target-dir {}", CARGO_TARGET_DIR_DEFAULT_AFL)]
+            Vec::default()
         }
     }
     pub fn get_afl_fuzz_args(&self) -> Vec<String> {
         if let Some(afl) = &self.afl {
             afl.get_collect_fuzz_args()
         } else {
-            // if nothing is provided, use the default workspace in and out
-            vec![
-                format!("-i {}", AFL_WORKSPACE_DEFAULT_IN),
-                format!("-o {}", AFL_WORKSPACE_DEFAULT_OUT),
-            ]
+            Vec::default()
         }
     }
-    pub fn get_afl_cargo_build_dir(&self) -> String {
-        if let Some(afl) = &self.afl {
-            afl.get_cargo_build_dir()
-                .expect("AFL Cargo Target Dir argument not available")
-                .value
-                .clone()
-                .expect("AFL Cargo Target Dir value not available")
-        } else {
-            // if nothing is provided, use the default target dir
-            CARGO_TARGET_DIR_DEFAULT_AFL.to_string()
-        }
-    }
-    pub fn get_afl_target_path(&self) -> String {
-        if let Some(afl) = &self.afl {
-            let afl_arg = afl
-                .get_cargo_build_dir()
-                .expect("AFL Cargo Target Dir argument not available");
 
-            let mut target_path = afl_arg
-                .value
-                .clone()
-                .expect("AFL Cargo Target Dir value not available");
-
-            target_path.push_str("/debug/");
-            target_path
-        } else {
-            // if nothing is provided, use the default target dir
-            let mut target_path = CARGO_TARGET_DIR_DEFAULT_AFL.to_string();
-            target_path.push_str("/debug/");
-            target_path
-        }
-    }
-    pub fn get_afl_workspace_in(&self) -> String {
-        if let Some(afl) = &self.afl {
-            let afl_arg = afl
-                .get_workspace_in()
-                .expect("AFL Workspace in value argument available");
-
-            afl_arg
-                .value
-                .clone()
-                .expect("AFL Workspace in value not available")
-        } else {
-            // if nothing is provided, use the default workspace in
-            AFL_WORKSPACE_DEFAULT_IN.to_string()
-        }
-    }
     pub fn get_initial_seed(&self) -> Vec<AflSeed> {
         if let Some(afl) = &self.afl {
             afl.get_seeds()
@@ -148,7 +137,8 @@ impl Config {
             vec![AflSeed::default()]
         }
     }
-
+    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+    // fuzz
     pub fn get_fuzzing_with_stats(&self) -> bool {
         if let Some(fuzz) = &self.fuzz {
             fuzz.get_fuzzing_with_stats()

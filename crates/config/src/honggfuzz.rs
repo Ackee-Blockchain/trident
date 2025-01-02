@@ -2,7 +2,8 @@ use serde::Deserialize;
 
 use crate::{
     argument::{Argument, EnvironmentVariable},
-    constants::*, utils::{arg_to_string_hfuzz, resolve_path},
+    constants::*,
+    utils::arg_to_string,
 };
 
 #[derive(Default, Debug, Deserialize, Clone)]
@@ -166,10 +167,9 @@ impl HonggFuzz {
     pub fn get_cargo_target_dir(&self) -> EnvironmentVariable {
         // cargo_target_dir
         if let Some(cargo_target_dir) = &self.cargo_target_dir {
-            let cargo_target_dir_full_path = resolve_path(cargo_target_dir);
             EnvironmentVariable::new(
                 CARGO_TARGET_DIR_ENV.to_string(),
-                cargo_target_dir_full_path.to_str().unwrap().to_string(),
+                cargo_target_dir.to_string(),
             )
         } else {
             EnvironmentVariable::new(
@@ -181,11 +181,7 @@ impl HonggFuzz {
     pub fn get_hfuzz_workspace(&self) -> EnvironmentVariable {
         // hfuzz_workspace
         if let Some(hfuzz_workspace) = &self.hfuzz_workspace {
-            let hfuzz_workspace_full_path = resolve_path(hfuzz_workspace);
-            EnvironmentVariable::new(
-                HFUZZ_WORKSPACE_ENV.to_string(),
-                hfuzz_workspace_full_path.to_str().unwrap().to_string(),
-            )
+            EnvironmentVariable::new(HFUZZ_WORKSPACE_ENV.to_string(), hfuzz_workspace.to_string())
         } else {
             EnvironmentVariable::new(
                 HFUZZ_WORKSPACE_ENV.to_string(),
@@ -197,40 +193,40 @@ impl HonggFuzz {
         let mut result = vec![];
 
         if let Some(timeout) = self.get_timeout() {
-            result.push(arg_to_string_hfuzz(&timeout));
+            result.extend(arg_to_string(&timeout));
         }
         if let Some(iterations) = self.get_iterations() {
-            result.push(arg_to_string_hfuzz(&iterations));
+            result.extend(arg_to_string(&iterations));
         }
         if let Some(threads) = self.get_threads() {
-            result.push(arg_to_string_hfuzz(&threads));
+            result.extend(arg_to_string(&threads));
         }
         if let Some(keep_output) = self.get_keep_output() {
-            result.push(arg_to_string_hfuzz(&keep_output));
+            result.extend(arg_to_string(&keep_output));
         }
         if let Some(verbose) = self.get_verbose() {
-            result.push(arg_to_string_hfuzz(&verbose));
+            result.extend(arg_to_string(&verbose));
         }
         if let Some(exit_upon_crash) = self.get_exit_upon_crash() {
-            result.push(arg_to_string_hfuzz(&exit_upon_crash));
+            result.extend(arg_to_string(&exit_upon_crash));
         }
         if let Some(mutations_per_run) = self.get_mutations_per_run() {
-            result.push(arg_to_string_hfuzz(&mutations_per_run));
+            result.extend(arg_to_string(&mutations_per_run));
         }
         if let Some(crashdir) = self.get_crashdir() {
-            result.push(arg_to_string_hfuzz(&crashdir));
+            result.extend(arg_to_string(&crashdir));
         }
         if let Some(extension) = self.get_extension() {
-            result.push(arg_to_string_hfuzz(&extension));
+            result.extend(arg_to_string(&extension));
         }
         if let Some(run_time) = self.get_run_time() {
-            result.push(arg_to_string_hfuzz(&run_time));
+            result.extend(arg_to_string(&run_time));
         }
         if let Some(max_file_size) = self.get_max_file_size() {
-            result.push(arg_to_string_hfuzz(&max_file_size));
+            result.extend(arg_to_string(&max_file_size));
         }
         if let Some(save_all) = self.get_save_all() {
-            result.push(arg_to_string_hfuzz(&save_all));
+            result.extend(arg_to_string(&save_all));
         }
         result
     }
