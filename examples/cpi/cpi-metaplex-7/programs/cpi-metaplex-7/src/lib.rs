@@ -25,7 +25,7 @@ pub mod cpi_metaplex_7 {
     ) -> Result<()> {
         ctx.accounts.create_metadata(name, symbol, uri)?;
 
-        if input > 15 {
+        if input > 15 && input < 20 {
             panic!("This number is magic");
         }
 

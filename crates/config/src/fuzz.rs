@@ -1,70 +1,26 @@
+use crate::utils::resolve_path;
 use base64::{prelude::BASE64_STANDARD, Engine};
 use serde::{Deserialize, Serialize};
 use solana_sdk::{
     account::{AccountSharedData, WritableAccount},
     pubkey::Pubkey,
 };
-use std::{
-    fs,
-    path::{Path, PathBuf},
-    str::FromStr,
-};
-
-use super::discover_root;
+use std::{fs, str::FromStr};
 
 #[derive(Debug, Deserialize, Clone, Default)]
 pub struct Fuzz {
-    pub fuzzing_with_stats: bool,
-    pub allow_duplicate_txs: bool,
-    pub programs: Vec<FuzzProgram>,
-    pub accounts: Vec<FuzzAccount>,
-}
-
-#[derive(Default, Debug, Deserialize, Clone)]
-pub struct _Fuzz {
-    #[serde(default)]
     pub fuzzing_with_stats: Option<bool>,
-    #[serde(default)]
     pub allow_duplicate_txs: Option<bool>,
-    #[serde(default)]
     pub programs: Option<Vec<_FuzzProgram>>,
-    #[serde(default)]
     pub accounts: Option<Vec<_FuzzAccount>>,
-}
-impl From<_Fuzz> for Fuzz {
-    fn from(_f: _Fuzz) -> Self {
-        let mut _self = Self {
-            fuzzing_with_stats: _f.fuzzing_with_stats.unwrap_or_default(),
-            allow_duplicate_txs: _f.allow_duplicate_txs.unwrap_or_default(),
-            programs: vec![],
-            accounts: vec![],
-        };
-
-        if let Some(accounts) = _f.accounts {
-            for account in accounts {
-                _self
-                    .accounts
-                    .push(read_and_parse_account(&account.filename));
-            }
-        }
-        if let Some(programs) = _f.programs {
-            for account in programs {
-                _self
-                    .programs
-                    .push(read_and_parse_program(&account.program, &account.address));
-            }
-        }
-
-        _self
-    }
 }
 
 impl Fuzz {
     pub fn get_fuzzing_with_stats(&self) -> bool {
-        self.fuzzing_with_stats
+        self.fuzzing_with_stats.unwrap_or(false)
     }
     pub fn get_allow_duplicate_txs(&self) -> bool {
-        self.allow_duplicate_txs
+        self.allow_duplicate_txs.unwrap_or(false)
     }
 }
 
@@ -86,10 +42,73 @@ pub struct FuzzProgram {
     pub data: Vec<u8>,
 }
 
+impl From<&_FuzzProgram> for FuzzProgram {
+    fn from(_f: &_FuzzProgram) -> Self {
+        let program_path = &_f.program;
+        let program_address = &_f.address;
+
+        let path = resolve_path(program_path);
+
+        let program_data =
+            fs::read(path).unwrap_or_else(|_| panic!("Failed to read file: {}", program_path));
+
+        let pubkey = Pubkey::from_str(program_address)
+            .unwrap_or_else(|_| panic!("Cannot parse the program address: {}", program_address));
+
+        FuzzProgram {
+            address: pubkey,
+            data: program_data,
+        }
+    }
+}
+
 #[derive(Debug, Deserialize, Clone)]
 pub struct FuzzAccount {
     pub pubkey: Pubkey,
     pub account: AccountSharedData,
+}
+
+impl From<&_FuzzAccount> for FuzzAccount {
+    fn from(_f: &_FuzzAccount) -> Self {
+        let account_path = &_f.filename;
+
+        let path = resolve_path(account_path);
+
+        let file_content = fs::read_to_string(path)
+            .unwrap_or_else(|_| panic!("Failed to read file: {}", account_path));
+
+        let account_raw: FuzzAccountRaw = serde_json::from_str(&file_content)
+            .unwrap_or_else(|_| panic!("Failed to parse JSON from file: {}", account_path));
+
+        let pubkey = Pubkey::from_str(&account_raw.pubkey)
+            .unwrap_or_else(|_| panic!("Cannot convert address for: {}", account_raw.pubkey));
+
+        let owner_address = Pubkey::from_str(&account_raw.account.owner).unwrap_or_else(|_| {
+            panic!(
+                "Cannot convert address for owner: {}",
+                account_raw.account.owner
+            )
+        });
+
+        let data_base_64 = account_raw.account.data.first().unwrap_or_else(|| {
+            panic!(
+                "Cannot read base64 data for account: {}",
+                account_raw.pubkey
+            )
+        });
+
+        let account = AccountSharedData::create(
+            account_raw.account.lamports,
+            BASE64_STANDARD
+                .decode(data_base_64)
+                .unwrap_or_else(|_| panic!("Failed to decode base64 data of {}", account_path)),
+            owner_address,
+            account_raw.account.executable,
+            account_raw.account.rent_epoch,
+        );
+
+        FuzzAccount { pubkey, account }
+    }
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -106,69 +125,4 @@ pub struct AccountRaw {
     pub executable: bool,
     #[serde(rename = "rentEpoch")]
     pub rent_epoch: u64,
-}
-
-fn read_and_parse_program(filename: &str, program_address: &str) -> FuzzProgram {
-    let path = resolve_path(filename);
-
-    let program_data =
-        fs::read(path).unwrap_or_else(|_| panic!("Failed to read file: {}", filename));
-
-    let pubkey = Pubkey::from_str(program_address)
-        .unwrap_or_else(|_| panic!("Cannot parse the program address: {}", program_address));
-
-    FuzzProgram {
-        address: pubkey,
-        data: program_data,
-    }
-}
-
-fn read_and_parse_account(filename: &str) -> FuzzAccount {
-    let path = resolve_path(filename);
-
-    let file_content =
-        fs::read_to_string(path).unwrap_or_else(|_| panic!("Failed to read file: {}", filename));
-
-    let account_raw: FuzzAccountRaw = serde_json::from_str(&file_content)
-        .unwrap_or_else(|_| panic!("Failed to parse JSON from file: {}", filename));
-
-    let pubkey = Pubkey::from_str(&account_raw.pubkey)
-        .unwrap_or_else(|_| panic!("Cannot convert address for: {}", account_raw.pubkey));
-
-    let owner_address = Pubkey::from_str(&account_raw.account.owner).unwrap_or_else(|_| {
-        panic!(
-            "Cannot convert address for owner: {}",
-            account_raw.account.owner
-        )
-    });
-
-    let data_base_64 = account_raw.account.data.first().unwrap_or_else(|| {
-        panic!(
-            "Cannot read base64 data for account: {}",
-            account_raw.pubkey
-        )
-    });
-
-    let account = AccountSharedData::create(
-        account_raw.account.lamports,
-        BASE64_STANDARD
-            .decode(data_base_64)
-            .unwrap_or_else(|_| panic!("Failed to decode base64 data of {}", filename)),
-        owner_address,
-        account_raw.account.executable,
-        account_raw.account.rent_epoch,
-    );
-
-    FuzzAccount { pubkey, account }
-}
-
-fn resolve_path(filename: &str) -> PathBuf {
-    let path = Path::new(filename);
-    if path.is_absolute() {
-        path.to_path_buf()
-    } else {
-        discover_root()
-            .map(|cwd| cwd.join(path))
-            .unwrap_or_else(|_| panic!("Failed to resolve relative path: {}", path.display()))
-    }
 }

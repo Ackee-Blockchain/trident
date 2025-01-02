@@ -1,117 +1,13 @@
 use serde::Deserialize;
-use std::collections::HashMap;
 
-use crate::constants::*;
-
-use super::find_full_path;
-
-#[derive(Debug, Deserialize, Clone, Hash, PartialEq, Eq)]
-pub enum FuzzArgument {
-    Timeout,
-    Iterations,
-    Threads,
-    KeepOutput,
-    Verbose,
-    ExitUponCrash,
-    MutationsPerRun,
-    CargoTargetDir,
-    HfuzzWorkspace,
-    Crashdir,
-    Extension,
-    RunTime,
-    MaxFileSize,
-    SaveAll,
-}
-
-#[derive(Debug, Deserialize, Clone, Hash, PartialEq, Eq)]
-pub enum EnvVariable {
-    CargoTargetDir,
-    HfuzzWorkspace,
-}
-
-#[derive(Debug, Deserialize, Clone)]
-pub struct HonggFuzzArg {
-    pub short_opt: Option<String>,
-    pub long_opt: Option<String>,
-    pub val: Option<String>,
-}
-#[derive(Debug, Deserialize, Clone)]
-pub struct HonggFuzz {
-    pub fuzz_args: HashMap<FuzzArgument, HonggFuzzArg>,
-    pub env_variables: HashMap<EnvVariable, String>,
-}
-
-impl HonggFuzz {
-    pub fn get_timeout(&self) -> Option<&HonggFuzzArg> {
-        self.fuzz_args.get(&FuzzArgument::Timeout)
-    }
-    pub fn get_iterations(&self) -> Option<&HonggFuzzArg> {
-        self.fuzz_args.get(&FuzzArgument::Iterations)
-    }
-    pub fn get_threads(&self) -> Option<&HonggFuzzArg> {
-        self.fuzz_args.get(&FuzzArgument::Threads)
-    }
-    pub fn get_keep_output(&self) -> Option<&HonggFuzzArg> {
-        self.fuzz_args.get(&FuzzArgument::KeepOutput)
-    }
-    pub fn get_verbose(&self) -> Option<&HonggFuzzArg> {
-        self.fuzz_args.get(&FuzzArgument::Verbose)
-    }
-    pub fn get_exit_upon_crash(&self) -> Option<&HonggFuzzArg> {
-        self.fuzz_args.get(&FuzzArgument::ExitUponCrash)
-    }
-    pub fn get_mutations_per_run(&self) -> Option<&HonggFuzzArg> {
-        self.fuzz_args.get(&FuzzArgument::MutationsPerRun)
-    }
-    pub fn get_crashdir(&self) -> Option<&HonggFuzzArg> {
-        self.fuzz_args.get(&FuzzArgument::Crashdir)
-    }
-    pub fn get_extension(&self) -> Option<&HonggFuzzArg> {
-        self.fuzz_args.get(&FuzzArgument::Extension)
-    }
-    pub fn get_run_time(&self) -> Option<&HonggFuzzArg> {
-        self.fuzz_args.get(&FuzzArgument::RunTime)
-    }
-    pub fn get_max_file_size(&self) -> Option<&HonggFuzzArg> {
-        self.fuzz_args.get(&FuzzArgument::MaxFileSize)
-    }
-    pub fn get_save_all(&self) -> Option<&HonggFuzzArg> {
-        self.fuzz_args.get(&FuzzArgument::SaveAll)
-    }
-    pub fn get_cargo_target_dir(&self) -> Option<&String> {
-        self.env_variables.get(&EnvVariable::CargoTargetDir)
-    }
-    pub fn get_hfuzz_workspace(&self) -> Option<&String> {
-        self.env_variables.get(&EnvVariable::HfuzzWorkspace)
-    }
-
-    pub fn get_collect_fuzz_args(&self) -> Vec<String> {
-        self.fuzz_args
-            .values()
-            .map(|arg| {
-                if let Some(opt) = &arg.short_opt {
-                    match &arg.val {
-                        Some(value) => format!("{} {}", opt, value),
-                        None => opt.to_string(),
-                    }
-                } else if let Some(opt) = &arg.long_opt {
-                    match &arg.val {
-                        Some(value) => format!("{} {}", opt, value),
-                        None => opt.to_string(),
-                    }
-                } else {
-                    "".to_string()
-                }
-            })
-            .collect()
-    }
-    pub fn get_env_variable(&self, key: &EnvVariable) -> Option<String> {
-        self.env_variables.get(key).cloned()
-    }
-}
+use crate::{
+    argument::{Argument, EnvironmentVariable},
+    constants::*,
+    utils::arg_to_string,
+};
 
 #[derive(Default, Debug, Deserialize, Clone)]
-pub struct _HonggFuzz {
+pub struct HonggFuzz {
     #[serde(default)]
     /// Timeout in seconds (default: 10)
     /// -t
@@ -179,158 +75,160 @@ pub struct _HonggFuzz {
     pub save_all: Option<bool>,
 }
 
-impl From<_HonggFuzz> for HonggFuzz {
-    fn from(_f: _HonggFuzz) -> Self {
-        let mut _self = Self {
-            fuzz_args: HashMap::new(),
-            env_variables: HashMap::new(),
-        };
-
+impl HonggFuzz {
+    pub fn get_timeout(&self) -> Option<Argument> {
         // timeout
-        let timeout = _f.timeout.unwrap_or(10);
-        _self.fuzz_args.insert(
-            FuzzArgument::Timeout,
-            HonggFuzzArg::new("-t", "--timeout", &timeout.to_string()),
-        );
-
-        // iterations
-        let iterations = _f.iterations.unwrap_or(0);
-        _self.fuzz_args.insert(
-            FuzzArgument::Iterations,
-            HonggFuzzArg::new("-N", "--iterations", &iterations.to_string()),
-        );
-
-        // threads
-        let threads = _f.threads.unwrap_or(0);
-        if threads > 0 {
-            _self.fuzz_args.insert(
-                FuzzArgument::Threads,
-                HonggFuzzArg::new("-n", "--threads", &threads.to_string()),
-            );
-        }
-
-        // keep_output
-        let keep_output = _f.keep_output.unwrap_or(false);
-        if keep_output {
-            _self.fuzz_args.insert(
-                FuzzArgument::KeepOutput,
-                HonggFuzzArg::new("-Q", "--keep_output", ""),
-            );
-        }
-        // verbose
-        let verbose = _f.verbose.unwrap_or(false);
-        if verbose {
-            _self.fuzz_args.insert(
-                FuzzArgument::Verbose,
-                HonggFuzzArg::new("-v", "--verbose", ""),
-            );
-        }
-
-        // exit_upon_crash
-        let exit_upon_crash = _f.exit_upon_crash.unwrap_or(false);
-        if exit_upon_crash {
-            _self.fuzz_args.insert(
-                FuzzArgument::ExitUponCrash,
-                HonggFuzzArg::new("", "--exit_upon_crash", ""),
-            );
-        }
-        // mutations_per_run
-        let mutations_per_run = _f.mutations_per_run.unwrap_or(6);
-        _self.fuzz_args.insert(
-            FuzzArgument::MutationsPerRun,
-            HonggFuzzArg::new("-r", "--mutations_per_run", &mutations_per_run.to_string()),
-        );
-        // cargo_target_dir
-        let cargo_target_dir = _f
-            .cargo_target_dir
-            .and_then(|value| if value.is_empty() { None } else { Some(value) })
-            .unwrap_or(CARGO_TARGET_DIR_DEFAULT_HFUZZ.to_owned());
-
-        let cargo_target_dir_full_path = find_full_path(&cargo_target_dir)
-            .expect("Failed to obtain full path to the Honggfuzz Target Directory");
-
-        _self.env_variables.insert(
-            EnvVariable::CargoTargetDir,
-            cargo_target_dir_full_path.to_str().unwrap().to_string(),
-        );
-
-        // hfuzz_workspace
-        let hfuzz_workspace = _f
-            .hfuzz_workspace
-            .and_then(|value| if value.is_empty() { None } else { Some(value) })
-            .unwrap_or(HFUZZ_WORKSPACE_DEFAULT_HFUZZ.to_owned());
-
-        let hfuzz_workspace_full_path = find_full_path(&hfuzz_workspace)
-            .expect("Failed to obtain full path to the Honggfuzz Workspace Directory");
-
-        _self.env_variables.insert(
-            EnvVariable::HfuzzWorkspace,
-            hfuzz_workspace_full_path.to_str().unwrap().to_string(),
-        );
-
-        // crashdir
-        let crash_dir = _f.crashdir.unwrap_or_default();
-        if !crash_dir.is_empty() {
-            _self.fuzz_args.insert(
-                FuzzArgument::Crashdir,
-                HonggFuzzArg::new("", "--crashdir", &crash_dir),
-            );
-        }
-        // extension
-        let extension = _f.extension.unwrap_or_default();
-        if !extension.is_empty() {
-            _self.fuzz_args.insert(
-                FuzzArgument::Extension,
-                HonggFuzzArg::new("-e", "--extension", &extension),
-            );
-        }
-        // run_time
-        let run_time = _f.run_time.unwrap_or(0);
-        _self.fuzz_args.insert(
-            FuzzArgument::RunTime,
-            HonggFuzzArg::new("", "--run_time", &run_time.to_string()),
-        );
-
-        // max_file_size
-        let max_file_size = _f.max_file_size.unwrap_or(1_048_576);
-        _self.fuzz_args.insert(
-            FuzzArgument::MaxFileSize,
-            HonggFuzzArg::new("-F", "--max_file_size", &max_file_size.to_string()),
-        );
-        // save_all
-        let save_all = _f.save_all.unwrap_or_default();
-        if save_all {
-            _self.fuzz_args.insert(
-                FuzzArgument::SaveAll,
-                HonggFuzzArg::new("-u", "--save_all", ""),
-            );
-        }
-        _self
+        self.timeout
+            .map(|timeout| Argument::new("-t", "--timeout", Some(&timeout.to_string())))
     }
-}
-
-impl HonggFuzzArg {
-    pub(crate) fn new(short_opt: &str, long_opt: &str, val: &str) -> Self {
-        let short_opt = if short_opt.is_empty() {
-            None
+    pub fn get_iterations(&self) -> Option<Argument> {
+        // iterations
+        self.iterations
+            .map(|iterations| Argument::new("-N", "--iterations", Some(&iterations.to_string())))
+    }
+    pub fn get_threads(&self) -> Option<Argument> {
+        // threads
+        self.threads
+            .map(|threads| Argument::new("-n", "--threads", Some(&threads.to_string())))
+    }
+    pub fn get_keep_output(&self) -> Option<Argument> {
+        // keep_output
+        self.keep_output.and_then(|keep_output| {
+            if keep_output {
+                Some(Argument::new("-Q", "--keep_output", None))
+            } else {
+                None
+            }
+        })
+    }
+    pub fn get_verbose(&self) -> Option<Argument> {
+        // verbose
+        self.verbose.and_then(|verbose| {
+            if verbose {
+                Some(Argument::new("-v", "--verbose", None))
+            } else {
+                None
+            }
+        })
+    }
+    pub fn get_exit_upon_crash(&self) -> Option<Argument> {
+        // exit_upon_crash
+        self.exit_upon_crash.and_then(|exit_upon_crash| {
+            if exit_upon_crash {
+                Some(Argument::new("", "--exit_upon_crash", None))
+            } else {
+                None
+            }
+        })
+    }
+    pub fn get_mutations_per_run(&self) -> Option<Argument> {
+        // mutations_per_run
+        self.mutations_per_run.map(|mutations_per_run| {
+            Argument::new(
+                "-r",
+                "--mutations_per_run",
+                Some(&mutations_per_run.to_string()),
+            )
+        })
+    }
+    pub fn get_crashdir(&self) -> Option<Argument> {
+        // crashdir
+        self.crashdir
+            .as_ref()
+            .map(|crashdir| Argument::new("", "--crashdir", Some(crashdir)))
+    }
+    pub fn get_extension(&self) -> Option<Argument> {
+        // extension
+        self.extension
+            .as_ref()
+            .map(|extension| Argument::new("-e", "--extension", Some(extension)))
+    }
+    pub fn get_run_time(&self) -> Option<Argument> {
+        // run_time
+        self.run_time
+            .map(|run_time| Argument::new("", "--run_time", Some(&run_time.to_string())))
+    }
+    pub fn get_max_file_size(&self) -> Option<Argument> {
+        // max_file_size
+        self.max_file_size.map(|max_file_size| {
+            Argument::new("-F", "--max_file_size", Some(&max_file_size.to_string()))
+        })
+    }
+    pub fn get_save_all(&self) -> Option<Argument> {
+        // save_all
+        self.save_all.and_then(|save_all| {
+            if save_all {
+                Some(Argument::new("-u", "--save_all", None))
+            } else {
+                None
+            }
+        })
+    }
+    pub fn get_cargo_target_dir(&self) -> EnvironmentVariable {
+        // cargo_target_dir
+        if let Some(cargo_target_dir) = &self.cargo_target_dir {
+            EnvironmentVariable::new(
+                CARGO_TARGET_DIR_ENV.to_string(),
+                cargo_target_dir.to_string(),
+            )
         } else {
-            Some(short_opt.to_owned())
-        };
-        let long_opt = if long_opt.is_empty() {
-            None
-        } else {
-            Some(long_opt.to_owned())
-        };
-        let val = if val.is_empty() {
-            None
-        } else {
-            Some(val.to_owned())
-        };
-        Self {
-            short_opt,
-            long_opt,
-            val,
+            EnvironmentVariable::new(
+                CARGO_TARGET_DIR_ENV.to_string(),
+                CARGO_TARGET_DIR_DEFAULT_HFUZZ.to_string(),
+            )
         }
+    }
+    pub fn get_hfuzz_workspace(&self) -> EnvironmentVariable {
+        // hfuzz_workspace
+        if let Some(hfuzz_workspace) = &self.hfuzz_workspace {
+            EnvironmentVariable::new(HFUZZ_WORKSPACE_ENV.to_string(), hfuzz_workspace.to_string())
+        } else {
+            EnvironmentVariable::new(
+                HFUZZ_WORKSPACE_ENV.to_string(),
+                HFUZZ_WORKSPACE_DEFAULT_HFUZZ.to_string(),
+            )
+        }
+    }
+    pub fn get_collect_fuzz_args(&self) -> Vec<String> {
+        let mut result = vec![];
+
+        if let Some(timeout) = self.get_timeout() {
+            result.extend(arg_to_string(&timeout));
+        }
+        if let Some(iterations) = self.get_iterations() {
+            result.extend(arg_to_string(&iterations));
+        }
+        if let Some(threads) = self.get_threads() {
+            result.extend(arg_to_string(&threads));
+        }
+        if let Some(keep_output) = self.get_keep_output() {
+            result.extend(arg_to_string(&keep_output));
+        }
+        if let Some(verbose) = self.get_verbose() {
+            result.extend(arg_to_string(&verbose));
+        }
+        if let Some(exit_upon_crash) = self.get_exit_upon_crash() {
+            result.extend(arg_to_string(&exit_upon_crash));
+        }
+        if let Some(mutations_per_run) = self.get_mutations_per_run() {
+            result.extend(arg_to_string(&mutations_per_run));
+        }
+        if let Some(crashdir) = self.get_crashdir() {
+            result.extend(arg_to_string(&crashdir));
+        }
+        if let Some(extension) = self.get_extension() {
+            result.extend(arg_to_string(&extension));
+        }
+        if let Some(run_time) = self.get_run_time() {
+            result.extend(arg_to_string(&run_time));
+        }
+        if let Some(max_file_size) = self.get_max_file_size() {
+            result.extend(arg_to_string(&max_file_size));
+        }
+        if let Some(save_all) = self.get_save_all() {
+            result.extend(arg_to_string(&save_all));
+        }
+        result
     }
 }
 
@@ -341,8 +239,20 @@ mod tests {
     impl HonggFuzz {
         fn clean() -> Self {
             Self {
-                fuzz_args: HashMap::new(),
-                env_variables: HashMap::new(),
+                timeout: None,
+                iterations: None,
+                threads: None,
+                keep_output: None,
+                verbose: None,
+                exit_upon_crash: None,
+                mutations_per_run: None,
+                cargo_target_dir: None,
+                hfuzz_workspace: None,
+                crashdir: None,
+                extension: None,
+                run_time: None,
+                max_file_size: None,
+                save_all: None,
             }
         }
     }
@@ -353,13 +263,11 @@ mod tests {
 
         // timeout
         let timeout = 10;
-        honggfuzz.fuzz_args.insert(
-            FuzzArgument::Timeout,
-            HonggFuzzArg::new("-t", "--timeout", &timeout.to_string()),
-        );
+
+        honggfuzz.timeout = Some(timeout);
 
         let arg = honggfuzz.get_collect_fuzz_args();
-        assert_eq!(arg, vec!["-t 10"]);
+        assert_eq!(arg, vec!["-t", "10"]);
     }
     #[test]
     fn test_iterations() {
@@ -367,13 +275,10 @@ mod tests {
 
         // iterations
         let iterations = 1000;
-        honggfuzz.fuzz_args.insert(
-            FuzzArgument::Iterations,
-            HonggFuzzArg::new("-N", "--iterations", &iterations.to_string()),
-        );
+        honggfuzz.iterations = Some(iterations);
 
         let arg = honggfuzz.get_collect_fuzz_args();
-        assert_eq!(arg, vec!["-N 1000"]);
+        assert_eq!(arg, vec!["-N", "1000"]);
     }
     #[test]
     fn test_threads() {
@@ -381,52 +286,40 @@ mod tests {
 
         // threads
         let threads = 15;
-        honggfuzz.fuzz_args.insert(
-            FuzzArgument::Threads,
-            HonggFuzzArg::new("-n", "--threads", &threads.to_string()),
-        );
+        honggfuzz.threads = Some(threads);
 
         let arg = honggfuzz.get_collect_fuzz_args();
-        assert_eq!(arg, vec!["-n 15"]);
+        assert_eq!(arg, vec!["-n", "15"]);
     }
     #[test]
     fn test_keep_output() {
         let mut honggfuzz = HonggFuzz::clean();
 
         // keep_output
-        honggfuzz.fuzz_args.insert(
-            FuzzArgument::KeepOutput,
-            HonggFuzzArg::new("-Q", "--keep_output", ""),
-        );
+        honggfuzz.keep_output = Some(true);
 
         let arg = honggfuzz.get_collect_fuzz_args();
-        assert_eq!(arg, vec!["-Q"]);
+        assert_eq!(arg, vec!["-Q", ""]);
     }
     #[test]
     fn test_verbose() {
         let mut honggfuzz = HonggFuzz::clean();
 
         // verbose
-        honggfuzz.fuzz_args.insert(
-            FuzzArgument::Verbose,
-            HonggFuzzArg::new("-v", "--verbose", ""),
-        );
+        honggfuzz.verbose = Some(true);
 
         let arg = honggfuzz.get_collect_fuzz_args();
-        assert_eq!(arg, vec!["-v"]);
+        assert_eq!(arg, vec!["-v", ""]);
     }
     #[test]
     fn test_exit_upon_crash() {
         let mut honggfuzz = HonggFuzz::clean();
 
         // exit_upon_crash
-        honggfuzz.fuzz_args.insert(
-            FuzzArgument::ExitUponCrash,
-            HonggFuzzArg::new("", "--exit_upon_crash", ""),
-        );
+        honggfuzz.exit_upon_crash = Some(true);
 
         let arg = honggfuzz.get_collect_fuzz_args();
-        assert_eq!(arg, vec!["--exit_upon_crash"]);
+        assert_eq!(arg, vec!["--exit_upon_crash", ""]);
     }
     #[test]
     fn test_mutations_per_run() {
@@ -434,25 +327,20 @@ mod tests {
 
         // mutations_per_run
         let mutations_per_run = 33;
-        honggfuzz.fuzz_args.insert(
-            FuzzArgument::MutationsPerRun,
-            HonggFuzzArg::new("-r", "--mutations_per_run", &mutations_per_run.to_string()),
-        );
+        honggfuzz.mutations_per_run = Some(mutations_per_run);
 
         let arg = honggfuzz.get_collect_fuzz_args();
-        assert_eq!(arg, vec!["-r 33"]);
+        assert_eq!(arg, vec!["-r", "33"]);
     }
     #[test]
     fn test_crashdir() {
         let mut honggfuzz = HonggFuzz::clean();
 
         let crash_dir = "crashdir1";
-        honggfuzz.fuzz_args.insert(
-            FuzzArgument::Crashdir,
-            HonggFuzzArg::new("", "--crashdir", crash_dir),
-        );
+        honggfuzz.crashdir = Some(crash_dir.to_string());
+
         let arg = honggfuzz.get_collect_fuzz_args();
-        assert_eq!(arg, vec!["--crashdir crashdir1"]);
+        assert_eq!(arg, vec!["--crashdir", "crashdir1"]);
     }
     #[test]
     fn test_extension() {
@@ -460,13 +348,10 @@ mod tests {
 
         // extension
         let extension = "sol";
-        honggfuzz.fuzz_args.insert(
-            FuzzArgument::Extension,
-            HonggFuzzArg::new("-e", "--extension", extension),
-        );
+        honggfuzz.extension = Some(extension.to_string());
 
         let arg = honggfuzz.get_collect_fuzz_args();
-        assert_eq!(arg, vec!["-e sol"]);
+        assert_eq!(arg, vec!["-e", "sol"]);
     }
     #[test]
     fn test_run_time() {
@@ -474,13 +359,10 @@ mod tests {
 
         // run_time
         let run_time = 13;
-        honggfuzz.fuzz_args.insert(
-            FuzzArgument::RunTime,
-            HonggFuzzArg::new("", "--run_time", &run_time.to_string()),
-        );
+        honggfuzz.run_time = Some(run_time);
 
         let arg = honggfuzz.get_collect_fuzz_args();
-        assert_eq!(arg, vec!["--run_time 13"]);
+        assert_eq!(arg, vec!["--run_time", "13"]);
     }
     #[test]
     fn test_max_file_size() {
@@ -488,51 +370,39 @@ mod tests {
 
         // max_file_size
         let max_file_size = 500;
-        honggfuzz.fuzz_args.insert(
-            FuzzArgument::MaxFileSize,
-            HonggFuzzArg::new("-F", "--max_file_size", &max_file_size.to_string()),
-        );
+        honggfuzz.max_file_size = Some(max_file_size);
 
         let arg = honggfuzz.get_collect_fuzz_args();
-        assert_eq!(arg, vec!["-F 500"]);
+        assert_eq!(arg, vec!["-F", "500"]);
     }
     #[test]
     fn test_save_all() {
         let mut honggfuzz = HonggFuzz::clean();
 
         // save_all
-        honggfuzz.fuzz_args.insert(
-            FuzzArgument::SaveAll,
-            HonggFuzzArg::new("-u", "--save_all", ""),
-        );
+        honggfuzz.save_all = Some(true);
 
         let arg = honggfuzz.get_collect_fuzz_args();
-        assert_eq!(arg, vec!["-u"]);
+        assert_eq!(arg, vec!["-u", ""]);
     }
     #[test]
     fn test_cargo_target_dir() {
         let mut honggfuzz = HonggFuzz::clean();
 
         // cargo_target_dir
-        honggfuzz.env_variables.insert(
-            EnvVariable::CargoTargetDir,
-            CARGO_TARGET_DIR_DEFAULT_HFUZZ.to_owned(),
-        );
+        honggfuzz.cargo_target_dir = Some("/foo/bar/target".to_string());
 
-        let arg = honggfuzz.get_cargo_target_dir().unwrap();
-        assert_eq!(arg, CARGO_TARGET_DIR_DEFAULT_HFUZZ);
+        let arg = honggfuzz.get_cargo_target_dir().value;
+        assert_eq!(arg, "/foo/bar/target");
     }
     #[test]
     fn test_hfuzz_workspace() {
         let mut honggfuzz = HonggFuzz::clean();
 
         // hfuzz_workspace
-        honggfuzz.env_variables.insert(
-            EnvVariable::HfuzzWorkspace,
-            HFUZZ_WORKSPACE_DEFAULT_HFUZZ.to_owned(),
-        );
+        honggfuzz.hfuzz_workspace = Some("/foo/bar/workspace".to_string());
 
-        let arg = honggfuzz.get_hfuzz_workspace().unwrap();
-        assert_eq!(arg, HFUZZ_WORKSPACE_DEFAULT_HFUZZ);
+        let arg = honggfuzz.get_hfuzz_workspace().value;
+        assert_eq!(arg, "/foo/bar/workspace");
     }
 }

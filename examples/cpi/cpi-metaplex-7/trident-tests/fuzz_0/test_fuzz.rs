@@ -1,10 +1,9 @@
-use fuzz_instructions::Initialize;
-use trident_client::fuzzing::*;
+use trident_fuzz::fuzzing::*;
 mod fuzz_instructions;
-use cpi_metaplex_7::entry as entry_cpi_metaplex_7;
-use cpi_metaplex_7::ID as PROGRAM_ID_CPI_METAPLEX_7;
+use cpi_metaplex_7::entry;
 use fuzz_instructions::FuzzInstruction;
-const PROGRAM_NAME_CPI_METAPLEX_7: &str = "cpi_metaplex_7";
+use fuzz_instructions::*;
+use trident_syscall_stubs_v1::processor;
 struct InstructionsSequence;
 /// Define instruction sequences for invocation.
 /// `pre` runs at the start, `middle` in the middle, and `post` at the end.
@@ -16,7 +15,7 @@ struct InstructionsSequence;
 ///     middle_sequence!(WithdrawFn);
 ///}
 /// ```
-/// For more details, see: https://ackee.xyz/trident/docs/dev/features/instructions-sequences/#instructions-sequences
+/// For more details, see: https://ackee.xyz/trident/docs/latest/features/instructions-sequences/#instructions-sequences
 impl FuzzDataBuilder<FuzzInstruction> for InstructionsSequence {
     pre_sequence!(Initialize);
     middle_sequence!();
@@ -27,17 +26,18 @@ impl FuzzDataBuilder<FuzzInstruction> for InstructionsSequence {
 fn fuzz_iteration<T: FuzzTestExecutor<U> + std::fmt::Display, U>(
     fuzz_data: FuzzData<T, U>,
     config: &Config,
+    client: &mut impl FuzzClient,
 ) {
-    let fuzzing_program_cpi_metaplex_7 = FuzzingProgram::new(
-        PROGRAM_NAME_CPI_METAPLEX_7,
-        &PROGRAM_ID_CPI_METAPLEX_7,
-        processor!(convert_entry!(entry_cpi_metaplex_7)),
-    );
-    let mut client =
-        ProgramTestClientBlocking::new(&[fuzzing_program_cpi_metaplex_7], config).unwrap();
-    let _ = fuzz_data.run_with_runtime(&mut client, config);
+    let _ = fuzz_data.run_with_runtime(client, config);
 }
 fn main() {
+    let program = ProgramEntrypoint {
+        program_id: pubkey!("3XtULmXDGS867VbBXiPkjYr4EMjytGW8X12F6BS23Zcw"),
+        authority: None,
+        entry: processor!(entry),
+    };
+
     let config = Config::new();
-    fuzz_trident ! (fuzz_ix : FuzzInstruction , | fuzz_data : InstructionsSequence | { fuzz_iteration (fuzz_data , & config) ; });
+    let mut client = TridentSVM::new_client(&[program], &config);
+    fuzz_trident ! (fuzz_ix : FuzzInstruction , | fuzz_data : InstructionsSequence | { fuzz_iteration (fuzz_data , & config , & mut client) ; });
 }

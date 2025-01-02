@@ -9,6 +9,11 @@ pub mod hello_world {
     pub fn initialize_fn(ctx: Context<InitializeContext>, input: u8) -> Result<()> {
         let hello_world_store = &mut ctx.accounts.hello_world_account;
         hello_world_store.input = input;
+
+        if input > 200 && input < 210 {
+            panic!("This number is magic")
+        }
+
         Ok(())
     }
 }
