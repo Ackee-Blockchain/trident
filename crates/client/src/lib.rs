@@ -3,19 +3,19 @@
 //!
 //! Trident could be useful for writing Rust dApps, too.
 
-mod idl_loader;
 mod cleaner;
 mod commander;
+mod idl_loader;
 mod source_code_generators;
 mod test_generator;
 mod utils;
 mod versions_config;
 
 pub mod ___private {
-    pub use super::idl_loader::*;
     pub use super::cleaner::*;
     pub use super::commander::Commander;
     pub use super::commander::Error;
+    pub use super::idl_loader::*;
     pub use super::source_code_generators::*;
     pub use super::test_generator::TestGenerator;
 }
