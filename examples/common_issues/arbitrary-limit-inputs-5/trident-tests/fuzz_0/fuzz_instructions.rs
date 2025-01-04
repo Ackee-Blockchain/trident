@@ -1,4 +1,3 @@
-use anchor_lang::AccountDeserialize;
 use borsh::{BorshDeserialize, BorshSerialize};
 use trident_fuzz::fuzzing::*;
 /// FuzzInstruction contains all available Instructions.
@@ -159,10 +158,25 @@ impl IxOps for InitVesting {
     ) -> Result<(Vec<Keypair>, Vec<AccountMeta>), FuzzingError> {
         let mut account_metas = vec![];
         let mut signers = vec![];
-        let recipient = fuzz_accounts
-            .recipient_arbitrary_limit_inputs_5
-            .get_or_create_account(self.data.recipient, client, 10 * LAMPORTS_PER_SOL);
 
+        let recipient = {
+            fuzz_accounts
+                .recipient_arbitrary_limit_inputs_5
+                .get(self.data.recipient)
+        };
+        eprintln!("{}", recipient.pubkey());
+
+        let mint = {
+            fuzz_accounts
+                .mint_arbitrary_limit_inputs_5
+                .get_or_create_mint_account(
+                    self.accounts.mint,
+                    client,
+                    6,
+                    &recipient.pubkey(),
+                    None,
+                )
+        };
         let sender = {
             let sender = fuzz_accounts
                 .sender_arbitrary_limit_inputs_5
@@ -171,10 +185,6 @@ impl IxOps for InitVesting {
             signers.push(sender.insecure_clone());
             sender.pubkey()
         };
-        let mint = fuzz_accounts
-            .mint_arbitrary_limit_inputs_5
-            .get_or_create_mint_account(self.accounts.mint, client, 6, &sender, None);
-
         {
             let sender_token_account = fuzz_accounts
                 .sender_token_account_arbitrary_limit_inputs_5
@@ -273,27 +283,20 @@ impl IxOps for WithdrawUnlocked {
         let mut account_metas = vec![];
         let mut signers = vec![];
 
-        let mint = fuzz_accounts
-            .mint_arbitrary_limit_inputs_5
-            .get(self.accounts.mint);
+        let mint = {
+            fuzz_accounts
+                .mint_arbitrary_limit_inputs_5
+                .get(self.accounts.mint)
+        };
 
         let recipient = {
             let recipient = fuzz_accounts
                 .recipient_arbitrary_limit_inputs_5
-                .get_or_create_account(self.accounts.recipient, client, 500 * LAMPORTS_PER_SOL);
+                .get(self.accounts.recipient);
             account_metas.push(AccountMeta::new(recipient.pubkey(), true));
             signers.push(recipient.insecure_clone());
             recipient.pubkey()
         };
-
-        let escrow_pda_authority = fuzz_accounts
-            .escrow_pda_authority_arbitrary_limit_inputs_5
-            .get_or_create_account(
-                self.accounts.escrow_pda_authority,
-                client,
-                &[b"ESCROW_PDA_AUTHORITY"],
-                &self.get_program_id(),
-            );
         {
             let recipient_token_account = fuzz_accounts
                 .recipient_token_account_arbitrary_limit_inputs_5
@@ -313,31 +316,24 @@ impl IxOps for WithdrawUnlocked {
         {
             let escrow = fuzz_accounts
                 .escrow_arbitrary_limit_inputs_5
-                .get_or_create_account(
-                    self.accounts.escrow,
-                    client,
-                    &[recipient.as_ref(), b"ESCROW_SEED"],
-                    &self.get_program_id(),
-                );
+                .get(self.accounts.escrow);
             account_metas.push(AccountMeta::new(escrow, false));
         }
         {
             let escrow_token_account = fuzz_accounts
                 .escrow_token_account_arbitrary_limit_inputs_5
-                .get_or_create_token_account(
-                    self.accounts.escrow_token_account,
-                    client,
-                    mint.pubkey(),
-                    escrow_pda_authority,
-                    0,
-                    None,
-                    None,
-                    0,
-                    None,
-                );
+                .get(self.accounts.escrow_token_account);
             account_metas.push(AccountMeta::new(escrow_token_account.pubkey(), false));
         }
         {
+            let escrow_pda_authority = fuzz_accounts
+                .escrow_pda_authority_arbitrary_limit_inputs_5
+                .get_or_create_account(
+                    self.accounts.escrow_pda_authority,
+                    client,
+                    &[b"ESCROW_PDA_AUTHORITY"],
+                    &self.get_program_id(),
+                );
             account_metas.push(AccountMeta::new_readonly(escrow_pda_authority, false));
         }
         {
@@ -413,9 +409,6 @@ pub struct FuzzAccounts {
     sender_arbitrary_limit_inputs_5: AccountsStorage<KeypairStore>,
     sender_token_account_arbitrary_limit_inputs_5: AccountsStorage<KeypairStore>,
 }
-/// Custom Types defined within the Solana Program
-/// These are important in order to be able to Serialize/Deserialize
-/// all possible instruction inputs.
 #[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
 pub struct Escrow {
     recipient: Pubkey,
