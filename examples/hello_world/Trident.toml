@@ -4,9 +4,9 @@
 fuzzing_with_stats = true
 
 [honggfuzz]
-iterations = 10000
+iterations = 1000
 timeout = 20
-exit_upon_crash = true
+exit_upon_crash = false
 
 [afl]
 iterations = 10000
