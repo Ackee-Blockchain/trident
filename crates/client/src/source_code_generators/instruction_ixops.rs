@@ -1,7 +1,7 @@
-use std::collections::HashMap;
-
 use convert_case::{Case, Casing};
 use quote::format_ident;
+use sha2::{Digest, Sha256};
+use std::collections::HashMap;
 use syn::parse_quote;
 
 use trident_idl_spec::{
@@ -9,6 +9,8 @@ use trident_idl_spec::{
 };
 
 use super::fuzz_instructions_generator::InstructionAccount;
+
+pub const SIGHASH_GLOBAL_NAMESPACE: &str = "global";
 
 // Generate implementation of IxOps trait for each instruction
 pub(crate) fn get_instruction_ixops(
@@ -23,7 +25,12 @@ pub(crate) fn get_instruction_ixops(
         .iter()
         .fold(Vec::new(), |mut instructions_ixops_impl, instruction| {
             let instruction_name = instruction.name.to_case(Case::UpperCamel);
-            let discriminator = &instruction.discriminator;
+
+            let discriminator = if instruction.discriminator.is_empty() {
+                gen_discriminator(SIGHASH_GLOBAL_NAMESPACE, &instruction.name).to_vec()
+            } else {
+                instruction.discriminator.clone()
+            };
 
             let instruction_ident_name_modified: syn::Ident =
                 format_ident!("{}", &instruction_name);
@@ -306,4 +313,15 @@ fn handle_unknown_account(ident_short: &syn::Ident) -> syn::Block {
         }
 
     )
+}
+
+fn gen_discriminator(namespace: &str, name: &str) -> [u8; 8] {
+    let preimage = format!("{namespace}:{name}");
+
+    let mut hasher = Sha256::new();
+    hasher.update(preimage);
+
+    let mut sighash = [0u8; 8];
+    sighash.copy_from_slice(&hasher.finalize().as_slice()[..8]);
+    sighash
 }
