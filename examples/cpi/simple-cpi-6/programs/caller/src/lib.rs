@@ -7,7 +7,7 @@ declare_id!("FWtSodrkUnovFPnNRCxneP6VWh6JH6jtQZ4PHoP8Ejuz");
 pub mod caller {
     use super::*;
 
-    pub fn initialize_caller(ctx: Context<InitializeCaller>, input: u8) -> Result<()> {
+    pub fn initialize_caller(ctx: Context<InitializeCaller>, input: u16) -> Result<()> {
         msg!("Greetings from Caller");
 
         let cpi_context = CpiContext::new(
