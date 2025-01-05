@@ -40,7 +40,7 @@ impl FuzzClient for TridentSVM<'_> {
                     permanent_accounts
                 });
 
-        TridentSVM::new(programs, &sbf_programs, &permanent_accounts)
+        TridentSVM::new_with_syscalls(programs, &sbf_programs, &permanent_accounts)
     }
     fn warp_to_epoch(&mut self, warp_epoch: u64) {
         let mut clock = self.accounts.get_sysvar::<Clock>();

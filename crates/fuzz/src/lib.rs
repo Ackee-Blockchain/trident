@@ -23,7 +23,7 @@ pub mod fuzzing {
     pub use solana_sdk::instruction::Instruction;
     pub use solana_sdk::native_token::LAMPORTS_PER_SOL;
     pub use solana_sdk::pubkey;
-    pub use solana_sdk::pubkey::Pubkey;
+    // pub use solana_sdk::pubkey::Pubkey;
     pub use solana_sdk::signer::keypair::Keypair;
     pub use solana_sdk::signer::Signer;
     pub use solana_sdk::transaction::Transaction;
@@ -36,6 +36,7 @@ pub mod fuzzing {
     /// trident derive
     pub use trident_derive_displayix::DisplayIx;
     pub use trident_derive_fuzz_test_executor::FuzzTestExecutor;
+    pub use trident_svm::processor;
 
     /// trident macros
     pub use super::fuzz_trident;
