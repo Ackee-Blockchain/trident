@@ -3,7 +3,6 @@ mod fuzz_instructions;
 use cpi_metaplex_7::entry;
 use fuzz_instructions::FuzzInstruction;
 use fuzz_instructions::*;
-use trident_syscall_stubs_v1::processor;
 struct InstructionsSequence;
 /// Define instruction sequences for invocation.
 /// `pre` runs at the start, `middle` in the middle, and `post` at the end.
