@@ -1,5 +1,7 @@
+use anchor_lang::AccountDeserialize;
 use borsh::{BorshDeserialize, BorshSerialize};
 use trident_fuzz::fuzzing::*;
+
 /// FuzzInstruction contains all available Instructions.
 /// Below, the instruction arguments (accounts and data) are defined.
 #[derive(Arbitrary, DisplayIx, FuzzTestExecutor)]
@@ -164,7 +166,6 @@ impl IxOps for InitVesting {
                 .recipient_arbitrary_limit_inputs_5
                 .get(self.data.recipient)
         };
-        eprintln!("{}", recipient.pubkey());
 
         let mint = {
             fuzz_accounts

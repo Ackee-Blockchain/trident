@@ -23,7 +23,7 @@ pub mod fuzzing {
     pub use solana_sdk::instruction::Instruction;
     pub use solana_sdk::native_token::LAMPORTS_PER_SOL;
     pub use solana_sdk::pubkey;
-    // pub use solana_sdk::pubkey::Pubkey;
+    pub use solana_sdk::pubkey::Pubkey;
     pub use solana_sdk::signer::keypair::Keypair;
     pub use solana_sdk::signer::Signer;
     pub use solana_sdk::transaction::Transaction;

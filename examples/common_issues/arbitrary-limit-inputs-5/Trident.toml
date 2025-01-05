@@ -4,12 +4,12 @@
 fuzzing_with_stats = true
 
 [honggfuzz]
-iterations = 100
+iterations = 10000
 timeout = 20
-exit_upon_crash = true
-threads = 1
-keep_output = true
-verbose = true
+exit_upon_crash = false
+# threads = 1
+# keep_output = true
+# verbose = true
 
 [afl]
 iterations = 10000
