@@ -14,7 +14,7 @@ use trident_svm::utils::ProgramEntrypoint;
 pub trait FuzzClient {
     fn new_client(programs: &[ProgramEntrypoint], config: &Config) -> Self;
     /// Get the cluster rent
-    fn get_sysvar<T: Sysvar>(&mut self) -> T;
+    fn get_sysvar<T: Sysvar>(&self) -> T;
 
     /// Warp to specific epoch
     fn warp_to_epoch(&mut self, warp_epoch: u64);

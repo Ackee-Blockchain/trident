@@ -27,15 +27,15 @@ impl TransactionExecutor {
     {
         let program_id = ix.get_program_id();
 
-        let (_signers, account_metas) = ix
-            .get_accounts(client, &mut accounts.borrow_mut())
-            .map_err(|e| e.with_origin(Origin::Instruction(instruction_name.to_owned())))
-            .expect("Accounts calculation expect");
-
         let data = ix
             .get_data(client, &mut accounts.borrow_mut())
             .map_err(|e| e.with_origin(Origin::Instruction(instruction_name.to_owned())))
             .expect("Data calculation expect");
+
+        let (_signers, account_metas) = ix
+            .get_accounts(client, &mut accounts.borrow_mut())
+            .map_err(|e| e.with_origin(Origin::Instruction(instruction_name.to_owned())))
+            .expect("Accounts calculation expect");
 
         let mut snapshot = Snapshot::new(&account_metas);
 

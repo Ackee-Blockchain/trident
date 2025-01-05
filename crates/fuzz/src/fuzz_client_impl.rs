@@ -43,21 +43,21 @@ impl FuzzClient for TridentSVM<'_> {
         TridentSVM::new_with_syscalls(programs, &sbf_programs, &permanent_accounts)
     }
     fn warp_to_epoch(&mut self, warp_epoch: u64) {
-        let mut clock = self.accounts.get_sysvar::<Clock>();
+        let mut clock = self.get_sysvar::<Clock>();
 
         clock.epoch = warp_epoch;
         self.set_sysvar(&clock);
     }
 
     fn warp_to_slot(&mut self, warp_slot: u64) {
-        let mut clock = self.accounts.get_sysvar::<Clock>();
+        let mut clock = self.get_sysvar::<Clock>();
 
         clock.slot = warp_slot;
         self.set_sysvar(&clock);
     }
 
     fn forward_in_time(&mut self, seconds: i64) -> Result<(), crate::error::FuzzClientError> {
-        let mut clock = self.accounts.get_sysvar::<Clock>();
+        let mut clock = self.get_sysvar::<Clock>();
 
         clock.unix_timestamp = clock.unix_timestamp.saturating_add(seconds);
         self.set_sysvar(&clock);
@@ -130,8 +130,8 @@ impl FuzzClient for TridentSVM<'_> {
         }
     }
 
-    fn get_sysvar<T: Sysvar>(&mut self) -> T {
-        self.accounts.get_sysvar::<T>()
+    fn get_sysvar<T: Sysvar>(&self) -> T {
+        self.get_sysvar::<T>()
     }
 
     fn clear_accounts(&mut self) {
