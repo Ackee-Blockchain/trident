@@ -1,0 +1,15 @@
+[package]
+name = "trident-template"
+version = "0.0.1"
+edition = "2021"
+
+[dependencies]
+
+# Trident IDL spec
+trident-idl-spec = { git = "https://github.com/Ackee-Blockchain/trident-idl-spec", version = "0.0.1" }
+
+# Misc
+syn = { version = "2", features = ["visit", "full"] }
+quote = "1"
+convert_case = "0.6"
+sha2 = "0.10.0"

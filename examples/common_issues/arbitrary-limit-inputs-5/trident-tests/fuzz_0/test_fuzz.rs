@@ -30,11 +30,11 @@ fn fuzz_iteration<T: FuzzTestExecutor<U> + std::fmt::Display, U>(
     let _ = fuzz_data.run_with_runtime(client, config);
 }
 fn main() {
-    let program = ProgramEntrypoint {
-        program_id: pubkey!("AGpdCBtXUyLWKutvMCVDeTywkxgvQVjJk54btLQNLMiZ"),
-        authority: None,
-        entry: processor!(entry),
-    };
+    let program = ProgramEntrypoint::new(
+        pubkey!("AGpdCBtXUyLWKutvMCVDeTywkxgvQVjJk54btLQNLMiZ"),
+        None,
+        processor!(entry),
+    );
     let config = Config::new();
     let mut client = TridentSVM::new_client(&[program], &config);
     fuzz_trident ! (fuzz_ix : FuzzInstruction , | fuzz_data : InstructionsSequence | { fuzz_iteration (fuzz_data , & config , & mut client) ; });

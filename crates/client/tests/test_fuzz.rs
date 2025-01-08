@@ -16,12 +16,13 @@ async fn test_fuzz_instructions() {
         "/tests/expected_source_codes/expected_fuzz_instructions.rs"
     ));
 
-    let idl_2 = read_idl("dummy_2.json")?;
-    let idl_dummy = read_idl("dummy_example.json")?;
+    let idl_test = read_idl("idl_test.json")?;
+    let additional_program = read_idl("additional_program.json")?;
 
     let fuzz_instructions_code =
-        trident_client::___private::fuzz_instructions_generator::generate_source_code(&vec![
-            idl_2, idl_dummy,
+        trident_template::fuzz_instructions_generator::generate_source_code(&vec![
+            idl_test,
+            additional_program,
         ]);
 
     let fuzz_instructions_code =
@@ -39,12 +40,13 @@ async fn test_fuzz_test() {
         "/tests/expected_source_codes/expected_test_fuzz.rs"
     ));
 
-    let idl_2 = read_idl("dummy_2.json")?;
-    let idl_dummy = read_idl("dummy_example.json")?;
+    let idl_test = read_idl("idl_test.json")?;
+    let additional_program = read_idl("additional_program.json")?;
 
-    let test_fuzz = trident_client::___private::test_fuzz_generator::generate_source_code(&vec![
-        idl_2, idl_dummy,
-    ]);
+    let test_fuzz = trident_template::test_fuzz_generator::generate_source_code(
+        &[idl_test, additional_program],
+        &["additional_program".to_string(), "idl_test".to_string()],
+    );
 
     let test_fuzz =
         trident_client::___private::Commander::format_program_code_nightly(&test_fuzz).await?;

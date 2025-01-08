@@ -380,10 +380,6 @@ pub async fn initialize_fuzz_tests_manifest(
                     "path".to_string(),
                     Value::String(relative_path_str.to_owned()),
                 );
-                // package_entry.insert(
-                //     "features".to_string(),
-                //     Value::Array(vec![Value::String("trident-fuzzing".to_string())]),
-                // );
                 package_entry
             }),
         );
@@ -427,10 +423,6 @@ pub async fn update_fuzz_tests_manifest(
             package_entry.insert(
                 "path".to_string(),
                 Value::String(relative_path_str.to_owned()),
-            );
-            package_entry.insert(
-                "features".to_string(),
-                Value::Array(vec![Value::String("trident-fuzzing".to_string())]),
             );
             Value::Table(package_entry)
         });

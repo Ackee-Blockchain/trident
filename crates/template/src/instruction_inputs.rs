@@ -1,8 +1,11 @@
 use convert_case::{Case, Casing};
 use quote::format_ident;
-use syn::parse_quote;
+use syn::{parse_quote, FnArg};
 
-use trident_idl_spec::{idl_type_to_syn_type, Idl, IdlInstruction, IdlInstructionAccountItem};
+use trident_idl_spec::{
+    idl_type_to_syn_type, Idl, IdlField, IdlInstruction, IdlInstructionAccount,
+    IdlInstructionAccountItem,
+};
 
 // Generate input structures for each instruction
 pub(crate) fn get_instruction_inputs(idl: &Idl) -> Vec<syn::ItemStruct> {
@@ -13,16 +16,18 @@ pub(crate) fn get_instruction_inputs(idl: &Idl) -> Vec<syn::ItemStruct> {
         .fold(Vec::new(), |mut instructions_data, instruction| {
             let instruction_name = instruction.name.to_case(Case::UpperCamel);
 
+            // get instruction name
             let instruction_name_ident: syn::Ident = format_ident!("{}", &instruction_name);
+            // get instruction data name
             let instruction_data_name: syn::Ident = format_ident!("{}Data", &instruction_name);
+            // get instruction accounts name
             let instruction_accounts_name: syn::Ident =
                 format_ident!("{}Accounts", &instruction_name);
 
             // Generate accounts and parameters
-
             let accounts = get_instruction_accounts(instruction);
 
-            let parameters = get_instruction_arguments(instruction);
+            let data = get_instruction_data(instruction);
 
             // Define the input structures
             let instructions_inputs: syn::ItemStruct = parse_quote! {
@@ -47,7 +52,7 @@ pub(crate) fn get_instruction_inputs(idl: &Idl) -> Vec<syn::ItemStruct> {
                 /// For more details, see: https://ackee.xyz/trident/docs/latest/features/fuzz-instructions/#custom-data-types
                 #[derive(Arbitrary, Debug, BorshDeserialize, BorshSerialize)]
                 pub struct #instruction_data_name {
-                     #(pub #parameters),*
+                     #(pub #data),*
                 }
             };
 
@@ -62,30 +67,50 @@ fn get_instruction_accounts(instruction: &IdlInstruction) -> Vec<syn::FnArg> {
     instruction.accounts.iter().fold(
         Vec::new(),
         |mut account_parameters, account| match account {
-            IdlInstructionAccountItem::Composite(_composite) => {
-                panic!("Composite Accounts are not supported yet!")
+            IdlInstructionAccountItem::Composite(idl_instruction_accounts) => {
+                panic!(
+                    "Composite accounts not supported. Composite account with name {} found",
+                    idl_instruction_accounts.name
+                )
             }
-            IdlInstructionAccountItem::Single(single) => {
-                if single.address.is_none() {
-                    let name = format_ident!("{}", single.name);
-                    let account: syn::FnArg = parse_quote!(#name: AccountId);
-                    account_parameters.push(account);
-                }
+            IdlInstructionAccountItem::Single(idl_instruction_account) => {
+                process_single_account(idl_instruction_account, &mut account_parameters);
                 account_parameters
             }
         },
     )
 }
 
-fn get_instruction_arguments(instruction: &IdlInstruction) -> Vec<syn::FnArg> {
+fn process_single_account(
+    idl_instruction_account: &IdlInstructionAccount,
+    account_parameters: &mut Vec<syn::FnArg>,
+) {
+    // If the account has constant address it is not needed to fuzz it
+    // So it will not be generated as a parameter.
+    if idl_instruction_account.address.is_none() {
+        let name = format_ident!("{}", idl_instruction_account.name);
+        let account: syn::FnArg = parse_quote!(#name: AccountId);
+        account_parameters.push(account);
+    }
+}
+
+fn get_instruction_data(instruction: &IdlInstruction) -> Vec<syn::FnArg> {
     instruction
         .args
         .iter()
-        .fold(Vec::new(), |mut data_parameters, arg| {
-            let arg_name = format_ident!("{}", arg.name);
-            let (arg_type, _is_custom) = idl_type_to_syn_type(&arg.ty, 0, true);
-            let parameter: syn::FnArg = parse_quote!(#arg_name: #arg_type);
-            data_parameters.push(parameter);
-            data_parameters
+        .fold(Vec::new(), |mut arguments, argument| {
+            process_instruction_argument(argument, &mut arguments);
+            arguments
         })
+}
+
+fn process_instruction_argument(argument: &IdlField, arguments: &mut Vec<FnArg>) {
+    let arg_name = format_ident!("{}", argument.name);
+
+    // convert type to syn type
+    let (arg_type, _is_custom) = idl_type_to_syn_type(&argument.ty, 0, true);
+
+    let parameter: syn::FnArg = parse_quote!(#arg_name: #arg_type);
+
+    arguments.push(parameter);
 }

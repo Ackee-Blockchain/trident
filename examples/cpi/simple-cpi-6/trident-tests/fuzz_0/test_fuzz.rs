@@ -32,16 +32,16 @@ fn fuzz_iteration<T: FuzzTestExecutor<U> + std::fmt::Display, U>(
     let _ = fuzz_data.run_with_runtime(client, config);
 }
 fn main() {
-    let program_callee = ProgramEntrypoint {
-        program_id: pubkey!("HJR1TK8bgrUWzysdpS1pBGBYKF7zi1tU9cS4qj8BW8ZL"),
-        authority: None,
-        entry: processor!(entry_callee),
-    };
-    let program_caller = ProgramEntrypoint {
-        program_id: pubkey!("FWtSodrkUnovFPnNRCxneP6VWh6JH6jtQZ4PHoP8Ejuz"),
-        authority: None,
-        entry: processor!(entry_caller),
-    };
+    let program_callee = ProgramEntrypoint::new(
+        pubkey!("HJR1TK8bgrUWzysdpS1pBGBYKF7zi1tU9cS4qj8BW8ZL"),
+        None,
+        processor!(entry_callee),
+    );
+    let program_caller = ProgramEntrypoint::new(
+        pubkey!("FWtSodrkUnovFPnNRCxneP6VWh6JH6jtQZ4PHoP8Ejuz"),
+        None,
+        processor!(entry_caller),
+    );
     let config = Config::new();
     let mut client = TridentSVM::new_client(&[program_callee, program_caller], &config);
     fuzz_trident ! (fuzz_ix : FuzzInstruction , | fuzz_data : InstructionsSequence | { fuzz_iteration (fuzz_data , & config , & mut client) ; });
