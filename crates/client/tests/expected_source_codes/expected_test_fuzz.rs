@@ -1,19 +1,15 @@
-use trident_client::fuzzing::*;
+use trident_fuzz::fuzzing::*;
 mod fuzz_instructions;
-use dummy_2::entry as entry_dummy_2;
-use dummy_2::ID as PROGRAM_ID_dummy_2;
-use dummy_example::entry as entry_dummy_example;
-use dummy_example::ID as PROGRAM_ID_dummy_example;
+use additional_program::entry as entry_additional_program;
 use fuzz_instructions::FuzzInstruction;
-const PROGRAM_NAME_dummy_2: &str = "dummy_2";
-const PROGRAM_NAME_dummy_example: &str = "dummy_example";
+use fuzz_instructions::*;
+use idl_test::entry as entry_idl_test;
 struct InstructionsSequence;
 /// Define instruction sequences for invocation.
 /// `pre` runs at the start, `middle` in the middle, and `post` at the end.
 /// For example, to call `InitializeFn`, `UpdateFn` and then `WithdrawFn` during
 /// each fuzzing iteration:
 /// ```
-/// use fuzz_instructions::{InitializeFn, UpdateFn, WithdrawFn};
 /// impl FuzzDataBuilder<FuzzInstruction> for InstructionsSequence {
 ///     pre_sequence!(InitializeFn,UpdateFn);
 ///     middle_sequence!(WithdrawFn);
@@ -26,25 +22,23 @@ impl FuzzDataBuilder<FuzzInstruction> for InstructionsSequence {}
 fn fuzz_iteration<T: FuzzTestExecutor<U> + std::fmt::Display, U>(
     fuzz_data: FuzzData<T, U>,
     config: &Config,
+    client: &mut impl FuzzClient,
 ) {
-    let fuzzing_program_dummy_2 = FuzzingProgram::new(
-        PROGRAM_NAME_dummy_2,
-        &PROGRAM_ID_dummy_2,
-        processor!(convert_entry!(entry_dummy_2)),
-    );
-    let fuzzing_program_dummy_example = FuzzingProgram::new(
-        PROGRAM_NAME_dummy_example,
-        &PROGRAM_ID_dummy_example,
-        processor!(convert_entry!(entry_dummy_example)),
-    );
-    let mut client = ProgramTestClientBlocking::new(
-        &[fuzzing_program_dummy_2, fuzzing_program_dummy_example],
-        config,
-    )
-    .unwrap();
-    let _ = fuzz_data.run_with_runtime(&mut client, config);
+    let _ = fuzz_data.run_with_runtime(client, config);
 }
 fn main() {
+    let program_additional_program = ProgramEntrypoint::new(
+        pubkey!("fill corresponding program ID here"),
+        None,
+        processor!(entry_additional_program),
+    );
+    let program_idl_test = ProgramEntrypoint::new(
+        pubkey!("fill corresponding program ID here"),
+        None,
+        processor!(entry_idl_test),
+    );
     let config = Config::new();
-    fuzz_trident ! (fuzz_ix : FuzzInstruction , | fuzz_data : InstructionsSequence | { fuzz_iteration (fuzz_data , & config) ; });
+    let mut client =
+        TridentSVM::new_client(&[program_additional_program, program_idl_test], &config);
+    fuzz_trident ! (fuzz_ix : FuzzInstruction , | fuzz_data : InstructionsSequence | { fuzz_iteration (fuzz_data , & config , & mut client) ; });
 }

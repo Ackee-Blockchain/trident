@@ -37,7 +37,6 @@ pub fn load_idls(dir_path: PathBuf) -> Result<Vec<Idl>, Box<dyn Error>> {
                     // Continue to the next file on failure
                 }
             }
-            // }
         }
     }
 
