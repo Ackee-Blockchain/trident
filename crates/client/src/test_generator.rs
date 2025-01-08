@@ -1,7 +1,5 @@
-use crate::___private::test_fuzz_generator;
 use crate::commander::{Commander, Error as CommanderError};
 use crate::constants::*;
-use crate::source_code_generators::fuzz_instructions_generator;
 use crate::versions_config::TridentVersionsConfig;
 use crate::{construct_path, load_template, utils::*};
 use cargo_metadata::Package;
@@ -14,6 +12,8 @@ use std::{
 };
 use thiserror::Error;
 use trident_idl_spec::Idl;
+use trident_template::fuzz_instructions_generator;
+use trident_template::test_fuzz_generator;
 
 #[derive(Error, Debug)]
 pub enum Error {
@@ -93,7 +93,24 @@ impl TestGenerator {
 
     #[throws]
     async fn generate_source_codes(&mut self) {
-        let test_fuzz = test_fuzz_generator::generate_source_code(&self.anchor_idls);
+        // Obtain lib names so we can generate entries in the test_fuzz.rs file
+        let lib_names = self
+            .program_packages
+            .iter()
+            .map(|p| {
+                // This is little dirty
+                // We check if there is any target, if so we check only the first one and check if it is lib
+                // if so we take its name.
+                // Otherwise we take the package name.
+                if !p.targets.is_empty() && p.targets[0].kind.iter().any(|k| k == "lib") {
+                    p.targets[0].name.clone()
+                } else {
+                    p.name.clone()
+                }
+            })
+            .collect::<Vec<String>>();
+
+        let test_fuzz = test_fuzz_generator::generate_source_code(&self.anchor_idls, &lib_names);
         let fuzz_instructions =
             fuzz_instructions_generator::generate_source_code(&self.anchor_idls);
 

@@ -6,7 +6,7 @@
 mod cleaner;
 mod commander;
 mod idl_loader;
-mod source_code_generators;
+// mod source_code_generators;
 mod test_generator;
 mod utils;
 mod versions_config;
@@ -16,7 +16,7 @@ pub mod ___private {
     pub use super::commander::Commander;
     pub use super::commander::Error;
     pub use super::idl_loader::*;
-    pub use super::source_code_generators::*;
+    // pub use super::source_code_generators::*;
     pub use super::test_generator::TestGenerator;
 }
 
