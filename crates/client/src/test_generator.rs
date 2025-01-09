@@ -188,7 +188,7 @@ impl TestGenerator {
         create_file(&self.root, &trident_toml_path, trident_toml_content).await?;
 
         add_bin_target(&fuzz_tests_manifest_path, &new_fuzz_test, &new_bin_target).await?;
-        initialize_fuzz_tests_manifest(
+        update_fuzz_tests_manifest(
             &self.versions_config,
             &self.program_packages,
             &fuzz_dir_path,

@@ -1,4 +1,3 @@
-use anchor_lang::AccountDeserialize;
 use borsh::{BorshDeserialize, BorshSerialize};
 use solana_sdk::program_pack::Pack;
 use trident_fuzz::fuzzing::*;

@@ -14,7 +14,6 @@ edition = "2021"
 arbitrary = "1.3.0"
 borsh = "1.5.3"
 solana-sdk = "~2.0"
-anchor-lang = "0.30.1"
 
 [dependencies.trident-fuzz]
 path = "../../../crates/fuzz"
