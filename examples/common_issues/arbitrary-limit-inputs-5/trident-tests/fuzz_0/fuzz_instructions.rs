@@ -1,5 +1,5 @@
-use anchor_lang::AccountDeserialize;
 use borsh::{BorshDeserialize, BorshSerialize};
+use solana_sdk::program_pack::Pack;
 use trident_fuzz::fuzzing::*;
 
 /// FuzzInstruction contains all available Instructions.
@@ -364,13 +364,13 @@ impl IxOps for WithdrawUnlocked {
             let recipient = pre_ix[0].pubkey();
 
             let recipient_token_account_pre =
-                match anchor_spl::token::TokenAccount::try_deserialize(&mut pre_ix[1].data()) {
+                match spl_token::state::Account::unpack(pre_ix[1].data()) {
                     Ok(recipient_token_account_pre) => recipient_token_account_pre,
                     Err(_) => return Ok(()),
                 };
 
             let recipient_token_account_post =
-                match anchor_spl::token::TokenAccount::try_deserialize(&mut post_ix[1].data()) {
+                match spl_token::state::Account::unpack(post_ix[1].data()) {
                     Ok(recipient_token_account_post) => recipient_token_account_post,
                     Err(_) => return Ok(()),
                 };
