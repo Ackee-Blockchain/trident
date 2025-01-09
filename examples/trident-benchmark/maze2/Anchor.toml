@@ -5,7 +5,7 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-maze = "5s76RezGLb7dthzSzcFSpJAvXH6ZRsPenbGwrjtbq2mY"
+maze2 = "t3xfhHYDSVpaGKjk5FFUEpvr3dBYE7wF9PWyxXxpLea"
 
 [registry]
 url = "https://api.apr.dev"

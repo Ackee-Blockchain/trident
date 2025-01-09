@@ -1,5 +1,5 @@
 [workspace]
-members = ["programs/*"]
+members = ["programs/*", "trident-tests"]
 resolver = "2"
 
 [profile.release]
