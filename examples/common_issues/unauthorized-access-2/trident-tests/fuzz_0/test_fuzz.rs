@@ -1,10 +1,8 @@
-use fuzz_instructions::Initialize;
-use trident_client::fuzzing::*;
+use trident_fuzz::fuzzing::*;
 mod fuzz_instructions;
 use fuzz_instructions::FuzzInstruction;
+use fuzz_instructions::*;
 use unauthorized_access_2::entry as entry_unauthorized_access_2;
-use unauthorized_access_2::ID as PROGRAM_ID_UNAUTHORIZED_ACCESS_2;
-const PROGRAM_NAME_UNAUTHORIZED_ACCESS_2: &str = "unauthorized_access_2";
 struct InstructionsSequence;
 /// Define instruction sequences for invocation.
 /// `pre` runs at the start, `middle` in the middle, and `post` at the end.
@@ -16,7 +14,7 @@ struct InstructionsSequence;
 ///     middle_sequence!(WithdrawFn);
 ///}
 /// ```
-/// For more details, see: https://ackee.xyz/trident/docs/dev/features/instructions-sequences/#instructions-sequences
+/// For more details, see: https://ackee.xyz/trident/docs/latest/features/instructions-sequences/#instructions-sequences
 impl FuzzDataBuilder<FuzzInstruction> for InstructionsSequence {
     pre_sequence!(Initialize);
 }
@@ -25,17 +23,17 @@ impl FuzzDataBuilder<FuzzInstruction> for InstructionsSequence {
 fn fuzz_iteration<T: FuzzTestExecutor<U> + std::fmt::Display, U>(
     fuzz_data: FuzzData<T, U>,
     config: &Config,
+    client: &mut impl FuzzClient,
 ) {
-    let fuzzing_program_unauthorized_access_2 = FuzzingProgram::new(
-        PROGRAM_NAME_UNAUTHORIZED_ACCESS_2,
-        &PROGRAM_ID_UNAUTHORIZED_ACCESS_2,
-        processor!(convert_entry!(entry_unauthorized_access_2)),
-    );
-    let mut client =
-        ProgramTestClientBlocking::new(&[fuzzing_program_unauthorized_access_2], config).unwrap();
-    let _ = fuzz_data.run_with_runtime(&mut client, config);
+    let _ = fuzz_data.run_with_runtime(client, config);
 }
 fn main() {
+    let program_unauthorized_access_2 = ProgramEntrypoint::new(
+        pubkey!("5XvBmfPNcHLCgbRK4nRYvfodAnhjArHSed2B3rhkF1Ug"),
+        None,
+        processor!(entry_unauthorized_access_2),
+    );
     let config = Config::new();
-    fuzz_trident ! (fuzz_ix : FuzzInstruction , | fuzz_data : InstructionsSequence | { fuzz_iteration (fuzz_data , & config) ; });
+    let mut client = TridentSVM::new_client(&[program_unauthorized_access_2], &config);
+    fuzz_trident ! (fuzz_ix : FuzzInstruction , | fuzz_data : InstructionsSequence | { fuzz_iteration (fuzz_data , & config , & mut client) ; });
 }
