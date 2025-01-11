@@ -1,16 +1,14 @@
 use convert_case::{Case, Casing};
 use quote::format_ident;
-use sha2::{Digest, Sha256};
 use std::collections::HashMap;
 use syn::parse_quote;
 
-use trident_idl_spec::{Idl, IdlInstruction};
+use trident_idl_spec::Idl;
 
 use crate::{
     get_accounts::get_accounts, get_data::get_data, instruction_account::InstructionAccount,
+    process_discriminator, process_program_id,
 };
-
-pub const SIGHASH_GLOBAL_NAMESPACE: &str = "global";
 
 // Generate implementation of IxOps trait for each instruction
 pub(crate) fn get_instruction_ixops(
@@ -87,37 +85,4 @@ pub(crate) fn get_instruction_ixops(
             instructions_ixops_impl.push(ix_impl);
             instructions_ixops_impl
         })
-}
-
-fn process_discriminator(instruction: &IdlInstruction) -> Vec<u8> {
-    // if discriminator is not provided, generate it
-    if instruction.discriminator.is_empty() {
-        gen_discriminator(SIGHASH_GLOBAL_NAMESPACE, &instruction.name).to_vec()
-    } else {
-        // if discriminator is provided, use it
-        instruction.discriminator.clone()
-    }
-}
-
-fn gen_discriminator(namespace: &str, name: &str) -> [u8; 8] {
-    let preimage = format!("{namespace}:{name}");
-
-    let mut hasher = Sha256::new();
-    hasher.update(preimage);
-
-    let mut sighash = [0u8; 8];
-    sighash.copy_from_slice(&hasher.finalize().as_slice()[..8]);
-    sighash
-}
-
-fn process_program_id(idl: &Idl) -> String {
-    // if program ID is present, use it
-    if !idl.address.is_empty() {
-        idl.address.clone()
-    } else {
-        // if program ID is not present, use placeholder
-        // We might be able to parse it form program, but it
-        // might not be necesarry as newer versions of IDL will contain it
-        "fill corresponding program ID here".to_string()
-    }
 }
