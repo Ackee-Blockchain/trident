@@ -1,19 +1,20 @@
 #![allow(dead_code)]
 
-use anchor_lang::solana_program::hash::Hash;
-
+use crate::error::*;
 use solana_sdk::account::AccountSharedData;
+use solana_sdk::hash::Hash;
+use solana_sdk::instruction::Instruction;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
 use solana_sdk::sysvar::Sysvar;
-use solana_sdk::transaction::VersionedTransaction;
-
-use crate::error::*;
+use trident_config::Config;
+use trident_svm::utils::ProgramEntrypoint;
 
 /// A trait providing methods to read and write (manipulate) accounts
 pub trait FuzzClient {
+    fn new_client(programs: &[ProgramEntrypoint], config: &Config) -> Self;
     /// Get the cluster rent
-    fn get_sysvar<T: Sysvar>(&mut self) -> T;
+    fn get_sysvar<T: Sysvar>(&self) -> T;
 
     /// Warp to specific epoch
     fn warp_to_epoch(&mut self, warp_epoch: u64);
@@ -37,8 +38,11 @@ pub trait FuzzClient {
     fn get_last_blockhash(&self) -> Hash;
 
     /// Send a transaction and return until the transaction has been finalized or rejected.
-    fn process_transaction(
+    fn process_instructions(
         &mut self,
-        transaction: impl Into<VersionedTransaction>,
+        _instructions: &[Instruction],
     ) -> Result<(), FuzzClientError>;
+
+    // Clear Temp account created during fuzzing iteration
+    fn clear_accounts(&mut self);
 }

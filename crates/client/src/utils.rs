@@ -149,160 +149,37 @@ pub fn ensure_table<'a>(content: &'a mut Value, table_name: &str) -> Result<&'a 
         .ok_or(Error::ParsingCargoTomlDependenciesFailed)
 }
 // #[throws]
-// pub async fn initialize_package_metadata(
-//     packages: &[Package],
-//     versions_config: &TridentVersionsConfig,
-// ) {
-//     for package in packages {
-//         let manifest_path = package.manifest_path.as_std_path();
-//         let cargo_toml_content = fs::read_to_string(&manifest_path).await?;
-//         let mut cargo_toml: Value = toml::from_str(&cargo_toml_content)?;
+// pub async fn add_workspace_member(root: &Path, member: &str) {
+//     // Construct the path to the Cargo.toml file
+//     let cargo = root.join("Cargo.toml");
 
-//         // Ensure the 'trident-fuzzing' feature exists with the required dependency.
-//         let features_table = ensure_table(&mut cargo_toml, "features")?;
+//     // Read and parse the Cargo.toml file
+//     let cargo_toml_content = fs::read_to_string(&cargo).await?;
+//     let mut cargo_toml: Value = toml::from_str(&cargo_toml_content)?;
 
-//         features_table.insert(
-//             "trident-fuzzing".to_string(),
-//             Value::Array(vec![Value::String("dep:trident-fuzz".to_string())]),
-//         );
+//     // Ensure that the 'workspace' table exists
+//     let workspace_table = ensure_table(&mut cargo_toml, "workspace")?;
 
-//         // Ensure the required dependencies are present in the 'dependencies' section.
-//         let dependencies_table = ensure_table(&mut cargo_toml, "dependencies")?;
+//     // Ensure that the 'members' array exists within the 'workspace' table
+//     let members = workspace_table
+//         .entry("members")
+//         .or_insert(Value::Array(Vec::new()))
+//         .as_array_mut()
+//         .ok_or(Error::CannotParseCargoToml)?;
 
-//         // Add 'trident-derive-accounts-snapshots' dependency in table format.
-//         dependencies_table.insert(
-//             "trident-derive-accounts-snapshots".to_string(),
-//             Value::Table({
-//                 let mut snapshots_table = toml::Table::new();
-//                 snapshots_table.insert(
-//                     "version".to_string(),
-//                     Value::String(versions_config.trident_derive_accounts_snapshots.clone()),
-//                 );
-//                 snapshots_table
-//             }),
-//         );
+//     // Check if the new member already exists in the 'members' array
+//     if !members.iter().any(|x| x.as_str() == Some(member)) {
+//         // Add the new member to the 'members' array
+//         members.push(Value::String(member.to_string()));
+//         println!("{FINISH} [{CARGO_TOML}] updated with [{member}]");
 
-//         // Add 'trident-fuzz' dependency with specified attributes if not present.
-//         dependencies_table.insert(
-//             "trident-fuzz".to_string(),
-//             Value::Table({
-//                 let mut trident_fuzz_table = toml::Table::new();
-//                 trident_fuzz_table.insert(
-//                     "version".to_string(),
-//                     Value::String(versions_config.trident_fuzz.clone()),
-//                 );
-//                 trident_fuzz_table.insert("optional".to_string(), Value::Boolean(true));
-//                 trident_fuzz_table
-//             }),
-//         );
-
-//         // Write the updated Cargo.toml back to the file.
-//         fs::write(&manifest_path, toml::to_string(&cargo_toml).unwrap()).await?;
+//         // Write the updated Cargo.toml back to the file
+//         let updated_toml = toml::to_string(&cargo_toml).unwrap();
+//         fs::write(cargo, updated_toml).await?;
+//     } else {
+//         println!("{SKIP} [{CARGO_TOML}], already contains [{member}]");
 //     }
 // }
-
-// #[throws]
-// pub async fn update_package_metadata(
-//     packages: &[Package],
-//     versions_config: &TridentVersionsConfig,
-// ) {
-//     for package in packages {
-//         let manifest_path = package.manifest_path.as_std_path();
-//         let cargo_toml_content = fs::read_to_string(&manifest_path).await?;
-//         let mut cargo_toml: Value = toml::from_str(&cargo_toml_content)?;
-
-//         // Ensure the 'trident-fuzzing' feature exists with the required dependency.
-//         let features_table = ensure_table(&mut cargo_toml, "features")?;
-//         if features_table.contains_key("trident-fuzzing") {
-//             println!(
-//                 "{SKIP} 'trident-fuzzing' feature already exists in package: {}",
-//                 package.name
-//             );
-//         } else {
-//             features_table.insert(
-//                 "trident-fuzzing".to_string(),
-//                 Value::Array(vec![Value::String("dep:trident-fuzz".to_string())]),
-//             );
-//         }
-
-//         // Ensure the required dependencies are present in the 'dependencies' section.
-//         let dependencies_table = ensure_table(&mut cargo_toml, "dependencies")?;
-
-//         // Add 'trident-derive-accounts-snapshots' dependency in table format.
-//         if dependencies_table.contains_key("trident-derive-accounts-snapshots") {
-//             println!("{SKIP} 'trident-derive-accounts-snapshots' dependency already exists in package: {}", package.name);
-//         } else {
-//             dependencies_table.insert(
-//                 "trident-derive-accounts-snapshots".to_string(),
-//                 Value::Table({
-//                     let mut snapshots_table = toml::Table::new();
-//                     snapshots_table.insert(
-//                         "version".to_string(),
-//                         Value::String(versions_config.trident_derive_accounts_snapshots.clone()),
-//                     );
-//                     snapshots_table
-//                 }),
-//             );
-//         }
-
-//         // Add 'trident-fuzz' dependency with specified attributes if not present.
-//         if dependencies_table.contains_key("trident-fuzz") {
-//             println!(
-//                 "{SKIP} 'trident-fuzz' dependency already exists in package: {}",
-//                 package.name
-//             );
-//         } else {
-//             dependencies_table.insert(
-//                 "trident-fuzz".to_string(),
-//                 Value::Table({
-//                     let mut trident_fuzz_table = toml::Table::new();
-//                     trident_fuzz_table.insert(
-//                         "version".to_string(),
-//                         Value::String(versions_config.trident_fuzz.clone()),
-//                     );
-//                     trident_fuzz_table.insert("optional".to_string(), Value::Boolean(true));
-//                     trident_fuzz_table
-//                 }),
-//             );
-//         }
-
-//         // Write the updated Cargo.toml back to the file.
-//         fs::write(&manifest_path, toml::to_string(&cargo_toml).unwrap()).await?;
-//     }
-// }
-
-#[throws]
-pub async fn add_workspace_member(root: &Path, member: &str) {
-    // Construct the path to the Cargo.toml file
-    let cargo = root.join("Cargo.toml");
-
-    // Read and parse the Cargo.toml file
-    let cargo_toml_content = fs::read_to_string(&cargo).await?;
-    let mut cargo_toml: Value = toml::from_str(&cargo_toml_content)?;
-
-    // Ensure that the 'workspace' table exists
-    let workspace_table = ensure_table(&mut cargo_toml, "workspace")?;
-
-    // Ensure that the 'members' array exists within the 'workspace' table
-    let members = workspace_table
-        .entry("members")
-        .or_insert(Value::Array(Vec::new()))
-        .as_array_mut()
-        .ok_or(Error::CannotParseCargoToml)?;
-
-    // Check if the new member already exists in the 'members' array
-    if !members.iter().any(|x| x.as_str() == Some(member)) {
-        // Add the new member to the 'members' array
-        members.push(Value::String(member.to_string()));
-        println!("{FINISH} [{CARGO_TOML}] updated with [{member}]");
-
-        // Write the updated Cargo.toml back to the file
-        let updated_toml = toml::to_string(&cargo_toml).unwrap();
-        fs::write(cargo, updated_toml).await?;
-    } else {
-        println!("{SKIP} [{CARGO_TOML}], already contains [{member}]");
-    }
-}
 
 #[throws]
 pub async fn add_bin_target(cargo_path: &PathBuf, name: &str, path: &str) {
@@ -342,60 +219,6 @@ pub async fn add_bin_target(cargo_path: &PathBuf, name: &str, path: &str) {
 }
 
 #[throws]
-pub async fn initialize_fuzz_tests_manifest(
-    versions_config: &TridentVersionsConfig,
-    packages: &[Package],
-    cargo_dir: &PathBuf,
-) {
-    let cargo_path = cargo_dir.join("Cargo.toml");
-
-    let cargo_toml_content = fs::read_to_string(&cargo_path).await?;
-    let mut cargo_toml: Value = toml::from_str(&cargo_toml_content)?;
-
-    // Ensure the required dependencies are present in the 'dependencies' section.
-    let dependencies_table = ensure_table(&mut cargo_toml, "dependencies")?;
-
-    // Add 'trident-client' dependency in table format.
-    dependencies_table.insert(
-        "trident-client".to_string(),
-        Value::Table({
-            let mut trident_client = toml::Table::new();
-            trident_client.insert(
-                "version".to_string(),
-                Value::String(versions_config.trident_client.clone()),
-            );
-            trident_client
-        }),
-    );
-
-    for package in packages {
-        let manifest_path = package.manifest_path.parent().unwrap().as_std_path();
-        let relative_path = pathdiff::diff_paths(manifest_path, cargo_dir).unwrap();
-
-        let relative_path_str = relative_path.to_str().unwrap_or_default();
-
-        let package_name = package.name.clone();
-        dependencies_table.insert(
-            package_name,
-            Value::Table({
-                let mut package_entry = toml::Table::new();
-                package_entry.insert(
-                    "path".to_string(),
-                    Value::String(relative_path_str.to_owned()),
-                );
-                // package_entry.insert(
-                //     "features".to_string(),
-                //     Value::Array(vec![Value::String("trident-fuzzing".to_string())]),
-                // );
-                package_entry
-            }),
-        );
-    }
-
-    fs::write(cargo_path, toml::to_string(&cargo_toml).unwrap()).await?;
-}
-
-#[throws]
 pub async fn update_fuzz_tests_manifest(
     versions_config: &TridentVersionsConfig,
     packages: &[Package],
@@ -409,17 +232,15 @@ pub async fn update_fuzz_tests_manifest(
     // Ensure the required dependencies are present in the 'dependencies' section.
     let dependencies_table = ensure_table(&mut cargo_toml, "dependencies")?;
 
-    // Add 'trident-client' dependency in table format.
-    dependencies_table
-        .entry("trident-client")
-        .or_insert_with(|| {
-            let mut trident_client = toml::Table::new();
-            trident_client.insert(
-                "version".to_string(),
-                Value::String(versions_config.trident_client.clone()),
-            );
-            Value::Table(trident_client)
-        });
+    // Add 'trident-fuzz' dependency in table format.
+    dependencies_table.entry("trident-fuzz").or_insert_with(|| {
+        let mut trident_client = toml::Table::new();
+        trident_client.insert(
+            "version".to_string(),
+            Value::String(versions_config.trident_fuzz.clone()),
+        );
+        Value::Table(trident_client)
+    });
 
     for package in packages {
         let manifest_path = package.manifest_path.parent().unwrap().as_std_path();
@@ -432,10 +253,6 @@ pub async fn update_fuzz_tests_manifest(
             package_entry.insert(
                 "path".to_string(),
                 Value::String(relative_path_str.to_owned()),
-            );
-            package_entry.insert(
-                "features".to_string(),
-                Value::Array(vec![Value::String("trident-fuzzing".to_string())]),
             );
             Value::Table(package_entry)
         });

@@ -1,0 +1,28 @@
+# For the detailed description of the parameters, see: https://ackee.xyz/trident/docs/latest/features/trident-manifest/
+
+[fuzz]
+fuzzing_with_stats = true
+
+[[fuzz.programs]]
+address = "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s"
+program = "metaplex-program/metaplex-token-metadata.so"
+
+[honggfuzz]
+iterations = 10000
+timeout = 20
+exit_upon_crash = true
+
+[afl]
+iterations = 1000
+timeout = 20
+
+[[afl.seeds]]
+file_name = "custom-seed"
+override_file = false
+bytes_count = 50
+
+
+[[afl.seeds]]
+file_name = "custom-seed-text"
+override_file = false
+seed = "This is a custom seed"

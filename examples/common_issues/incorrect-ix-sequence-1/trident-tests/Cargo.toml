@@ -1,0 +1,22 @@
+[[bin]]
+name = "fuzz_0"
+path = "fuzz_0/test_fuzz.rs"
+
+[workspace]
+
+[package]
+name = "fuzz_tests"
+version = "0.1.0"
+description = "Created with Trident"
+edition = "2021"
+
+[dependencies]
+arbitrary = "1.3.0"
+borsh = "1.5.3"
+solana-sdk = "~2.0"
+
+[dependencies.trident-fuzz]
+path = "../../../../crates/fuzz"
+
+[dependencies.incorrect-ix-sequence-1]
+path = "../programs/incorrect-ix-sequence-1"

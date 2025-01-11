@@ -10,6 +10,10 @@ incremented upon a breaking change and the patch version will be incremented for
 
 ## [dev] - Unreleased
 
+**Added**
+
+- Trident SVM + AFL (see the PR for more details) ([234](https://github.com/Ackee-Blockchain/trident/pull/234))
+
 ## [0.8.1] - 2024-11-14
 
 **Removed**

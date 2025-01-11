@@ -14,25 +14,13 @@ pub fn fuzz_test_executor(input: TokenStream) -> TokenStream {
                 quote! {
                     #enum_name::#variant_name (ix) => {
 
-                        if cfg!(honggfuzz){
-                            TransactionExecutor::process_transaction_honggfuzz(
+                            trident_fuzz::fuzzing::TransactionExecutor::process_transaction(
                                 &self.to_context_string(),
                                 client,
                                 ix,
-                                sent_txs,
                                 config,
                                 accounts
                             )?;
-                        }else if cfg!(afl){
-                            TransactionExecutor::process_transaction_afl(
-                                &self.to_context_string(),
-                                client,
-                                ix,
-                                sent_txs,
-                                config,
-                                accounts
-                            )?;
-                        }
 
                     }
                 }
@@ -43,10 +31,9 @@ pub fn fuzz_test_executor(input: TokenStream) -> TokenStream {
                    fn run_fuzzer(
                        &self,
                        accounts: &RefCell<FuzzAccounts>,
-                       client: &mut impl FuzzClient,
-                       sent_txs: &mut HashMap<Hash, ()>,
-                       config: &Config,
-                   ) -> core::result::Result<(), FuzzClientErrorWithOrigin> {
+                       client: &mut impl trident_fuzz::fuzzing::FuzzClient,
+                       config: &trident_fuzz::fuzzing::Config,
+                   ) -> core::result::Result<(), trident_fuzz::fuzzing::FuzzClientErrorWithOrigin> {
                            match self {
                                #(#display_match_arms)*
                            }

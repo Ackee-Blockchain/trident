@@ -32,6 +32,7 @@ macro_rules! fuzz_trident {
                 $body
             });
         } else {
+            panic!("Select Honggfuzz or AFL for fuzzing!!!")
         }
     };
 }

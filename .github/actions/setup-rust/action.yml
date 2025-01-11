@@ -5,7 +5,7 @@ runs:
   steps:
     # Install essential system packages required for building Rust projects
     - name: Install system packages
-      run: sudo apt-get update && sudo apt-get install -y build-essential libudev-dev  # Installs essential packages like GCC and libudev development headers
+      run: sudo apt-get update && sudo apt-get install -y build-essential libudev-dev protobuf-compiler libprotobuf-dev  # Installs essential packages like GCC and libudev development headers
       shell: bash
 
     # Install Rust nightly toolchain and additional components

@@ -24,6 +24,13 @@ impl SnapshotAccount {
     pub fn data(&self) -> &[u8] {
         self.account.data()
     }
+    pub fn data_no_discriminator(&self) -> &[u8] {
+        if self.account.data().len() > 8 {
+            &self.account.data()[8..]
+        } else {
+            panic!("Account does not contain more than 8 bytes")
+        }
+    }
     pub fn lamports(&self) -> u64 {
         self.account.lamports()
     }

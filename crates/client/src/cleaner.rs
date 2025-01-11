@@ -39,7 +39,7 @@ impl Cleaner {
         };
         self.clean_anchor_target().await?;
         self.clean_hfuzz_target(&root).await?;
-        // self.clean_afl_target(&root).await?;
+        self.clean_afl_target(&root).await?;
     }
 
     #[throws]

@@ -1,0 +1,13 @@
+# For the detailed description of the parameters, see: https://ackee.xyz/trident/docs/latest/features/trident-manifest/
+
+[fuzz]
+fuzzing_with_stats = true
+
+[honggfuzz]
+iterations = 1000
+timeout = 20
+exit_upon_crash = false
+
+[afl]
+iterations = 10000
+timeout = 20

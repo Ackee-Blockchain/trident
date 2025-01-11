@@ -1,6 +1,5 @@
 #![allow(dead_code)]
 
-use solana_banks_client::BanksClientError;
 use solana_sdk::pubkey::Pubkey;
 use std::fmt::{Debug, Display};
 use thiserror::Error;
@@ -11,15 +10,14 @@ pub enum FuzzClientError {
     Custom(u32),
     #[error("Not able to initialize client: {0}")]
     ClientInitError(#[from] std::io::Error),
-    // Box for Error variant too Long warnings
-    #[error("Banks Client Error: {0}")]
-    BanksError(Box<BanksClientError>),
 }
 
 #[derive(Debug, Error)]
 pub enum FuzzingError {
     #[error("Custom fuzzing error: {0}\n")]
     Custom(u32),
+    #[error("Fuzzing error with Custom Message: {0}\n")]
+    CustomMessage(String),
     #[error("Not able to deserialize account: {0}\n")]
     CannotDeserializeAccount(String),
     #[error("Optional Account not provided: {0}\n")]
@@ -38,12 +36,6 @@ pub enum FuzzingError {
     UnableToObtainData,
 }
 
-impl From<BanksClientError> for FuzzClientError {
-    fn from(value: BanksClientError) -> Self {
-        Self::BanksError(Box::new(value))
-    }
-}
-
 impl FuzzClientError {
     pub fn with_origin(self, origin: Origin) -> FuzzClientErrorWithOrigin {
         let mut error_with_origin = FuzzClientErrorWithOrigin::from(self);
@@ -58,12 +50,15 @@ impl FuzzClientError {
 }
 
 impl FuzzingError {
-    pub fn with_origin(self, origin: Origin) -> FuzzingErrorWithOrigin {
+    pub fn with_message(message: &str) -> Self {
+        Self::CustomMessage(message.to_string())
+    }
+    pub(crate) fn with_origin(self, origin: Origin) -> FuzzingErrorWithOrigin {
         let mut error_with_origin = FuzzingErrorWithOrigin::from(self);
         error_with_origin.origin = Some(origin);
         error_with_origin
     }
-    pub fn with_context(self, context: Context) -> FuzzingErrorWithOrigin {
+    pub(crate) fn with_context(self, context: Context) -> FuzzingErrorWithOrigin {
         let mut error_with_origin = FuzzingErrorWithOrigin::from(self);
         error_with_origin.context = Some(context);
         error_with_origin
