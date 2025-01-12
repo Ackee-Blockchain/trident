@@ -9,12 +9,12 @@ program = "metaplex-program/metaplex-token-metadata.so"
 
 [honggfuzz]
 iterations = 10000
-timeout = 20
+run_time = 20
 exit_upon_crash = true
 
 [afl]
 iterations = 1000
-timeout = 20
+run_time = 20
 
 [[afl.seeds]]
 file_name = "custom-seed"
