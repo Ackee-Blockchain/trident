@@ -25,7 +25,7 @@ Trident allows you to see statistics after the fuzzing session ended.
 
     Keep in mind that the number of fuzz iterations does not directly correspond to the total number of invocations. In one fuzz iteration, the fuzzer might be unable to deserialize fuzz data into instructions, causing the entire iteration to be skipped.
 
-    On the other hand this is expected behavior as the underlying data are randomly (with coverage feedback) generated, so the Honggfuzz will not necessarily find appropriate data each iteration.
+    On the other hand, this is expected behavior as the underlying data are randomly (with coverage feedback) generated, so the Honggfuzz will not necessarily find appropriate data each iteration.
 
 
 !!! tip

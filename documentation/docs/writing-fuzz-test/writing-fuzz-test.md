@@ -21,7 +21,7 @@ trident init
 
 !!! tip
 
-    If you have Trident already initialized, you can add new fuzz test using `trident fuzz add`.
+    If you have Trident already initialized, you can add a new fuzz test using `trident fuzz add`.
 
 
 ## Fill the Fuzz test Template
@@ -34,12 +34,8 @@ Define `AccountsStorage` type for each Account you would like to use.
 
     Keep in mind:
 
-    - You do not need to specify every `AccountStorage`, some accounts do not necessarily need to be stored in their corresponding storage.
-        - For example `System Program` does not need to be stored, rather can be used from the `solana_sdk`.
-    - If you are about to Initialize `Mint` or `Token Account` in your Solana Program.
-        - use `Keypair` or `PdaStore` (not `MintStore` or `TokenStore`).
-    - If you are going to initialize `Associated Token Account` in your Solana Program.
-        - use `PdaStore`.
+    - You do not need to specify every `AccountStorage`; some accounts do not necessarily need to be stored in their corresponding storage.
+        - For example, `System Program` does not need to be stored and can be used from the `solana_sdk`.
     - You can rename `FuzzAccounts` fields to whatever you want. The default names were generated based on the Program's `IDL`.
 
 ```rust
@@ -47,7 +43,7 @@ Define `AccountsStorage` type for each Account you would like to use.
 #[doc = r" Keypair, PdaStore, TokenStore, MintStore, ProgramStore"]
 #[derive(Default)]
 pub struct FuzzAccounts {
-    author: AccountsStorage<Keypair>,
+    author: AccountsStorage<KeypairStore>,
     hello_world_account: AccountsStorage<PdaStore>,
     // No need to fuzz system_program
     // system_program: AccountsStorage<todo!()>,
@@ -56,32 +52,34 @@ pub struct FuzzAccounts {
 
 !!! tip
 
-    For more details about the `AccountsStorage` check [AccountsStorage](../features/account-storages.md).
+    For more details about the `AccountsStorage`, check [AccountsStorage](../features/account-storages.md).
 
 ### Implement Fuzz Instructions
 
-Each Instruction in the Fuzz Test has to have defined the following functions:
+Each Instruction in the Fuzz Test must define the following functions:
 
+- `get_discriminator`
+    - Defines Instruction Discriminator, which is used to identify the Instruction.
 - `get_program_id()`
-    - Specifies to which program the Instruction belongs. This function is **automatically defined** and should not need any updates. The importance is such that if you have multiple programs in your workspace, Trident can generate Instruction Sequences of Instruction corresponding to different programs.
+    - Specifies to which program the Instruction belongs. This function is **automatically defined** and should not need any updates. The importance is such that if you have multiple programs in your workspace, Trident can generate Instruction Sequences corresponding to different programs.
 - `get_data()`
-    - Specifies what Instruction inputs are send to the Program Instructions.
+    - Specifies what Instruction inputs are sent to the Program Instructions.
 - `get_accounts()`
-    - Specifies what Accounts are send to the Program Instructions.
+    - Specifies what Accounts are sent to the Program Instructions.
 
 !!! tip
 
     - For more info about how to write these functions, check the [Fuzz Instructions](../features/fuzz-instructions.md).
-    - For the examples how to write these functions, check the [Examples](../examples/examples.md).
+    - For examples of how to write these functions, check the [Examples](../examples/examples.md).
 
 
 ## Execute
 
 ### Run Fuzz Test
 
-<!-- In principle there are two possible fuzzing engines that the Trident supports, [Honggfuzz](https://github.com/google/honggfuzz) and [AFL](https://aflplus.plus/). -->
+In principle there are two possible fuzzing engines that the Trident supports, [Honggfuzz](https://github.com/google/honggfuzz) and [AFL](https://aflplus.plus/).
 
-To execute the desired fuzz test using the Honggfuzz, run:
+To execute the desired fuzz test using the Honggfuzz, run the following command from the `trident-tests` directory:
 
 ```bash
 # Replace <TARGET_NAME> with the name of particular
@@ -89,40 +87,39 @@ To execute the desired fuzz test using the Honggfuzz, run:
 trident fuzz run-hfuzz <TARGET_NAME>
 ```
 
-<!-- To execute the desired fuzz test using the AFL, run: -->
+To execute the desired fuzz test using the AFL, run the following command from the `trident-tests` directory:
 
-<!-- ```bash
+```bash
 # Replace <TARGET_NAME> with the name of particular
 # fuzz test (for example: "fuzz_0")
 trident fuzz run-afl <TARGET_NAME>
-``` -->
+```
 
 
 
 ### Debug Fuzz Test
 
-To debug your program using Honggfuzz with values from a crash file:
+To debug your program using Honggfuzz with values from a crash file, run the following command from the `trident-tests` directory:
 
 ```bash
-# fuzzer will run the <TARGET_NAME> with the specified <CRASH_FILE_PATH>
+# The fuzzer will run the <TARGET_NAME> with the specified <CRASH_FILE_PATH>
 trident fuzz debug-hfuzz <TARGET_NAME> <CRASH_FILE_PATH>
 ```
 
-<!-- To debug your program using AFL with values from a crash file: -->
+To debug your program using AFL with values from a crash file, run the following command from the `trident-tests` directory:
 
-<!-- ```bash
-# fuzzer will run the <TARGET_NAME> with the specified <CRASH_FILE_PATH>
+```bash
+# The fuzzer will run the <TARGET_NAME> with the specified <CRASH_FILE_PATH>
 trident fuzz debug-afl <TARGET_NAME> <CRASH_FILE_PATH>
-``` -->
+```
 
 !!! tip
 
-    By default, the crashfiles are stored in the
+    By default, the crash files are stored in:
 
-    - `trident-tests/fuzz_tests/fuzzing/honggfuzz/hfuzz_workspace/<FUZZ_TARGET>` for Hongfuzz and
-    <!-- - `trident-tests/fuzz_tests/fuzzing/afl/afl_workspace/out/default/crashes` for the AFL. -->
-
+    - `trident-tests/fuzzing/honggfuzz/hfuzz_workspace/<FUZZ_TARGET>` for Honggfuzz and
+    - `trident-tests/fuzzing/afl/afl_workspace/out/default/crashes` for AFL.
 
 !!! tip
 
-    For more info about the fuzzing outputs chech the [Commands](../commands/commands.md)
+    For more info about the fuzzing outputs, check the [Commands](../commands/commands.md).

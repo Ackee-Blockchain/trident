@@ -16,8 +16,8 @@ This can be particularly helpful:
 fn tx_error_handler(
     &self,
     e: FuzzClientErrorWithOrigin,
-    ix_data: Self::IxData,
-    pre_ix_acc_infos: &[SnapshotAccount],,
+    ix_data: Vec<u8>,
+    pre_ix_acc_infos: &[SnapshotAccount],
 ) -> Result<(), FuzzClientErrorWithOrigin> {
     Err(e)
 }
@@ -26,12 +26,12 @@ fn tx_error_handler(
 To omit the Error and continue with the next Instruction in the iteration, you can do
 
 ```rust
-/// default implementation
+/// custom implementation
 fn tx_error_handler(
     &self,
     e: FuzzClientErrorWithOrigin,
-    ix_data: Self::IxData,
-    pre_ix_acc_infos: &'info mut [Option<AccountInfo<'info>>],
+    ix_data: Vec<u8>,
+    pre_ix_acc_infos: &[SnapshotAccount],
 ) -> Result<(), FuzzClientErrorWithOrigin> {
     Ok(())
 }

@@ -1,9 +1,11 @@
-# Arbitrary Data
+# Costomize Instruction Data
 
 
-Trident allows you to customize Instruction Data to provide structure.
+Trident allows you to customize instruction data.
 
-For example your Initialize Instruction expects two arguments `start_at` and `end_at` you know that in order for the Instruction to make sense, it is required that the `start_at` < `end_at`. Moreover, there should be significant difference between these two. This can be utilized with the **Arbitrary crate**.
+Trident by default generates random data for instructions, however, you can customize the data to select specific values.
+
+For example, your Initialize Instruction expects two arguments: `start_at` and `end_at`. You know that in order for the Instruction to make sense, it is required that `start_at` < `end_at`. Moreover, there should be a significant difference between these two. This can be utilized with the **Arbitrary crate**.
 
 
 ```rust
