@@ -1,14 +1,19 @@
-use solana_sdk::transaction::TransactionError;
-use solana_sdk::{
-    account::AccountSharedData, clock::Clock, hash::Hash, instruction::Instruction, pubkey::Pubkey,
-    sysvar::Sysvar,
-};
+use solana_sdk::account::AccountSharedData;
+use solana_sdk::clock::Clock;
+use solana_sdk::hash::Hash;
+use solana_sdk::instruction::Instruction;
+use solana_sdk::pubkey::Pubkey;
+use solana_sdk::signer::Signer;
+use solana_sdk::sysvar::Sysvar;
+
+use trident_config::Config;
+
+use trident_svm::trident_svm::TridentSVM;
+use trident_svm::utils::ProgramEntrypoint;
+use trident_svm::utils::SBFTargets;
+use trident_svm::utils::TridentAccountSharedData;
 
 use crate::fuzz_client::FuzzClient;
-use solana_sdk::signer::Signer;
-use trident_config::Config;
-use trident_svm::trident_svm::TridentSVM;
-use trident_svm::utils::{ProgramEntrypoint, SBFTargets, TridentAccountSharedData};
 
 impl FuzzClient for TridentSVM<'_> {
     fn new_client(programs: &[ProgramEntrypoint], config: &Config) -> Self {
@@ -98,45 +103,8 @@ impl FuzzClient for TridentSVM<'_> {
             Some(&self.payer().pubkey()),
         );
 
-        let result = self.process_transaction(tx);
-
-        // eprintln!("result1: {:#?}", result.execution_results);
-        // eprintln!("result2: {:#?}", result.loaded_transactions);
-
-        match &result.execution_results[0] {
-            solana_svm::transaction_results::TransactionExecutionResult::Executed {
-                details,
-                programs_modified_by_tx: _,
-            } => match &details.status {
-                Ok(_) => match &result.loaded_transactions[0] {
-                    Ok(loaded_transaction) => {
-                        self.settle_accounts(&loaded_transaction.accounts);
-                        Ok(())
-                    }
-                    Err(_) => Err(crate::error::FuzzClientError::Custom(55001)),
-                },
-                Err(e) => match e {
-                    TransactionError::InstructionError(_index, ix_error) => match ix_error {
-                        solana_sdk::instruction::InstructionError::ProgramFailedToComplete => {
-                            panic!("Program Failed to complete")
-                        }
-                        _ => Err(crate::error::FuzzClientError::Custom(55002)),
-                    },
-                    _ => Err(crate::error::FuzzClientError::Custom(55003)),
-                },
-            },
-            solana_svm::transaction_results::TransactionExecutionResult::NotExecuted(
-                transaction_error,
-            ) => match transaction_error {
-                TransactionError::InstructionError(_index, ix_error) => match ix_error {
-                    solana_sdk::instruction::InstructionError::ProgramFailedToComplete => {
-                        panic!("Program Failed to complete")
-                    }
-                    _ => Err(crate::error::FuzzClientError::Custom(55004)),
-                },
-                _ => Err(crate::error::FuzzClientError::Custom(55005)),
-            },
-        }
+        self.process_transaction_with_settle(tx)?;
+        Ok(())
     }
 
     fn get_sysvar<T: Sysvar>(&self) -> T {
