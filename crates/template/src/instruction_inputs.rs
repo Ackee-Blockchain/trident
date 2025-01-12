@@ -2,6 +2,7 @@ use convert_case::{Case, Casing};
 use quote::format_ident;
 use syn::{parse_quote, FnArg};
 
+use trident_idl_spec::IdlInstructionAccounts;
 use trident_idl_spec::{
     idl_type_to_syn_type, Idl, IdlField, IdlInstruction, IdlInstructionAccount,
     IdlInstructionAccountItem,
@@ -64,21 +65,36 @@ pub(crate) fn get_instruction_inputs(idl: &Idl) -> Vec<syn::ItemStruct> {
 }
 
 fn get_instruction_accounts(instruction: &IdlInstruction) -> Vec<syn::FnArg> {
-    instruction.accounts.iter().fold(
-        Vec::new(),
-        |mut account_parameters, account| match account {
-            IdlInstructionAccountItem::Composite(idl_instruction_accounts) => {
-                panic!(
-                    "Composite accounts not supported. Composite account with name {} found",
-                    idl_instruction_accounts.name
-                )
-            }
+    instruction
+        .accounts
+        .iter()
+        .fold(Vec::new(), |mut account_parameters, account| {
+            match account {
+                IdlInstructionAccountItem::Composite(idl_instruction_accounts) => {
+                    process_composite_account(idl_instruction_accounts, &mut account_parameters);
+                }
+                IdlInstructionAccountItem::Single(idl_instruction_account) => {
+                    process_single_account(idl_instruction_account, &mut account_parameters);
+                }
+            };
+            account_parameters
+        })
+}
+
+fn process_composite_account(
+    idl_instruction_accounts: &IdlInstructionAccounts,
+    account_parameters: &mut Vec<syn::FnArg>,
+) {
+    for account in &idl_instruction_accounts.accounts {
+        match account {
             IdlInstructionAccountItem::Single(idl_instruction_account) => {
-                process_single_account(idl_instruction_account, &mut account_parameters);
-                account_parameters
+                process_single_account(idl_instruction_account, account_parameters);
             }
-        },
-    )
+            IdlInstructionAccountItem::Composite(idl_instruction_accounts) => {
+                process_composite_account(idl_instruction_accounts, account_parameters);
+            }
+        }
+    }
 }
 
 fn process_single_account(

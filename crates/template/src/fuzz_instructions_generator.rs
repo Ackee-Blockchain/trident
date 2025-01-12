@@ -70,11 +70,15 @@ fn get_instructions_accounts(idl: &Idl) -> HashMap<String, InstructionAccount> {
             for account in &instruction.accounts {
                 match account {
                     IdlInstructionAccountItem::Composite(idl_instruction_accounts) => {
-                        process_composite_account(idl_instruction_accounts)
+                        process_composite_account(
+                            &instruction.name,
+                            idl_instruction_accounts,
+                            &mut instruction_accounts,
+                        );
                     }
                     IdlInstructionAccountItem::Single(idl_instruction_account) => {
                         process_single_account(
-                            instruction.name.clone(),
+                            &instruction.name,
                             idl_instruction_account,
                             &mut instruction_accounts,
                         );
@@ -86,15 +90,34 @@ fn get_instructions_accounts(idl: &Idl) -> HashMap<String, InstructionAccount> {
     )
 }
 
-fn process_composite_account(idl_instruction_accounts: &IdlInstructionAccounts) {
-    panic!(
-        "Composite accounts not supported. Composite account with name {} found",
-        idl_instruction_accounts.name
-    )
+fn process_composite_account(
+    instruction_name: &str,
+    idl_instruction_accounts: &IdlInstructionAccounts,
+    instruction_accounts: &mut HashMap<String, InstructionAccount>,
+) {
+    for account in &idl_instruction_accounts.accounts {
+        match account {
+            IdlInstructionAccountItem::Single(idl_instruction_account) => {
+                process_single_account(
+                    instruction_name,
+                    idl_instruction_account,
+                    instruction_accounts,
+                );
+            }
+            // This creates recursion, but there should not be infinite recursion
+            IdlInstructionAccountItem::Composite(idl_instruction_accounts) => {
+                process_composite_account(
+                    instruction_name,
+                    idl_instruction_accounts,
+                    instruction_accounts,
+                );
+            }
+        }
+    }
 }
 
 fn process_single_account(
-    instruction_name: String,
+    instruction_name: &str,
     idl_instruction_account: &IdlInstructionAccount,
     instruction_accounts: &mut HashMap<String, InstructionAccount>,
 ) {
@@ -107,13 +130,13 @@ fn process_single_account(
             let mut new_account = InstructionAccount::new(account_name.to_string());
 
             // insert infor about current instruction and the account type within the instruction
-            new_account.insert(instruction_name, account_type);
+            new_account.insert(instruction_name.to_owned(), account_type);
             entry.insert(new_account);
         }
         Entry::Occupied(mut entry) => {
             // if there is an entry, insert infor about current instruction and the account type within the instruction
             let account = entry.get_mut();
-            account.insert(instruction_name, account_type);
+            account.insert(instruction_name.to_owned(), account_type);
         }
     };
 }

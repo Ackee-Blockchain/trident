@@ -25,7 +25,11 @@ pub(crate) fn get_fuzz_accounts(
                 .fold(&mut fuzz_accounts, |fuzz_accounts, account| {
                     match account {
                         IdlInstructionAccountItem::Composite(idl_instruction_accounts) => {
-                            process_composite_account(idl_instruction_accounts);
+                            process_composite_account(
+                                idl_instruction_accounts,
+                                fuzz_accounts,
+                                instructions_accounts,
+                            );
                         }
                         IdlInstructionAccountItem::Single(idl_instruction_account) => {
                             process_single_account(
@@ -48,11 +52,30 @@ pub(crate) fn get_fuzz_accounts(
     sorted_accounts.into_iter().map(|(_, v)| v).collect()
 }
 
-fn process_composite_account(idl_instruction_accounts: &IdlInstructionAccounts) {
-    panic!(
-        "Composite accounts not supported. Composite account with name {} found",
-        idl_instruction_accounts.name
-    )
+fn process_composite_account(
+    idl_instruction_accounts: &IdlInstructionAccounts,
+    fuzz_accounts: &mut HashMap<syn::Ident, syn::FnArg>,
+    instructions_accounts: &HashMap<String, InstructionAccount>,
+) {
+    for account in &idl_instruction_accounts.accounts {
+        match account {
+            IdlInstructionAccountItem::Single(idl_instruction_account) => {
+                process_single_account(
+                    idl_instruction_account,
+                    fuzz_accounts,
+                    instructions_accounts,
+                );
+            }
+            // This creates recursion, but there should not be infinite recursion
+            IdlInstructionAccountItem::Composite(idl_instruction_accounts) => {
+                process_composite_account(
+                    idl_instruction_accounts,
+                    fuzz_accounts,
+                    instructions_accounts,
+                );
+            }
+        }
+    }
 }
 
 fn process_single_account(
