@@ -3954,7 +3954,8 @@ dependencies = [
 [[package]]
 name = "trident-idl-spec"
 version = "0.0.1"
-source = "git+https://github.com/Ackee-Blockchain/trident-idl-spec#aae2b34ec71fb95992774658c76d27381fc87558"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2276a1dfa5c44b1fc0807e2e70717b2b5142ba5e4fbd71f44010424b9365bfdf"
 dependencies = [
  "quote",
  "serde",
@@ -3963,8 +3964,9 @@ dependencies = [
 
 [[package]]
 name = "trident-svm"
-version = "0.1.0"
-source = "git+https://github.com/Ackee-Blockchain/trident-svm#fecb911292bb1dd249690f2eed21aec5682faa3f"
+version = "0.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b4987e95a81a789ecc38ce869d5bd1a02da4cb5204a5887fb71c9389aedafc2d"
 dependencies = [
  "bincode",
  "serde",
@@ -3989,7 +3991,8 @@ dependencies = [
 [[package]]
 name = "trident-syscall-stubs-v1"
 version = "0.0.1"
-source = "git+https://github.com/Ackee-Blockchain/trident-syscall-stubs#d3b7451a264ab80cf39cccf26de9cce96bfb3acc"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f8ecb66b07ba1cf8b20e29e074ad5b9fd2f9904a1a0aca93641940848612b5fe"
 dependencies = [
  "serde",
  "solana-program 1.18.26",
@@ -4000,7 +4003,8 @@ dependencies = [
 [[package]]
 name = "trident-syscall-stubs-v2"
 version = "0.0.1"
-source = "git+https://github.com/Ackee-Blockchain/trident-syscall-stubs#d3b7451a264ab80cf39cccf26de9cce96bfb3acc"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6826515586120f4b25406bf68ccfb102cedabd8c0c0a69fddca698ec79904913"
 dependencies = [
  "serde",
  "solana-program-runtime",

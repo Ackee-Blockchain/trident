@@ -16,7 +16,7 @@ trident-derive-fuzz-test-executor = { path = "../fuzz/derive/fuzz_test_executor"
 trident-config = { path = "../config", version = "0.0.1" }
 
 # Trident-SVM
-trident-svm = { git = "https://github.com/Ackee-Blockchain/trident-svm", version = "0.1.0" }
+trident-svm = "0.0.1"
 
 # Solana
 solana-sdk = { workspace = true }
