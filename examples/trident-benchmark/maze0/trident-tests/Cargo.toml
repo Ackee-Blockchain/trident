@@ -2,8 +2,6 @@
 name = "fuzz_0"
 path = "fuzz_0/test_fuzz.rs"
 
-[workspace]
-
 [package]
 name = "fuzz_tests"
 version = "0.1.0"
@@ -18,6 +16,5 @@ solana-sdk = "~2.0"
 [dependencies.trident-fuzz]
 path = "../../../../crates/fuzz"
 
-
-[dependencies.maze]
-path = "../programs/maze"
+[dependencies.maze0]
+path = "../programs/maze0"

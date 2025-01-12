@@ -1,4 +1,3 @@
-
 .anchor
 .DS_Store
 target
@@ -6,4 +5,5 @@ target
 node_modules
 test-ledger
 .yarn
-trident-tests/fuzz_tests/fuzzing/honggfuzz/hfuzz_target
+trident-tests/fuzzing/honggfuzz/hfuzz_target
+trident-tests/fuzzing/afl/afl_target
