@@ -4,12 +4,10 @@ use std::io::{Read, Write};
 use std::process::Stdio;
 use std::{fs::File, path::Path};
 use tokio::{io::AsyncWriteExt, process::Command};
-
-use trident_config::afl::AflSeed;
-use trident_config::Config;
+use trident_fuzz::config::afl::AflSeed;
+use trident_fuzz::config::Config;
 
 use super::{Commander, Error};
-use rand::RngCore;
 
 impl Commander {
     /// Runs fuzzer on the given target.
@@ -17,20 +15,13 @@ impl Commander {
     pub async fn run_afl(&self, target: String) {
         let config = Config::new();
 
-        // build args without cargo target dir
         let build_args = config.get_afl_build_args();
-        // fuzz args without afl workspace in and out
         let fuzz_args = config.get_afl_fuzz_args();
 
-        // cargo target directory
-        let cargo_target_dir = config.get_afl_target_dir();
+        let mut target_path = config.get_afl_target_path();
+        target_path.push_str(&target);
 
-        // afl workspace in and out
         let afl_workspace_in = config.get_afl_workspace_in();
-        let afl_workspace_out = config.get_afl_workspace_out();
-
-        let full_target_path = config.get_afl_target_path(&target);
-
         let afl_workspace_in_path = Path::new(&afl_workspace_in);
         let initial_seeds = config.get_initial_seed();
 
@@ -38,11 +29,11 @@ impl Commander {
             std::fs::create_dir_all(afl_workspace_in_path)?;
 
             for x in initial_seeds {
-                create_seed_file(afl_workspace_in_path, &x)?;
+                create_seed_file(afl_workspace_in_path, x)?;
             }
         } else if afl_workspace_in_path.is_dir() {
             for x in initial_seeds {
-                create_seed_file(afl_workspace_in_path, &x)?;
+                create_seed_file(afl_workspace_in_path, x)?;
             }
         } else {
             throw!(Error::BadAFLWorkspace)
@@ -56,7 +47,6 @@ impl Commander {
             .env("RUSTFLAGS", rustflags)
             .arg("afl")
             .arg("build")
-            .args(["--target-dir", &cargo_target_dir])
             .args(build_args)
             .args(["--bin", &target])
             .spawn()?;
@@ -65,10 +55,8 @@ impl Commander {
         let mut child = Command::new("cargo")
             .arg("afl")
             .arg("fuzz")
-            .args(["-i", &afl_workspace_in])
-            .args(["-o", &afl_workspace_out])
             .args(fuzz_args)
-            .arg(&full_target_path)
+            .arg(&target_path)
             .spawn()?;
 
         Self::handle_child(&mut child).await?;
@@ -76,17 +64,17 @@ impl Commander {
 
     /// Runs fuzzer on the given target.
     #[throws]
-    pub async fn run_afl_debug(&self, target: String, crash_file: String) {
+    pub async fn run_afl_debug(&self, target: String, crash_file_path: String) {
         let config = Config::new();
 
-        let crash_file_path = Path::new(&crash_file);
+        let crash_file = Path::new(&crash_file_path);
 
-        let crash_file = if crash_file_path.is_absolute() {
-            crash_file_path
+        let crash_file = if crash_file.is_absolute() {
+            crash_file
         } else {
             let cwd = std::env::current_dir()?;
 
-            &cwd.join(crash_file_path)
+            &cwd.join(crash_file)
         };
 
         if !crash_file.try_exists()? {
@@ -94,8 +82,7 @@ impl Commander {
             throw!(Error::CrashFileNotFound);
         }
 
-        // cargo target directory
-        let cargo_target_dir = config.get_afl_target_dir();
+        let cargo_target_dir = config.get_afl_cargo_build_dir();
 
         let mut rustflags = std::env::var("RUSTFLAGS").unwrap_or_default();
 
@@ -123,52 +110,17 @@ impl Commander {
 }
 
 fn create_seed_file(path: &Path, seed: &AflSeed) -> std::io::Result<()> {
-    let (bytes, override_file) = obtain_seed(seed);
-
     let file_path = path.join(&seed.file_name);
 
     if file_path.exists() {
-        if override_file {
+        if seed.override_file {
             let mut file = File::create(file_path)?;
-            file.write_all(&bytes)?;
+            file.write_all(&seed.seed)?;
         }
     } else {
         let mut file = File::create(file_path)?;
-        file.write_all(&bytes)?;
+        file.write_all(&seed.seed)?;
     }
 
     Ok(())
-}
-
-fn obtain_seed(value: &AflSeed) -> (Vec<u8>, bool) {
-    match value.bytes_count {
-        Some(number_of_random_bytes) => {
-            if number_of_random_bytes > 0 {
-                let mut rng = rand::rngs::OsRng;
-                let mut seed = vec![0u8; number_of_random_bytes];
-                rng.fill_bytes(&mut seed);
-                (seed, value.override_file.unwrap_or_default())
-            } else {
-                let seed_as_bytes = value
-                    .seed
-                    .clone()
-                    .unwrap_or_else(|| panic!("Seed value is empty for seed {}", value.file_name));
-
-                (
-                    seed_as_bytes.as_bytes().to_vec(),
-                    value.override_file.unwrap_or_default(),
-                )
-            }
-        }
-        None => {
-            let seed_as_bytes = value
-                .seed
-                .clone()
-                .unwrap_or_else(|| panic!("Seed value is empty for seed {}", value.file_name));
-            (
-                seed_as_bytes.as_bytes().to_vec(),
-                value.override_file.unwrap_or_default(),
-            )
-        }
-    }
 }

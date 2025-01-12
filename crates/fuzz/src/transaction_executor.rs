@@ -3,14 +3,13 @@ use std::cell::RefCell;
 use solana_sdk::instruction::Instruction;
 
 use crate::{
+    config::Config,
     error::{FuzzClientErrorWithOrigin, Origin},
     fuzz_client::FuzzClient,
     fuzz_stats::FuzzingStatistics,
     ix_ops::IxOps,
     snapshot::Snapshot,
 };
-
-use trident_config::Config;
 
 pub struct TransactionExecutor;
 
@@ -27,15 +26,15 @@ impl TransactionExecutor {
     {
         let program_id = ix.get_program_id();
 
-        let data = ix
-            .get_data(client, &mut accounts.borrow_mut())
-            .map_err(|e| e.with_origin(Origin::Instruction(instruction_name.to_owned())))
-            .expect("Data calculation expect");
-
         let (_signers, account_metas) = ix
             .get_accounts(client, &mut accounts.borrow_mut())
             .map_err(|e| e.with_origin(Origin::Instruction(instruction_name.to_owned())))
             .expect("Accounts calculation expect");
+
+        let data = ix
+            .get_data(client, &mut accounts.borrow_mut())
+            .map_err(|e| e.with_origin(Origin::Instruction(instruction_name.to_owned())))
+            .expect("Data calculation expect");
 
         let mut snapshot = Snapshot::new(&account_metas);
 
@@ -53,7 +52,7 @@ impl TransactionExecutor {
             stats_logger.increase_invoked(instruction_name.to_owned());
 
             let tx_result = client
-                .process_instructions(&[ixx])
+                .process_instruction(ixx)
                 .map_err(|e| e.with_origin(Origin::Instruction(instruction_name.to_owned())));
             match tx_result {
                 Ok(_) => {
@@ -82,7 +81,7 @@ impl TransactionExecutor {
             }
         } else {
             let tx_result = client
-                .process_instructions(&[ixx])
+                .process_instruction(ixx)
                 .map_err(|e| e.with_origin(Origin::Instruction(instruction_name.to_owned())));
             match tx_result {
                 Ok(_) => {

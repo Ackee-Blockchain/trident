@@ -1,5 +1,9 @@
 [workspace]
+<<<<<<<< HEAD:examples/cpi/simple-cpi-6/Cargo.toml
 members = ["programs/*"]
+========
+members = ["programs/*", "trident-tests"]
+>>>>>>>> c2a3c56 (✨ WIP: Trident SVM):examples/common_issues/arbitrary-limit-inputs-5/Cargo.toml
 resolver = "2"
 
 [profile.release]
