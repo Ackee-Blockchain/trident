@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use solana_sdk::pubkey::Pubkey;
+use solana_sdk::{pubkey::Pubkey, transaction::TransactionError};
 use std::fmt::{Debug, Display};
 use thiserror::Error;
 
@@ -9,7 +9,9 @@ pub enum FuzzClientError {
     #[error("Custom fuzzing error: {0}")]
     Custom(u32),
     #[error("Not able to initialize client: {0}")]
-    ClientInitError(#[from] std::io::Error),
+    ClientInitError(#[from] TransactionError),
+    #[error("Transaction failed: {0}")]
+    TransactionFailed(TransactionError),
 }
 
 #[derive(Debug, Error)]

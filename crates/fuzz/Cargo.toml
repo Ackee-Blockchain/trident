@@ -21,7 +21,6 @@ trident-svm = { git = "https://github.com/Ackee-Blockchain/trident-svm", version
 # Solana
 solana-sdk = { workspace = true }
 spl-token = { workspace = true }
-solana-svm = { workspace = true }
 solana-vote-program = { workspace = true }
 solana-stake-program = { workspace = true }
 
