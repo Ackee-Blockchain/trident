@@ -1,11 +1,11 @@
 # Fuzz Instructions
 
-Trident defines `FuzzInstruction` enum containing all available **Instructions** within your program.
+Trident defines the `FuzzInstruction` enum, which contains all available **Instructions** within your program. Each enum variant corresponds to one instruction within your program. This enum is crucial for defining how different instructions behave during fuzz testing.
 
-The enum variants additionally contains their corresponding structures for **Accounts** and **Input** arguments.
+The enum variants additionally contain their corresponding structures for **Accounts** and **Input** arguments.
 
 ```rust
-#[derive(Arbitrary, DisplayIx, FuzzTestExecutor, FuzzDeserialize)]
+#[derive(Arbitrary, DisplayIx, FuzzTestExecutor)]
 pub enum FuzzInstruction {
     Initialize(Initialize),
     Update(Update),
@@ -23,23 +23,29 @@ pub struct Update {
 // ...
 ```
 
-## Instruction behavior
+## Instruction Behavior
 
-Each Instruction variant has to define `IxOps` trait containing the following methods:
+Each Instruction variant must define the `IxOps` trait, which contains the following methods:
 
+- [`get_discriminator()`](./fuzz-instructions.md/#get_discriminator) (automatically implemented)
 - [`get_program_id()`](./fuzz-instructions.md/#get_program_id) (automatically implemented)
 - [`get_data()`](./fuzz-instructions.md/#get_data) (required)
 - [`get_accounts()`](./fuzz-instructions.md/#get_accounts) (required)
 - [`check()`](./fuzz-instructions.md/#check) (optional)
 - [`tx_error_handler()`](./fuzz-instructions.md/#tx_error_handler) (optional)
-- `deserialize_accounts()` (automatically implemented)
 
+## `get_discriminator()`
+
+This method specifies the **discriminator** of the instruction.
+
+!!! tip
+
+    - The IDL created by Anchor 0.29.0 and lower does not contain the discriminator. In that case, the **discriminator** is generated automatically.
+    - If you are experiencing errors with the wrong **discriminator**, you can specify it manually by hashing `global:<instruction_name>` with SHA256 and taking the first 8 bytes.
 
 ## `get_program_id()`
 
-This method specifies **program ID** to which the Instruction corresponds.
-
-In case you have only one program in the Anchor Workspace it is not really important. The importance occurs when you have multiple programs in the Workspace and you want to call Instructions of every Program. In that case each Instruction Variant corresponds to its program by the Program ID.
+This method specifies the **program ID** to which the Instruction corresponds.
 
 ## `get_data()`
 
@@ -48,76 +54,51 @@ This method specifies what the Instruction Input Data should look like. You can 
 ```rust
 fn get_data(
     &self,
-    _client: &mut impl FuzzClient,
-    _fuzz_accounts: &mut FuzzAccounts,
-) -> Result<Self::IxData, FuzzingError> {
-    let data = hello_world::instruction::InitializeFn {
-        input: self.data.input,
-    };
-    Ok(data)
+    client: &mut impl FuzzClient,
+    fuzz_accounts: &mut FuzzAccounts,
+) -> Result<Vec<u8>, FuzzingError> {
+    let mut args: Vec<u8> = self.get_discriminator();
+    {
+        args.extend(borsh::to_vec(&self.data.input).unwrap());
+    }
+    Ok(args)
 }
 ```
 
-You can also use always constant values
+You can also use always constant values:
 
 ```rust
 fn get_data(
     &self,
-    _client: &mut impl FuzzClient,
-    _fuzz_accounts: &mut FuzzAccounts,
-) -> Result<Self::IxData, FuzzingError> {
-    let data = hello_world::instruction::InitializeFn {
-        input: 5,
-    };
-    Ok(data)
+    client: &mut impl FuzzClient,
+    fuzz_accounts: &mut FuzzAccounts,
+) -> Result<Vec<u8>, FuzzingError> {
+    let mut args: Vec<u8> = self.get_discriminator();
+    {
+        // The constant value 5 is used as an example
+        args.extend(borsh::to_vec(5).unwrap());
+    }
+    Ok(args)
 }
 ```
 
-Or you can customize the Data using the Arbitrary crate. Check [Arbitrary Data](./arbitrary-data.md).
-
-
-### Custom Data Types
-
-If you use Custom Types as Instruction data arguments, you may encounter a problem that the Custom Type does not implement
-
-- [Debug](https://doc.rust-lang.org/std/fmt/trait.Debug.html) trait
-- [Arbitrary](https://docs.rs/arbitrary/latest/arbitrary/trait.Arbitrary.html) trait
-
-### Derive Debug and Arbitrary traits inside the Fuzz Test
-
-You can redefine the custom type within the `fuzz_instructions.rs` file, along with all the necessary traits.
-
-```rust
-// Redefine the Custom Type inside the fuzz_instructions.rs,
-// but this time with all of the required traits.
-#[derive(Arbitrary,Debug, Clone, Copy)]
-pub enum CustomEnumInputFuzz {
-    InputVariant1,
-    InputVariant2,
-    InputVariant3,
-}
-```
-
-
-Then, you would also need to implement the [`std::convert::From<T>`](https://doc.rust-lang.org/std/convert/trait.From.html) trait to enable conversion between the newly defined Custom Type and the Custom Type used within your program.
-
-!!! tip
-
-    Consider checking the [Examples](../examples/examples.md) section for more tips.
+Additionally, you can limit the range of the data generated using the `Arbitrary` crate. Check [Arbitrary Data](./arbitrary-data.md).
 
 ## `get_accounts()`
 
-This method specifies how the **Accounts** for the corresponding Instruction should be resolved. You can use accounts stored within the **FuzzAccounts Account Storages**, or you can define custom Account using the **client**.
+This method specifies the **Accounts** that will be used for the corresponding Instruction. To use multiple combinations of accounts, Trident utilizes the **AccountStorage**, where accounts are stored across the fuzzing process.
 
-There are two main functions to use within the `get_accounts()`:
+There are three main functions to use within the `get_accounts()`:
 
 - [`get_or_create_account()`](./fuzz-instructions.md/#get_or_create_account)
 - [`get()`](./fuzz-instructions.md/#get)
 - [`set_custom()`](./fuzz-instructions.md/#set_custom)
 
+For additional methods, check [Account Storage Methods](./account-storages.md/#account-storage-methods).
+
 ### `get_or_create_account()`
 
-Insert a new record into AccountsStorage based on the `account_id`. If a record with the entered `account_id` already exists, it is returned, and no insertion is performed.
+Retrieves a record from AccountsStorage based on the entered `account_id`. If no record exists for the `account_id`, a new empty account is created.
 
 !!! tip
 
@@ -133,54 +114,56 @@ Insert a new record into AccountsStorage based on the `account_id`. If a record 
         &hello_world::ID,
     );
     ```
-    The code above will return the PDA from `hello_world`'s AccountsStorage if a record for the entered `account_id` exists. If not, the function will create a new record corresponding to the PDA derived from the provided seeds and return the PDA.
 
 ### `get()`
 
-Retrieves a record from AccountsStorage based on the entered `account_id`. If no record exists for the `account_id`, a random public key is returned.
+Retrieves a record from AccountsStorage based on the entered `account_id`. If no record exists for the `account_id`, a **random public key** is returned.
 
 !!! tip
 
     - This function is particularly useful for instructions other than those that perform initialization.
 
-        Example:
+    Example:
 
     ```rust
     let hello_world_account = fuzz_accounts
             .hello_world_account
             .get(self.accounts.hello_world_account);
     ```
-    The code above will return the PDA from `hello_world`'s AccountsStorage if a record for the entered `account_id` exists. If not, the function will return a random public key.
 
+### `set_account_custom()`
 
-### `set_custom()`
-
-If the previous two functions are insufficient, you can use `set_custom()` to manually set an account with data you select. This function accepts `account_id`, which specifies the record in the corresponding AccountsStorage; `client`, which handles the insertion of AccountSharedData; the account's `address` (particularly helpful if a predefined address is needed); and `AccountSharedData`, which you can configure as needed.
+If the previous two functions are insufficient, you can use `set_account_custom()` to manually set an account with data you select.
 
 !!! tip
 
-        Example:
+    Example:
 
     ```rust
-    let address = Keypair::new();
-    fuzz_accounts.hello_world_account.set_custom(
-        self.accounts.hello_world_account,
+    let author = fuzz_accounts.author_hello_world.get_or_create_account(
+        self.accounts.author,
         client,
-        address.pubkey(),
-        AccountSharedData::new(10 * LAMPORTS_PER_SOL, 0, &solana_sdk::system_program::ID),
+        500 * LAMPORTS_PER_SOL,
+    );
+    client.set_account_custom(
+        &author.pubkey(),
+        &AccountSharedData::create(
+            10 * LAMPORTS_PER_SOL,
+            vec![1, 2, 3, 4, 5, 6, 7, 8, 9],
+            solana_sdk::system_program::ID,
+            false,
+            0,
+        ),
     );
     ```
-    The code above will generate a new random keypair. The `set_account` function will insert the specified `AccountSharedData` into the client and create a record in the corresponding AccountsStorage based on the entered `account_id`.
-
 
 ## `check()`
 
-This method provides Invariant Check for the corresponding Instruction. Check [Invariant Checks](./invariant-checks.md).
+This method provides an Invariant Check for the corresponding Instruction. Check [Invariant Checks](./invariant-checks.md).
 
 ## `tx_error_handler()`
 
-This method provides Tx Error Handler for the corresponding Instruction. Check [Error Handler](./error-handlers.md).
-
+This method provides a Tx Error Handler for the corresponding Instruction. Check [Error Handler](./error-handlers.md).
 
 ## Example
 

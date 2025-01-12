@@ -5,9 +5,8 @@ You can pass supported parameters via the **{{ config.site_name }}.toml** config
 ## [fuzz]
 
 #### programs
-- Trident allows you to specify genesis programs (SBF targets) that will be included in the fuzzing environment in order to perform all desired Cross-Program-Invocations.
 
-- Including these types of programs will lead to performance decline of Trident.
+- Use dumped program from desired cluster, during fuzzing.
 
 ```toml
 [[fuzz.programs]]
@@ -18,7 +17,8 @@ program = "metaplex-program/metaplex-token-metadata.so"
 ---
 
 #### accounts
-- Trident allwos you to specify genesis accounts to inlcude in the fuzzing environment. In most cases it is helpful to dump some accounts from mainnet and use then during testing.
+
+- Use dumped accounts from desired cluster, during fuzzing.
 
 ```toml
 [[fuzz.accounts]]
@@ -29,7 +29,7 @@ filename = "tests/accounts/core_bridge_mainnet/guardian_set_5_mock.json"
 ---
 
 #### allow_duplicate_txs
-- Allow processing of duplicate transactions. Setting to true might speed up fuzzing but can cause false positive crashes (default: false)
+- Allow processing of duplicate transactions. Setting to true might speed up fuzzing but can cause false positive crashes (default: false).
 
 ```toml
 [fuzz]
@@ -57,13 +57,13 @@ fuzzing_with_stats = true
 
 ## [honggfuzz]
 
-#### timeout
-- Timeout in seconds (default: 10)
+#### run_time
+- Number of seconds this fuzzing session will last (default: 0 [no limit])
 
 ```toml
 [honggfuzz]
-# Timeout in seconds (default: 10)
-timeout = 10
+# Number of seconds this fuzzing session will last (default: 0 [no limit])
+run_time = 0
 ```
 
 ---
@@ -135,7 +135,7 @@ mutations_per_run = 6
 ---
 
 #### cargo_target_dir
-- Target compilation directory, (default: "" ["trident-tests/fuzz_tests/fuzzing/honggfuzz/hfuzz_target"]).
+- Target compilation directory, (default: "" ["trident-tests/fuzzing/honggfuzz/hfuzz_target"]).
 - To not clash with cargo build's default target directory.
 
 ```toml
@@ -149,7 +149,7 @@ cargo_target_dir = ""
 ---
 
 #### hfuzz_workspace
-- Honggfuzz working directory, (default: "" ["trident-tests/fuzz_tests/fuzzing/honggfuzz/hfuzz_workspace"]).
+- Honggfuzz working directory, (default: "" ["trident-tests/fuzzing/honggfuzz/hfuzz_workspace"]).
 
 ```toml
 [honggfuzz]
@@ -182,13 +182,13 @@ extension = ""
 
 ---
 
-#### run_time
-- Number of seconds this fuzzing session will last (default: 0 [no limit])
+#### timeout
+- Timeout in seconds (default: 10)
 
 ```toml
 [honggfuzz]
-# Number of seconds this fuzzing session will last (default: 0 [no limit])
-run_time = 0
+# Timeout in seconds (default: 10)
+timeout = 0
 ```
 
 ---
@@ -216,7 +216,29 @@ max_file_size = 1048576
 save_all = false
 ```
 
-<!-- ## [afl]
+## [afl]
+
+#### run_time
+- Number of seconds this fuzzing session will last (default: 0 [no limit])
+
+```toml
+[afl]
+# Number of seconds this fuzzing session will last (default: 0 [no limit])
+run_time = 0
+```
+
+---
+
+#### iterations
+- Number of fuzzing iterations (default: 0 [no limit])
+
+```toml
+[afl]
+# Number of fuzzing iterations (default: 0 [no limit])
+iterations = 0
+```
+
+---
 
 #### cargo_target_dir
 - Target compilation directory, (default: "" ["trident-tests/fuzz_tests/fuzzing/afl/afl_target"]).
@@ -262,7 +284,7 @@ afl_workspace_out = ""
 - Predefined inputs to the AFL
 - You can specify multiple input seeds.
 
-!!! importnat
+!!! important
 
     `bytes_count` has precedence before `seed`, in that case if both are specified. Seed is generated as random array of `bytes_count` bytes.
 
@@ -273,7 +295,7 @@ afl_workspace_out = ""
 # (default: "" ["trident-seed"]).
 file_name = ""
 # String used as seed.
-# (default: "" ["0"]).
+# (default: "" ["trident"]).
 seed = ""
 # If the file already exists at specific location,
 # select if override.
@@ -284,7 +306,7 @@ override_file = true
 bytes_count = 20
 ```
 
---- -->
+---
 
 !!! tip
 

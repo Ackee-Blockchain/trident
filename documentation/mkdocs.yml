@@ -18,9 +18,9 @@ nav:
         - features/account-storages.md
         - features/fuzz-instructions.md
         - features/instructions-sequences.md
-        - features/genesis-accounts.md
+        - features/programs-n-accounts.md
         - features/invariant-checks.md
-        - features/arbitrary-data.md
+        - features/customize-ix-data.md
         - features/fuzzing-statistics.md
         - features/error-handlers.md
         - features/trident-manifest.md
