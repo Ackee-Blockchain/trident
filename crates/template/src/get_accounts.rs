@@ -17,7 +17,12 @@ pub(crate) fn get_accounts(
     for account in &instruction.accounts {
         match account {
             IdlInstructionAccountItem::Composite(idl_instruction_accounts) => {
-                process_composite_account(idl_instruction_accounts)
+                process_composite_account(
+                    &instruction.name,
+                    idl_instruction_accounts,
+                    instructions_accounts,
+                    &mut account_implementations,
+                );
             }
             IdlInstructionAccountItem::Single(idl_instruction_account) => {
                 process_single_account(
@@ -33,11 +38,32 @@ pub(crate) fn get_accounts(
     account_implementations
 }
 
-fn process_composite_account(idl_instruction_accounts: &IdlInstructionAccounts) {
-    panic!(
-        "Composite accounts not supported. Composite account with name {} found",
-        idl_instruction_accounts.name
-    )
+fn process_composite_account(
+    instruction: &str,
+    accounts: &IdlInstructionAccounts,
+    instructions_accounts: &HashMap<String, InstructionAccount>,
+    account_implementations: &mut Vec<Block>,
+) {
+    for account in &accounts.accounts {
+        match account {
+            IdlInstructionAccountItem::Single(idl_instruction_account) => {
+                process_single_account(
+                    instruction,
+                    idl_instruction_account,
+                    instructions_accounts,
+                    account_implementations,
+                );
+            }
+            IdlInstructionAccountItem::Composite(idl_instruction_accounts) => {
+                process_composite_account(
+                    instruction,
+                    idl_instruction_accounts,
+                    instructions_accounts,
+                    account_implementations,
+                );
+            }
+        }
+    }
 }
 
 fn process_single_account(

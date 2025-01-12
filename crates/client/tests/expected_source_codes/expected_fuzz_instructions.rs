@@ -15,6 +15,8 @@ pub struct ProcessCustomTypes {
 }
 #[derive(Arbitrary, Debug)]
 pub struct ProcessCustomTypesAccounts {
+    pub some_account: AccountId,
+    pub some_account: AccountId,
     pub signer: AccountId,
     pub data_account_1: AccountId,
     pub data_account_2: AccountId,
@@ -22,6 +24,9 @@ pub struct ProcessCustomTypesAccounts {
     pub data_account_4: AccountId,
     pub data_account_5: AccountId,
     pub data_account_6: AccountId,
+    pub some_account: AccountId,
+    pub signer: AccountId,
+    pub data_account_1: AccountId,
 }
 /// Custom data types must derive `Debug` and `Arbitrary`.
 /// To do this, redefine the type in the fuzz test and implement the `From`
@@ -50,6 +55,8 @@ pub struct ProcessRustTypes {
 }
 #[derive(Arbitrary, Debug)]
 pub struct ProcessRustTypesAccounts {
+    pub some_account: AccountId,
+    pub some_account: AccountId,
     pub signer: AccountId,
     pub data_account_1: AccountId,
     pub data_account_2: AccountId,
@@ -57,6 +64,9 @@ pub struct ProcessRustTypesAccounts {
     pub data_account_4: AccountId,
     pub data_account_5: AccountId,
     pub data_account_6: AccountId,
+    pub some_account: AccountId,
+    pub signer: AccountId,
+    pub data_account_1: AccountId,
 }
 /// Custom data types must derive `Debug` and `Arbitrary`.
 /// To do this, redefine the type in the fuzz test and implement the `From`
@@ -168,6 +178,20 @@ impl IxOps for ProcessCustomTypes {
         let mut account_metas = vec![];
         let mut signers = vec![];
         {
+            let some_account = todo!();
+            account_metas.push(todo!());
+        }
+        {
+            let some_account = todo!();
+            account_metas.push(todo!());
+        }
+        {
+            account_metas.push(AccountMeta::new_readonly(
+                pubkey!("11111111111111111111111111111111"),
+                false,
+            ));
+        }
+        {
             let signer = fuzz_accounts.signer.get_or_create_account(
                 self.accounts.signer,
                 client,
@@ -198,6 +222,23 @@ impl IxOps for ProcessCustomTypes {
         }
         {
             let data_account_6 = todo!();
+            account_metas.push(todo!());
+        }
+        {
+            let some_account = todo!();
+            account_metas.push(todo!());
+        }
+        {
+            let signer = fuzz_accounts.signer.get_or_create_account(
+                self.accounts.signer,
+                client,
+                500 * LAMPORTS_PER_SOL,
+            );
+            account_metas.push(AccountMeta::new_readonly(signer.pubkey(), true));
+            signers.push(signer.insecure_clone());
+        }
+        {
+            let data_account_1 = todo!();
             account_metas.push(todo!());
         }
         Ok((signers, account_metas))
@@ -285,6 +326,20 @@ impl IxOps for ProcessRustTypes {
         let mut account_metas = vec![];
         let mut signers = vec![];
         {
+            let some_account = todo!();
+            account_metas.push(todo!());
+        }
+        {
+            let some_account = todo!();
+            account_metas.push(todo!());
+        }
+        {
+            account_metas.push(AccountMeta::new_readonly(
+                pubkey!("11111111111111111111111111111111"),
+                false,
+            ));
+        }
+        {
             let signer = fuzz_accounts.signer.get_or_create_account(
                 self.accounts.signer,
                 client,
@@ -315,6 +370,23 @@ impl IxOps for ProcessRustTypes {
         }
         {
             let data_account_6 = todo!();
+            account_metas.push(todo!());
+        }
+        {
+            let some_account = todo!();
+            account_metas.push(todo!());
+        }
+        {
+            let signer = fuzz_accounts.signer.get_or_create_account(
+                self.accounts.signer,
+                client,
+                500 * LAMPORTS_PER_SOL,
+            );
+            account_metas.push(AccountMeta::new_readonly(signer.pubkey(), true));
+            signers.push(signer.insecure_clone());
+        }
+        {
+            let data_account_1 = todo!();
             account_metas.push(todo!());
         }
         Ok((signers, account_metas))
@@ -370,6 +442,7 @@ pub struct FuzzAccounts {
     data_account_5: AccountsStorage<todo!()>,
     data_account_6: AccountsStorage<todo!()>,
     signer: AccountsStorage<KeypairStore>,
+    some_account: AccountsStorage<todo!()>,
 }
 #[derive(Arbitrary, Debug, BorshDeserialize, BorshSerialize, Clone)]
 pub struct ClassicStruct {

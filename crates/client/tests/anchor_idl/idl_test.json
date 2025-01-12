@@ -21,6 +21,26 @@
       ],
       "accounts": [
         {
+          "name": "composite_account_nested",
+          "accounts": [
+            {
+              "name": "some_account"
+            },
+            {
+              "name": "nested_inner",
+              "accounts": [
+                {
+                  "name": "some_account"
+                },
+                {
+                  "name": "system_program",
+                  "address": "11111111111111111111111111111111"
+                }
+              ]
+            }
+          ]
+        },
+        {
           "name": "signer",
           "signer": true
         },
@@ -41,6 +61,21 @@
         },
         {
           "name": "data_account_6"
+        },
+        {
+          "name": "composite_account",
+          "accounts": [
+            {
+              "name": "some_account"
+            },
+            {
+              "name": "signer",
+              "signer": true
+            },
+            {
+              "name": "data_account_1"
+            }
+          ]
         }
       ],
       "args": [
@@ -168,6 +203,26 @@
       ],
       "accounts": [
         {
+          "name": "composite_account_nested",
+          "accounts": [
+            {
+              "name": "some_account"
+            },
+            {
+              "name": "nested_inner",
+              "accounts": [
+                {
+                  "name": "some_account"
+                },
+                {
+                  "name": "system_program",
+                  "address": "11111111111111111111111111111111"
+                }
+              ]
+            }
+          ]
+        },
+        {
           "name": "signer",
           "signer": true
         },
@@ -188,6 +243,21 @@
         },
         {
           "name": "data_account_6"
+        },
+        {
+          "name": "composite_account",
+          "accounts": [
+            {
+              "name": "some_account"
+            },
+            {
+              "name": "signer",
+              "signer": true
+            },
+            {
+              "name": "data_account_1"
+            }
+          ]
         }
       ],
       "args": [

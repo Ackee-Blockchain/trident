@@ -12,6 +12,7 @@ incremented upon a breaking change and the patch version will be incremented for
 
 **Added**
 
+- added support for composite accounts ([245](https://github.com/Ackee-Blockchain/trident/pull/245))
 - Trident SVM + AFL (see the PR for more details) ([234](https://github.com/Ackee-Blockchain/trident/pull/234))
 
 **Removed**
