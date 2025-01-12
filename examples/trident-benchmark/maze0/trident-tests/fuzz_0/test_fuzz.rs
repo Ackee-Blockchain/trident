@@ -2,7 +2,7 @@ use trident_fuzz::fuzzing::*;
 mod fuzz_instructions;
 use fuzz_instructions::FuzzInstruction;
 use fuzz_instructions::*;
-use maze::entry;
+use maze0::entry as entry_maze0;
 struct InstructionsSequence;
 /// Define instruction sequences for invocation.
 /// `pre` runs at the start, `middle` in the middle, and `post` at the end.
@@ -28,13 +28,12 @@ fn fuzz_iteration<T: FuzzTestExecutor<U> + std::fmt::Display, U>(
     let _ = fuzz_data.run_with_runtime(client, config);
 }
 fn main() {
-    let program = ProgramEntrypoint::new(
+    let program_maze0 = ProgramEntrypoint::new(
         pubkey!("5e554BrmQN7a2nbKrSUUxP8PMbq55rMntnkoCPmwr3Aq"),
         None,
-        processor!(entry),
+        processor!(entry_maze0),
     );
-
     let config = Config::new();
-    let mut client = TridentSVM::new_client(&[program], &config);
+    let mut client = TridentSVM::new_client(&[program_maze0], &config);
     fuzz_trident ! (fuzz_ix : FuzzInstruction , | fuzz_data : InstructionsSequence | { fuzz_iteration (fuzz_data , & config , & mut client) ; });
 }
