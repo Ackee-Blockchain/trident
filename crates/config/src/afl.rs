@@ -17,7 +17,7 @@ pub struct Afl {
     pub iterations: Option<u64>,
     // seconds
     // -V
-    pub timeout: Option<u64>,
+    pub run_time: Option<u64>,
     // seeds
     // -s
     pub seeds: Option<Vec<AflSeed>>,
@@ -52,13 +52,15 @@ impl Afl {
         // execs
         self.iterations
             .as_ref()
+            .filter(|&iterations| *iterations > 0)
             .map(|iterations| Argument::new("-E", "", Some(&iterations.to_string())))
     }
-    pub fn get_timeout(&self) -> Option<Argument> {
+    pub fn get_run_time(&self) -> Option<Argument> {
         // seconds
-        self.timeout
+        self.run_time
             .as_ref()
-            .map(|timeout| Argument::new("-V", "", Some(&timeout.to_string())))
+            .filter(|&run_time| *run_time > 0)
+            .map(|run_time| Argument::new("-V", "", Some(&run_time.to_string())))
     }
     pub fn get_seeds(&self) -> Vec<AflSeed> {
         // seeds
@@ -80,7 +82,7 @@ impl Afl {
         if let Some(execs) = self.get_iterations() {
             result.extend(arg_to_string(&execs));
         }
-        if let Some(seconds) = self.get_timeout() {
+        if let Some(seconds) = self.get_run_time() {
             result.extend(arg_to_string(&seconds));
         }
         result
@@ -117,7 +119,7 @@ mod tests {
                 afl_workspace_in: None,
                 afl_workspace_out: None,
                 iterations: None,
-                timeout: None,
+                run_time: None,
                 seeds: None,
             }
         }
@@ -169,7 +171,7 @@ mod tests {
         let mut afl = Afl::clean();
 
         // seconds
-        afl.timeout = Some(15);
+        afl.run_time = Some(15);
 
         let arg = afl.get_collect_fuzz_args();
         assert_eq!(arg, vec!["-V", "15"]);
