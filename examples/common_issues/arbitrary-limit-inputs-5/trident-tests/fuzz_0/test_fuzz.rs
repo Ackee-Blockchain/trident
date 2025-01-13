@@ -26,7 +26,7 @@ fn main() {
         None,
         processor!(entry),
     );
-    let config = Config::new();
+    let config = TridentConfig::new();
     let mut client = TridentSVM::new_client(&[program], &config);
-    fuzz_trident ! (fuzz_ix : FuzzInstruction , | fuzz_data : InstructionsSequence , client : TridentSVM , config : Config |);
+    fuzz_trident ! (fuzz_ix : FuzzInstruction , | fuzz_data : InstructionsSequence , client : TridentSVM , config : TridentConfig |);
 }

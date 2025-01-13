@@ -21,6 +21,7 @@ incremented upon a breaking change and the patch version will be incremented for
 
 **Changed**
 
+- renamed Config to TridentConfig ([246](https://github.com/Ackee-Blockchain/trident/pull/246))
 - errors are simplified and transaction error contains only transaction error ([244](https://github.com/Ackee-Blockchain/trident/pull/244))
 
 ## [0.8.1] - 2024-11-14

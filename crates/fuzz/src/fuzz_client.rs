@@ -8,12 +8,12 @@ use solana_sdk::signature::Keypair;
 use solana_sdk::sysvar::Sysvar;
 use solana_sdk::transaction::TransactionError;
 
-use trident_config::Config;
+use trident_config::TridentConfig;
 use trident_svm::utils::ProgramEntrypoint;
 
 /// A trait providing methods to read and write (manipulate) accounts
 pub trait FuzzClient {
-    fn new_client(programs: &[ProgramEntrypoint], config: &Config) -> Self;
+    fn new_client(programs: &[ProgramEntrypoint], config: &TridentConfig) -> Self;
     /// Get the cluster rent
     fn get_sysvar<T: Sysvar>(&self) -> T;
 

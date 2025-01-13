@@ -8,7 +8,7 @@ use std::fmt::Display;
 
 use crate::fuzz_client::FuzzClient;
 use crate::fuzz_test_executor::FuzzTestExecutor;
-use trident_config::Config;
+use trident_config::TridentConfig;
 
 pub struct FuzzData<T, U> {
     pub pre_ixs: Vec<T>,
@@ -51,7 +51,7 @@ where
     pub fn run_with_runtime(
         &self,
         client: &mut impl FuzzClient,
-        config: &Config,
+        config: &TridentConfig,
     ) -> core::result::Result<(), Box<dyn Error + 'static>> {
         // solana_logger::setup_with_default("off");
         // #[cfg(fuzzing_debug)]

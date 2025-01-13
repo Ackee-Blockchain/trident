@@ -6,7 +6,7 @@ use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signer::Signer;
 use solana_sdk::sysvar::Sysvar;
 
-use trident_config::Config;
+use trident_config::TridentConfig;
 
 use trident_svm::trident_svm::TridentSVM;
 use trident_svm::utils::ProgramEntrypoint;
@@ -17,7 +17,7 @@ use crate::fuzz_client::FuzzClient;
 use solana_sdk::transaction::TransactionError;
 
 impl FuzzClient for TridentSVM<'_> {
-    fn new_client(programs: &[ProgramEntrypoint], config: &Config) -> Self {
+    fn new_client(programs: &[ProgramEntrypoint], config: &TridentConfig) -> Self {
         let sbf_programs =
             config
                 .programs()

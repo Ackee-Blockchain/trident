@@ -28,8 +28,8 @@ fn main() {
         None,
         processor!(entry_idl_test),
     );
-    let config = Config::new();
+    let config = TridentConfig::new();
     let mut client =
         TridentSVM::new_client(&[program_additional_program, program_idl_test], &config);
-    fuzz_trident ! (fuzz_ix : FuzzInstruction , | fuzz_data : InstructionsSequence , client : TridentSVM , config : Config |);
+    fuzz_trident ! (fuzz_ix : FuzzInstruction , | fuzz_data : InstructionsSequence , client : TridentSVM , config : TridentConfig |);
 }

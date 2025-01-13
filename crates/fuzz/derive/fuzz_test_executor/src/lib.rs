@@ -32,7 +32,7 @@ pub fn fuzz_test_executor(input: TokenStream) -> TokenStream {
                        &self,
                        accounts: &RefCell<FuzzAccounts>,
                        client: &mut impl trident_fuzz::fuzzing::FuzzClient,
-                       config: &trident_fuzz::fuzzing::Config,
+                       config: &trident_fuzz::fuzzing::TridentConfig,
                    ) -> core::result::Result<(), trident_fuzz::fuzzing::FuzzClientErrorWithOrigin> {
                            match self {
                                #(#display_match_arms)*

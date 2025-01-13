@@ -49,7 +49,7 @@ pub mod fuzzing {
 
     /// trident methods
     pub use super::accounts_storage::*;
-    pub use trident_config::Config;
+    pub use trident_config::TridentConfig;
 
     pub use super::error::*;
     pub use super::fuzz_client::FuzzClient;

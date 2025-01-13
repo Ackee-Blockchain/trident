@@ -4,7 +4,7 @@ use std::process;
 use std::{os::unix::process::CommandExt, process::Stdio};
 use tokio::process::Command;
 
-use trident_config::Config;
+use trident_config::TridentConfig;
 
 use crate::constants::*;
 
@@ -14,7 +14,7 @@ impl Commander {
     /// Runs fuzzer on the given target with exit code option.
     #[throws]
     pub async fn run_honggfuzz_with_exit_code(&self, target: String) {
-        let config = Config::new();
+        let config = TridentConfig::new();
 
         // obtain hfuzz_run_args from env variable, this variable can contain multiple
         // arguments so we need to parse the variable content.
@@ -86,7 +86,7 @@ impl Commander {
     /// Runs fuzzer on the given target.
     #[throws]
     pub async fn run_honggfuzz(&self, target: String) {
-        let config = Config::new();
+        let config = TridentConfig::new();
 
         let hfuzz_run_args = std::env::var("HFUZZ_RUN_ARGS").unwrap_or_default();
 
@@ -134,7 +134,7 @@ impl Commander {
     /// Runs fuzzer on the given target.
     #[throws]
     pub async fn run_hfuzz_debug(&self, target: String, crash_file_path: String) {
-        let config = Config::new();
+        let config = TridentConfig::new();
 
         let crash_file = Path::new(&crash_file_path);
 
