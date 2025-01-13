@@ -18,15 +18,6 @@ struct InstructionsSequence;
 impl FuzzDataBuilder<FuzzInstruction> for InstructionsSequence {
     pre_sequence!(Initialize);
 }
-/// `fn fuzz_iteration` runs during every fuzzing iteration.
-/// Modification is not required.
-fn fuzz_iteration<T: FuzzTestExecutor<U> + std::fmt::Display, U>(
-    fuzz_data: FuzzData<T, U>,
-    config: &Config,
-    client: &mut impl FuzzClient,
-) {
-    let _ = fuzz_data.run_with_runtime(client, config);
-}
 fn main() {
     let program_unauthorized_access_2 = ProgramEntrypoint::new(
         pubkey!("5XvBmfPNcHLCgbRK4nRYvfodAnhjArHSed2B3rhkF1Ug"),

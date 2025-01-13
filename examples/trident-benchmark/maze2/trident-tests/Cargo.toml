@@ -2,6 +2,8 @@
 name = "fuzz_0"
 path = "fuzz_0/test_fuzz.rs"
 
+[workspace]
+
 [package]
 name = "fuzz_tests"
 version = "0.1.0"
