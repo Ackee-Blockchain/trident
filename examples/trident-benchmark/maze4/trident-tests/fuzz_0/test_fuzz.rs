@@ -18,22 +18,13 @@ struct InstructionsSequence;
 impl FuzzDataBuilder<FuzzInstruction> for InstructionsSequence {
     pre_sequence!(Initialize);
 }
-/// `fn fuzz_iteration` runs during every fuzzing iteration.
-/// Modification is not required.
-fn fuzz_iteration<T: FuzzTestExecutor<U> + std::fmt::Display, U>(
-    fuzz_data: FuzzData<T, U>,
-    config: &Config,
-    client: &mut impl FuzzClient,
-) {
-    let _ = fuzz_data.run_with_runtime(client, config);
-}
 fn main() {
     let program_maze4 = ProgramEntrypoint::new(
         pubkey!("5e554BrmQN7a2nbKrSUUxP8PMbq55rMntnkoCPmwr3Aq"),
         None,
         processor!(entry_maze4),
     );
-    let config = Config::new();
+    let config = TridentConfig::new();
     let mut client = TridentSVM::new_client(&[program_maze4], &config);
-    fuzz_trident ! (fuzz_ix : FuzzInstruction , | fuzz_data : InstructionsSequence | { fuzz_iteration (fuzz_data , & config , & mut client) ; });
+    fuzz_trident ! (fuzz_ix : FuzzInstruction , | fuzz_data : InstructionsSequence , client : TridentSVM , config : TridentConfig |);
 }
