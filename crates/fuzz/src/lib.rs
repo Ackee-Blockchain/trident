@@ -27,6 +27,7 @@ pub mod fuzzing {
     pub use solana_sdk::signer::keypair::Keypair;
     pub use solana_sdk::signer::Signer;
     pub use solana_sdk::transaction::Transaction;
+    pub use solana_sdk::transaction::TransactionError;
 
     pub use afl::fuzz as fuzz_afl;
     pub use arbitrary;

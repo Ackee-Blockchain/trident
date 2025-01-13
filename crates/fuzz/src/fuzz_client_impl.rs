@@ -14,6 +14,7 @@ use trident_svm::utils::SBFTargets;
 use trident_svm::utils::TridentAccountSharedData;
 
 use crate::fuzz_client::FuzzClient;
+use solana_sdk::transaction::TransactionError;
 
 impl FuzzClient for TridentSVM<'_> {
     fn new_client(programs: &[ProgramEntrypoint], config: &Config) -> Self {
@@ -61,12 +62,11 @@ impl FuzzClient for TridentSVM<'_> {
         self.set_sysvar(&clock);
     }
 
-    fn forward_in_time(&mut self, seconds: i64) -> Result<(), crate::error::FuzzClientError> {
+    fn forward_in_time(&mut self, seconds: i64) {
         let mut clock = self.get_sysvar::<Clock>();
 
         clock.unix_timestamp = clock.unix_timestamp.saturating_add(seconds);
         self.set_sysvar(&clock);
-        Ok(())
     }
 
     fn set_account_custom(&mut self, address: &Pubkey, account: &AccountSharedData) {
@@ -88,12 +88,7 @@ impl FuzzClient for TridentSVM<'_> {
     fn process_instructions(
         &mut self,
         instructions: &[Instruction],
-    ) -> Result<(), crate::error::FuzzClientError> {
-        // Currently Trident supports only one instruction in a transaction
-        if instructions.len() != 1 {
-            return Err(crate::error::FuzzClientError::Custom(55000));
-        }
-
+    ) -> Result<(), TransactionError> {
         // there should be at least 1 RW fee-payer account.
         // But we do not pay for TX currently so has to be manually updated
         // tx.message.header.num_required_signatures = 1;

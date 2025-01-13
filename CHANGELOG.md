@@ -15,7 +15,12 @@ incremented upon a breaking change and the patch version will be incremented for
 - Trident SVM + AFL (see the PR for more details) ([234](https://github.com/Ackee-Blockchain/trident/pull/234))
 
 **Removed**
+
 - removed fuzz_iteration from test_fuzz.rs ([243](https://github.com/Ackee-Blockchain/trident/pull/243))
+
+**Changed**
+
+- errors are simplified and transaction error contains only transaction error ([244](https://github.com/Ackee-Blockchain/trident/pull/244))
 
 ## [0.8.1] - 2024-11-14
 
