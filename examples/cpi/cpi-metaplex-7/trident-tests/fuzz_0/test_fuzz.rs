@@ -20,15 +20,6 @@ impl FuzzDataBuilder<FuzzInstruction> for InstructionsSequence {
     middle_sequence!();
     post_sequence!();
 }
-/// `fn fuzz_iteration` runs during every fuzzing iteration.
-/// Modification is not required.
-fn fuzz_iteration<T: FuzzTestExecutor<U> + std::fmt::Display, U>(
-    fuzz_data: FuzzData<T, U>,
-    config: &Config,
-    client: &mut impl FuzzClient,
-) {
-    let _ = fuzz_data.run_with_runtime(client, config);
-}
 fn main() {
     let program = ProgramEntrypoint::new(
         pubkey!("3XtULmXDGS867VbBXiPkjYr4EMjytGW8X12F6BS23Zcw"),
@@ -38,5 +29,5 @@ fn main() {
 
     let config = Config::new();
     let mut client = TridentSVM::new_client(&[program], &config);
-    fuzz_trident ! (fuzz_ix : FuzzInstruction , | fuzz_data : InstructionsSequence | { fuzz_iteration (fuzz_data , & config , & mut client) ; });
+    fuzz_trident ! (fuzz_ix : FuzzInstruction , | fuzz_data : InstructionsSequence , client : TridentSVM , config : Config |);
 }

@@ -2,8 +2,7 @@ use trident_fuzz::fuzzing::*;
 mod fuzz_instructions;
 use fuzz_instructions::FuzzInstruction;
 use fuzz_instructions::*;
-use hello_world::entry;
-
+use hello_world::entry as entry_hello_world;
 struct InstructionsSequence;
 /// Define instruction sequences for invocation.
 /// `pre` runs at the start, `middle` in the middle, and `post` at the end.
@@ -21,23 +20,13 @@ impl FuzzDataBuilder<FuzzInstruction> for InstructionsSequence {
     middle_sequence!();
     post_sequence!();
 }
-/// `fn fuzz_iteration` runs during every fuzzing iteration.
-/// Modification is not required.
-fn fuzz_iteration<T: FuzzTestExecutor<U> + std::fmt::Display, U>(
-    fuzz_data: FuzzData<T, U>,
-    config: &Config,
-    client: &mut impl FuzzClient,
-) {
-    let _ = fuzz_data.run_with_runtime(client, config);
-}
 fn main() {
-    let program = ProgramEntrypoint::new(
+    let program_hello_world = ProgramEntrypoint::new(
         pubkey!("FtevoQoDMv6ZB3N9Lix5Tbjs8EVuNL8vDSqG9kzaZPit"),
         None,
-        processor!(entry),
+        processor!(entry_hello_world),
     );
     let config = Config::new();
-    let mut client = TridentSVM::new_client(&[program], &config);
-
-    fuzz_trident ! (fuzz_ix : FuzzInstruction , | fuzz_data : InstructionsSequence | { fuzz_iteration (fuzz_data , & config , & mut client) ; });
+    let mut client = TridentSVM::new_client(&[program_hello_world], &config);
+    fuzz_trident ! (fuzz_ix : FuzzInstruction , | fuzz_data : InstructionsSequence , client : TridentSVM , config : Config |);
 }
