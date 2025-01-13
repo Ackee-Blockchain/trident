@@ -10,7 +10,7 @@ use crate::fuzz_stats::FuzzingStatistics;
 use crate::ix_ops::IxOps;
 use crate::snapshot::Snapshot;
 
-use trident_config::Config;
+use trident_config::TridentConfig;
 
 pub struct TransactionExecutor;
 
@@ -19,7 +19,7 @@ impl TransactionExecutor {
         instruction_name: &str,
         client: &mut impl FuzzClient,
         ix: &I,
-        config: &Config,
+        config: &TridentConfig,
         accounts: &RefCell<I::IxAccounts>,
     ) -> core::result::Result<(), FuzzClientErrorWithOrigin>
     where

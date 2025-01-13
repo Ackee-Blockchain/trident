@@ -29,24 +29,25 @@ pub enum Error {
 }
 
 #[derive(Debug, Deserialize, Clone)]
-pub struct Config {
+pub struct TridentConfig {
     pub honggfuzz: Option<HonggFuzz>,
     pub afl: Option<Afl>,
     pub fuzz: Option<Fuzz>,
 }
 
-impl Default for Config {
+impl Default for TridentConfig {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl Config {
+impl TridentConfig {
     pub fn new() -> Self {
         let root = discover_root().expect("failed to find the root folder");
         let s = fs::read_to_string(root.join(TRIDENT_TOML).as_path())
             .expect("failed to read the Trident config file");
-        let _config: Config = toml::from_str(&s).expect("failed to parse the Trident config file");
+        let _config: TridentConfig =
+            toml::from_str(&s).expect("failed to parse the Trident config file");
         _config
     }
 

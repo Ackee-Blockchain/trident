@@ -6,7 +6,7 @@ use std::{fs::File, path::Path};
 use tokio::{io::AsyncWriteExt, process::Command};
 
 use trident_config::afl::AflSeed;
-use trident_config::Config;
+use trident_config::TridentConfig;
 
 use super::{Commander, Error};
 use rand::RngCore;
@@ -15,7 +15,7 @@ impl Commander {
     /// Runs fuzzer on the given target.
     #[throws]
     pub async fn run_afl(&self, target: String) {
-        let config = Config::new();
+        let config = TridentConfig::new();
 
         // build args without cargo target dir
         let build_args = config.get_afl_build_args();
@@ -77,7 +77,7 @@ impl Commander {
     /// Runs fuzzer on the given target.
     #[throws]
     pub async fn run_afl_debug(&self, target: String, crash_file: String) {
-        let config = Config::new();
+        let config = TridentConfig::new();
 
         let crash_file_path = Path::new(&crash_file);
 

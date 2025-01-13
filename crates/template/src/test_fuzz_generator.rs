@@ -46,11 +46,11 @@ pub fn generate_source_code(_idl_instructions: &[Idl], lib_names: &[String]) -> 
 
             #(#programs)*
 
-            let config = Config::new();
+            let config = TridentConfig::new();
             let mut client = TridentSVM::new_client(&[ #(#input_array),* ], &config);
             fuzz_trident!(
                 fuzz_ix: FuzzInstruction,
-                |fuzz_data: InstructionsSequence, client: TridentSVM, config: Config|
+                |fuzz_data: InstructionsSequence, client: TridentSVM, config: TridentConfig|
             );
         }
     };
