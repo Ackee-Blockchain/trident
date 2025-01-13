@@ -6,12 +6,10 @@ use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum FuzzClientError {
-    #[error("Custom fuzzing error: {0}")]
+    #[error("Custom fuzz client error: {0}")]
     Custom(u32),
-    #[error("Not able to initialize client: {0}")]
-    ClientInitError(#[from] TransactionError),
     #[error("Transaction failed: {0}")]
-    TransactionFailed(TransactionError),
+    TransactionFailed(#[from] TransactionError),
 }
 
 #[derive(Debug, Error)]
@@ -20,31 +18,15 @@ pub enum FuzzingError {
     Custom(u32),
     #[error("Fuzzing error with Custom Message: {0}\n")]
     CustomMessage(String),
-    #[error("Not able to deserialize account: {0}\n")]
-    CannotDeserializeAccount(String),
-    #[error("Optional Account not provided: {0}\n")]
-    OptionalAccountNotProvided(String),
-    #[error("Not enough Accounts: {0}\n")]
-    NotEnoughAccounts(String),
-    #[error("Account not Found: {0}\n")]
-    AccountNotFound(String),
-    #[error("Not Able To Obtain AccountInfos\n")]
-    NotAbleToObtainAccountInfos,
-    #[error("Balance Mismatch\n")]
-    BalanceMismatch,
-    #[error("Data Mismatch\n")]
-    DataMismatch,
-    #[error("Unable to obtain Data\n")]
-    UnableToObtainData,
 }
 
 impl FuzzClientError {
-    pub fn with_origin(self, origin: Origin) -> FuzzClientErrorWithOrigin {
+    pub(crate) fn with_origin(self, origin: Origin) -> FuzzClientErrorWithOrigin {
         let mut error_with_origin = FuzzClientErrorWithOrigin::from(self);
         error_with_origin.origin = Some(origin);
         error_with_origin
     }
-    pub fn with_context(self, context: Context) -> FuzzClientErrorWithOrigin {
+    pub(crate) fn with_context(self, context: Context) -> FuzzClientErrorWithOrigin {
         let mut error_with_origin = FuzzClientErrorWithOrigin::from(self);
         error_with_origin.context = Some(context);
         error_with_origin

@@ -378,7 +378,7 @@ impl IxOps for WithdrawUnlocked {
             if escrow.recipient == recipient {
                 if recipient_token_account_pre.amount == recipient_token_account_post.amount {
                     // Recipient was not able to withdraw
-                    return Err(FuzzingError::BalanceMismatch);
+                    return Err(FuzzingError::Custom(55));
                 } else if recipient_token_account_pre.amount + escrow.amount
                     != recipient_token_account_post.amount
                 {

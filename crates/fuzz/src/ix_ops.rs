@@ -5,6 +5,7 @@ use crate::fuzz_client::FuzzClient;
 use crate::snapshot::SnapshotAccount;
 use solana_sdk::instruction::AccountMeta;
 use solana_sdk::signature::Keypair;
+use solana_sdk::transaction::TransactionError;
 
 /// A trait providing methods to prepare data and accounts for the fuzzed instructions and allowing
 /// users to implement custom invariants checks and transactions error handling.
@@ -74,10 +75,10 @@ pub trait IxOps {
     #[allow(unused_variables)]
     fn tx_error_handler(
         &self,
-        e: FuzzClientErrorWithOrigin,
+        e: TransactionError,
         ix_data: Vec<u8>,
-        pre_ix_acc_infos: &[SnapshotAccount],
-    ) -> Result<(), FuzzClientErrorWithOrigin> {
+        pre_ix_accounts: &[SnapshotAccount],
+    ) -> Result<(), TransactionError> {
         Err(e)
     }
 }
