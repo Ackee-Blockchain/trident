@@ -2,7 +2,10 @@
 name = "trident-template"
 version = "0.0.1"
 edition = "2021"
-
+repository = "https://github.com/Ackee-Blockchain/trident"
+license-file = "../../LICENSE"
+readme = "../../README.md"
+description = "The trident template crate is dedicated to generated Trident fuzz test templates."
 [dependencies]
 
 # Trident IDL spec
