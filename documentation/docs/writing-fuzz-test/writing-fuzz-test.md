@@ -75,6 +75,9 @@ Each Instruction in the Fuzz Test must define the following functions:
 
 ## Execute
 
+!!! warning
+    To execute and debug fuzz tests, navigate to the `trident-tests` directory.
+
 ### Run Fuzz Test
 
 In principle there are two possible fuzzing engines that the Trident supports, [Honggfuzz](https://github.com/google/honggfuzz) and [AFL](https://aflplus.plus/).
