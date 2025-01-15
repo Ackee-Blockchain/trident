@@ -48,6 +48,14 @@ impl Commander {
             root: Path::new(&root).to_path_buf(),
         }
     }
+    pub fn get_anchor_version() -> Result<String, std::io::Error> {
+        let output = std::process::Command::new("anchor")
+            .arg("--version")
+            .output()?;
+
+        let version = String::from_utf8_lossy(&output.stdout).trim().to_string();
+        Ok(version)
+    }
 
     #[throws]
     pub async fn build_anchor_project() {

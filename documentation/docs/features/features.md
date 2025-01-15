@@ -45,14 +45,14 @@ Trident contains multiple features to enhance the fuzzing experience and increas
 
     [__Invariant Checks__](./invariant-checks.md)
 
--   :octicons-cross-reference-16:{ .lg .middle } __Genesis Accounts__
+-   :octicons-cross-reference-16:{ .lg .middle } __Programs and Accounts__
 
     ---
 
-    Specify genesis Accounts that will be included in the Fuzzing Environment. Use Mainnet Programs or dumped Accounts.
+    Include programs and accounts from the desired cluster (Mainnet, Devnet, etc.).
 
 
-    [__Genesis__](./genesis-accounts.md)
+    [__Programs and Accounts__](./programs-n-accounts.md)
 
 -   :simple-statista:{ .lg .middle } __Fuzzing Statistics__
 
@@ -63,13 +63,13 @@ Trident contains multiple features to enhance the fuzzing experience and increas
 
     [__Fuzzing Statistics__](./fuzzing-statistics.md)
 
--   :simple-instructure:{ .lg .middle } __Arbitrary Data__
+-   :simple-instructure:{ .lg .middle } __Customize Instruction Data__
 
     ---
 
-    Customize structure of Instruction Input arguments.
+    Customize Instruction data, for example, to use integers from specific range.
 
-    [__Arbitrary Data__](./arbitrary-data.md)
+    [__Customize Instruction Data__](./custom-ix-data.md)
 
 -   :material-weight-lifter:{ .lg .middle } __Trident Manifest__
 

@@ -1,9 +1,10 @@
 use fehler::{throw, throws};
+use std::path::Path;
 use std::process;
 use std::{os::unix::process::CommandExt, process::Stdio};
 use tokio::process::Command;
-use trident_fuzz::config::honggfuzz::EnvVariable;
-use trident_fuzz::config::Config;
+
+use trident_config::TridentConfig;
 
 use crate::constants::*;
 
@@ -13,7 +14,7 @@ impl Commander {
     /// Runs fuzzer on the given target with exit code option.
     #[throws]
     pub async fn run_honggfuzz_with_exit_code(&self, target: String) {
-        let config = Config::new();
+        let config = TridentConfig::new();
 
         // obtain hfuzz_run_args from env variable, this variable can contain multiple
         // arguments so we need to parse the variable content.
@@ -25,11 +26,11 @@ impl Commander {
 
         let mut fuzz_args = config.get_honggfuzz_args(hfuzz_run_args);
 
-        let cargo_target_dir = std::env::var("CARGO_TARGET_DIR")
-            .unwrap_or_else(|_| config.get_env_arg(&EnvVariable::CargoTargetDir));
+        let cargo_target_dir =
+            std::env::var("CARGO_TARGET_DIR").unwrap_or_else(|_| config.get_honggfuzz_target_dir());
 
-        let hfuzz_workspace = std::env::var("HFUZZ_WORKSPACE")
-            .unwrap_or_else(|_| config.get_env_arg(&EnvVariable::HfuzzWorkspace));
+        let hfuzz_workspace =
+            std::env::var("HFUZZ_WORKSPACE").unwrap_or_else(|_| config.get_honggfuzz_workspace());
 
         let (crash_dir, ext) =
             get_crash_dir_and_ext(&self.root, &target, &fuzz_args, &hfuzz_workspace);
@@ -85,14 +86,14 @@ impl Commander {
     /// Runs fuzzer on the given target.
     #[throws]
     pub async fn run_honggfuzz(&self, target: String) {
-        let config = Config::new();
+        let config = TridentConfig::new();
 
         let hfuzz_run_args = std::env::var("HFUZZ_RUN_ARGS").unwrap_or_default();
 
-        let cargo_target_dir = std::env::var("CARGO_TARGET_DIR")
-            .unwrap_or_else(|_| config.get_env_arg(&EnvVariable::CargoTargetDir));
-        let hfuzz_workspace = std::env::var("HFUZZ_WORKSPACE")
-            .unwrap_or_else(|_| config.get_env_arg(&EnvVariable::HfuzzWorkspace));
+        let cargo_target_dir =
+            std::env::var("CARGO_TARGET_DIR").unwrap_or_else(|_| config.get_honggfuzz_target_dir());
+        let hfuzz_workspace =
+            std::env::var("HFUZZ_WORKSPACE").unwrap_or_else(|_| config.get_honggfuzz_workspace());
 
         let mut fuzz_args = config.get_honggfuzz_args(hfuzz_run_args);
 
@@ -133,17 +134,25 @@ impl Commander {
     /// Runs fuzzer on the given target.
     #[throws]
     pub async fn run_hfuzz_debug(&self, target: String, crash_file_path: String) {
-        let config = Config::new();
+        let config = TridentConfig::new();
 
-        let crash_file = self.root.join(crash_file_path);
+        let crash_file = Path::new(&crash_file_path);
+
+        let crash_file = if crash_file.is_absolute() {
+            crash_file
+        } else {
+            let cwd = std::env::current_dir()?;
+
+            &cwd.join(crash_file)
+        };
 
         if !crash_file.try_exists()? {
             println!("{ERROR} The crash file [{:?}] not found", crash_file);
             throw!(Error::CrashFileNotFound);
         }
 
-        let cargo_target_dir = std::env::var("CARGO_TARGET_DIR")
-            .unwrap_or_else(|_| config.get_env_arg(&EnvVariable::CargoTargetDir));
+        let cargo_target_dir =
+            std::env::var("CARGO_TARGET_DIR").unwrap_or_else(|_| config.get_honggfuzz_target_dir());
 
         let mut rustflags = std::env::var("RUSTFLAGS").unwrap_or_default();
 

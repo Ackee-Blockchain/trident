@@ -3,17 +3,17 @@
 use crate::error::*;
 use crate::fuzz_client::FuzzClient;
 use crate::snapshot::SnapshotAccount;
-use anchor_lang::InstructionData;
 use solana_sdk::instruction::AccountMeta;
 use solana_sdk::signature::Keypair;
+use solana_sdk::transaction::TransactionError;
 
 /// A trait providing methods to prepare data and accounts for the fuzzed instructions and allowing
 /// users to implement custom invariants checks and transactions error handling.
 pub trait IxOps {
-    /// The data to be passed as instruction data parameter
-    type IxData: InstructionData;
     /// The accounts to be passed as instruction accounts
     type IxAccounts;
+
+    fn get_discriminator(&self) -> Vec<u8>;
 
     /// Specify Program ID to which the Instruction corresponds. This is particularly helpful when using multiple
     /// programs in the workspace, to differentiate between possible program calls.
@@ -27,7 +27,7 @@ pub trait IxOps {
         &self,
         client: &mut impl FuzzClient,
         fuzz_accounts: &mut Self::IxAccounts,
-    ) -> Result<Self::IxData, FuzzingError>;
+    ) -> Result<Vec<u8>, FuzzingError>;
 
     /// Provides accounts required for the fuzzed instruction. The method returns a tuple of signers and account metas.
     fn get_accounts(
@@ -48,7 +48,7 @@ pub trait IxOps {
         &self,
         pre_ix: &[SnapshotAccount],
         post_ix: &[SnapshotAccount],
-        ix_data: Self::IxData,
+        ix_data: Vec<u8>,
     ) -> Result<(), FuzzingError> {
         Ok(())
     }
@@ -75,10 +75,10 @@ pub trait IxOps {
     #[allow(unused_variables)]
     fn tx_error_handler(
         &self,
-        e: FuzzClientErrorWithOrigin,
-        ix_data: Self::IxData,
-        pre_ix_acc_infos: &[SnapshotAccount],
-    ) -> Result<(), FuzzClientErrorWithOrigin> {
+        e: TransactionError,
+        ix_data: Vec<u8>,
+        pre_ix_accounts: &[SnapshotAccount],
+    ) -> Result<(), TransactionError> {
         Err(e)
     }
 }

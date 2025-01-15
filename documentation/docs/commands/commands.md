@@ -8,6 +8,10 @@ hide:
 
 ## trident init
 
+```bash
+trident init
+```
+
 - This command Initializes Trident Workspace and generates new Fuzz Test Template.
 
 - The command will generate the following folder structure:
@@ -30,23 +34,45 @@ project-root
 
 ## trident how
 
- - Print How To message about how to start writting fuzz tests.
+```bash
+trident how
+```
+
+- Print How To message about how to start writting fuzz tests.
 
 ---
 
 ## trident fuzz
 
+```bash
+trident fuzz <subcommand>
+```
+
 - Behavior depends on the subcommands.
 
-<!-- ### trident fuzz run-afl
+### trident fuzz run-afl
 
-- Run AFL on the specified Fuzz Target (i.e. the Fuzz Template, for example fuzz_0). -->
+!!! warning
+    To execute and debug fuzz tests, navigate to the `trident-tests` directory.
 
-<!-- #### Output
+```bash
+trident fuzz run-afl <fuzz_target>
+```
 
-TBD -->
+- Run AFL on the specified Fuzz Target (i.e. the Fuzz Template, for example fuzz_0).
+
+#### Output
+
+TBD
 
 ### trident fuzz run-hfuzz
+
+!!! warning
+    To execute and debug fuzz tests, navigate to the `trident-tests` directory.
+
+```bash
+trident fuzz run-hfuzz <fuzz_target>
+```
 
 - Run Honggfuzz on the specified Fuzz Target (i.e. the Fuzz Template, for example fuzz_0).
 
@@ -77,15 +103,23 @@ TBD -->
 ---------------------------------- [ LOGS ] ------------------/ honggfuzz 2.6 /-
 ```
 
-<!-- ### trident fuzz debug-afl
+### trident fuzz debug-afl
+
+```bash
+trident fuzz debug-afl <fuzz_target> <crash_file_path>
+```
 
 - Run AFL debug on the specified Fuzz Target (i.e. the Fuzz Template, for example fuzz_0), with specified crash file, to see where the crash file found an issue.
 
 #### Output
 
-TBD -->
+TBD
 
 ### trident fuzz debug-hfuzz
+
+```bash
+trident fuzz debug-hfuzz <fuzz_target> <crash_file_path>
+```
 
 - Run Honggfuzz debug on the specified Fuzz Target (i.e. the Fuzz Template, for example fuzz_0), with specified crash file, to see where the crash file found an issue.
 
@@ -106,10 +140,18 @@ TBD -->
 
 ### trident fuzz add
 
+```bash
+trident fuzz add
+```
+
 - Adds new Fuzz Test Template.
 
 ---
 
 ## trident clean
+
+```bash
+trident clean
+```
 
 - Calls `anchor clean` and cleans targets created by the underlying Honggfuzz. Crashfiles and Fuzzing Inputs are preserved.

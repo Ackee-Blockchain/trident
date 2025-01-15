@@ -1,0 +1,905 @@
+{
+  "address": "HtD1eaPZ1JqtxcirNtYt3aAhUMoJWZ2Ddtzu4NDZCrhN",
+  "metadata": {
+    "name": "idl_test",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Created with Anchor"
+  },
+  "instructions": [
+    {
+      "name": "process_custom_types",
+      "discriminator": [
+        37,
+        23,
+        242,
+        88,
+        134,
+        197,
+        190,
+        108
+      ],
+      "accounts": [
+        {
+          "name": "composite_account_nested",
+          "accounts": [
+            {
+              "name": "some_account"
+            },
+            {
+              "name": "nested_inner",
+              "accounts": [
+                {
+                  "name": "some_account"
+                },
+                {
+                  "name": "system_program",
+                  "address": "11111111111111111111111111111111"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "signer",
+          "signer": true
+        },
+        {
+          "name": "data_account_1"
+        },
+        {
+          "name": "data_account_2"
+        },
+        {
+          "name": "data_account_3"
+        },
+        {
+          "name": "data_account_4"
+        },
+        {
+          "name": "data_account_5"
+        },
+        {
+          "name": "data_account_6"
+        },
+        {
+          "name": "composite_account",
+          "accounts": [
+            {
+              "name": "some_account"
+            },
+            {
+              "name": "signer",
+              "signer": true
+            },
+            {
+              "name": "data_account_1"
+            }
+          ]
+        }
+      ],
+      "args": [
+        {
+          "name": "_input_classic",
+          "type": {
+            "defined": {
+              "name": "ClassicStruct"
+            }
+          }
+        },
+        {
+          "name": "_input_optional",
+          "type": {
+            "defined": {
+              "name": "OptionalFields"
+            }
+          }
+        },
+        {
+          "name": "_input_tuple",
+          "type": {
+            "defined": {
+              "name": "TupleStruct"
+            }
+          }
+        },
+        {
+          "name": "_input_enum",
+          "type": {
+            "defined": {
+              "name": "SimpleEnum"
+            }
+          }
+        },
+        {
+          "name": "_input_data_enum",
+          "type": {
+            "defined": {
+              "name": "DataEnum"
+            }
+          }
+        },
+        {
+          "name": "_input_multi_data_enum",
+          "type": {
+            "defined": {
+              "name": "MultiDataEnum"
+            }
+          }
+        },
+        {
+          "name": "_input_named_fields_enum",
+          "type": {
+            "defined": {
+              "name": "NamedFieldsEnum"
+            }
+          }
+        },
+        {
+          "name": "_input_generic_enum",
+          "type": {
+            "defined": {
+              "name": "GenericEnum",
+              "generics": [
+                {
+                  "kind": "type",
+                  "type": "u8"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "_input_unit_variants",
+          "type": {
+            "defined": {
+              "name": "UnitVariants"
+            }
+          }
+        },
+        {
+          "name": "_input_nested",
+          "type": {
+            "defined": {
+              "name": "NestedStruct"
+            }
+          }
+        },
+        {
+          "name": "_input_default",
+          "type": {
+            "defined": {
+              "name": "DefaultStruct"
+            }
+          }
+        },
+        {
+          "name": "_input_generic_struct",
+          "type": {
+            "defined": {
+              "name": "GenericStruct",
+              "generics": [
+                {
+                  "kind": "type",
+                  "type": "u32"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "process_rust_types",
+      "discriminator": [
+        74,
+        102,
+        18,
+        245,
+        253,
+        10,
+        252,
+        246
+      ],
+      "accounts": [
+        {
+          "name": "composite_account_nested",
+          "accounts": [
+            {
+              "name": "some_account"
+            },
+            {
+              "name": "nested_inner",
+              "accounts": [
+                {
+                  "name": "some_account"
+                },
+                {
+                  "name": "system_program",
+                  "address": "11111111111111111111111111111111"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "signer",
+          "signer": true
+        },
+        {
+          "name": "data_account_1"
+        },
+        {
+          "name": "data_account_2"
+        },
+        {
+          "name": "data_account_3"
+        },
+        {
+          "name": "data_account_4"
+        },
+        {
+          "name": "data_account_5"
+        },
+        {
+          "name": "data_account_6"
+        },
+        {
+          "name": "composite_account",
+          "accounts": [
+            {
+              "name": "some_account"
+            },
+            {
+              "name": "signer",
+              "signer": true
+            },
+            {
+              "name": "data_account_1"
+            }
+          ]
+        }
+      ],
+      "args": [
+        {
+          "name": "_input_u8",
+          "type": "u8"
+        },
+        {
+          "name": "_input_u16",
+          "type": "u16"
+        },
+        {
+          "name": "_input_u32",
+          "type": "u32"
+        },
+        {
+          "name": "_input_u64",
+          "type": "u64"
+        },
+        {
+          "name": "_input_i8",
+          "type": "i8"
+        },
+        {
+          "name": "_input_i16",
+          "type": "i16"
+        },
+        {
+          "name": "_input_i32",
+          "type": "i32"
+        },
+        {
+          "name": "_input_i64",
+          "type": "i64"
+        },
+        {
+          "name": "_input_i128",
+          "type": "i128"
+        },
+        {
+          "name": "_input_f32",
+          "type": "f32"
+        },
+        {
+          "name": "_input_f64",
+          "type": "f64"
+        },
+        {
+          "name": "_input_string",
+          "type": "string"
+        },
+        {
+          "name": "_input_vec",
+          "type": "bytes"
+        },
+        {
+          "name": "_input_vec_string",
+          "type": {
+            "vec": "string"
+          }
+        },
+        {
+          "name": "_input_bool",
+          "type": "bool"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "ClassicStructAccount",
+      "discriminator": [
+        10,
+        204,
+        168,
+        207,
+        9,
+        6,
+        242,
+        89
+      ]
+    },
+    {
+      "name": "DataAccount",
+      "discriminator": [
+        85,
+        240,
+        182,
+        158,
+        76,
+        7,
+        18,
+        233
+      ]
+    },
+    {
+      "name": "NestedStructAccount",
+      "discriminator": [
+        83,
+        54,
+        74,
+        216,
+        227,
+        166,
+        36,
+        8
+      ]
+    },
+    {
+      "name": "OptionalFieldsAccount",
+      "discriminator": [
+        106,
+        159,
+        212,
+        74,
+        108,
+        186,
+        212,
+        251
+      ]
+    },
+    {
+      "name": "TupleStructAccount",
+      "discriminator": [
+        178,
+        81,
+        243,
+        166,
+        161,
+        145,
+        202,
+        99
+      ]
+    },
+    {
+      "name": "UnitStructAccount",
+      "discriminator": [
+        24,
+        221,
+        246,
+        80,
+        62,
+        247,
+        138,
+        203
+      ]
+    }
+  ],
+  "types": [
+    {
+      "name": "ClassicStruct",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "field1",
+            "type": "u8"
+          },
+          {
+            "name": "field2",
+            "type": "u16"
+          },
+          {
+            "name": "field3",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ClassicStructAccount",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "field1",
+            "type": "u8"
+          },
+          {
+            "name": "field2",
+            "type": "u16"
+          },
+          {
+            "name": "field3",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "DataAccount",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "unit_struct",
+            "type": {
+              "defined": {
+                "name": "UnitStruct"
+              }
+            }
+          },
+          {
+            "name": "tuple_struct",
+            "type": {
+              "defined": {
+                "name": "TupleStruct"
+              }
+            }
+          },
+          {
+            "name": "classic_struct",
+            "type": {
+              "defined": {
+                "name": "ClassicStruct"
+              }
+            }
+          },
+          {
+            "name": "generic_struct",
+            "type": {
+              "defined": {
+                "name": "GenericStruct",
+                "generics": [
+                  {
+                    "kind": "type",
+                    "type": "u8"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "name": "optional_fields",
+            "type": {
+              "defined": {
+                "name": "OptionalFields"
+              }
+            }
+          },
+          {
+            "name": "default_struct",
+            "type": {
+              "defined": {
+                "name": "DefaultStruct"
+              }
+            }
+          },
+          {
+            "name": "nested_struct",
+            "type": {
+              "defined": {
+                "name": "NestedStruct"
+              }
+            }
+          },
+          {
+            "name": "simple_enum",
+            "type": {
+              "defined": {
+                "name": "SimpleEnum"
+              }
+            }
+          },
+          {
+            "name": "data_enum",
+            "type": {
+              "defined": {
+                "name": "DataEnum"
+              }
+            }
+          },
+          {
+            "name": "multi_data_enum",
+            "type": {
+              "defined": {
+                "name": "MultiDataEnum"
+              }
+            }
+          },
+          {
+            "name": "named_fields_enum",
+            "type": {
+              "defined": {
+                "name": "NamedFieldsEnum"
+              }
+            }
+          },
+          {
+            "name": "generic_enum",
+            "type": {
+              "defined": {
+                "name": "GenericEnum",
+                "generics": [
+                  {
+                    "kind": "type",
+                    "type": "u8"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "name": "unit_variants",
+            "type": {
+              "defined": {
+                "name": "UnitVariants"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "DataEnum",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Integer",
+            "fields": [
+              "i32"
+            ]
+          },
+          {
+            "name": "Float",
+            "fields": [
+              "f64"
+            ]
+          },
+          {
+            "name": "Text",
+            "fields": [
+              "string"
+            ]
+          },
+          {
+            "name": "Pubkey",
+            "fields": [
+              "pubkey"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "DefaultStruct",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "field1",
+            "type": "u8"
+          },
+          {
+            "name": "field2",
+            "type": "u16"
+          },
+          {
+            "name": "field3",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "GenericEnum",
+      "generics": [
+        {
+          "kind": "type",
+          "name": "T"
+        }
+      ],
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Value",
+            "fields": [
+              {
+                "generic": "T"
+              }
+            ]
+          },
+          {
+            "name": "None"
+          }
+        ]
+      }
+    },
+    {
+      "name": "GenericStruct",
+      "generics": [
+        {
+          "kind": "type",
+          "name": "T"
+        }
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "value",
+            "type": {
+              "generic": "T"
+            }
+          },
+          {
+            "name": "key",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "MultiDataEnum",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Pair",
+            "fields": [
+              "i32",
+              "i32"
+            ]
+          },
+          {
+            "name": "Triple",
+            "fields": [
+              "i32",
+              "i32",
+              "i32"
+            ]
+          },
+          {
+            "name": "Pubkey",
+            "fields": [
+              "pubkey",
+              "pubkey"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "NamedFieldsEnum",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Point",
+            "fields": [
+              {
+                "name": "x",
+                "type": "f64"
+              },
+              {
+                "name": "y",
+                "type": "f64"
+              }
+            ]
+          },
+          {
+            "name": "Circle",
+            "fields": [
+              {
+                "name": "radius",
+                "type": "f64"
+              }
+            ]
+          },
+          {
+            "name": "Pubkey",
+            "fields": [
+              {
+                "name": "pubkey1",
+                "type": "pubkey"
+              },
+              {
+                "name": "pubkey2",
+                "type": "pubkey"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "NestedStruct",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "inner",
+            "type": {
+              "defined": {
+                "name": "ClassicStruct"
+              }
+            }
+          },
+          {
+            "name": "key",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "NestedStructAccount",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "inner",
+            "type": {
+              "defined": {
+                "name": "ClassicStructAccount"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "OptionalFields",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "field1",
+            "type": {
+              "option": "u8"
+            }
+          },
+          {
+            "name": "field2",
+            "type": {
+              "option": "u16"
+            }
+          },
+          {
+            "name": "field3",
+            "type": {
+              "option": "pubkey"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "OptionalFieldsAccount",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "field1",
+            "type": {
+              "option": "u8"
+            }
+          },
+          {
+            "name": "field2",
+            "type": {
+              "option": "u16"
+            }
+          },
+          {
+            "name": "field3",
+            "type": {
+              "option": "pubkey"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "SimpleEnum",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Variant1"
+          },
+          {
+            "name": "Variant2"
+          },
+          {
+            "name": "Pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "TupleStruct",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          "u8",
+          "u16",
+          "pubkey"
+        ]
+      }
+    },
+    {
+      "name": "TupleStructAccount",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          "u8",
+          "u16",
+          "pubkey"
+        ]
+      }
+    },
+    {
+      "name": "UnitStruct",
+      "type": {
+        "kind": "struct"
+      }
+    },
+    {
+      "name": "UnitStructAccount",
+      "type": {
+        "kind": "struct"
+      }
+    },
+    {
+      "name": "UnitVariants",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "VariantA"
+          },
+          {
+            "name": "VariantB"
+          },
+          {
+            "name": "VariantC"
+          }
+        ]
+      }
+    }
+  ]
+}

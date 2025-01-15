@@ -1,20 +1,14 @@
 #![allow(dead_code)]
 #![allow(unexpected_cfgs)]
-use anchor_lang::solana_program::account_info::{Account as AccountTrait, AccountInfo};
-use anchor_lang::solana_program::hash::Hash;
 use arbitrary::Arbitrary;
 use arbitrary::Unstructured;
-use solana_sdk::account::Account;
-use solana_sdk::instruction::AccountMeta;
 use std::cell::RefCell;
-use std::collections::HashMap;
 use std::error::Error;
 use std::fmt::Display;
 
-use crate::config::Config;
-use crate::error::*;
 use crate::fuzz_client::FuzzClient;
 use crate::fuzz_test_executor::FuzzTestExecutor;
+use trident_config::TridentConfig;
 
 pub struct FuzzData<T, U> {
     pub pre_ixs: Vec<T>,
@@ -57,7 +51,7 @@ where
     pub fn run_with_runtime(
         &self,
         client: &mut impl FuzzClient,
-        config: &Config,
+        config: &TridentConfig,
     ) -> core::result::Result<(), Box<dyn Error + 'static>> {
         // solana_logger::setup_with_default("off");
         // #[cfg(fuzzing_debug)]
@@ -78,20 +72,17 @@ where
             eprintln!("------ End of Instructions sequence ------ ");
         }
 
-        let mut sent_txs: HashMap<Hash, ()> = HashMap::new();
-
         for fuzz_ix in &mut self.iter() {
-            #[cfg(feature = "fuzzing_debug")]
-            eprintln!("\x1b[34mCurrently processing\x1b[0m: {}", fuzz_ix);
+            // #[cfg(feature = "fuzzing_debug")]
+            println!("\x1b[34mCurrently processing\x1b[0m: {}", fuzz_ix);
 
-            if fuzz_ix
-                .run_fuzzer(&self.accounts, client, &mut sent_txs, config)
-                .is_err()
-            {
+            if fuzz_ix.run_fuzzer(&self.accounts, client, config).is_err() {
                 // for now skip following instructions in case of error and move to the next fuzz iteration
+                client.clear_accounts();
                 return Ok(());
             }
         }
+        client.clear_accounts();
         Ok(())
     }
 }
@@ -129,33 +120,4 @@ pub fn build_ix_fuzz_data<U: for<'a> Arbitrary<'a>, T: FuzzDataBuilder<U>, V: De
         post_ixs: T::post_ixs(u)?,
         accounts: RefCell::new(V::default()),
     })
-}
-
-/// Creates `AccountInfo`s from `Accounts` and corresponding `AccountMeta` slices.
-pub fn get_account_infos_option<'info>(
-    accounts: &'info mut [Option<Account>],
-    metas: &'info [AccountMeta],
-) -> Result<Vec<Option<AccountInfo<'info>>>, FuzzingError> {
-    let iter = accounts.iter_mut().zip(metas);
-    let r = iter
-        .map(|(account, meta)| {
-            if let Some(account) = account {
-                let (lamports, data, owner, executable, rent_epoch) = account.get();
-                Some(AccountInfo::new(
-                    &meta.pubkey,
-                    meta.is_signer,
-                    meta.is_writable,
-                    lamports,
-                    data,
-                    owner,
-                    executable,
-                    rent_epoch,
-                ))
-            } else {
-                None
-            }
-        })
-        .collect();
-
-    Ok(r)
 }

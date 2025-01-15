@@ -1,56 +1,32 @@
 #![allow(dead_code)]
 
-use solana_banks_client::BanksClientError;
-use solana_sdk::pubkey::Pubkey;
+use solana_sdk::{pubkey::Pubkey, transaction::TransactionError};
 use std::fmt::{Debug, Display};
 use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum FuzzClientError {
-    #[error("Custom fuzzing error: {0}")]
+    #[error("Custom fuzz client error: {0}")]
     Custom(u32),
-    #[error("Not able to initialize client: {0}")]
-    ClientInitError(#[from] std::io::Error),
-    // Box for Error variant too Long warnings
-    #[error("Banks Client Error: {0}")]
-    BanksError(Box<BanksClientError>),
+    #[error("Transaction failed: {0}")]
+    TransactionFailed(#[from] TransactionError),
 }
 
 #[derive(Debug, Error)]
 pub enum FuzzingError {
     #[error("Custom fuzzing error: {0}\n")]
     Custom(u32),
-    #[error("Not able to deserialize account: {0}\n")]
-    CannotDeserializeAccount(String),
-    #[error("Optional Account not provided: {0}\n")]
-    OptionalAccountNotProvided(String),
-    #[error("Not enough Accounts: {0}\n")]
-    NotEnoughAccounts(String),
-    #[error("Account not Found: {0}\n")]
-    AccountNotFound(String),
-    #[error("Not Able To Obtain AccountInfos\n")]
-    NotAbleToObtainAccountInfos,
-    #[error("Balance Mismatch\n")]
-    BalanceMismatch,
-    #[error("Data Mismatch\n")]
-    DataMismatch,
-    #[error("Unable to obtain Data\n")]
-    UnableToObtainData,
-}
-
-impl From<BanksClientError> for FuzzClientError {
-    fn from(value: BanksClientError) -> Self {
-        Self::BanksError(Box::new(value))
-    }
+    #[error("Fuzzing error with Custom Message: {0}\n")]
+    CustomMessage(String),
 }
 
 impl FuzzClientError {
-    pub fn with_origin(self, origin: Origin) -> FuzzClientErrorWithOrigin {
+    pub(crate) fn with_origin(self, origin: Origin) -> FuzzClientErrorWithOrigin {
         let mut error_with_origin = FuzzClientErrorWithOrigin::from(self);
         error_with_origin.origin = Some(origin);
         error_with_origin
     }
-    pub fn with_context(self, context: Context) -> FuzzClientErrorWithOrigin {
+    pub(crate) fn with_context(self, context: Context) -> FuzzClientErrorWithOrigin {
         let mut error_with_origin = FuzzClientErrorWithOrigin::from(self);
         error_with_origin.context = Some(context);
         error_with_origin
@@ -58,12 +34,15 @@ impl FuzzClientError {
 }
 
 impl FuzzingError {
-    pub fn with_origin(self, origin: Origin) -> FuzzingErrorWithOrigin {
+    pub fn with_message(message: &str) -> Self {
+        Self::CustomMessage(message.to_string())
+    }
+    pub(crate) fn with_origin(self, origin: Origin) -> FuzzingErrorWithOrigin {
         let mut error_with_origin = FuzzingErrorWithOrigin::from(self);
         error_with_origin.origin = Some(origin);
         error_with_origin
     }
-    pub fn with_context(self, context: Context) -> FuzzingErrorWithOrigin {
+    pub(crate) fn with_context(self, context: Context) -> FuzzingErrorWithOrigin {
         let mut error_with_origin = FuzzingErrorWithOrigin::from(self);
         error_with_origin.context = Some(context);
         error_with_origin
