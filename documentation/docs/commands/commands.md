@@ -52,6 +52,9 @@ trident fuzz <subcommand>
 
 ### trident fuzz run-afl
 
+!!! warning
+    To execute and debug fuzz tests, navigate to the `trident-tests` directory.
+
 ```bash
 trident fuzz run-afl <fuzz_target>
 ```
@@ -63,6 +66,9 @@ trident fuzz run-afl <fuzz_target>
 TBD
 
 ### trident fuzz run-hfuzz
+
+!!! warning
+    To execute and debug fuzz tests, navigate to the `trident-tests` directory.
 
 ```bash
 trident fuzz run-hfuzz <fuzz_target>
