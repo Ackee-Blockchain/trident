@@ -1,6 +1,6 @@
 [package]
 name = "trident-cli"
-version = "0.8.1"
+version = "0.9.0"
 edition = "2021"
 repository = "https://github.com/Ackee-Blockchain/trident"
 license-file = "../../LICENSE"
@@ -10,7 +10,7 @@ description = "Trident is Rust based testing framework providing several conveni
 [dependencies]
 
 # Trident
-trident-client = { path = "../client", version = "0.8.1" }
+trident-client = { path = "../client", version = "0.9.0" }
 
 # Misc
 clap = { version = "4", features = ["derive"] }

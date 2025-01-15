@@ -1,6 +1,6 @@
 [package]
 name = "trident-fuzz"
-version = "0.2.1"
+version = "0.3.0"
 edition = "2021"
 repository = "https://github.com/Ackee-Blockchain/trident"
 license-file = "../../LICENSE"
@@ -10,7 +10,7 @@ description = "The trident_fuzz crate helps you to write Rust Fuzz Tests for you
 [dependencies]
 # Derive macros
 trident-derive-displayix = { path = "../fuzz/derive/display_ix", version = "0.0.4" }
-trident-derive-fuzz-test-executor = { path = "../fuzz/derive/fuzz_test_executor", version = "0.0.4" }
+trident-derive-fuzz-test-executor = { path = "../fuzz/derive/fuzz_test_executor", version = "0.0.5" }
 
 # Config (Trident.toml)
 trident-config = { path = "../config", version = "0.0.1" }

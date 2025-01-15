@@ -3856,7 +3856,7 @@ dependencies = [
 
 [[package]]
 name = "trident-cli"
-version = "0.8.1"
+version = "0.9.0"
 dependencies = [
  "anyhow",
  "clap",
@@ -3868,7 +3868,7 @@ dependencies = [
 
 [[package]]
 name = "trident-client"
-version = "0.8.1"
+version = "0.9.0"
 dependencies = [
  "anyhow",
  "cargo_metadata",
@@ -3915,7 +3915,7 @@ dependencies = [
 
 [[package]]
 name = "trident-derive-fuzz-test-executor"
-version = "0.0.4"
+version = "0.0.5"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -3924,7 +3924,7 @@ dependencies = [
 
 [[package]]
 name = "trident-fuzz"
-version = "0.2.1"
+version = "0.3.0"
 dependencies = [
  "afl",
  "anyhow",
