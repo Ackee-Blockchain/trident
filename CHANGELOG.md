@@ -10,6 +10,8 @@ incremented upon a breaking change and the patch version will be incremented for
 
 ## [dev] - Unreleased
 
+## [0.9.0] - 2025-01-15
+
 **Added**
 
 - added support for composite accounts ([245](https://github.com/Ackee-Blockchain/trident/pull/245))
