@@ -2,6 +2,10 @@
 name = "trident-config"
 version = "0.0.1"
 edition = "2021"
+repository = "https://github.com/Ackee-Blockchain/trident"
+license-file = "../../LICENSE"
+readme = "../../README.md"
+description = "The trident config crate is dedicated to manage Trident.toml."
 
 [dependencies]
 

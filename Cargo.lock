@@ -3934,7 +3934,6 @@ dependencies = [
  "byteorder",
  "fehler",
  "honggfuzz",
- "log",
  "prettytable",
  "rand 0.8.5",
  "serde",

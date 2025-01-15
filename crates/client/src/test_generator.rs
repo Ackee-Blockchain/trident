@@ -180,7 +180,7 @@ impl TestGenerator {
 
         let cargo_toml_content = load_template!("/src/template/Cargo_fuzz.toml.tmpl");
 
-        let trident_toml_content = load_template!("/../config/template/Trident.toml.tmpl");
+        let trident_toml_content = load_template!("/src/template/Trident.toml.tmpl");
 
         create_file(&self.root, &fuzz_test_path, &self.test_fuzz).await?;
         create_file(&self.root, &fuzz_instructions_path, &self.fuzz_instructions).await?;
