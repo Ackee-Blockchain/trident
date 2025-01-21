@@ -13,6 +13,8 @@ pub trait IxOps {
     /// The accounts to be passed as instruction accounts
     type IxAccounts;
 
+    /// Returns the instruction discriminator (typically the first 8 bytes of the instruction)
+    /// that identifies the specific instruction variant being called
     fn get_discriminator(&self) -> Vec<u8>;
 
     /// Specify Program ID to which the Instruction corresponds. This is particularly helpful when using multiple
@@ -29,7 +31,12 @@ pub trait IxOps {
         fuzz_accounts: &mut Self::IxAccounts,
     ) -> Result<Vec<u8>, FuzzingError>;
 
-    /// Provides accounts required for the fuzzed instruction. The method returns a tuple of signers and account metas.
+    /// Provides accounts required for the fuzzed instruction.
+    /// Returns a tuple containing:
+    /// - Vec\<Keypair\>: List of signing keypairs needed for the instruction
+    /// - Vec\<AccountMeta\>: List of account metadata (pubkeys and is_signer/is_writable flags)
+    ///
+    /// This method should set up all necessary accounts for the instruction execution
     fn get_accounts(
         &self,
         client: &mut impl FuzzClient,
@@ -41,8 +48,6 @@ pub trait IxOps {
     /// your own implementation. You can access the snapshots of account states before and after the transaction for comparison.
     ///
     /// If you want to detect a crash, you have to return a `FuzzingError` (or alternativelly panic).
-    ///
-    /// If you want to perform checks also on a failed instruction execution, you can do so using the [`tx_error_handler`](trident_client::fuzzer::data_builder::IxOps::tx_error_handler) method.
     #[allow(unused_variables)]
     fn check(
         &self,
@@ -54,7 +59,6 @@ pub trait IxOps {
     }
 
     /// A method to implement custom error handler for failed transactions.
-    ///
     /// The fuzzer might generate a sequence of one or more instructions that are executed sequentially.
     /// By default, if the execution of one of the instructions fails, the remaining instructions are skipped
     /// and are not executed. This can be overriden by implementing this method and returning `Ok(())`
@@ -62,16 +66,6 @@ pub trait IxOps {
     ///
     /// You can also check the kind of the transaction error by inspecting the `e` parameter.
     /// If you would like to detect a crash on a specific error, call `panic!()`.
-    ///
-    /// If your accounts are malformed and the fuzzed program is unable to deserialize it, the transaction
-    /// execution will fail. In that case also the deserialization of accounts snapshot before executing
-    /// the instruction would fail. You are provided with the raw account infos snapshots and you are free
-    /// to deserialize the accounts by yourself and therefore also handling potential errors. To deserialize
-    /// the `pre_ix_acc_infos` raw accounts to a snapshot structure, you can call:
-    ///
-    /// ```rust,ignore
-    /// self.deserialize_accounts(pre_ix_acc_infos)
-    /// ```
     #[allow(unused_variables)]
     fn tx_error_handler(
         &self,
@@ -81,4 +75,10 @@ pub trait IxOps {
     ) -> Result<(), TransactionError> {
         Err(e)
     }
+
+    /// A method to implement custom post-instruction behavior. This method is called after each
+    /// successfully executed instruction and by default does nothing. You can override this behavior by providing
+    /// your own implementation.
+    #[allow(unused_variables)]
+    fn post_instruction(&self, client: &mut impl FuzzClient, post_ix: &[SnapshotAccount]) {}
 }

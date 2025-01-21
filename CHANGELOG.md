@@ -10,6 +10,14 @@ incremented upon a breaking change and the patch version will be incremented for
 
 ## [dev] - Unreleased
 
+**Added**
+
+- added support for post-instruction behavior ([257](https://github.com/Ackee-Blockchain/trident/pull/257))
+
+**Removed**
+
+**Changed**
+
 ## [0.9.0] - 2025-01-15
 
 **Added**
