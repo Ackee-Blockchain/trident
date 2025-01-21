@@ -24,8 +24,7 @@ pub async fn init(force: bool, program_name: Option<String>) {
     if force {
         generator.initialize(program_name).await?;
         show_howto();
-    }
-    else {
+    } else {
         let root_path = Path::new(&root).join(TRIDENT_TOML);
         if root_path.exists() {
             println!(

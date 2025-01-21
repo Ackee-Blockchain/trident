@@ -74,7 +74,7 @@ pub async fn start() {
 
     match cli.command {
         Command::How => command::howto()?,
-        Command::Fuzz { subcmd} => command::fuzz(subcmd).await?,
+        Command::Fuzz { subcmd } => command::fuzz(subcmd).await?,
         Command::Init { force, program_name} => command::init(force, program_name).await?,
         Command::Clean => command::clean().await?,
     }
