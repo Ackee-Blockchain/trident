@@ -85,7 +85,11 @@ impl TransactionExecutor {
                         eprintln!("\x1b[31mCRASH DETECTED!\x1b[0m Custom check after the {} instruction did not pass!",instruction_name.to_owned());
                         panic!("{}", e)
                     }
+
                     stats_logger.output_serialized();
+
+                    // Let the user perform custom post-instruction behavior
+                    ix.post_instruction(client, acc_after);
                 }
                 Err(e) => {
                     // Log the failure of the instruction execution
@@ -118,6 +122,9 @@ impl TransactionExecutor {
                         eprintln!("\x1b[31mCRASH DETECTED!\x1b[0m Custom check after the {} instruction did not pass!",instruction_name.to_owned());
                         panic!("{}", e)
                     }
+
+                    // Let the user perform custom post-instruction behavior
+                    ix.post_instruction(client, acc_after);
                 }
                 Err(e) => {
                     // Let use use transaction error handler to handle the error
