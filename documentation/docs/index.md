@@ -2,6 +2,8 @@
 hide:
   - navigation
   - toc
+
+title: Trident
 ---
 
 <h1 style="font-size: 65px;">{{ config.site_name }}</h1>

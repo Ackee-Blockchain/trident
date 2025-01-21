@@ -82,7 +82,7 @@ fn get_data(
 }
 ```
 
-Additionally, you can limit the range of the data generated using the `Arbitrary` crate. Check [Arbitrary Data](./arbitrary-data.md).
+Additionally, you can limit the range of the data generated using the `Arbitrary` crate. Check [Arbitrary Data](./customize-ix-data.md).
 
 ## `get_accounts()`
 
@@ -92,7 +92,7 @@ There are three main functions to use within the `get_accounts()`:
 
 - [`get_or_create_account()`](./fuzz-instructions.md/#get_or_create_account)
 - [`get()`](./fuzz-instructions.md/#get)
-- [`set_custom()`](./fuzz-instructions.md/#set_custom)
+- [`set_account_custom()`](./fuzz-instructions.md/#set_account_custom)
 
 For additional methods, check [Account Storage Methods](./account-storages.md/#account-storage-methods).
 

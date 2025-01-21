@@ -17,7 +17,7 @@ hide:
 
 ### My program Instruction contains custom type such as Struct or Enum on its input, but it does not derive Arbitrary.
 
-- In this case you need to specify same type in the Fuzz Test (with the same fields). And implement From Trait to convert to your type. Check [Custom Data Types](../features/arbitrary-data.md/#custom-data-types) or [Examples of Arbitrary](../examples/examples.md).
+- In this case you need to specify same type in the Fuzz Test (with the same fields). And implement From Trait to convert to your type. Check [Custom Data Types](../features/customize-ix-data.md) or [Examples of Arbitrary](../examples/examples.md).
 
 
 ### Is Trident open-source ?
