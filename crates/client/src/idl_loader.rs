@@ -5,10 +5,11 @@ use std::path::PathBuf;
 
 use trident_idl_spec::Idl;
 
-pub fn load_idls(dir_path: PathBuf, program_name: Option<String>) -> Result<Vec<Idl>, Box<dyn Error>> {
+pub fn load_idls(
+    dir_path: PathBuf,
+    program_name: Option<String>,
+) -> Result<Vec<Idl>, Box<dyn Error>> {
     let mut idls = Vec::new();
-
-
 
     // Read the directory and iterate over each entry
     for entry in fs::read_dir(dir_path)? {
@@ -16,10 +17,12 @@ pub fn load_idls(dir_path: PathBuf, program_name: Option<String>) -> Result<Vec<
         let path = entry.path();
 
         if let Some(ref program_name) = program_name {
-            if path.is_file() && !path.file_name()
-                .and_then(|name| name.to_str())
-                .map(|name| name.contains(program_name))
-                .unwrap_or(false)
+            if path.is_file()
+                && !path
+                    .file_name()
+                    .and_then(|name| name.to_str())
+                    .map(|name| name.contains(program_name))
+                    .unwrap_or(false)
             {
                 continue;
             }

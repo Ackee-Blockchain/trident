@@ -143,9 +143,7 @@ pub async fn fuzz(subcmd: FuzzCommand) {
             commander.run_hfuzz_debug(target, crash_file_path).await?;
         }
 
-        FuzzCommand::Add {
-            program_name
-        } => {
+        FuzzCommand::Add { program_name } => {
             let mut generator = TestGenerator::new_with_root(&root)?;
             generator.add_fuzz_test(program_name).await?;
             show_howto();

@@ -66,11 +66,7 @@ impl Commander {
             cmd.args(["-p", name.as_str()]);
         }
 
-        let success = cmd
-            .spawn()?
-            .wait()
-            .await?
-            .success();
+        let success = cmd.spawn()?.wait().await?.success();
         if !success {
             throw!(Error::BuildProgramsFailed);
         }
