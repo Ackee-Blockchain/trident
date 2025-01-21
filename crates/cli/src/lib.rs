@@ -42,6 +42,14 @@ enum Command {
             help = "Force Trident initialization. Trident dependencies will be updated based on the version of Trident CLI."
         )]
         force: bool,
+        #[arg(
+            short,
+            long,
+            required = false,
+            help = "Specify the name of the program for which fuzz test will be generated.",
+            value_name = "FILE"
+        )]
+        program_name: Option<String>,
     },
     #[command(
         about = "Run fuzz subcommands.",
@@ -66,8 +74,8 @@ pub async fn start() {
 
     match cli.command {
         Command::How => command::howto()?,
-        Command::Fuzz { subcmd } => command::fuzz(subcmd).await?,
-        Command::Init { force } => command::init(force).await?,
+        Command::Fuzz { subcmd} => command::fuzz(subcmd).await?,
+        Command::Init { force, program_name} => command::init(force, program_name).await?,
         Command::Clean => command::clean().await?,
     }
 }

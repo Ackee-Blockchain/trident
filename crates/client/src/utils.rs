@@ -82,27 +82,39 @@ pub fn get_fuzz_id(fuzz_dir_path: &Path) -> i32 {
     }
 }
 #[throws]
-pub async fn collect_program_packages() -> Vec<cargo_metadata::Package> {
-    let packages: Vec<cargo_metadata::Package> = program_packages().collect();
+pub async fn collect_program_packages(
+    program_name: Option<String>,
+) -> Vec<cargo_metadata::Package> {
+    let packages: Vec<cargo_metadata::Package> = program_packages(program_name).collect();
     if packages.is_empty() {
         throw!(Error::NoProgramsFound)
     } else {
         packages
     }
 }
-pub fn program_packages() -> impl Iterator<Item = cargo_metadata::Package> {
+pub fn program_packages(
+    program_name: Option<String>,
+) -> Box<dyn Iterator<Item = cargo_metadata::Package>> {
     let cargo_toml_data = cargo_metadata::MetadataCommand::new()
         .no_deps()
         .exec()
         .expect("Cargo.toml reading failed");
 
-    cargo_toml_data.packages.into_iter().filter(|package| {
-        // TODO less error-prone test if the package is a _program_?
-        if let Some("programs") = package.manifest_path.iter().nth_back(2) {
-            return true;
-        }
-        false
-    })
+    match program_name {
+        Some(name) => Box::new(
+            cargo_toml_data
+                .packages
+                .into_iter()
+                .filter(move |package| package.name == name),
+        ),
+        None => Box::new(cargo_toml_data.packages.into_iter().filter(|package| {
+            // TODO less error-prone test if the package is a _program_?
+            if let Some("programs") = package.manifest_path.iter().nth_back(2) {
+                return true;
+            }
+            false
+        })),
+    }
 }
 
 #[throws]

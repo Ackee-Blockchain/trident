@@ -14,7 +14,16 @@ pub const TRIDENT_TOML: &str = "Trident.toml";
 #[allow(non_camel_case_types)]
 pub enum FuzzCommand {
     #[command(about = "Generate new Fuzz Test template.")]
-    Add,
+    Add {
+        #[arg(
+            short,
+            long,
+            required = false,
+            help = "Specify the name of the program for which the fuzz test will be generated.",
+            value_name = "FILE"
+        )]
+        program_name: Option<String>,
+    },
     #[command(
         about = "Run the AFL on desired fuzz test.",
         override_usage = "Specify the desired fuzz \x1b[92m<TARGET>\x1b[0m.\
@@ -134,9 +143,11 @@ pub async fn fuzz(subcmd: FuzzCommand) {
             commander.run_hfuzz_debug(target, crash_file_path).await?;
         }
 
-        FuzzCommand::Add => {
+        FuzzCommand::Add {
+            program_name
+        } => {
             let mut generator = TestGenerator::new_with_root(&root)?;
-            generator.add_fuzz_test().await?;
+            generator.add_fuzz_test(program_name).await?;
             show_howto();
         }
     };
