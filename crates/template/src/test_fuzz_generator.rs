@@ -1,8 +1,17 @@
 use quote::{format_ident, ToTokens};
+use std::collections::HashMap;
 use syn::parse_quote;
 use trident_idl_spec::Idl;
 
-pub fn generate_source_code(_idl_instructions: &[Idl], lib_names: &[String]) -> String {
+pub fn generate_source_code(idl_instructions: &[Idl], lib_names: &[String]) -> String {
+    let mut program_ids = HashMap::new();
+
+    for idl in idl_instructions {
+        let program_name = idl.metadata.name.clone();
+        let program_id = idl.address.clone();
+        program_ids.insert(program_name, program_id);
+    }
+
     let mut use_statements: Vec<syn::ItemUse> = Vec::new();
 
     let mut programs: Vec<syn::Stmt> = Vec::new();
@@ -10,7 +19,8 @@ pub fn generate_source_code(_idl_instructions: &[Idl], lib_names: &[String]) -> 
     let mut input_array: Vec<syn::Ident> = Vec::new();
 
     for program in lib_names {
-        let (use_statement, program, program_variable) = process_program_entries(program);
+        let (use_statement, program, program_variable) =
+            process_program_entries(program, program_ids.get(program));
         // add to the use statements
         use_statements.push(use_statement);
         // add to the programs
@@ -58,7 +68,10 @@ pub fn generate_source_code(_idl_instructions: &[Idl], lib_names: &[String]) -> 
     test_fuzz_definition.into_token_stream().to_string()
 }
 
-fn process_program_entries(lib_name: &String) -> (syn::ItemUse, syn::Stmt, syn::Ident) {
+fn process_program_entries(
+    lib_name: &String,
+    program_id: Option<&String>,
+) -> (syn::ItemUse, syn::Stmt, syn::Ident) {
     // library name as identifier
     let library = format_ident!("{}", lib_name);
     // entry name as identifier
@@ -69,10 +82,17 @@ fn process_program_entries(lib_name: &String) -> (syn::ItemUse, syn::Stmt, syn::
     // initial use statement
     let use_statement = parse_quote!(use #library::entry as #library_entry;);
 
+    // program id if present, otherwise fill with placeholder
+    let program_id = if let Some(address) = program_id {
+        address
+    } else {
+        "fill corresponding program ID here"
+    };
+
     // program definition
     let program = parse_quote! {
         let #variable_name = ProgramEntrypoint::new(
-            pubkey!("fill corresponding program ID here"),
+            pubkey!(#program_id),
             None,
             processor!(#library_entry)
         );
