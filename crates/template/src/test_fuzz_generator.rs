@@ -83,10 +83,9 @@ fn process_program_entries(
     let use_statement = parse_quote!(use #library::entry as #library_entry;);
 
     // program id if present, otherwise fill with placeholder
-    let program_id = if let Some(address) = program_id {
-        address
-    } else {
-        "fill corresponding program ID here"
+    let program_id = match program_id {
+        Some(address) if !address.trim().is_empty() => address,
+        _ => "fill corresponding program ID here",
     };
 
     // program definition
