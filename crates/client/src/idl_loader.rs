@@ -1,8 +1,8 @@
+use heck::ToSnakeCase;
 use std::error::Error;
 use std::fs::{self, File};
 use std::io::Read;
 use std::path::PathBuf;
-use heck::ToSnakeCase;
 
 use trident_idl_spec::Idl;
 
@@ -19,9 +19,9 @@ pub fn load_idls(
 
         if let Some(ref program_name) = program_name {
             if path.is_file()
-            && !path
-            .file_name()
-            .and_then(|name| name.to_str())
+                && !path
+                    .file_name()
+                    .and_then(|name| name.to_str())
                     // convert program_name to match case of IDL names
                     .map(|name| name.trim_end_matches(".json") == program_name.to_snake_case())
                     .unwrap_or(false)
