@@ -3873,6 +3873,7 @@ dependencies = [
  "anyhow",
  "cargo_metadata",
  "fehler",
+ "heck 0.4.1",
  "pathdiff",
  "pretty_assertions",
  "rand 0.8.5",

@@ -30,6 +30,7 @@ cargo_metadata = "0.18"
 toml = { version = "0.8", features = ["preserve_order"] }
 pathdiff = "0.2"
 rand = "0.8"
+heck = "0.4.0"
 
 [dev-dependencies]
 pretty_assertions = "1.1.0"
