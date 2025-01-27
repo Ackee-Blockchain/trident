@@ -5,65 +5,62 @@ hide:
 
 # Installation
 
-!!! important
+!!! important "Prerequisites"
 
-    **Prerequisite**
+    Before proceeding, ensure you have installed:
 
-    It is expected that you have installed:
+    - [Rust](https://www.rust-lang.org/tools/install) (stable version)
+    - [Solana CLI](https://solana.com/docs/intro/installation)
+    - [Anchor](https://www.anchor-lang.com/docs/installation)
 
-    - Rust ([Install Rust](https://www.rust-lang.org/tools/install))
-    - Solana CLI ([Install Solana CLI](https://docs.solanalabs.com/cli/install))
-    - Anchor Framework ([Install Anchor](https://www.anchor-lang.com/docs/installation))
+  Check out [supported versions](#supported-versions) for version compatibility.
 
-    For supported versions check the [Supported Versions](#supported-versions)
+## Install system dependencies
 
-## Install System Dependencies
-
-Update your package list and install the required packages:
+Update your package list:
 
 ```bash
-sudo apt-get update
-sudo apt-get install -y \
-    curl \
-    git \
-    build-essential \
-    pkg-config \
-    libssl-dev \
-    npm \
-    vim \
-    nano \
-    wget \
-    binutils-dev \
-    libunwind-dev \
-    lldb
+sudo apt update
+sudo apt upgrade
 ```
-
-## Install Hongfuzz
-
-Install honggfuzz and AFL
-
+Install the required packages:
 ```bash
-cargo install honggfuzz
-
+sudo apt install build-essential
+sudo apt-get install binutils-dev
+sudo apt-get install libunwind-dev
 ```
-```bash
-cargo install cargo-afl
-```
-
 
 ## Install Trident
 
 ```bash
 cargo install trident-cli
-
 ```
+
+You can also use the `version` flag to install a specific version:
+```bash
+cargo install trident-cli --version x.y.z
+```
+
+## Install Hongfuzz and AFL
+
+```bash
+cargo install honggfuzz
+cargo install cargo-afl
+```
+To install a specific version use the following commands:
+```bash
+cargo install honggfuzz --version x.y.z
+cargo install cargo-afl --version x.y.z
+```
+
+
 
 ## Supported versions
 
 | ***{{ config.site_name }} CLI*** | ***Anchor*** | ***Solana*** | ***Rust*** | ***Honggfuzz*** | ***AFL*** |
 |-:|-:|-:|-:|-:|-:|
 | :material-developer-board: ***`develop`*** | `>=0.29.0` | `>=1.17.3` | `nightly` | `0.5.56` | `0.15.11` |
-| :material-tag: ***`0.8.*`*** | `>=0.29.0` | `>=1.17.3` | `nightly` | `0.5.56` | - |
+| :material-tag: ***`0.9.0`*** | `>=0.29.0` | `>=1.17.3` | `nightly` | `0.5.56` | `0.15.11` |
 | :material-tag: ***`0.8.*`*** | `0.30.1` | `^1.17.4` | `nightly` | `0.5.56` | - |
 | :material-tag: ***`0.7.0`*** | `>=0.29.*` | `^1.17.4` | `nightly` | `0.5.56` | - |
 | :material-tag: ***`0.6.0`*** | `>=0.29.*` | `^1.17` | `nightly` | `0.5.55` | - |

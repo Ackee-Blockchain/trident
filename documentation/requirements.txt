@@ -5,3 +5,5 @@ mkdocs-git-revision-date-localized-plugin
 mkdocs-awesome-pages-plugin
 mkdocs-material
 mkdocs-macros-plugin
+cairosvg
+Pillow
