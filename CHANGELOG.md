@@ -10,6 +10,10 @@ incremented upon a breaking change and the patch version will be incremented for
 
 ## [dev] - Unreleased
 
+**Added**
+
+- users can now specify a program for which they want to add or initialize a fuzz test using `--program-name` flag ([251](https://github.com/Ackee-Blockchain/trident/pull/251))
+
 ## [0.9.0] - 2025-01-15
 
 **Added**
