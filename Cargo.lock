@@ -3861,6 +3861,7 @@ dependencies = [
  "anyhow",
  "clap",
  "fehler",
+ "heck 0.4.1",
  "termimad",
  "tokio",
  "trident-client",

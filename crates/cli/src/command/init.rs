@@ -2,6 +2,7 @@ use std::path::Path;
 
 use anyhow::{bail, Error};
 use fehler::throws;
+use heck::ToSnakeCase;
 use trident_client::___private::TestGenerator;
 
 use crate::{_discover, show_howto};
@@ -11,7 +12,7 @@ pub const TRIDENT_TOML: &str = "Trident.toml";
 pub const SKIP: &str = "\x1b[33mSkip\x1b[0m";
 
 #[throws]
-pub async fn init(force: bool) {
+pub async fn init(force: bool, test_name: Option<String>) {
     // look for Anchor.toml
     let root = if let Some(r) = _discover(ANCHOR_TOML)? {
         r
@@ -21,8 +22,9 @@ pub async fn init(force: bool) {
 
     let mut generator: TestGenerator = TestGenerator::new_with_root(&root)?;
 
+    let test_name_snake = test_name.map(|name| name.to_snake_case());
     if force {
-        generator.initialize().await?;
+        generator.initialize(test_name_snake).await?;
         show_howto();
     } else {
         let root_path = Path::new(&root).join(TRIDENT_TOML);
@@ -34,7 +36,7 @@ pub async fn init(force: bool) {
                 root
             );
         } else {
-            generator.initialize().await?;
+            generator.initialize(test_name_snake).await?;
             show_howto();
         }
     }

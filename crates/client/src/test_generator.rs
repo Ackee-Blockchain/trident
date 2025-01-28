@@ -61,26 +61,26 @@ impl TestGenerator {
         }
     }
     #[throws]
-    pub async fn initialize(&mut self) {
+    pub async fn initialize(&mut self, test_name: Option<String>) {
         Commander::build_anchor_project().await?;
 
         self.get_program_packages().await?;
         self.load_programs_idl()?;
         self.generate_source_codes().await?;
-        self.initialize_new_fuzz_test().await?;
+        self.initialize_new_fuzz_test(test_name).await?;
 
         update_gitignore(&self.root, CARGO_TARGET_DIR_DEFAULT_HFUZZ)?;
         update_gitignore(&self.root, CARGO_TARGET_DIR_DEFAULT_AFL)?;
     }
 
     #[throws]
-    pub async fn add_fuzz_test(&mut self) {
+    pub async fn add_fuzz_test(&mut self, test_name: Option<String>) {
         Commander::build_anchor_project().await?;
 
         self.get_program_packages().await?;
         self.load_programs_idl()?;
         self.generate_source_codes().await?;
-        self.add_new_fuzz_test().await?;
+        self.add_new_fuzz_test(test_name).await?;
 
         // update_package_metadata(&self.program_packages, &self.versions_config).await?;
     }
@@ -127,14 +127,16 @@ impl TestGenerator {
     }
 
     #[throws]
-    pub async fn add_new_fuzz_test(&self) {
+    pub async fn add_new_fuzz_test(&self, test_name: Option<String>) {
         let fuzz_dir_path = construct_path!(self.root, TESTS_WORKSPACE_DIRECTORY);
         let fuzz_tests_manifest_path = construct_path!(fuzz_dir_path, CARGO_TOML);
 
         create_directory_all(&fuzz_dir_path).await?;
 
-        let fuzz_id = get_fuzz_id(&fuzz_dir_path)?;
-        let new_fuzz_test = format!("fuzz_{fuzz_id}");
+        let new_fuzz_test = match test_name {
+            Some(name) => name,
+            None => format!("fuzz_{}", get_fuzz_id(&fuzz_dir_path)?),
+        };
         let new_fuzz_test_dir = fuzz_dir_path.join(&new_fuzz_test);
         let new_bin_target = format!("{new_fuzz_test}/test_fuzz.rs");
 
@@ -161,17 +163,24 @@ impl TestGenerator {
         // add_workspace_member(&self.root, &format!("{TESTS_WORKSPACE_DIRECTORY}",)).await?;
     }
     #[throws]
-    pub async fn initialize_new_fuzz_test(&self) {
+    pub async fn initialize_new_fuzz_test(&self, test_name: Option<String>) {
         let fuzz_dir_path = construct_path!(self.root, TESTS_WORKSPACE_DIRECTORY);
         let fuzz_tests_manifest_path = construct_path!(fuzz_dir_path, CARGO_TOML);
         let trident_toml_path = construct_path!(self.root, TRIDENT_TOML);
 
         create_directory_all(&fuzz_dir_path).await?;
 
-        let fuzz_id = get_fuzz_id(&fuzz_dir_path)?;
-        let new_fuzz_test = format!("fuzz_{fuzz_id}");
+        let new_fuzz_test = match test_name {
+            Some(name) => name,
+            None => format!("fuzz_{}", get_fuzz_id(&fuzz_dir_path)?),
+        };
         let new_fuzz_test_dir = fuzz_dir_path.join(&new_fuzz_test);
         let new_bin_target = format!("{new_fuzz_test}/test_fuzz.rs");
+
+        if new_fuzz_test_dir.exists() {
+            println!("{SKIP} [{}] already exists", new_fuzz_test_dir.display());
+            return;
+        }
 
         create_directory(&new_fuzz_test_dir).await?;
 
