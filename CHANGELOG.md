@@ -10,6 +10,10 @@ incremented upon a breaking change and the patch version will be incremented for
 
 ## [dev] - Unreleased
 
+**Added**
+
+- program ID inside test_fuzz.rs file is now automatically filled in if it present in the program IDL ([253](https://github.com/Ackee-Blockchain/trident/pull/253))
+
 ## [0.9.0] - 2025-01-15
 
 **Added**
