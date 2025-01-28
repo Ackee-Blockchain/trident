@@ -10,6 +10,10 @@ incremented upon a breaking change and the patch version will be incremented for
 
 ## [dev] - Unreleased
 
+**Added**
+
+- allow custom test name specification in fuzz test creation with `--test-name` flag ([255](https://github.com/Ackee-Blockchain/trident/pull/255))
+
 ## [0.9.0] - 2025-01-15
 
 **Added**
