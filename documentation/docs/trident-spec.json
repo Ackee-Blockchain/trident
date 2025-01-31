@@ -1,0 +1,219 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Trident Configuration",
+  "description": "Configuration schema for Trident fuzzing framework",
+  "type": "object",
+  "properties": {
+    "honggfuzz": {
+      "type": "object",
+      "description": "Honggfuzz-specific configuration options",
+      "properties": {
+        "timeout": {
+          "type": "integer",
+          "description": "Timeout in seconds",
+          "minimum": 0,
+          "maximum": 65535,
+          "default": 10
+        },
+        "iterations": {
+          "type": "integer",
+          "description": "Number of fuzzing iterations (0 means no limit)",
+          "minimum": 0,
+          "default": 0
+        },
+        "threads": {
+          "type": "integer",
+          "description": "Number of concurrent fuzzing threads",
+          "minimum": 0,
+          "maximum": 65535,
+          "default": null
+        },
+        "keep_output": {
+          "type": "boolean",
+          "description": "Don't close children's stdin, stdout, stderr; can be noisy",
+          "default": false
+        },
+        "verbose": {
+          "type": "boolean",
+          "description": "Disable ANSI console; use simple log output",
+          "default": false
+        },
+        "exit_upon_crash": {
+          "type": "boolean",
+          "description": "Exit upon seeing the first crash",
+          "default": false
+        },
+        "mutations_per_run": {
+          "type": "integer",
+          "description": "Maximal number of mutations per one run",
+          "minimum": 0,
+          "maximum": 65535,
+          "default": 6
+        },
+        "cargo_target_dir": {
+          "type": "string",
+          "description": "Target compilation directory",
+          "default": "trident-tests/fuzzing/hfuzz_target"
+        },
+        "hfuzz_workspace": {
+          "type": "string",
+          "description": "Honggfuzz working directory",
+          "default": "trident-tests/fuzzing/hfuzz_workspace"
+        },
+        "crashdir": {
+          "type": "string",
+          "description": "Directory where crashes are saved to",
+          "default": null
+        },
+        "extension": {
+          "type": "string",
+          "description": "Input file extension",
+          "default": "fuzz"
+        },
+        "run_time": {
+          "type": "integer",
+          "description": "Number of seconds this fuzzing session will last (0 means no limit)",
+          "minimum": 0,
+          "default": 0
+        },
+        "max_file_size": {
+          "type": "integer",
+          "description": "Maximal size of files processed by the fuzzer in bytes",
+          "minimum": 0,
+          "default": 1048576
+        },
+        "save_all": {
+          "type": "boolean",
+          "description": "Save all test-cases by appending timestamp to filenames",
+          "default": false
+        }
+      }
+    },
+    "afl": {
+      "type": "object",
+      "description": "AFL-specific configuration options",
+      "properties": {
+        "cargo_target_dir": {
+          "type": "string",
+          "description": "Target directory for AFL builds",
+          "default": "target/debug"
+        },
+        "afl_workspace_in": {
+          "type": "string",
+          "description": "Input directory for AFL test cases",
+          "default": "trident-tests/fuzzing/afl_in"
+        },
+        "afl_workspace_out": {
+          "type": "string",
+          "description": "Output directory for AFL findings",
+          "default": "trident-tests/fuzzing/afl_out"
+        },
+        "iterations": {
+          "type": "integer",
+          "description": "Number of executions to perform",
+          "minimum": 0,
+          "default": 0
+        },
+        "run_time": {
+          "type": "integer",
+          "description": "Number of seconds to run for",
+          "minimum": 0,
+          "default": 0
+        },
+        "seeds": {
+          "type": "array",
+          "description": "Initial seeds for AFL fuzzing",
+          "items": {
+            "type": "object",
+            "properties": {
+              "file_name": {
+                "type": "string",
+                "description": "Name of the seed file",
+                "default": "default_seed"
+              },
+              "seed": {
+                "type": "string",
+                "description": "Seed content",
+                "default": ""
+              },
+              "override_file": {
+                "type": "boolean",
+                "description": "Whether to override existing file",
+                "default": false
+              },
+              "bytes_count": {
+                "type": "integer",
+                "description": "Number of bytes for the seed",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "file_name"
+            ]
+          },
+          "default": []
+        }
+      }
+    },
+    "fuzz": {
+      "type": "object",
+      "description": "General fuzzing configuration",
+      "properties": {
+        "fuzzing_with_stats": {
+          "type": "boolean",
+          "description": "Enable statistics collection during fuzzing",
+          "default": false
+        },
+        "allow_duplicate_txs": {
+          "type": "boolean",
+          "description": "Allow duplicate transactions",
+          "default": false
+        },
+        "programs": {
+          "type": "array",
+          "description": "List of programs to fuzz",
+          "items": {
+            "type": "object",
+            "properties": {
+              "address": {
+                "type": "string",
+                "description": "Program address (as base-58 encoded string)"
+              },
+              "program": {
+                "type": "string",
+                "description": "Path to program binary"
+              }
+            },
+            "required": [
+              "address",
+              "program"
+            ]
+          },
+          "default": []
+        },
+        "accounts": {
+          "type": "array",
+          "description": "List of accounts to use in fuzzing",
+          "items": {
+            "type": "object",
+            "properties": {
+              "address": {
+                "type": "string",
+                "description": "Account address (as base-58 encoded string)"
+              },
+              "filename": {
+                "type": "string",
+                "description": "Path to account data file"
+              }
+            },
+            "required": [
+              "address",
+              "filename"
+            ]
+          },
+          "default": []
+        }
+      }
+    }
+  }
+}
