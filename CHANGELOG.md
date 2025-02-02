@@ -12,6 +12,7 @@ incremented upon a breaking change and the patch version will be incremented for
 
 **Added**
 
+- added methods to check if account storage is empty ([258](https://github.com/Ackee-Blockchain/trident/pull/258))
 - added support for post-instruction behavior ([257](https://github.com/Ackee-Blockchain/trident/pull/257))
 
 **Removed**
