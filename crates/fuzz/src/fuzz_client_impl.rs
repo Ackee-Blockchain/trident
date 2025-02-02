@@ -61,6 +61,12 @@ impl FuzzClient for TridentSVM<'_> {
         clock.slot = warp_slot;
         self.set_sysvar(&clock);
     }
+    fn warp_to_timestamp(&mut self, warp_timestamp: i64) {
+        let mut clock = self.get_sysvar::<Clock>();
+
+        clock.unix_timestamp = warp_timestamp;
+        self.set_sysvar(&clock);
+    }
 
     fn forward_in_time(&mut self, seconds: i64) {
         let mut clock = self.get_sysvar::<Clock>();
