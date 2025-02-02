@@ -16,7 +16,7 @@ trident-derive-fuzz-test-executor = { path = "../fuzz/derive/fuzz_test_executor"
 trident-config = { path = "../config", version = "0.0.1" }
 
 # Trident-SVM
-trident-svm = "0.0.1"
+trident-svm = "0.0.2"
 
 # Solana
 solana-sdk = { workspace = true }

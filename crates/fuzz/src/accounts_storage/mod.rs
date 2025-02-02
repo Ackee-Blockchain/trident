@@ -38,6 +38,9 @@ impl<T> AccountsStorage<T> {
         client.set_account_custom(&address, &account);
         self.accounts.insert(account_id, T::from(address));
     }
+    pub fn is_empty(&self) -> bool {
+        self.accounts.is_empty()
+    }
 }
 impl<T> Default for AccountsStorage<T> {
     fn default() -> Self {
