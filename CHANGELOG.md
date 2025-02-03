@@ -10,6 +10,9 @@ incremented upon a breaking change and the patch version will be incremented for
 
 ## [dev] - Unreleased
 
+
+## [0.9.1] - 2025-02-03
+
 **Added**
 
 - added warp to time manipulation ([259](https://github.com/Ackee-Blockchain/trident/pull/259))
