@@ -10,6 +10,14 @@ incremented upon a breaking change and the patch version will be incremented for
 
 ## [dev] - Unreleased
 
+**Added**
+
+**Removed**
+
+**Changed**
+
+- get or create token account methods fixed for native token accounts ([262](https://github.com/Ackee-Blockchain/trident/pull/262))
+
 
 ## [0.9.1] - 2025-02-03
 
