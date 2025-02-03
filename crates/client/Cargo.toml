@@ -11,7 +11,7 @@ description = "The trident_client crate helps you build and deploy an Anchor pro
 [dependencies]
 
 # Trident
-trident-fuzz = { path = "../fuzz", version = "0.3.0" }
+trident-fuzz = { path = "../fuzz", version = "0.3.1" }
 trident-config = { path = "../config", version = "0.0.1" }
 trident-template = { path = "../template", version = "0.0.1" }
 
