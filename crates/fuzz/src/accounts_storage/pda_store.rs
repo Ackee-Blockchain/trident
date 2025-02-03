@@ -81,7 +81,7 @@ impl AccountsStorage<PdaStore> {
         owner: Pubkey,
         amount: u64,
         delegate: Option<Pubkey>,
-        is_native: Option<u64>,
+        is_native: bool,
         delegated_amount: u64,
         close_authority: Option<Pubkey>,
     ) -> Pubkey {
@@ -93,36 +93,63 @@ impl AccountsStorage<PdaStore> {
                 _ => COption::None,
             };
 
-            let is_native = match is_native {
-                Some(a) => COption::Some(a),
-                _ => COption::None,
-            };
-
             let close_authority = match close_authority {
                 Some(a) => COption::Some(a),
                 _ => COption::None,
             };
 
             let r = Rent::default();
-            let lamports = r.minimum_balance(spl_token::state::Account::LEN);
+            let rent_exempt_lamports = r.minimum_balance(spl_token::state::Account::LEN);
 
-            let mut account =
-                AccountSharedData::new(lamports, spl_token::state::Account::LEN, &spl_token::id());
+            let account = if is_native {
+                let lamports = rent_exempt_lamports.saturating_add(amount);
 
-            let token_account_ = spl_token::state::Account {
-                mint,
-                owner,
-                amount,
-                delegate,
-                state: spl_token::state::AccountState::Initialized,
-                is_native,
-                delegated_amount,
-                close_authority,
+                let mut account = AccountSharedData::new(
+                    lamports,
+                    spl_token::state::Account::LEN,
+                    &spl_token::id(),
+                );
+
+                let token_account_ = spl_token::state::Account {
+                    mint,
+                    owner,
+                    amount: lamports,
+                    delegate,
+                    state: spl_token::state::AccountState::Initialized,
+                    is_native: COption::Some(rent_exempt_lamports),
+                    delegated_amount,
+                    close_authority,
+                };
+
+                let mut data = vec![0u8; spl_token::state::Account::LEN];
+                spl_token::state::Account::pack(token_account_, &mut data[..]).unwrap();
+                account.set_data_from_slice(&data);
+
+                account
+            } else {
+                let mut account = AccountSharedData::new(
+                    rent_exempt_lamports,
+                    spl_token::state::Account::LEN,
+                    &spl_token::id(),
+                );
+
+                let token_account_ = spl_token::state::Account {
+                    mint,
+                    owner,
+                    amount,
+                    delegate,
+                    state: spl_token::state::AccountState::Initialized,
+                    is_native: COption::None,
+                    delegated_amount,
+                    close_authority,
+                };
+
+                let mut data = vec![0u8; spl_token::state::Account::LEN];
+                spl_token::state::Account::pack(token_account_, &mut data[..]).unwrap();
+                account.set_data_from_slice(&data);
+
+                account
             };
-
-            let mut data = vec![0u8; spl_token::state::Account::LEN];
-            spl_token::state::Account::pack(token_account_, &mut data[..]).unwrap();
-            account.set_data_from_slice(&data);
 
             client.set_account_custom(&address.0, &account);
 
