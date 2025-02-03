@@ -69,7 +69,7 @@ Trident contains multiple features to enhance the fuzzing experience and increas
 
     Customize Instruction data, for example, to use integers from specific range.
 
-    [__Customize Instruction Data__](./custom-ix-data.md)
+    [__Customize Instruction Data__](./customize-ix-data.md)
 
 -   :material-weight-lifter:{ .lg .middle } __Trident Manifest__
 

@@ -1,4 +1,4 @@
-# Costomize Instruction Data
+# Customize Instruction Data
 
 
 Trident allows you to customize instruction data.

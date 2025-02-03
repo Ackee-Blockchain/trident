@@ -23,6 +23,9 @@ pub trait FuzzClient {
     /// Warp to specific slot
     fn warp_to_slot(&mut self, warp_slot: u64);
 
+    /// Warp to specific timestamp
+    fn warp_to_timestamp(&mut self, warp_timestamp: i64);
+
     /// Forward in time by the desired number of seconds
     fn forward_in_time(&mut self, seconds: i64);
 

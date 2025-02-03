@@ -3,7 +3,7 @@ site_url: https://ackee.xyz/trident/docs
 repo_url: https://github.com/Ackee-Blockchain/trident
 repo_name: Ackee-Blockchain/trident
 edit_uri: edit/master/docs
-site_description: Trident is a Rust-based testing framework providing several convenient developer tools for testing Solana programs written in Anchor.
+site_description: Rust-based Fuzzing framework for Solana programs to help you ship secure code.
 site_author: Ackee Blockchain Security
 
 
@@ -98,6 +98,7 @@ plugins:
       type: timeago
   - mike:
       canonical_version: latest
+  - social
 
 # https://squidfunk.github.io/mkdocs-material/customization/?h=extra+css#additional-css
 extra_css:
