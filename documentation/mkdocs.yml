@@ -10,7 +10,6 @@ site_author: Ackee Blockchain Security
 nav:
   - Installation:
       - installation/installation.md
-      - installation/trident-manifest.md
   - Writing Fuzz Test:
       - writing-fuzz-test/writing-fuzz-test.md
   - Fuzz Test Features:
