@@ -1297,7 +1297,6 @@ dependencies = [
  "hello_world",
  "solana-sdk",
  "trident-fuzz",
- "trident-syscall-stubs-v1",
 ]
 
 [[package]]
@@ -3030,17 +3029,6 @@ dependencies = [
 
 [[package]]
 name = "solana-logger"
-version = "1.18.26"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "121d36ffb3c6b958763312cbc697fbccba46ee837d3a0aa4fc0e90fcb3b884f3"
-dependencies = [
- "env_logger",
- "lazy_static",
- "log",
-]
-
-[[package]]
-name = "solana-logger"
 version = "2.0.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b58bbc11cf6bb1aee87a3e842f69f65a4416173ddc2cf857c5e464f6bce09a32"
@@ -3733,6 +3721,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "trident-derive-accounts"
+version = "0.0.1"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 1.0.109",
+]
+
+[[package]]
 name = "trident-derive-displayix"
 version = "0.0.4"
 dependencies = [
@@ -3743,7 +3740,7 @@ dependencies = [
 
 [[package]]
 name = "trident-derive-fuzz-test-executor"
-version = "0.0.4"
+version = "0.0.5"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -3751,40 +3748,62 @@ dependencies = [
 ]
 
 [[package]]
+name = "trident-derive-instruction"
+version = "0.0.1"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.94",
+]
+
+[[package]]
+name = "trident-derive-transaction"
+version = "0.0.1"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.94",
+]
+
+[[package]]
 name = "trident-fuzz"
-version = "0.2.1"
+version = "0.3.1"
 dependencies = [
  "afl",
  "anyhow",
  "arbitrary",
  "base64 0.22.1",
  "bincode",
+ "borsh 1.5.3",
  "byteorder",
  "fehler",
  "honggfuzz",
- "log",
+ "itertools 0.12.1",
  "prettytable",
  "rand 0.8.5",
  "serde",
  "serde_json",
  "solana-sdk",
  "solana-stake-program",
- "solana-svm",
  "solana-vote-program",
  "spl-token",
  "thiserror",
  "tokio",
  "toml 0.8.19",
  "trident-config",
+ "trident-derive-accounts",
  "trident-derive-displayix",
  "trident-derive-fuzz-test-executor",
+ "trident-derive-instruction",
+ "trident-derive-transaction",
  "trident-svm",
 ]
 
 [[package]]
 name = "trident-svm"
-version = "0.1.0"
-source = "git+https://github.com/Ackee-Blockchain/trident-svm#640cc2f8027e0f9f8da64ccf195ed375ff0937bf"
+version = "0.0.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "914446040de98de1d2a7ddcd69d9258e73587c09f689227ec38217a99f436a02"
 dependencies = [
  "bincode",
  "serde",
@@ -3794,27 +3813,39 @@ dependencies = [
  "solana-compute-budget-program",
  "solana-config-program",
  "solana-loader-v4-program",
- "solana-logger 2.0.21",
+ "solana-logger",
  "solana-program-runtime",
  "solana-sdk",
  "solana-stake-program",
  "solana-svm",
  "solana-system-program",
  "solana-vote-program",
+ "solana_rbpf",
+ "trident-syscall-stubs-v1",
+ "trident-syscall-stubs-v2",
 ]
 
 [[package]]
 name = "trident-syscall-stubs-v1"
 version = "0.0.1"
-source = "git+https://github.com/Ackee-Blockchain/trident-syscall-stubs-v1#f2a7309b52d693ea2c72ee940468a5198e23a418"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f8ecb66b07ba1cf8b20e29e074ad5b9fd2f9904a1a0aca93641940848612b5fe"
 dependencies = [
  "serde",
- "solana-bpf-loader-program",
- "solana-logger 1.18.26",
  "solana-program 1.18.26",
  "solana-program-runtime",
  "solana-sdk",
- "solana_rbpf",
+]
+
+[[package]]
+name = "trident-syscall-stubs-v2"
+version = "0.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6826515586120f4b25406bf68ccfb102cedabd8c0c0a69fddca698ec79904913"
+dependencies = [
+ "serde",
+ "solana-program-runtime",
+ "solana-sdk",
 ]
 
 [[package]]

@@ -1,14 +1,10 @@
 use crate::test_generator::Error;
-use crate::versions_config::TridentVersionsConfig;
 
 use crate::constants::*;
-use cargo_metadata::Package;
 use fehler::{throw, throws};
 use std::path::Path;
-use std::{fs::File, io::prelude::*};
-use std::{fs::OpenOptions, io, path::PathBuf};
+use std::path::PathBuf;
 use tokio::fs;
-use toml::{value::Table, Value};
 
 #[macro_export]
 macro_rules! construct_path {
@@ -38,16 +34,6 @@ pub async fn create_directory_all(path: &PathBuf) {
 }
 
 #[throws]
-pub async fn create_directory(path: &PathBuf) {
-    match path.exists() {
-        true => {}
-        false => {
-            fs::create_dir(path).await?;
-        }
-    };
-}
-
-#[throws]
 pub async fn create_file(root: &PathBuf, path: &PathBuf, content: &str) {
     let file = path.strip_prefix(root)?.to_str().unwrap_or_default();
 
@@ -64,21 +50,25 @@ pub async fn create_file(root: &PathBuf, path: &PathBuf, content: &str) {
 
 #[throws]
 pub fn get_fuzz_id(fuzz_dir_path: &Path) -> i32 {
-    if fuzz_dir_path.read_dir()?.next().is_none() {
-        0
-    } else {
-        let entries = fuzz_dir_path.read_dir()?;
-        let mut max_num = -1;
-        for entry in entries {
-            let entry = entry?;
-            let file_name = entry.file_name().into_string().unwrap_or_default();
-            if file_name.starts_with("fuzz_") {
-                let stripped = file_name.strip_prefix("fuzz_").unwrap_or_default();
-                let num = stripped.parse::<i32>()?;
-                max_num = max_num.max(num);
+    if fuzz_dir_path.exists() {
+        if fuzz_dir_path.read_dir()?.next().is_none() {
+            0
+        } else {
+            let entries = fuzz_dir_path.read_dir()?;
+            let mut max_num = -1;
+            for entry in entries {
+                let entry = entry?;
+                let file_name = entry.file_name().into_string().unwrap_or_default();
+                if file_name.starts_with("fuzz_") {
+                    let stripped = file_name.strip_prefix("fuzz_").unwrap_or_default();
+                    let num = stripped.parse::<i32>()?;
+                    max_num = max_num.max(num);
+                }
             }
+            max_num + 1
         }
-        max_num + 1
+    } else {
+        0
     }
 }
 #[throws]
@@ -105,49 +95,6 @@ pub fn program_packages() -> impl Iterator<Item = cargo_metadata::Package> {
     })
 }
 
-#[throws]
-pub fn update_gitignore(root: &PathBuf, ignored_path: &str) {
-    let gitignore_path = construct_path!(root, GIT_IGNORE);
-    if gitignore_path.exists() {
-        let file = File::open(&gitignore_path)?;
-        for line in io::BufReader::new(file).lines().map_while(Result::ok) {
-            if line == ignored_path {
-                // INFO do not add the ignored path again if it is already in the .gitignore file
-                println!("{SKIP} [{GIT_IGNORE}], already contains [{ignored_path}]");
-
-                return;
-            }
-        }
-        // Check if the file ends with a newline
-        let mut file = File::open(&gitignore_path)?;
-        let mut buf = [0; 1];
-        file.seek(io::SeekFrom::End(-1))?;
-        file.read_exact(&mut buf)?;
-
-        let file = OpenOptions::new().append(true).open(gitignore_path);
-
-        if let Ok(mut file) = file {
-            if buf[0] == b'\n' {
-                writeln!(file, "{}", ignored_path)?;
-            } else {
-                writeln!(file, "\n{}", ignored_path)?;
-            }
-            println!("{FINISH} [{GIT_IGNORE}] update with [{ignored_path}]");
-        }
-    } else {
-        println!("{SKIP} [{GIT_IGNORE}], not found");
-    }
-}
-/// Ensures that a table exists in the given TOML content, and returns a mutable reference to it.
-pub fn ensure_table<'a>(content: &'a mut Value, table_name: &str) -> Result<&'a mut Table, Error> {
-    content
-        .as_table_mut()
-        .ok_or(Error::ParsingCargoTomlDependenciesFailed)?
-        .entry(table_name)
-        .or_insert(Value::Table(toml::Table::new()))
-        .as_table_mut()
-        .ok_or(Error::ParsingCargoTomlDependenciesFailed)
-}
 // #[throws]
 // pub async fn add_workspace_member(root: &Path, member: &str) {
 //     // Construct the path to the Cargo.toml file
@@ -180,83 +127,3 @@ pub fn ensure_table<'a>(content: &'a mut Value, table_name: &str) -> Result<&'a 
 //         println!("{SKIP} [{CARGO_TOML}], already contains [{member}]");
 //     }
 // }
-
-#[throws]
-pub async fn add_bin_target(cargo_path: &PathBuf, name: &str, path: &str) {
-    // Read the existing Cargo.toml file
-    let cargo_toml_content = fs::read_to_string(cargo_path).await?;
-    let mut cargo_toml: Value = toml::from_str(&cargo_toml_content)?;
-
-    // Create a new bin table
-    let mut bin_table = Table::new();
-    bin_table.insert("name".to_string(), Value::String(name.to_string()));
-    bin_table.insert("path".to_string(), Value::String(path.to_string()));
-
-    // Add the new [[bin]] section to the [[bin]] array
-    if let Some(bin_array) = cargo_toml.get_mut("bin") {
-        if let Value::Array(bin_array) = bin_array {
-            bin_array.push(Value::Table(bin_table));
-        } else {
-            // If "bin" exists but is not an array, replace it with an array
-            let bin_array = vec![Value::Table(bin_table)];
-            cargo_toml
-                .as_table_mut()
-                .unwrap()
-                .insert("bin".to_string(), Value::Array(bin_array));
-        }
-    } else {
-        // If there is no existing [[bin]] array, create one
-        let bin_array = vec![Value::Table(bin_table)];
-        cargo_toml
-            .as_table_mut()
-            .unwrap()
-            .insert("bin".to_string(), Value::Array(bin_array));
-    }
-
-    // Write the updated Cargo.toml file
-    let updated_toml = toml::to_string(&cargo_toml).unwrap();
-    fs::write(cargo_path, updated_toml).await?;
-}
-
-#[throws]
-pub async fn update_fuzz_tests_manifest(
-    versions_config: &TridentVersionsConfig,
-    packages: &[Package],
-    cargo_dir: &PathBuf,
-) {
-    let cargo_path = cargo_dir.join("Cargo.toml");
-
-    let cargo_toml_content = fs::read_to_string(&cargo_path).await?;
-    let mut cargo_toml: Value = toml::from_str(&cargo_toml_content)?;
-
-    // Ensure the required dependencies are present in the 'dependencies' section.
-    let dependencies_table = ensure_table(&mut cargo_toml, "dependencies")?;
-
-    // Add 'trident-fuzz' dependency in table format.
-    dependencies_table.entry("trident-fuzz").or_insert_with(|| {
-        let mut trident_client = toml::Table::new();
-        trident_client.insert(
-            "version".to_string(),
-            Value::String(versions_config.trident_fuzz.clone()),
-        );
-        Value::Table(trident_client)
-    });
-
-    for package in packages {
-        let manifest_path = package.manifest_path.parent().unwrap().as_std_path();
-        let relative_path = pathdiff::diff_paths(manifest_path, cargo_dir).unwrap();
-
-        let relative_path_str = relative_path.to_str().unwrap_or_default();
-
-        dependencies_table.entry(&package.name).or_insert_with(|| {
-            let mut package_entry = toml::Table::new();
-            package_entry.insert(
-                "path".to_string(),
-                Value::String(relative_path_str.to_owned()),
-            );
-            Value::Table(package_entry)
-        });
-    }
-
-    fs::write(cargo_path, toml::to_string(&cargo_toml).unwrap()).await?;
-}

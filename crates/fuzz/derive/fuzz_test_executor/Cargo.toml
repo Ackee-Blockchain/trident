@@ -9,6 +9,7 @@ description = "trident-derive-fuzz-test-executor"
 
 [lib]
 proc-macro = true
+doctest = false
 
 [dependencies]
 proc-macro2 = "1.0"

@@ -14,7 +14,8 @@ use solana_stake_program::stake_state::{
 use solana_vote_program::vote_state::{VoteInit, VoteState, VoteStateVersions};
 use spl_token::state::Mint;
 
-use crate::{fuzz_client::FuzzClient, AccountId};
+use crate::traits::FuzzClient;
+use crate::types::AccountId;
 
 use super::AccountsStorage;
 
