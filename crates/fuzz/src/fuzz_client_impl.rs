@@ -13,7 +13,7 @@ use trident_svm::utils::ProgramEntrypoint;
 use trident_svm::utils::SBFTargets;
 use trident_svm::utils::TridentAccountSharedData;
 
-use crate::fuzz_client::FuzzClient;
+use crate::traits::FuzzClient;
 use solana_sdk::transaction::TransactionError;
 
 impl FuzzClient for TridentSVM<'_> {

@@ -1,0 +1,13 @@
+[package]
+name = "trident-derive-instruction"
+version = "0.0.1"
+edition = "2021"
+
+[lib]
+proc-macro = true
+doctest = false
+
+[dependencies]
+proc-macro2 = "1.0"
+quote = "1.0"
+syn = { version = "2.0", features = ["full"] }
