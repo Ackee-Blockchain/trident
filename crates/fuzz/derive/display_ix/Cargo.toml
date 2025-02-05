@@ -10,6 +10,7 @@ description = "trident-derive-displayix"
 
 [lib]
 proc-macro = true
+doctest = false
 
 [dependencies]
 proc-macro2 = "1.0"

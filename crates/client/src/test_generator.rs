@@ -12,8 +12,7 @@ use std::{
 };
 use thiserror::Error;
 use trident_idl_spec::Idl;
-use trident_template::fuzz_instructions_generator;
-use trident_template::test_fuzz_generator;
+use trident_template::Template;
 
 #[derive(Error, Debug)]
 pub enum Error {
@@ -41,8 +40,7 @@ pub struct TestGenerator {
     pub root: PathBuf,
     pub program_packages: Vec<Package>,
     pub anchor_idls: Vec<Idl>,
-    pub test_fuzz: String,
-    pub fuzz_instructions: String,
+    pub template: Template,
     pub versions_config: TridentVersionsConfig,
 }
 impl TestGenerator {
@@ -55,8 +53,7 @@ impl TestGenerator {
             root: Path::new(&root).to_path_buf(),
             program_packages: Vec::default(),
             anchor_idls: Vec::default(),
-            fuzz_instructions: String::default(),
-            test_fuzz: String::default(),
+            template: Template::default(),
             versions_config,
         }
     }
@@ -66,11 +63,12 @@ impl TestGenerator {
 
         self.get_program_packages().await?;
         self.load_programs_idl()?;
-        self.generate_source_codes().await?;
-        self.initialize_new_fuzz_test().await?;
+        self.create_template().await?;
+        self.add_new_fuzz_test().await?;
+        self.create_trident_toml().await?;
 
-        update_gitignore(&self.root, CARGO_TARGET_DIR_DEFAULT_HFUZZ)?;
-        update_gitignore(&self.root, CARGO_TARGET_DIR_DEFAULT_AFL)?;
+        self.update_gitignore(CARGO_TARGET_DIR_DEFAULT_HFUZZ)?;
+        self.update_gitignore(CARGO_TARGET_DIR_DEFAULT_AFL)?;
     }
 
     #[throws]
@@ -79,8 +77,11 @@ impl TestGenerator {
 
         self.get_program_packages().await?;
         self.load_programs_idl()?;
-        self.generate_source_codes().await?;
+        self.create_template().await?;
         self.add_new_fuzz_test().await?;
+
+        self.update_gitignore(CARGO_TARGET_DIR_DEFAULT_HFUZZ)?;
+        self.update_gitignore(CARGO_TARGET_DIR_DEFAULT_AFL)?;
 
         // update_package_metadata(&self.program_packages, &self.versions_config).await?;
     }
@@ -92,7 +93,7 @@ impl TestGenerator {
     }
 
     #[throws]
-    async fn generate_source_codes(&mut self) {
+    async fn create_template(&mut self) {
         // Obtain lib names so we can generate entries in the test_fuzz.rs file
         let lib_names = self
             .program_packages
@@ -110,12 +111,7 @@ impl TestGenerator {
             })
             .collect::<Vec<String>>();
 
-        let test_fuzz = test_fuzz_generator::generate_source_code(&self.anchor_idls, &lib_names);
-        let fuzz_instructions =
-            fuzz_instructions_generator::generate_source_code(&self.anchor_idls);
-
-        self.test_fuzz = Commander::format_program_code_nightly(&test_fuzz).await?;
-        self.fuzz_instructions = Commander::format_program_code_nightly(&fuzz_instructions).await?;
+        self.template.create_template(&self.anchor_idls, &lib_names);
     }
 
     #[throws]
@@ -124,81 +120,5 @@ impl TestGenerator {
 
         // TODO consider optionally excluding packages
         self.anchor_idls = crate::idl_loader::load_idls(target_path).unwrap();
-    }
-
-    #[throws]
-    pub async fn add_new_fuzz_test(&self) {
-        let fuzz_dir_path = construct_path!(self.root, TESTS_WORKSPACE_DIRECTORY);
-        let fuzz_tests_manifest_path = construct_path!(fuzz_dir_path, CARGO_TOML);
-
-        create_directory_all(&fuzz_dir_path).await?;
-
-        let fuzz_id = get_fuzz_id(&fuzz_dir_path)?;
-        let new_fuzz_test = format!("fuzz_{fuzz_id}");
-        let new_fuzz_test_dir = fuzz_dir_path.join(&new_fuzz_test);
-        let new_bin_target = format!("{new_fuzz_test}/test_fuzz.rs");
-
-        create_directory(&new_fuzz_test_dir).await?;
-
-        let fuzz_test_path = new_fuzz_test_dir.join(FUZZ_TEST);
-        let fuzz_instructions_path = new_fuzz_test_dir.join(FUZZ_INSTRUCTIONS_FILE_NAME);
-
-        let cargo_toml_content = load_template!("/src/template/Cargo_fuzz.toml.tmpl");
-
-        create_file(&self.root, &fuzz_test_path, &self.test_fuzz).await?;
-        create_file(&self.root, &fuzz_instructions_path, &self.fuzz_instructions).await?;
-        create_file(&self.root, &fuzz_tests_manifest_path, cargo_toml_content).await?;
-
-        add_bin_target(&fuzz_tests_manifest_path, &new_fuzz_test, &new_bin_target).await?;
-
-        update_fuzz_tests_manifest(
-            &self.versions_config,
-            &self.program_packages,
-            &fuzz_dir_path,
-        )
-        .await?;
-
-        // add_workspace_member(&self.root, &format!("{TESTS_WORKSPACE_DIRECTORY}",)).await?;
-    }
-    #[throws]
-    pub async fn initialize_new_fuzz_test(&self) {
-        let fuzz_dir_path = construct_path!(self.root, TESTS_WORKSPACE_DIRECTORY);
-        let fuzz_tests_manifest_path = construct_path!(fuzz_dir_path, CARGO_TOML);
-        let trident_toml_path = construct_path!(self.root, TRIDENT_TOML);
-
-        create_directory_all(&fuzz_dir_path).await?;
-
-        let fuzz_id = get_fuzz_id(&fuzz_dir_path)?;
-        let new_fuzz_test = format!("fuzz_{fuzz_id}");
-        let new_fuzz_test_dir = fuzz_dir_path.join(&new_fuzz_test);
-        let new_bin_target = format!("{new_fuzz_test}/test_fuzz.rs");
-
-        create_directory(&new_fuzz_test_dir).await?;
-
-        let fuzz_test_path = new_fuzz_test_dir.join(FUZZ_TEST);
-        let fuzz_instructions_path = new_fuzz_test_dir.join(FUZZ_INSTRUCTIONS_FILE_NAME);
-
-        let cargo_toml_content = load_template!("/src/template/Cargo_fuzz.toml.tmpl");
-
-        let trident_toml_content = load_template!("/src/template/Trident.toml.tmpl");
-
-        create_file(&self.root, &fuzz_test_path, &self.test_fuzz).await?;
-        create_file(&self.root, &fuzz_instructions_path, &self.fuzz_instructions).await?;
-        create_file(&self.root, &fuzz_tests_manifest_path, cargo_toml_content).await?;
-        create_file(&self.root, &trident_toml_path, trident_toml_content).await?;
-
-        add_bin_target(&fuzz_tests_manifest_path, &new_fuzz_test, &new_bin_target).await?;
-        update_fuzz_tests_manifest(
-            &self.versions_config,
-            &self.program_packages,
-            &fuzz_dir_path,
-        )
-        .await?;
-
-        // add_workspace_member(
-        //     &self.root,
-        //     &format!("{TESTS_WORKSPACE_DIRECTORY}/{FUZZ_TEST_DIRECTORY}",),
-        // )
-        // .await?;
     }
 }

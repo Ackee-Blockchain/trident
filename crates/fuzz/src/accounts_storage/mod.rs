@@ -1,12 +1,12 @@
 #![allow(dead_code)]
 use std::collections::HashMap;
 
-use crate::AccountId;
+use crate::types::AccountId;
 
 pub mod keypair_store;
 pub mod pda_store;
 
-use crate::fuzz_client::FuzzClient;
+use crate::traits::FuzzClient;
 pub use keypair_store::KeypairStore;
 pub use pda_store::PdaStore;
 use solana_sdk::account::AccountSharedData;

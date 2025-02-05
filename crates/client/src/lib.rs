@@ -8,6 +8,9 @@ mod commander;
 mod idl_loader;
 // mod source_code_generators;
 mod test_generator;
+mod test_generator_gitignore;
+mod test_generator_manifest;
+mod test_generator_template;
 mod utils;
 mod versions_config;
 
@@ -22,28 +25,33 @@ pub mod ___private {
 
 mod constants {
     // tomls
-    pub const CARGO_TOML: &str = "Cargo.toml";
-    pub const TRIDENT_TOML: &str = "Trident.toml";
-    pub const ANCHOR_TOML: &str = "Anchor.toml";
+    pub(crate) const CARGO_TOML: &str = "Cargo.toml";
+    pub(crate) const TRIDENT_TOML: &str = "Trident.toml";
+    pub(crate) const ANCHOR_TOML: &str = "Anchor.toml";
 
     // tests
-    pub const TESTS_WORKSPACE_DIRECTORY: &str = "trident-tests";
+    pub(crate) const TESTS_WORKSPACE_DIRECTORY: &str = "trident-tests";
+    pub(crate) const INSTRUCTIONS_DIRECTORY: &str = "instructions";
+    pub(crate) const TRANSACTIONS_DIRECTORY: &str = "transactions";
 
     // fuzz
-    pub const FUZZ_INSTRUCTIONS_FILE_NAME: &str = "fuzz_instructions.rs";
-    pub const FUZZ_TEST: &str = "test_fuzz.rs";
+    // fuzz
+    pub(crate) const FUZZ_TRANSACTIONS_FILE_NAME: &str = "fuzz_transactions.rs";
+    pub(crate) const TYPES_FILE_NAME: &str = "types.rs";
+    pub(crate) const FUZZ_TEST: &str = "test_fuzz.rs";
 
     // honggfuzz
-    pub const CARGO_TARGET_DIR_DEFAULT_HFUZZ: &str = "trident-tests/fuzzing/honggfuzz/hfuzz_target";
+    pub(crate) const CARGO_TARGET_DIR_DEFAULT_HFUZZ: &str =
+        "trident-tests/fuzzing/honggfuzz/hfuzz_target";
 
     // afl
-    pub const CARGO_TARGET_DIR_DEFAULT_AFL: &str = "trident-tests/fuzzing/afl/afl_target";
+    pub(crate) const CARGO_TARGET_DIR_DEFAULT_AFL: &str = "trident-tests/fuzzing/afl/afl_target";
 
     // workspace
-    pub const GIT_IGNORE: &str = ".gitignore";
+    pub(crate) const GIT_IGNORE: &str = ".gitignore";
 
     // Formatting
-    pub const SKIP: &str = "\x1b[33mSkip\x1b[0m";
-    pub const FINISH: &str = "\x1b[92mFinished\x1b[0m";
-    pub const ERROR: &str = "\x1b[31mError\x1b[0m";
+    pub(crate) const SKIP: &str = "\x1b[33mSkip\x1b[0m";
+    pub(crate) const FINISH: &str = "\x1b[92mFinished\x1b[0m";
+    pub(crate) const ERROR: &str = "\x1b[31mError\x1b[0m";
 }
