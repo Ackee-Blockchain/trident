@@ -354,23 +354,24 @@ impl IxOps for WithdrawUnlocked {
         }
         Ok((signers, account_metas))
     }
-    fn check(
+    fn transaction_invariant_check(
         &self,
-        pre_ix: &[SnapshotAccount],
-        post_ix: &[SnapshotAccount],
-        _ix_data: Vec<u8>,
+        pre_tx: &TransactionSnapshot,
+        post_tx: &TransactionSnapshot,
     ) -> Result<(), FuzzingError> {
-        if let Ok(escrow) = Escrow::deserialize(&mut pre_ix[2].data_no_discriminator()) {
-            let recipient = pre_ix[0].pubkey();
+        if let Ok(escrow) =
+            Escrow::deserialize(&mut pre_tx.get_accounts_at(0)[2].data_no_discriminator())
+        {
+            let recipient = pre_tx.get_accounts_at(0)[0].pubkey();
 
             let recipient_token_account_pre =
-                match spl_token::state::Account::unpack(pre_ix[1].data()) {
+                match spl_token::state::Account::unpack(pre_tx.get_accounts_at(0)[1].data()) {
                     Ok(recipient_token_account_pre) => recipient_token_account_pre,
                     Err(_) => return Ok(()),
                 };
 
             let recipient_token_account_post =
-                match spl_token::state::Account::unpack(post_ix[1].data()) {
+                match spl_token::state::Account::unpack(post_tx.get_accounts_at(0)[1].data()) {
                     Ok(recipient_token_account_post) => recipient_token_account_post,
                     Err(_) => return Ok(()),
                 };

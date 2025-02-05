@@ -9,6 +9,8 @@ use crate::fuzz_client::FuzzClient;
 
 use crate::error::*;
 
+/// A struct that represents an account in the snapshot.
+/// It contains the address of the account and the account data (AccountSharedData).
 pub struct SnapshotAccount {
     address: Pubkey,
     account: AccountSharedData,
@@ -44,17 +46,60 @@ impl SnapshotAccount {
         self.account.rent_epoch()
     }
 }
-pub struct Snapshot {
-    before: Vec<SnapshotAccount>,
-    after: Vec<SnapshotAccount>,
-    metas: Vec<AccountMeta>,
+
+/// A struct that represents the snapshot of a transaction.
+/// It contains the accounts and the data of each instruction in the transaction.
+#[derive(Default)]
+pub struct TransactionSnapshot {
+    accounts: Vec<Vec<SnapshotAccount>>,
+    data: Vec<Vec<u8>>,
+}
+
+impl TransactionSnapshot {
+    fn with_data(data: Vec<Vec<u8>>) -> Self {
+        Self {
+            accounts: vec![],
+            data,
+        }
+    }
+    fn add_accounts(&mut self, accounts: Vec<Vec<SnapshotAccount>>) {
+        self.accounts = accounts;
+    }
+    pub fn get_accounts_at(&self, instruction_index: usize) -> &[SnapshotAccount] {
+        if self.accounts.len() > instruction_index {
+            &self.accounts[instruction_index]
+        } else {
+            panic!(
+                "Transaction snapshot does not contain that many instructions {}",
+                instruction_index
+            );
+        }
+    }
+    pub fn get_data_at(&self, instruction_index: usize) -> &[u8] {
+        if self.data.len() > instruction_index {
+            &self.data[instruction_index]
+        } else {
+            panic!(
+                "Transaction snapshot does not contain that many instructions {}",
+                instruction_index
+            );
+        }
+    }
+}
+
+/// A struct that represents the snapshot of transaction before and after execution.
+/// It is used internally by the fuzzer to capture the accounts and data of the transaction before and after execution.
+pub(crate) struct Snapshot {
+    before: TransactionSnapshot,
+    after: TransactionSnapshot,
+    metas: Vec<Vec<AccountMeta>>,
 }
 
 impl Snapshot {
-    pub fn new(metas: &[AccountMeta]) -> Snapshot {
+    pub fn new(metas: &[Vec<AccountMeta>], data: Vec<Vec<u8>>) -> Snapshot {
         Self {
-            before: Default::default(),
-            after: Default::default(),
+            before: TransactionSnapshot::with_data(data.clone()),
+            after: TransactionSnapshot::with_data(data),
             metas: metas.to_vec(),
         }
     }
@@ -62,9 +107,12 @@ impl Snapshot {
         &mut self,
         client: &mut impl FuzzClient,
     ) -> Result<(), FuzzClientErrorWithOrigin> {
-        self.before = self
+        let accounts = self
             .capture(client)
             .map_err(|e| e.with_context(Context::Pre))?;
+
+        self.before.add_accounts(accounts);
+
         Ok(())
     }
 
@@ -72,39 +120,47 @@ impl Snapshot {
         &mut self,
         client: &mut impl FuzzClient,
     ) -> Result<(), FuzzClientErrorWithOrigin> {
-        self.after = self
+        let accounts = self
             .capture(client)
             .map_err(|e| e.with_context(Context::Post))?;
+
+        self.after.add_accounts(accounts);
+
         Ok(())
     }
 
     fn capture(
         &mut self,
         client: &mut impl FuzzClient,
-    ) -> Result<Vec<SnapshotAccount>, FuzzClientErrorWithOrigin> {
+    ) -> Result<Vec<Vec<SnapshotAccount>>, FuzzClientErrorWithOrigin> {
         let snapshot_accounts = self
             .metas
             .iter()
-            .map(|meta| {
-                let account = client.get_account(&meta.pubkey);
-                SnapshotAccount {
-                    address: meta.pubkey,
-                    account,
-                }
+            .map(|instruction_metas| {
+                instruction_metas
+                    .iter()
+                    .map(|meta| {
+                        let account = client.get_account(&meta.pubkey);
+                        SnapshotAccount {
+                            address: meta.pubkey,
+                            account,
+                        }
+                    })
+                    .collect()
             })
             .collect();
 
         Ok(snapshot_accounts)
     }
 
-    pub fn get_before(&self) -> &[SnapshotAccount] {
+    pub fn get_before(&self) -> &TransactionSnapshot {
         &self.before
     }
-    pub fn get_after(&self) -> &[SnapshotAccount] {
+    pub fn get_after(&self) -> &TransactionSnapshot {
         &self.after
     }
 
-    pub fn get_snapshot(&self) -> (&[SnapshotAccount], &[SnapshotAccount]) {
+    pub fn get_snapshot(&self) -> (&TransactionSnapshot, &TransactionSnapshot) {
         (self.get_before(), self.get_after())
     }
 }

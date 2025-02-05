@@ -12,6 +12,8 @@ incremented upon a breaking change and the patch version will be incremented for
 
 **Added**
 
+- added support for multiple instructions within a transaction ([264](https://github.com/Ackee-Blockchain/trident/pull/264))
+
 **Removed**
 
 **Changed**

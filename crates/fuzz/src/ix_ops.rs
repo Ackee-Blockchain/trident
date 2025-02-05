@@ -2,7 +2,7 @@
 
 use crate::error::*;
 use crate::fuzz_client::FuzzClient;
-use crate::snapshot::SnapshotAccount;
+use crate::snapshot::TransactionSnapshot;
 use solana_sdk::instruction::AccountMeta;
 use solana_sdk::signature::Keypair;
 use solana_sdk::transaction::TransactionError;
@@ -43,17 +43,15 @@ pub trait IxOps {
         fuzz_accounts: &mut Self::IxAccounts,
     ) -> Result<(Vec<Keypair>, Vec<AccountMeta>), FuzzingError>;
 
-    /// A method to implement custom invariants checks for a given instruction. This method is called after each
-    /// successfully executed instruction and by default does nothing. You can override this behavior by providing
-    /// your own implementation. You can access the snapshots of account states before and after the transaction for comparison.
-    ///
-    /// If you want to detect a crash, you have to return a `FuzzingError` (or alternativelly panic).
+    /// A method to implement custom invariants checks for a given transaction. This invariant check is
+    /// executed after each successfully executed transaction. As transactions are atomic, it is not possible to
+    /// call invariant checks on individual instructions. In that case which instruction in transaction is the last
+    /// that invariant check is executed.
     #[allow(unused_variables)]
-    fn check(
+    fn transaction_invariant_check(
         &self,
-        pre_ix: &[SnapshotAccount],
-        post_ix: &[SnapshotAccount],
-        ix_data: Vec<u8>,
+        pre_tx: &TransactionSnapshot,
+        post_tx: &TransactionSnapshot,
     ) -> Result<(), FuzzingError> {
         Ok(())
     }
@@ -67,11 +65,10 @@ pub trait IxOps {
     /// You can also check the kind of the transaction error by inspecting the `e` parameter.
     /// If you would like to detect a crash on a specific error, call `panic!()`.
     #[allow(unused_variables)]
-    fn tx_error_handler(
+    fn transaction_error_handler(
         &self,
         e: TransactionError,
-        ix_data: Vec<u8>,
-        pre_ix_accounts: &[SnapshotAccount],
+        pre_tx: &TransactionSnapshot,
     ) -> Result<(), TransactionError> {
         Err(e)
     }
@@ -80,5 +77,5 @@ pub trait IxOps {
     /// successfully executed instruction and by default does nothing. You can override this behavior by providing
     /// your own implementation.
     #[allow(unused_variables)]
-    fn post_instruction(&self, client: &mut impl FuzzClient, post_ix: &[SnapshotAccount]) {}
+    fn post_transaction(&self, client: &mut impl FuzzClient, post_tx: &TransactionSnapshot) {}
 }

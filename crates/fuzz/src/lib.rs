@@ -58,8 +58,8 @@ pub mod fuzzing {
     pub use super::fuzz_stats::FuzzingStatistics;
     pub use super::fuzz_test_executor::FuzzTestExecutor;
     pub use super::ix_ops::IxOps;
-    pub use super::snapshot::Snapshot;
     pub use super::snapshot::SnapshotAccount;
+    pub use super::snapshot::TransactionSnapshot;
     pub use super::transaction_executor::TransactionExecutor;
 
     pub use std::cell::RefCell;

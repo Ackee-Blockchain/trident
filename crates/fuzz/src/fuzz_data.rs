@@ -8,12 +8,38 @@ use std::fmt::Display;
 
 use crate::fuzz_client::FuzzClient;
 use crate::fuzz_test_executor::FuzzTestExecutor;
+use crate::fuzzing::TransactionExecutor;
 use trident_config::TridentConfig;
 
+pub struct TransactionInstructions<T> {
+    pub instructions: Vec<T>,
+}
+
+impl<T: Display> Display for TransactionInstructions<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "[")?;
+        for (i, instruction) in self.instructions.iter().enumerate() {
+            if i > 0 {
+                write!(f, ", ")?;
+            }
+            write!(f, "{}", instruction)?;
+        }
+        write!(f, "]")
+    }
+}
+
+impl<T> From<T> for TransactionInstructions<T> {
+    fn from(value: T) -> Self {
+        TransactionInstructions {
+            instructions: vec![value],
+        }
+    }
+}
+
 pub struct FuzzData<T, U> {
-    pub pre_ixs: Vec<T>,
-    pub ixs: Vec<T>,
-    pub post_ixs: Vec<T>,
+    pub pre_ixs: Vec<TransactionInstructions<T>>,
+    pub ixs: Vec<TransactionInstructions<T>>,
+    pub post_ixs: Vec<TransactionInstructions<T>>,
     pub accounts: RefCell<U>,
 }
 
@@ -24,7 +50,7 @@ pub struct FuzzDataIterator<'a, T> {
 }
 
 impl<T, U> FuzzData<T, U> {
-    pub fn iter(&self) -> FuzzDataIterator<'_, T> {
+    pub fn iter(&self) -> FuzzDataIterator<'_, TransactionInstructions<T>> {
         FuzzDataIterator {
             pre_ixs_iter: self.pre_ixs.iter(),
             ixs_iter: self.ixs.iter(),
@@ -53,16 +79,6 @@ where
         client: &mut impl FuzzClient,
         config: &TridentConfig,
     ) -> core::result::Result<(), Box<dyn Error + 'static>> {
-        // solana_logger::setup_with_default("off");
-        // #[cfg(fuzzing_debug)]
-        // solana_logger::setup_with_default(
-        //     "solana_rbpf::vm=debug,\
-        //         solana_runtime::message_processor=debug,\
-        //         solana_runtime::system_instruction_processor=trace,\
-        //         solana_program_test=info,\
-        //         fuzz_target=info",
-        // );
-
         #[cfg(feature = "fuzzing_debug")]
         {
             eprintln!("\x1b[34mInstructions sequence\x1b[0m:");
@@ -72,12 +88,21 @@ where
             eprintln!("------ End of Instructions sequence ------ ");
         }
 
-        for fuzz_ix in &mut self.iter() {
+        for instructions_batch in &mut self.iter() {
             // #[cfg(feature = "fuzzing_debug")]
-            println!("\x1b[34mCurrently processing\x1b[0m: {}", fuzz_ix);
+            println!(
+                "\x1b[96mCurrently processing transaction with instructions\x1b[0m: {}",
+                instructions_batch
+            );
 
-            if fuzz_ix.run_fuzzer(&self.accounts, client, config).is_err() {
-                // for now skip following instructions in case of error and move to the next fuzz iteration
+            if TransactionExecutor::process_instructions_batch(
+                client,
+                instructions_batch,
+                config,
+                &self.accounts,
+            )
+            .is_err()
+            {
                 client.clear_accounts();
                 return Ok(());
             }
@@ -90,22 +115,26 @@ where
 #[allow(unused_variables)]
 pub trait FuzzDataBuilder<T: for<'a> Arbitrary<'a>> {
     /// The instruction(s) executed as first, can be used for initialization.
-    fn pre_ixs(u: &mut Unstructured) -> arbitrary::Result<Vec<T>> {
+    fn pre_ixs(u: &mut Unstructured) -> arbitrary::Result<Vec<TransactionInstructions<T>>> {
         Ok(vec![])
     }
 
     /// The main instructions for fuzzing.
-    fn ixs(u: &mut Unstructured) -> arbitrary::Result<Vec<T>> {
+    fn ixs(u: &mut Unstructured) -> arbitrary::Result<Vec<TransactionInstructions<T>>> {
         let v = <Vec<T>>::arbitrary(u)?;
+
         // Return always a vector with at least one element, othewise return error.
         if v.is_empty() {
             return Err(arbitrary::Error::NotEnoughData);
         }
-        Ok(v)
+        // convert the vector of instructions to a vector of TransactionInstructions each with single instruction
+        Ok(v.into_iter()
+            .map(|x| TransactionInstructions::<T>::from(x))
+            .collect())
     }
 
     /// The instuction(s) executed as last.
-    fn post_ixs(u: &mut Unstructured) -> arbitrary::Result<Vec<T>> {
+    fn post_ixs(u: &mut Unstructured) -> arbitrary::Result<Vec<TransactionInstructions<T>>> {
         Ok(vec![])
     }
 }

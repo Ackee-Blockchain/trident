@@ -1,12 +1,11 @@
 #[macro_export]
 macro_rules! pre_sequence {
-    // Accept a list of FuzzInstruction variants using parentheses `()`
-    ($($ix_variant:ident),* $(,)?) => {
-        fn pre_ixs(_u: &mut arbitrary::Unstructured) -> arbitrary::Result<Vec<FuzzInstruction>> {
+    // Handle mix of single instructions and arrays
+    ($($element:tt),* $(,)?) => {
+        fn pre_ixs(_u: &mut arbitrary::Unstructured) -> arbitrary::Result<Vec<TransactionInstructions<FuzzInstruction>>> {
             let mut instructions = Vec::new();
             $(
-                let ix = FuzzInstruction::$ix_variant($ix_variant::arbitrary(_u)?);
-                instructions.push(ix);
+                match_element!($element, instructions, _u);
             )*
             Ok(instructions)
         }
@@ -14,15 +13,30 @@ macro_rules! pre_sequence {
 }
 
 #[macro_export]
+macro_rules! match_element {
+    // Handle single instruction
+    ($ix_variant:ident, $instructions:ident, $u:ident) => {
+        let ix = FuzzInstruction::$ix_variant($ix_variant::arbitrary($u)?);
+        $instructions.push(TransactionInstructions { instructions: vec![ix] });
+    };
+    // Handle array of instructions
+    ([$($ix_variant:ident),+ $(,)?], $instructions:ident, $u:ident) => {
+        let mut batch = Vec::new();
+        $(
+            batch.push(FuzzInstruction::$ix_variant($ix_variant::arbitrary($u)?));
+        )*
+        $instructions.push(TransactionInstructions { instructions: batch });
+    };
+}
+
+#[macro_export]
 macro_rules! middle_sequence {
-    // Accept a list of FuzzInstruction variants (which may include duplicates)
-    ($($ix_variant:ident),* $(,)?) => {
-        fn ixs(_u: &mut arbitrary::Unstructured) -> arbitrary::Result<Vec<FuzzInstruction>> {
+    ($($element:tt),* $(,)?) => {
+        fn ixs(_u: &mut arbitrary::Unstructured) -> arbitrary::Result<Vec<TransactionInstructions<FuzzInstruction>>> {
             #[allow(unused_mut)]
             let mut instructions = Vec::new();
             $(
-                let ix = FuzzInstruction::$ix_variant($ix_variant::arbitrary(_u)?);
-                instructions.push(ix);
+                match_element!($element, instructions, _u);
             )*
             Ok(instructions)
         }
@@ -31,14 +45,12 @@ macro_rules! middle_sequence {
 
 #[macro_export]
 macro_rules! post_sequence {
-    // Accept a list of FuzzInstruction variants (which may include duplicates)
-    ($($ix_variant:ident),* $(,)?) => {
-        fn post_ixs(_u: &mut arbitrary::Unstructured) -> arbitrary::Result<Vec<FuzzInstruction>> {
+    ($($element:tt),* $(,)?) => {
+        fn post_ixs(_u: &mut arbitrary::Unstructured) -> arbitrary::Result<Vec<TransactionInstructions<FuzzInstruction>>> {
             #[allow(unused_mut)]
             let mut instructions = Vec::new();
             $(
-                let ix = FuzzInstruction::$ix_variant($ix_variant::arbitrary(_u)?);
-                instructions.push(ix);
+                match_element!($element, instructions, _u);
             )*
             Ok(instructions)
         }
