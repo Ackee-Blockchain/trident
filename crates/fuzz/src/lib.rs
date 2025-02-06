@@ -10,6 +10,7 @@ pub mod fuzz_test_executor;
 pub mod fuzz_trident;
 pub mod instructions_sequence;
 pub mod ix_ops;
+pub mod metrics;
 pub mod transaction_executor;
 
 pub mod fuzzing {
@@ -56,6 +57,8 @@ pub mod fuzzing {
     pub use super::fuzz_data::build_ix_fuzz_data;
     pub use super::fuzz_data::*;
     pub use super::fuzz_stats::FuzzingStatistics;
+    pub use super::metrics::FuzzingMetrics;
+
     pub use super::fuzz_test_executor::FuzzTestExecutor;
     pub use super::ix_ops::IxOps;
     pub use super::snapshot::Snapshot;
@@ -69,4 +72,8 @@ pub mod fuzzing {
 
     pub use super::accounts_storage::KeypairStore;
     pub use super::accounts_storage::PdaStore;
+
+    pub use signal_hook::consts::SIGINT;
+    pub use signal_hook::iterator::Signals;
+    pub use std::io::Write;
 }

@@ -1,0 +1,7 @@
+# environment variables:
+AFL_CUSTOM_INFO_PROGRAM=/home/andrej/solana/trident/trident/examples/hello_world/trident-tests/fuzzing/afl/afl_target/debug/fuzz_0
+AFL_CUSTOM_INFO_PROGRAM_ARGV=
+AFL_CUSTOM_INFO_OUT=/home/andrej/solana/trident/trident/examples/hello_world/trident-tests/fuzzing/afl/afl_workspace/out/default
+AFL_KILL_SIGNAL=2
+# command line:
+'/home/andrej/.local/share/afl.rs/rustc-1.81.0-eeb90cd/afl.rs-0.15.13/afl/bin/afl-fuzz' '-c0' '-i' '/home/andrej/solana/trident/trident/examples/hello_world/trident-tests/fuzzing/afl/afl_workspace/in' '-o' '/home/andrej/solana/trident/trident/examples/hello_world/trident-tests/fuzzing/afl/afl_workspace/out' '-E' '10000' '-V' '20' '/home/andrej/solana/trident/trident/examples/hello_world/trident-tests/fuzzing/afl/afl_target/debug/fuzz_0'

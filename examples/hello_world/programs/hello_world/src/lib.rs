@@ -10,9 +10,9 @@ pub mod hello_world {
         let hello_world_store = &mut ctx.accounts.hello_world_account;
         hello_world_store.input = input;
 
-        if input > 200 && input < 210 {
-            panic!("This number is magic")
-        }
+        // if input > 200 && input < 210 {
+        //     panic!("This number is magic")
+        // }
 
         Ok(())
     }

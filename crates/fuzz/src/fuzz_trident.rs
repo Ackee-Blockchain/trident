@@ -7,6 +7,25 @@ macro_rules! fuzz_trident {
             $client:ident: $client_dty:ident,
             $config:ident: $config_dty:ident
         |) => {
+        let mut metrics = std::sync::Arc::new(std::sync::Mutex::new(FuzzingMetrics::new()));
+        let metrics_clone = std::sync::Arc::clone(&metrics);
+
+        let mut signals = Signals::new([SIGINT]).unwrap();
+        std::thread::spawn(move || {
+            if let Some(_) = signals.forever().next() {
+                let metrics_data = metrics_clone.lock().unwrap();
+                let mut file = std::fs::File::create("signal_triggered.txt").unwrap();
+                writeln!(
+                    file,
+                    "SIGINT was triggered!\nFinal metrics:\n{:#?}",
+                    *metrics_data
+                )
+                .unwrap();
+                // std::process::exit(0);
+                panic!("SIGINT was triggered!");
+            }
+        });
+
         if cfg!(honggfuzz) {
             loop {
                 fuzz_honggfuzz(|$buf| {
@@ -25,7 +44,13 @@ macro_rules! fuzz_trident {
                 });
             }
         } else if cfg!(afl) {
+            let metrics_clone = std::sync::Arc::clone(&metrics);
+
             fuzz_afl(true, |$buf| {
+                metrics_clone
+                    .lock()
+                    .unwrap()
+                    .increase_invoked("test".to_string());
                 let mut $buf: FuzzData<$ix_dty, _> = {
                     use arbitrary::Unstructured;
 
