@@ -90,7 +90,7 @@ impl Template {
     }
     pub fn get_custom_types(&self) -> String {
         let custom_types = self.custom_types.clone();
-        let module_definition: syn::File = parse_quote! {
+        let common_header = quote::quote! {
             use borsh::{BorshDeserialize, BorshSerialize};
             use trident_fuzz::fuzzing::*;
 
@@ -98,8 +98,22 @@ impl Template {
             /// or invariant checks.
             ///
             /// You can create your own types here and use them in transactions and instructions.
+        };
 
-            #(#custom_types)*
+        let module_definition: syn::File = match custom_types.len() {
+            0 => parse_quote! {
+                #common_header
+
+                #[derive(Arbitrary, Debug, BorshDeserialize, BorshSerialize, Clone)]
+                pub struct ExampleType {
+                    example_data: u8,
+                }
+            },
+            _ => parse_quote! {
+                #common_header
+
+                #(#custom_types)*
+            },
         };
         module_definition.into_token_stream().to_string()
     }
