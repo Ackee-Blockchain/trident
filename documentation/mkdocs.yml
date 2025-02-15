@@ -8,34 +8,76 @@ site_author: Ackee Blockchain Security
 
 
 nav:
-  - Installation:
-      - installation/installation.md
-  - Writing Fuzz Test:
-      - writing-fuzz-test/writing-fuzz-test.md
-  - Fuzz Test Features:
-      - features/features.md
-      - Features:
-        - features/account-storages.md
-        - features/fuzz-instructions.md
-        - features/instructions-sequences.md
-        - features/programs-n-accounts.md
-        - features/invariant-checks.md
-        - features/customize-ix-data.md
-        - features/fuzzing-statistics.md
-        - features/error-handlers.md
-        - features/trident-manifest.md
-      - Extra:
-        - features/lifecycle.md
-        - features/limitations.md
-  - Commands:
-        - commands/commands.md
-  - Examples:
-        - examples/examples.md
-  - FAQ:
-        - faq/faq.md
-  - Get Help:
-        - get-help/get-help.md
-  - CHANGELOG.md
+  - Basics:
+      - "index.md"
+      - basics/installation.md
+      - basics/commands.md
+      - basics/CHANGELOG.md
+      - basics/faq.md
+      - basics/get-help.md
+  - Start Fuzzing:
+      - start-fuzzing/start-fuzzing.md
+      - Writting Fuzz Test:
+        - start-fuzzing/writting-fuzz-test/writing-fuzz-test.md
+        - start-fuzzing/writting-fuzz-test/instruction-accounts.md
+        - start-fuzzing/writting-fuzz-test/instruction-data.md
+        - start-fuzzing/writting-fuzz-test/remaining-accounts.md
+      - start-fuzzing/executing-fuzz-test.md
+  - Advanced Customization:
+      - trident-advanced/index.md
+      - Transaction Methods:
+          - trident-advanced/trident-transactions/transaction-methods/index.md
+          - trident-advanced/trident-transactions/transaction-methods/pre-post-execution.md
+          - trident-advanced/trident-transactions/transaction-methods/invariant-check.md
+          - trident-advanced/trident-transactions/transaction-methods/error-handler.md
+          - trident-advanced/trident-transactions/transaction-methods/typed-accounts.md
+      - Multi-Instruction Transactions:
+          - trident-advanced/trident-transactions/multi-instruction-transactions/index.md
+      - Fuzzing Flows:
+          - trident-advanced/trident-transactions/trident-fuzzing-flows/index.md
+  - API & Macro Reference:
+      - trident-api-macro/index.md
+      - Fuzz Client:
+          - trident-api-macro/trident-fuzz-client/index.md
+      - TridentTransaction:
+          - trident-api-macro/trident-macros/trident-transaction/index.md
+          - Attributes: trident-api-macro/trident-macros/trident-transaction/attributes.md
+      - TridentInstruction:
+          - trident-api-macro/trident-macros/trident-instruction/index.md
+          - Attributes: trident-api-macro/trident-macros/trident-instruction/attributes.md
+      - TridentAccounts:
+          - trident-api-macro/trident-macros/trident-accounts/index.md
+          - Attributes: trident-api-macro/trident-macros/trident-accounts/attributes.md
+      - TridentRemainingAccounts:
+          - trident-api-macro/trident-macros/trident-remaining-accounts/index.md
+          - Attributes: trident-api-macro/trident-macros/trident-remaining-accounts/attributes.md
+      - FuzzTestExecutor:
+          - trident-api-macro/trident-macros/trident-fuzz-executor/index.md
+          - Attributes: trident-api-macro/trident-macros/trident-fuzz-executor/attributes.md
+      - Fuzz Transactions:
+          - trident-api-macro/trident-types/fuzz_transactions/index.md
+      - Fuzz Accounts:
+          - trident-api-macro/trident-types/fuzz-accounts/index.md
+          - Methods: trident-api-macro/trident-types/fuzz-accounts/methods.md
+      - Transactions Sequences:
+          - trident-api-macro/trident-types/transactions_sequences/index.md
+      - Trident Account:
+          - trident-api-macro/trident-types/trident_account/index.md
+          - Methods: trident-api-macro/trident-types/trident_account/methods.md
+      - Trident Pubkey:
+          - trident-api-macro/trident-types/trident_pubkey/index.md
+          - Methods: trident-api-macro/trident-types/trident_pubkey/methods.md
+      - Custom Types:
+          - trident-api-macro/trident-types/custom_types/index.md
+  - Trident Manifest:
+      - trident-manifest/trident-manifest.md
+      - trident-manifest/general.md
+      - trident-manifest/afl.md
+      - trident-manifest/honggfuzz.md
+  - TridentSVM:
+      - trident-svm/trident-svm.md
+  - Trident Examples:
+      - trident-examples/trident-examples.md
 
 # Beware this is strongly dependent on names of folders , example:
 # images have to be stored within the docs/images folder
@@ -62,6 +104,7 @@ theme:
   features:
   # https://squidfunk.github.io/mkdocs-material/setup/setting-up-navigation/#navigation-tabs
     - navigation.tabs
+    - navigation.tabs.sticky
   # https://squidfunk.github.io/mkdocs-material/setup/setting-up-navigation/#back-to-top-button
     - navigation.top
   # https://squidfunk.github.io/mkdocs-material/setup/setting-up-navigation/#section-index-pages
@@ -74,6 +117,8 @@ theme:
     # - navigation.footer
   icon:
     repo: fontawesome/brands/github
+  font:
+        text: Space Grotesk
 
 # https://squidfunk.github.io/mkdocs-material/setup/setting-up-the-footer/?h=social#social-links
 extra:
@@ -98,7 +143,7 @@ plugins:
       type: timeago
   - mike:
       canonical_version: latest
-  - social
+  # - social
 
 # https://squidfunk.github.io/mkdocs-material/customization/?h=extra+css#additional-css
 extra_css:
