@@ -13,16 +13,5 @@ run_time = 20
 exit_upon_crash = true
 
 [afl]
-iterations = 1000
+iterations = 10000
 run_time = 20
-
-[[afl.seeds]]
-file_name = "custom-seed"
-override_file = false
-bytes_count = 50
-
-
-[[afl.seeds]]
-file_name = "custom-seed-text"
-override_file = false
-seed = "This is a custom seed"

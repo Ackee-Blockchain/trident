@@ -1,8 +1,11 @@
+use fuzz_transactions::FuzzTransactions;
 use trident_fuzz::fuzzing::*;
-mod fuzz_instructions;
-use fuzz_instructions::FuzzTransactions;
-use fuzz_instructions::*;
+mod fuzz_transactions;
+mod instructions;
+mod transactions;
+mod types;
 use hello_world::entry as entry_hello_world;
+pub use transactions::*;
 struct TransactionsSequence;
 /// Define transaction sequences for execution.
 /// `starting_sequence` runs at the start, `middle` in the middle, and `ending`
@@ -13,12 +16,12 @@ struct TransactionsSequence;
 /// impl FuzzDataBuilder<FuzzTransactions> for InstructionsSequence {
 ///     fn starting_sequence(fuzzer_data: &mut FuzzerData) ->
 /// SequenceResult<FuzzTransactions> {
-///         let seq1 = transaction!([InitializeFn, UpdateFn], fuzzer_data);
+///         let seq1 = sequence!([InitializeFn, UpdateFn], fuzzer_data);
 ///         Ok(seq1)
 ///     }
 ///     fn middle_sequence(fuzzer_data: &mut FuzzerData) ->
 /// SequenceResult<FuzzTransactions> {
-///         let seq1 = transaction!([WithdrawFn], fuzzer_data);
+///         let seq1 = sequence!([WithdrawFn], fuzzer_data);
 ///         Ok(seq1)
 ///     }
 ///}
@@ -26,9 +29,8 @@ struct TransactionsSequence;
 /// For more details, see: https://ackee.xyz/trident/docs/latest/features/instructions-sequences/#instructions-sequences
 impl FuzzSequenceBuilder<FuzzTransactions> for TransactionsSequence {
     fn starting_sequence(fuzzer_data: &mut FuzzerData) -> SequenceResult<FuzzTransactions> {
-        let seq = transaction!([InitializeFnTransaction], fuzzer_data);
-
-        Ok(seq)
+        let seq1 = sequence!([InitializeFnTransaction], fuzzer_data);
+        Ok(seq1)
     }
     fn middle_sequence(_fuzzer_data: &mut FuzzerData) -> SequenceResult<FuzzTransactions> {
         Ok(vec![])
