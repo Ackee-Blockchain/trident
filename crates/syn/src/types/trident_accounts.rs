@@ -52,5 +52,5 @@ pub struct TridentConstraints {
     pub signer: bool,
     pub address: Option<syn::Expr>,
     pub skip_snapshot: bool,
-    // pub storage: Option<Ident>,
+    pub storage: Option<Ident>,
 }

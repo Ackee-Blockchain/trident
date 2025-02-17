@@ -11,9 +11,13 @@ pub struct InitVestingInstruction {
 /// Instruction Accounts
 #[derive(Arbitrary, Debug, Clone, TridentAccounts)]
 pub struct InitVestingInstructionAccounts {
+    #[account(signer, mut,storage = sender)]
     pub sender: TridentAccount,
+    #[account(mut)]
     pub sender_token_account: TridentAccount,
+    #[account(mut)]
     pub escrow: TridentAccount,
+    #[account(mut)]
     pub escrow_token_account: TridentAccount,
     pub mint: TridentAccount,
     #[account(address = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA", skip_snapshot)]
@@ -93,77 +97,75 @@ impl<'a> Arbitrary<'a> for InitVestingInstructionData {
 impl InstructionSetters for InitVestingInstruction {
     type IxAccounts = FuzzAccounts;
     fn set_data(&mut self, client: &mut impl FuzzClient, fuzz_accounts: &mut Self::IxAccounts) {
-        let recipient = fuzz_accounts.recipient.get_or_create_account(
+        let recipient = fuzz_accounts.recipient.get_or_create(
             self.data.recipient.account_id,
             client,
-            500 * LAMPORTS_PER_SOL,
+            None,
+            None,
         );
-        self.data.recipient.pubkey = recipient.pubkey();
+
+        self.data.recipient.pubkey = recipient;
     }
     fn set_accounts(&mut self, client: &mut impl FuzzClient, fuzz_accounts: &mut Self::IxAccounts) {
-        let recipient = fuzz_accounts.recipient.get(self.data.recipient.account_id);
-
-        let mint =
-            fuzz_accounts
-                .mint
-                .get_or_create_mint_account(0, client, 6, &recipient.pubkey(), None);
-        self.accounts
-            .mint
-            .set_account_meta(mint.pubkey(), false, false);
-
-        let sender = fuzz_accounts.sender.get_or_create_account(
-            self.accounts.sender.account_id,
+        let recipient = fuzz_accounts.recipient.get_or_create(
+            self.data.recipient.account_id,
             client,
-            500 * LAMPORTS_PER_SOL,
+            None,
+            None,
         );
-        self.accounts
-            .sender
-            .set_account_meta(sender.pubkey(), true, true);
+
+        let mint = fuzz_accounts
+            .mint
+            .get_or_create_mint_account(0, client, None, 6, &recipient, None);
+
+        self.accounts.mint.set_address(mint);
 
         let sender_token_account = fuzz_accounts
             .sender_token_account
             .get_or_create_token_account(
                 self.accounts.sender_token_account.account_id,
                 client,
-                mint.pubkey(),
-                sender.pubkey(),
+                None,
+                mint,
+                self.accounts.sender.pubkey(),
                 u64::MAX,
                 None,
                 false,
                 0,
                 None,
             );
-        self.accounts.sender_token_account.set_account_meta(
-            sender_token_account.pubkey(),
-            false,
-            true,
-        );
+        self.accounts
+            .sender_token_account
+            .set_address(sender_token_account);
 
-        let escrow = fuzz_accounts.escrow.get_or_create_account(
+        let escrow = fuzz_accounts.escrow.get_or_create(
             self.accounts.escrow.account_id,
             client,
-            &[&recipient.pubkey().to_bytes(), b"ESCROW_SEED"],
-            &self.get_program_id(),
+            Some(PdaSeeds::new(
+                &[&recipient.to_bytes(), b"ESCROW_SEED"],
+                self.get_program_id(),
+            )),
+            None,
         );
-        self.accounts.escrow.set_account_meta(escrow, false, true);
+        self.accounts.escrow.set_address(escrow);
 
         let escrow_token_account = fuzz_accounts
             .escrow_token_account
             .get_or_create_token_account(
                 self.accounts.escrow_token_account.account_id,
                 client,
-                mint.pubkey(),
-                sender.pubkey(),
+                None,
+                mint,
+                self.accounts.sender.pubkey(),
                 0,
                 None,
                 false,
                 0,
                 None,
             );
-        self.accounts.escrow_token_account.set_account_meta(
-            escrow_token_account.pubkey(),
-            false,
-            true,
-        );
+
+        self.accounts
+            .escrow_token_account
+            .set_address(escrow_token_account);
     }
 }

@@ -11,6 +11,7 @@ pub struct InitializeCallerInstruction {
 /// Instruction Accounts
 #[derive(Arbitrary, Debug, Clone, TridentAccounts)]
 pub struct InitializeCallerInstructionAccounts {
+    #[account(signer, mut,storage = signer)]
     pub signer: TridentAccount,
     #[account(address = "HJR1TK8bgrUWzysdpS1pBGBYKF7zi1tU9cS4qj8BW8ZL")]
     pub program: TridentAccount,
@@ -28,14 +29,10 @@ pub struct InitializeCallerInstructionData {
 /// - (Optional) Set remaining accounts during fuzzing
 impl InstructionSetters for InitializeCallerInstruction {
     type IxAccounts = FuzzAccounts;
-    fn set_accounts(&mut self, client: &mut impl FuzzClient, fuzz_accounts: &mut Self::IxAccounts) {
-        let signer = fuzz_accounts.signer.get_or_create_account(
-            self.accounts.signer.account_id,
-            client,
-            50 * LAMPORTS_PER_SOL,
-        );
-        self.accounts
-            .signer
-            .set_account_meta(signer.pubkey(), true, true);
+    fn set_accounts(
+        &mut self,
+        _client: &mut impl FuzzClient,
+        _fuzz_accounts: &mut Self::IxAccounts,
+    ) {
     }
 }
