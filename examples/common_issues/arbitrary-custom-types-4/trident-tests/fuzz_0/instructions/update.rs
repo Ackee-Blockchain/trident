@@ -31,10 +31,22 @@ pub struct UpdateInstructionData {
 impl InstructionSetters for UpdateInstruction {
     type IxAccounts = FuzzAccounts;
     fn set_accounts(&mut self, client: &mut impl FuzzClient, fuzz_accounts: &mut Self::IxAccounts) {
-        let user = fuzz_accounts.user.get_or_create_account(self.accounts.authority.account_id, client, 500 * LAMPORTS_PER_SOL);
-        self.accounts.authority.set_account_meta(user.pubkey(), true, true);
+        let user = fuzz_accounts.user.get_or_create_account(
+            self.accounts.authority.account_id,
+            client,
+            500 * LAMPORTS_PER_SOL,
+        );
+        self.accounts
+            .authority
+            .set_account_meta(user.pubkey(), true, true);
 
-        let counter = fuzz_accounts.counter.get_or_create_account(self.accounts.counter.account_id, client, 500 * LAMPORTS_PER_SOL);
-        self.accounts.counter.set_account_meta(counter.pubkey(), false, true);
+        let counter = fuzz_accounts.counter.get_or_create_account(
+            self.accounts.counter.account_id,
+            client,
+            500 * LAMPORTS_PER_SOL,
+        );
+        self.accounts
+            .counter
+            .set_account_meta(counter.pubkey(), false, true);
     }
 }

@@ -34,7 +34,11 @@ pub struct MoveEastInstructionData {
 /// - (Optional) Set remaining accounts during fuzzing
 impl InstructionSetters for MoveEastInstruction {
     type IxAccounts = FuzzAccounts;
-    fn set_accounts(&mut self, _client: &mut impl FuzzClient, fuzz_accounts: &mut Self::IxAccounts) {
+    fn set_accounts(
+        &mut self,
+        _client: &mut impl FuzzClient,
+        fuzz_accounts: &mut Self::IxAccounts,
+    ) {
         let state = fuzz_accounts.state.get(1);
         self.accounts.state.set_account_meta(state, false, true);
     }

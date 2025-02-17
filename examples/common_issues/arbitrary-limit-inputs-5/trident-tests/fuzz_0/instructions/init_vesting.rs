@@ -106,13 +106,10 @@ impl InstructionSetters for InitVestingInstruction {
     fn set_accounts(&mut self, client: &mut impl FuzzClient, fuzz_accounts: &mut Self::IxAccounts) {
         let recipient = fuzz_accounts.recipient.get(self.data.recipient.account_id);
 
-        let mint = fuzz_accounts.mint.get_or_create_mint_account(
-            0,
-            client,
-            6,
-            &recipient.pubkey(),
-            None,
-        );
+        let mint =
+            fuzz_accounts
+                .mint
+                .get_or_create_mint_account(0, client, 6, &recipient.pubkey(), None);
         self.accounts
             .mint
             .set_account_meta(mint.pubkey(), false, false);
