@@ -17,5 +17,5 @@ pub enum FuzzTransactions {
 /// https://ackee.xyz/trident/docs/latest/features/account-storages/
 #[derive(Default)]
 pub struct FuzzAccounts {
-    pub signer: AccountsStorage<KeypairStore>,
+    pub signer: AccountsStorage,
 }

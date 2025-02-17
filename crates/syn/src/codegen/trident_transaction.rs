@@ -50,6 +50,7 @@ impl ToTokens for TridentTransactionStruct {
                     client: &mut impl FuzzClient,
                     fuzz_accounts: &mut FuzzAccounts,
                 ) -> Vec<Vec<AccountMeta>> {
+                    #(self.#field_idents.resolve_accounts(client, fuzz_accounts);)*
                     #(self.#field_idents.set_accounts(client, fuzz_accounts);)*
                     #(self.#field_idents.set_remaining_accounts(client, fuzz_accounts);)*
                     vec![

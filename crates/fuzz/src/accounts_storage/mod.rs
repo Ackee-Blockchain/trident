@@ -1,49 +1,42 @@
-#![allow(dead_code)]
-use std::collections::HashMap;
+pub mod account_storage;
+mod mint_account;
+mod stake_account;
+mod token_account;
+mod vote_account;
 
-use crate::types::AccountId;
-
-pub mod keypair_store;
-pub mod pda_store;
-
-use crate::traits::FuzzClient;
-pub use keypair_store::KeypairStore;
-pub use pda_store::PdaStore;
-use solana_sdk::account::AccountSharedData;
 use solana_sdk::pubkey::Pubkey;
 
-pub struct AccountsStorage<T> {
-    accounts: HashMap<AccountId, T>,
-    _max_accounts: u8,
+pub struct AccountMetadata {
+    pub lamports: u64,
+    pub space: usize,
+    pub owner: Pubkey,
 }
 
-impl<T> AccountsStorage<T> {
-    pub fn new(max_accounts: u8) -> Self {
-        let accounts: HashMap<AccountId, T> = HashMap::new();
+impl AccountMetadata {
+    pub fn new(lamports: u64, space: usize, owner: Pubkey) -> Self {
         Self {
-            accounts,
-            _max_accounts: max_accounts,
+            lamports,
+            space,
+            owner,
         }
     }
+}
 
-    pub fn set_custom(
-        &mut self,
-        account_id: AccountId,
-        client: &mut impl FuzzClient,
-        address: Pubkey,
-        account: AccountSharedData,
-    ) where
-        T: From<Pubkey>,
-    {
-        client.set_account_custom(&address, &account);
-        self.accounts.insert(account_id, T::from(address));
-    }
-    pub fn is_empty(&self) -> bool {
-        self.accounts.is_empty()
+pub struct PdaSeeds<'a> {
+    pub seeds: &'a [&'a [u8]],
+    pub program_id: Pubkey,
+}
+
+impl<'a> PdaSeeds<'a> {
+    pub fn new(seeds: &'a [&'a [u8]], program_id: Pubkey) -> Self {
+        Self { seeds, program_id }
     }
 }
-impl<T> Default for AccountsStorage<T> {
-    fn default() -> Self {
-        Self::new(2)
+
+fn derive_pda(seeds: &[&[u8]], program_id: &Pubkey) -> Option<Pubkey> {
+    if let Some((address, _)) = Pubkey::try_find_program_address(seeds, program_id) {
+        Some(address)
+    } else {
+        None
     }
 }

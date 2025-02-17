@@ -11,7 +11,9 @@ pub struct InitializeFnInstruction {
 /// Instruction Accounts
 #[derive(Arbitrary, Debug, Clone, TridentAccounts)]
 pub struct InitializeFnInstructionAccounts {
+    #[account(mut,signer,storage = author)]
     pub author: TridentAccount,
+    #[account(mut)]
     pub hello_world_account: TridentAccount,
     #[account(address = "11111111111111111111111111111111", skip_snapshot)]
     pub system_program: TridentAccount,
@@ -31,23 +33,14 @@ impl InstructionSetters for InitializeFnInstruction {
     type IxAccounts = FuzzAccounts;
 
     fn set_accounts(&mut self, client: &mut impl FuzzClient, fuzz_accounts: &mut Self::IxAccounts) {
-        let author = fuzz_accounts.author.get_or_create_account(
-            self.accounts.author.account_id,
-            client,
-            50 * LAMPORTS_PER_SOL,
-        );
-        self.accounts
-            .author
-            .set_account_meta(author.pubkey(), true, true);
-
-        let hello_world_account = fuzz_accounts.hello_world_account.get_or_create_account(
+        let hello_world_account = fuzz_accounts.hello_world_account.get_or_create(
             self.accounts.hello_world_account.account_id,
             client,
-            &[b"hello_world_seed"],
-            &self.get_program_id(),
+            Some(PdaSeeds::new(&[b"hello_world_seed"], self.get_program_id())),
+            None,
         );
         self.accounts
             .hello_world_account
-            .set_account_meta(hello_world_account, false, true);
+            .set_address(hello_world_account);
     }
 }

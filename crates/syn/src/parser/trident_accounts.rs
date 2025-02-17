@@ -5,6 +5,7 @@ use syn::parse::Result as ParseResult;
 use syn::spanned::Spanned;
 use syn::Attribute;
 use syn::Field;
+use syn::Ident;
 use syn::ItemStruct;
 use syn::Type;
 
@@ -125,14 +126,14 @@ fn parse_constraints(attrs: &[Attribute]) -> ParseResult<TridentConstraints> {
                     }
                     Ok(())
                 }
-                // "storage" => {
-                //     if meta.input.peek(syn::Token![=]) {
-                //         meta.input.parse::<syn::Token![=]>()?;
-                //         let storage_ident: Ident = meta.input.parse()?;
-                //         constraints.storage = Some(storage_ident);
-                //     }
-                //     Ok(())
-                // }
+                "storage" => {
+                    if meta.input.peek(syn::Token![=]) {
+                        meta.input.parse::<syn::Token![=]>()?;
+                        let storage_ident: Ident = meta.input.parse()?;
+                        constraints.storage = Some(storage_ident);
+                    }
+                    Ok(())
+                }
                 "skip_snapshot" => {
                     constraints.skip_snapshot = true;
                     Ok(())

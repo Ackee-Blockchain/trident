@@ -12,21 +12,17 @@ incremented upon a breaking change and the patch version will be incremented for
 
 **Added**
 
-- Derive macros now use own syn parser for better extensibility UX ([275](https://github.com/Ackee-Blockchain/trident/pull/275))
-- Program ID inside test_fuzz.rs file is now automatically filled in if it present in the program IDL ([272](https://github.com/Ackee-Blockchain/trident/pull/272))
-
-**Added**
-
+- Derive macros now use own syn parser for better extensibility and UX ([275](https://github.com/Ackee-Blockchain/trident/pull/275))
+- Program ID inside test_fuzz.rs file is now automatically filled in is present in the program IDL ([272](https://github.com/Ackee-Blockchain/trident/pull/272))
 - Added additional attributes to TridentAccounts, mut and signer ([268](https://github.com/Ackee-Blockchain/trident/pull/268))
-
 - Users can now specify a program for which they want to add or initialize a fuzz test using `--program-name` flag ([273](https://github.com/Ackee-Blockchain/trident/pull/273))
-
 - Allow custom test name specification in fuzz test creation with `--test-name` flag ([274](https://github.com/Ackee-Blockchain/trident/pull/274))
 
 **Removed**
 
 **Changed**
 
+- AccountsStorages are simplified, no types are required to define ([276](https://github.com/Ackee-Blockchain/trident/pull/276))
 - Trident Architecture changes containing multiple features and improvements (details in the PR)([267](https://github.com/Ackee-Blockchain/trident/pull/267))
 - get or create token account methods fixed for native token accounts ([262](https://github.com/Ackee-Blockchain/trident/pull/262))
 
