@@ -36,7 +36,7 @@ pub struct WithdrawUnlockedInstructionData {}
 /// - (Optional) Set remaining accounts during fuzzing
 impl InstructionSetters for WithdrawUnlockedInstruction {
     type IxAccounts = FuzzAccounts;
-        fn set_accounts(&mut self, client: &mut impl FuzzClient, fuzz_accounts: &mut Self::IxAccounts) {
+    fn set_accounts(&mut self, client: &mut impl FuzzClient, fuzz_accounts: &mut Self::IxAccounts) {
         let recipient = fuzz_accounts
             .recipient
             .get(self.accounts.recipient.account_id);

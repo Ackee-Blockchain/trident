@@ -33,8 +33,14 @@ pub struct InvestInstructionData {
 impl InstructionSetters for InvestInstruction {
     type IxAccounts = FuzzAccounts;
     fn set_accounts(&mut self, client: &mut impl FuzzClient, fuzz_accounts: &mut Self::IxAccounts) {
-        let investor = fuzz_accounts.investor.get_or_create_account(self.accounts.investor.account_id, client, 500 * LAMPORTS_PER_SOL);
-        self.accounts.investor.set_account_meta(investor.pubkey(), true, true);
+        let investor = fuzz_accounts.investor.get_or_create_account(
+            self.accounts.investor.account_id,
+            client,
+            500 * LAMPORTS_PER_SOL,
+        );
+        self.accounts
+            .investor
+            .set_account_meta(investor.pubkey(), true, true);
 
         let state = fuzz_accounts.state.get(self.accounts.state.account_id);
         self.accounts.state.set_account_meta(state, false, true);

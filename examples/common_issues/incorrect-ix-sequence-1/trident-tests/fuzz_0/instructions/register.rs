@@ -1,6 +1,6 @@
 use crate::fuzz_transactions::FuzzAccounts;
-use incorrect_ix_sequence_1::PROJECT_SEED;
 use borsh::{BorshDeserialize, BorshSerialize};
+use incorrect_ix_sequence_1::PROJECT_SEED;
 use trident_fuzz::fuzzing::*;
 #[derive(Arbitrary, Debug, TridentInstruction)]
 #[accounts("accounts")]
@@ -32,17 +32,28 @@ pub struct RegisterInstructionData {}
 impl InstructionSetters for RegisterInstruction {
     type IxAccounts = FuzzAccounts;
     fn set_accounts(&mut self, client: &mut impl FuzzClient, fuzz_accounts: &mut Self::IxAccounts) {
-        let project_author = fuzz_accounts.project_author.get_or_create_account(self.accounts.project_author.account_id, client, 500 * LAMPORTS_PER_SOL);
-        self.accounts.project_author.set_account_meta(project_author.pubkey(), true, true);
+        let project_author = fuzz_accounts.project_author.get_or_create_account(
+            self.accounts.project_author.account_id,
+            client,
+            500 * LAMPORTS_PER_SOL,
+        );
+        self.accounts
+            .project_author
+            .set_account_meta(project_author.pubkey(), true, true);
 
         let state = fuzz_accounts.state.get(self.accounts.state.account_id);
         self.accounts.state.set_account_meta(state, false, true);
 
-        let project = fuzz_accounts.project.get_or_create_account(self.accounts.project.account_id, client, &[
-                    project_author.pubkey().as_ref(),
-                    state.as_ref(),
-                    PROJECT_SEED.as_ref(),
-                ], &self.get_program_id());
+        let project = fuzz_accounts.project.get_or_create_account(
+            self.accounts.project.account_id,
+            client,
+            &[
+                project_author.pubkey().as_ref(),
+                state.as_ref(),
+                PROJECT_SEED.as_ref(),
+            ],
+            &self.get_program_id(),
+        );
         self.accounts.project.set_account_meta(project, false, true);
     }
 }

@@ -50,8 +50,7 @@ async fn verify_instructions(template: &Template) {
     let generated_instructions = template.get_instructions();
 
     for (name, generated_content) in generated_instructions {
-        let expected_path =
-            construct_path(&format!("fuzz_template/instructions/{}.rs", name));
+        let expected_path = construct_path(&format!("fuzz_template/instructions/{}.rs", name));
         let expected_content = fs::read_to_string(&expected_path)?;
         let formatted_content = Commander::format_program_code_nightly(&generated_content).await?;
 
@@ -82,8 +81,7 @@ async fn verify_transactions(template: &Template) {
     let generated_transactions = template.get_transactions();
 
     for (name, generated_content) in generated_transactions {
-        let expected_path =
-            construct_path(&format!("fuzz_template/transactions/{}.rs", name));
+        let expected_path = construct_path(&format!("fuzz_template/transactions/{}.rs", name));
         let expected_content = fs::read_to_string(&expected_path)?;
         let formatted_content = Commander::format_program_code_nightly(&generated_content).await?;
 

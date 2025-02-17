@@ -28,18 +28,18 @@ struct TransactionsSequence;
 /// ```
 /// For more details, see: https://ackee.xyz/trident/docs/latest/features/instructions-sequences/#instructions-sequences
 impl FuzzSequenceBuilder<FuzzTransactions> for TransactionsSequence {
-  fn starting_sequence(fuzzer_data: &mut FuzzerData) -> SequenceResult<FuzzTransactions> {
-    let seq1 = sequence!([InitializeTransaction], fuzzer_data);
-    Ok(seq1)
-  }
+    fn starting_sequence(fuzzer_data: &mut FuzzerData) -> SequenceResult<FuzzTransactions> {
+        let seq1 = sequence!([InitializeTransaction], fuzzer_data);
+        Ok(seq1)
+    }
 }
 fn main() {
-  let program_incorrect_ix_sequence_1 = ProgramEntrypoint::new(
-    pubkey!("dk5VmuCSjrG6iRVXRycKZ6mS4rDCyvBrYJvcfyqWGcU"),
-    None,
-    processor!(entry_incorrect_ix_sequence_1)
-  );
-  let config = TridentConfig::new();
-  let mut client = TridentSVM::new_client(&[program_incorrect_ix_sequence_1], &config);
-  fuzz_trident!(| fuzz_data : TransactionsSequence , client : TridentSVM , config : TridentConfig |);
+    let program_incorrect_ix_sequence_1 = ProgramEntrypoint::new(
+        pubkey!("dk5VmuCSjrG6iRVXRycKZ6mS4rDCyvBrYJvcfyqWGcU"),
+        None,
+        processor!(entry_incorrect_ix_sequence_1),
+    );
+    let config = TridentConfig::new();
+    let mut client = TridentSVM::new_client(&[program_incorrect_ix_sequence_1], &config);
+    fuzz_trident!(| fuzz_data : TransactionsSequence , client : TridentSVM , config : TridentConfig |);
 }

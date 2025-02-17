@@ -28,18 +28,18 @@ struct TransactionsSequence;
 /// ```
 /// For more details, see: https://ackee.xyz/trident/docs/latest/features/instructions-sequences/#instructions-sequences
 impl FuzzSequenceBuilder<FuzzTransactions> for TransactionsSequence {
-  fn starting_sequence(fuzzer_data: &mut FuzzerData) -> SequenceResult<FuzzTransactions> {
-    let seq1 = sequence!([InitializeTransaction, UpdateTransaction], fuzzer_data);
-    Ok(seq1)
-  }
+    fn starting_sequence(fuzzer_data: &mut FuzzerData) -> SequenceResult<FuzzTransactions> {
+        let seq1 = sequence!([InitializeTransaction, UpdateTransaction], fuzzer_data);
+        Ok(seq1)
+    }
 }
 fn main() {
-  let program_arbitrary_custom_types_4 = ProgramEntrypoint::new(
-    pubkey!("CdWkp3CY9CAjBQP73SDCwDDfsumwY7e6DDSjrN5u8Cii"),
-    None,
-    processor!(entry_arbitrary_custom_types_4)
-  );
-  let config = TridentConfig::new();
-  let mut client = TridentSVM::new_client(&[program_arbitrary_custom_types_4], &config);
-  fuzz_trident!(| fuzz_data : TransactionsSequence , client : TridentSVM , config : TridentConfig |);
+    let program_arbitrary_custom_types_4 = ProgramEntrypoint::new(
+        pubkey!("CdWkp3CY9CAjBQP73SDCwDDfsumwY7e6DDSjrN5u8Cii"),
+        None,
+        processor!(entry_arbitrary_custom_types_4),
+    );
+    let config = TridentConfig::new();
+    let mut client = TridentSVM::new_client(&[program_arbitrary_custom_types_4], &config);
+    fuzz_trident!(| fuzz_data : TransactionsSequence , client : TridentSVM , config : TridentConfig |);
 }

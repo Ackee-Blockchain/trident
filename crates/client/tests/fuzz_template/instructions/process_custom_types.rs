@@ -2,7 +2,6 @@ use crate::fuzz_transactions::FuzzAccounts;
 use crate::types::*;
 use borsh::{BorshDeserialize, BorshSerialize};
 use trident_fuzz::fuzzing::*;
-/// Instruction Struct
 #[derive(Arbitrary, Debug, TridentInstruction)]
 #[accounts("accounts")]
 #[program_id("HtD1eaPZ1JqtxcirNtYt3aAhUMoJWZ2Ddtzu4NDZCrhN")]
@@ -12,7 +11,6 @@ pub struct ProcessCustomTypesInstruction {
     pub data: ProcessCustomTypesInstructionData,
 }
 /// Instruction Accounts
-/// Instruction accounts
 #[derive(Arbitrary, Debug, Clone, TridentAccounts)]
 pub struct ProcessCustomTypesInstructionAccounts {
     pub composite_account_nested: CompositeAccountNestedAccounts,
@@ -25,7 +23,6 @@ pub struct ProcessCustomTypesInstructionAccounts {
     pub data_account_6: TridentAccount,
     pub composite_account: CompositeAccountAccounts,
 }
-/// Composite Account Structs
 #[derive(Arbitrary, Debug, Clone, TridentAccounts)]
 pub struct NestedInnerAccounts {
     pub some_account: TridentAccount,
@@ -43,7 +40,6 @@ pub struct CompositeAccountAccounts {
     pub data_account_1: TridentAccount,
 }
 /// Instruction Data
-/// Instruction data
 #[derive(Arbitrary, Debug, BorshDeserialize, BorshSerialize, Clone)]
 pub struct ProcessCustomTypesInstructionData {
     pub _input_classic: ClassicStruct,
@@ -59,7 +55,6 @@ pub struct ProcessCustomTypesInstructionData {
     pub _input_default: DefaultStruct,
     pub _input_generic_struct: GenericStruct,
 }
-/// Instruction Setters
 /// Implementation of instruction setters for fuzzing
 ///
 /// Provides methods to:
