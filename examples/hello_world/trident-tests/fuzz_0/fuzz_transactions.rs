@@ -15,6 +15,6 @@ pub enum FuzzTransactions {
 /// https://ackee.xyz/trident/docs/latest/features/account-storages/
 #[derive(Default)]
 pub struct FuzzAccounts {
-    pub author: AccountsStorage<KeypairStore>,
-    pub hello_world_account: AccountsStorage<PdaStore>,
+    pub author: AccountsStorage,
+    pub hello_world_account: AccountsStorage,
 }

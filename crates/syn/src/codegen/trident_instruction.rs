@@ -52,11 +52,21 @@ impl ToTokens for TridentInstructionStruct {
                     #remaining_accounts_snapshots_after
                 }
 
-                fn to_account_metas(&mut self) -> Vec<AccountMeta> {
+                fn to_account_metas(
+                    &mut self,
+                ) -> Vec<AccountMeta> {
                     let mut metas = Vec::new();
                     metas.extend(self.#accounts.to_account_meta());
                     #remaining_accounts_extension
                     metas
+                }
+
+                fn resolve_accounts(
+                    &mut self,
+                    client: &mut impl FuzzClient,
+                    fuzz_accounts: &mut Self::IxAccounts,
+                ) {
+                    self.#accounts.resolve_accounts(client, fuzz_accounts);
                 }
             }
         };

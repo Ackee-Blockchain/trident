@@ -1,5 +1,5 @@
-use quote::quote;
-use quote::ToTokens;
+use proc_macro2::TokenStream;
+use quote::{quote, ToTokens};
 
 use crate::types::trident_accounts::TridentAccountField;
 use crate::types::trident_accounts::TridentAccountsStruct;
@@ -8,44 +8,84 @@ impl ToTokens for TridentAccountsStruct {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         let name = &self.ident;
 
-        let account_metas_fields = self.fields.iter().map(|field| {
+        // Generate storage resolution code for resolve_accounts
+        let resolve_storage = self.fields.iter().map(|field| {
             match field {
                 TridentAccountField::Field(f) => {
                     let field_name = &f.ident;
                     let constraints = &f.constraints;
 
-                    let mut code = proc_macro2::TokenStream::new();
+                    let mut inner_code = TokenStream::new();
 
-                    // Handle regular field constraints...
+                    if let Some(ref storage_ident) = constraints.storage {
+                        inner_code.extend(quote! {
+                            let address = ix_accounts
+                                .#storage_ident
+                                .get_or_create(self.#field_name.account_id, client, None, None);
+                            self.#field_name.set_address(address);
+                        });
+                    }
+
                     if let Some(ref address) = constraints.address {
-                        code.extend(quote! {
+                        inner_code.extend(quote! {
                             self.#field_name.set_address(#address);
                         });
                     }
 
                     if constraints.signer {
-                        code.extend(quote! {
+                        inner_code.extend(quote! {
                             self.#field_name.set_is_signer();
                         });
                     }
 
                     if constraints.mutable {
-                        code.extend(quote! {
+                        inner_code.extend(quote! {
                             self.#field_name.set_is_writable();
                         });
                     }
 
-                    code.extend(quote! {
-                        metas.push(self.#field_name.to_account_meta());
-                    });
-
-                    code
+                    if !inner_code.is_empty() {
+                        quote! {
+                            {
+                                // Resolve and configure account
+                                #inner_code
+                            }
+                        }
+                    } else {
+                        quote! {}
+                    }
                 }
                 TridentAccountField::CompositeField(f) => {
                     let field_name = &f.ident;
-                    // For composite fields, just extend the metas
                     quote! {
-                        metas.extend(self.#field_name.to_account_meta());
+                        {
+                            // Resolve composite accounts
+                            self.#field_name.resolve_accounts(client, ix_accounts);
+                        }
+                    }
+                }
+            }
+        });
+
+        // Generate account meta conversion code
+        let account_metas_fields = self.fields.iter().map(|field| {
+            match field {
+                TridentAccountField::Field(f) => {
+                    let field_name = &f.ident;
+                    quote! {
+                        {
+                            // Add account meta
+                            metas.push(self.#field_name.to_account_meta());
+                        }
+                    }
+                }
+                TridentAccountField::CompositeField(f) => {
+                    let field_name = &f.ident;
+                    quote! {
+                        {
+                            // Add composite accounts
+                            metas.extend(self.#field_name.to_account_meta());
+                        }
                     }
                 }
             }
@@ -63,18 +103,44 @@ impl ToTokens for TridentAccountsStruct {
 
         let expanded = quote! {
             impl AccountsMethods for #name {
-                fn capture_before(&mut self, client: &mut impl FuzzClient) {
-                    #(self.#snapshot_fields.capture_before(client);)*
-                }
+                type IxAccounts = FuzzAccounts;
 
-                fn capture_after(&mut self, client: &mut impl FuzzClient) {
-                    #(self.#snapshot_fields.capture_after(client);)*
+                fn resolve_accounts(
+                    &mut self,
+                    client: &mut impl FuzzClient,
+                    ix_accounts: &mut Self::IxAccounts,
+                ) {
+                    #(#resolve_storage)*
                 }
 
                 fn to_account_meta(&mut self) -> Vec<AccountMeta> {
                     let mut metas = Vec::new();
                     #(#account_metas_fields)*
                     metas
+                }
+
+                fn capture_before(
+                    &mut self,
+                    client: &mut impl FuzzClient,
+                ) {
+                    #(
+                        {
+                            // Capture snapshot before
+                            self.#snapshot_fields.capture_before(client);
+                        }
+                    )*
+                }
+
+                fn capture_after(
+                    &mut self,
+                    client: &mut impl FuzzClient,
+                ) {
+                    #(
+                        {
+                            // Capture snapshot after
+                            self.#snapshot_fields.capture_after(client);
+                        }
+                    )*
                 }
             }
         };

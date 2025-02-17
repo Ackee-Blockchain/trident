@@ -11,8 +11,11 @@ pub struct InitializeInstruction {
 /// Instruction Accounts
 #[derive(Arbitrary, Debug, Clone, TridentAccounts)]
 pub struct InitializeInstructionAccounts {
+    #[account(signer,mut,storage = signer)]
     pub signer: TridentAccount,
+    #[account(signer,mut,storage = mint)]
     pub mint: TridentAccount,
+    #[account(mut)]
     pub metadata_account: TridentAccount,
     #[account(address = "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s", skip_snapshot)]
     pub mpl_token_metadata: TridentAccount,
@@ -38,36 +41,21 @@ pub struct InitializeInstructionData {
 impl InstructionSetters for InitializeInstruction {
     type IxAccounts = FuzzAccounts;
     fn set_accounts(&mut self, client: &mut impl FuzzClient, fuzz_accounts: &mut Self::IxAccounts) {
-        let signer = fuzz_accounts.signer.get_or_create_account(
-            self.accounts.signer.account_id,
-            client,
-            500 * LAMPORTS_PER_SOL,
-        );
-        self.accounts
-            .signer
-            .set_account_meta(signer.pubkey(), true, true);
+        let mint = self.accounts.mint.pubkey();
 
-        let mint = fuzz_accounts.mint.get_or_create_account(
-            self.accounts.mint.account_id,
-            client,
-            500 * LAMPORTS_PER_SOL,
-        );
-        self.accounts
-            .mint
-            .set_account_meta(mint.pubkey(), true, true);
-
-        let metadata_account = fuzz_accounts.metadata_account.get_or_create_account(
+        let metadata_account = fuzz_accounts.metadata_account.get_or_create(
             self.accounts.metadata_account.account_id,
             client,
-            &[
-                b"metadata",
-                pubkey!("metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s").as_ref(),
-                mint.pubkey().as_ref(),
-            ],
-            &pubkey!("metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s"),
+            Some(PdaSeeds::new(
+                &[
+                    b"metadata",
+                    pubkey!("metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s").as_ref(),
+                    mint.as_ref(),
+                ],
+                pubkey!("metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s"),
+            )),
+            None,
         );
-        self.accounts
-            .metadata_account
-            .set_account_meta(metadata_account, false, true);
+        self.accounts.metadata_account.set_address(metadata_account);
     }
 }

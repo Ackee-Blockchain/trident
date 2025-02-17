@@ -17,13 +17,13 @@ pub enum FuzzTransactions {
 /// https://ackee.xyz/trident/docs/latest/features/account-storages/
 #[derive(Default)]
 pub struct FuzzAccounts {
-    pub data_account_6: AccountsStorage<todo!()>,
-    pub system_program: AccountsStorage<todo!()>,
-    pub data_account_1: AccountsStorage<todo!()>,
-    pub data_account_2: AccountsStorage<todo!()>,
-    pub some_account: AccountsStorage<todo!()>,
-    pub data_account_3: AccountsStorage<todo!()>,
-    pub data_account_4: AccountsStorage<todo!()>,
-    pub signer: AccountsStorage<todo!()>,
-    pub data_account_5: AccountsStorage<todo!()>,
+    pub data_account_6: AccountsStorage,
+    pub system_program: AccountsStorage,
+    pub data_account_1: AccountsStorage,
+    pub data_account_2: AccountsStorage,
+    pub some_account: AccountsStorage,
+    pub data_account_3: AccountsStorage,
+    pub data_account_4: AccountsStorage,
+    pub signer: AccountsStorage,
+    pub data_account_5: AccountsStorage,
 }

@@ -61,9 +61,9 @@ pub mod fuzzing {
     pub use super::sequence;
 
     /// accounts storages
-    pub use super::accounts_storage::KeypairStore;
-    pub use super::accounts_storage::PdaStore;
-    pub use super::accounts_storage::*;
+    pub use super::accounts_storage::account_storage::AccountsStorage;
+    pub use super::accounts_storage::AccountMetadata;
+    pub use super::accounts_storage::PdaSeeds;
 
     pub use trident_config::TridentConfig;
 

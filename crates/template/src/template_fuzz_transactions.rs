@@ -27,7 +27,7 @@ impl Template {
         let account_name_ident: syn::Ident = parse_str(&account_name).unwrap();
 
         let account_item = parse_quote!(
-            pub #account_name_ident: AccountsStorage<todo!()>
+            pub #account_name_ident: AccountsStorage
         );
 
         self.account_storages.insert(account_name, account_item);

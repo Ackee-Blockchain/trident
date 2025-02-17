@@ -16,12 +16,12 @@ pub enum FuzzTransactions {
 /// https://ackee.xyz/trident/docs/latest/features/account-storages/
 #[derive(Default)]
 pub struct FuzzAccounts {
-    pub sender: AccountsStorage<KeypairStore>,
-    pub escrow_token_account: AccountsStorage<KeypairStore>,
-    pub mint: AccountsStorage<KeypairStore>,
-    pub recipient_token_account: AccountsStorage<KeypairStore>,
-    pub recipient: AccountsStorage<KeypairStore>,
-    pub escrow_pda_authority: AccountsStorage<PdaStore>,
-    pub sender_token_account: AccountsStorage<KeypairStore>,
-    pub escrow: AccountsStorage<PdaStore>,
+    pub sender: AccountsStorage,
+    pub escrow_token_account: AccountsStorage,
+    pub mint: AccountsStorage,
+    pub recipient_token_account: AccountsStorage,
+    pub recipient: AccountsStorage,
+    pub escrow_pda_authority: AccountsStorage,
+    pub sender_token_account: AccountsStorage,
+    pub escrow: AccountsStorage,
 }

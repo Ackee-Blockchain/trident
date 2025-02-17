@@ -10,6 +10,7 @@ impl ToTokens for TridentRemainingAccountsStruct {
 
         let expanded = quote! {
             impl AccountsMethods for #name {
+                type IxAccounts = FuzzAccounts;
                 fn capture_before(
                     &mut self,
                     client: &mut impl FuzzClient,

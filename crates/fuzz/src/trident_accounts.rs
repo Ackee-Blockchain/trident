@@ -92,17 +92,26 @@ impl TridentAccount {
     pub fn set_is_signer(&mut self) {
         match &mut self.account_meta {
             Some(account_meta) => account_meta.is_signer = true,
-            None => panic!("Account meta is not set"),
+            None => self.account_meta = Some(AccountMeta::new_readonly(Pubkey::default(), true)),
         }
     }
     pub fn set_is_writable(&mut self) {
         match &mut self.account_meta {
             Some(account_meta) => account_meta.is_writable = true,
-            None => panic!("Account meta is not set"),
+            None => self.account_meta = Some(AccountMeta::new(Pubkey::default(), false)),
         }
     }
     pub fn set_address(&mut self, address: Pubkey) {
-        self.account_meta = Some(AccountMeta::new_readonly(address, false));
+        match &mut self.account_meta {
+            Some(account_meta) => account_meta.pubkey = address,
+            None => self.account_meta = Some(AccountMeta::new_readonly(address, false)),
+        }
+    }
+    pub fn pubkey(&self) -> Pubkey {
+        match &self.account_meta {
+            Some(account_meta) => account_meta.pubkey,
+            None => panic!("Account meta is not set"),
+        }
     }
 }
 

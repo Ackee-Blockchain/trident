@@ -24,7 +24,7 @@ pub trait InstructionSetters {
     }
 }
 
-pub trait InstructionMethods {
+pub trait InstructionMethods: InstructionSetters {
     /// Get Instruction discriminator
     fn get_discriminator(&self) -> Vec<u8>;
 
@@ -39,4 +39,11 @@ pub trait InstructionMethods {
 
     /// Convert accounts to account metas
     fn to_account_metas(&mut self) -> Vec<AccountMeta>;
+
+    /// Resolve accounts
+    fn resolve_accounts(
+        &mut self,
+        client: &mut impl FuzzClient,
+        fuzz_accounts: &mut Self::IxAccounts,
+    );
 }
