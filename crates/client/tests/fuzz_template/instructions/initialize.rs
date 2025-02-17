@@ -2,7 +2,6 @@ use crate::fuzz_transactions::FuzzAccounts;
 use crate::types::*;
 use borsh::{BorshDeserialize, BorshSerialize};
 use trident_fuzz::fuzzing::*;
-/// Instruction Struct
 #[derive(Arbitrary, Debug, TridentInstruction)]
 #[accounts("accounts")]
 #[program_id("8bPSKGoWCdAW8Hu3S1hLHPpBv8BNwse4jDyaXNrj3jWB")]
@@ -12,15 +11,11 @@ pub struct InitializeInstruction {
     pub data: InitializeInstructionData,
 }
 /// Instruction Accounts
-/// Instruction accounts
 #[derive(Arbitrary, Debug, Clone, TridentAccounts)]
 pub struct InitializeInstructionAccounts {}
-/// Composite Account Structs
 /// Instruction Data
-/// Instruction data
 #[derive(Arbitrary, Debug, BorshDeserialize, BorshSerialize, Clone)]
 pub struct InitializeInstructionData {}
-/// Instruction Setters
 /// Implementation of instruction setters for fuzzing
 ///
 /// Provides methods to:

@@ -30,10 +30,22 @@ pub struct InitializeInstructionData {}
 impl InstructionSetters for InitializeInstruction {
     type IxAccounts = FuzzAccounts;
     fn set_accounts(&mut self, client: &mut impl FuzzClient, fuzz_accounts: &mut Self::IxAccounts) {
-        let counter = fuzz_accounts.counter.get_or_create_account(self.accounts.counter.account_id, client, 10 * LAMPORTS_PER_SOL);
-        self.accounts.counter.set_account_meta(counter.pubkey(), true, true);
+        let counter = fuzz_accounts.counter.get_or_create_account(
+            self.accounts.counter.account_id,
+            client,
+            10 * LAMPORTS_PER_SOL,
+        );
+        self.accounts
+            .counter
+            .set_account_meta(counter.pubkey(), true, true);
 
-        let user = fuzz_accounts.user.get_or_create_account(self.accounts.user.account_id, client, 10 * LAMPORTS_PER_SOL);
-        self.accounts.user.set_account_meta(user.pubkey(), true, true);
+        let user = fuzz_accounts.user.get_or_create_account(
+            self.accounts.user.account_id,
+            client,
+            10 * LAMPORTS_PER_SOL,
+        );
+        self.accounts
+            .user
+            .set_account_meta(user.pubkey(), true, true);
     }
 }
