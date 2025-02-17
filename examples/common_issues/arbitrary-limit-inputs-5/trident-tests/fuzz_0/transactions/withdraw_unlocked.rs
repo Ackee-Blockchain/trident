@@ -1,6 +1,6 @@
 use crate::fuzz_transactions::FuzzAccounts;
-use crate::types::*;
 use crate::instructions::*;
+use crate::types::*;
 use solana_sdk::program_pack::Pack;
 use trident_fuzz::fuzzing::*;
 #[derive(Arbitrary, Debug, TridentTransaction)]

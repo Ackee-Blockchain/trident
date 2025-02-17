@@ -35,7 +35,9 @@ impl InstructionSetters for WithdrawInstruction {
             client,
             500 * LAMPORTS_PER_SOL,
         );
-        self.accounts.receiver.set_account_meta(receiver.pubkey(), true, true);
+        self.accounts
+            .receiver
+            .set_account_meta(receiver.pubkey(), true, true);
 
         let escrow = fuzz_accounts.escrow.get(self.accounts.escrow.account_id);
         self.accounts.escrow.set_account_meta(escrow, false, true);

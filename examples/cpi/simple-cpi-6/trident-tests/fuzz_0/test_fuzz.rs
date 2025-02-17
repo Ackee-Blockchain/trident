@@ -29,29 +29,29 @@ struct TransactionsSequence;
 /// ```
 /// For more details, see: https://ackee.xyz/trident/docs/latest/features/instructions-sequences/#instructions-sequences
 impl FuzzSequenceBuilder<FuzzTransactions> for TransactionsSequence {
-  fn starting_sequence(fuzzer_data: &mut FuzzerData) -> SequenceResult<FuzzTransactions> {
-    let seq1 = sequence!([InitializeCallerTransaction], fuzzer_data);
-    Ok(seq1)
-  }
-  fn middle_sequence(_fuzzer_data: &mut FuzzerData) -> SequenceResult<FuzzTransactions> {
-    Ok(vec![])
-  }
-  fn ending_sequence(_fuzzer_data: &mut FuzzerData) -> SequenceResult<FuzzTransactions> {
-    Ok(vec![])
-  }
+    fn starting_sequence(fuzzer_data: &mut FuzzerData) -> SequenceResult<FuzzTransactions> {
+        let seq1 = sequence!([InitializeCallerTransaction], fuzzer_data);
+        Ok(seq1)
+    }
+    fn middle_sequence(_fuzzer_data: &mut FuzzerData) -> SequenceResult<FuzzTransactions> {
+        Ok(vec![])
+    }
+    fn ending_sequence(_fuzzer_data: &mut FuzzerData) -> SequenceResult<FuzzTransactions> {
+        Ok(vec![])
+    }
 }
 fn main() {
-  let program_callee = ProgramEntrypoint::new(
-    pubkey!("HJR1TK8bgrUWzysdpS1pBGBYKF7zi1tU9cS4qj8BW8ZL"),
-    None,
-    processor!(entry_callee)
-  );
-  let program_caller = ProgramEntrypoint::new(
-    pubkey!("FWtSodrkUnovFPnNRCxneP6VWh6JH6jtQZ4PHoP8Ejuz"),
-    None,
-    processor!(entry_caller)
-  );
-  let config = TridentConfig::new();
-  let mut client = TridentSVM::new_client(&[program_callee, program_caller], &config);
-  fuzz_trident!(| fuzz_data : TransactionsSequence , client : TridentSVM , config : TridentConfig |);
+    let program_callee = ProgramEntrypoint::new(
+        pubkey!("HJR1TK8bgrUWzysdpS1pBGBYKF7zi1tU9cS4qj8BW8ZL"),
+        None,
+        processor!(entry_callee),
+    );
+    let program_caller = ProgramEntrypoint::new(
+        pubkey!("FWtSodrkUnovFPnNRCxneP6VWh6JH6jtQZ4PHoP8Ejuz"),
+        None,
+        processor!(entry_caller),
+    );
+    let config = TridentConfig::new();
+    let mut client = TridentSVM::new_client(&[program_callee, program_caller], &config);
+    fuzz_trident!(| fuzz_data : TransactionsSequence , client : TridentSVM , config : TridentConfig |);
 }
