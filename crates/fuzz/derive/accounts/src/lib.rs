@@ -2,7 +2,7 @@ use proc_macro::TokenStream;
 use quote::{quote, ToTokens};
 use syn::{parse_macro_input, Data, DeriveInput, Fields, Lit, Meta, NestedMeta};
 
-#[proc_macro_derive(TridentAccounts, attributes(address, skip_snapshot))]
+#[proc_macro_derive(TridentAccounts, attributes(account))]
 pub fn trident_accounts_derive(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
     let name = &input.ident;
@@ -19,35 +19,61 @@ pub fn trident_accounts_derive(input: TokenStream) -> TokenStream {
         let field_name = f.ident.as_ref().unwrap();
         let field_type = &f.ty;
 
-        // Check if field has #[program("xyz")] attribute
-        let address = f
-            .attrs
-            .iter()
-            .find(|attr| attr.path.is_ident("address"))
-            .and_then(|attr| {
-                if let Ok(Meta::List(meta_list)) = attr.parse_meta() {
-                    if let Some(NestedMeta::Lit(Lit::Str(lit_str))) = meta_list.nested.first() {
-                        Some(lit_str.value())
-                    } else {
-                        None
+        // Parse the account attribute if it exists
+        let account_attr = f.attrs.iter().find(|attr| attr.path.is_ident("account"));
+
+        let mut is_mutable = false;
+        let mut is_signer = false;
+        let mut address = None;
+
+        if let Some(attr) = account_attr {
+            if let Ok(Meta::List(meta_list)) = attr.parse_meta() {
+                for nested in meta_list.nested.iter() {
+                    match nested {
+                        NestedMeta::Meta(Meta::Path(path)) => {
+                            if path.is_ident("mut") {
+                                is_mutable = true;
+                            } else if path.is_ident("signer") {
+                                is_signer = true;
+                            }
+                        }
+                        NestedMeta::Meta(Meta::NameValue(nv)) => {
+                            if nv.path.is_ident("address") {
+                                if let Lit::Str(lit_str) = &nv.lit {
+                                    address = Some(lit_str.value());
+                                }
+                            }
+                        }
+                        _ => {}
                     }
-                } else {
-                    None
                 }
-            });
+            }
+        }
 
         // Check if the type is TridentAccount
         let is_single_account = field_type.into_token_stream().to_string() == "TridentAccount";
 
-        if let Some(pid) = address {
-            quote! {
-                self.#field_name.set_account_meta(pubkey!(#pid), false, false);
-                metas.push(self.#field_name.to_account_meta());
+        if let Some(address) = address {
+            let mut q = quote! {};
+            q.extend(quote! { self.#field_name.set_address(pubkey!(#address)); });
+            if is_signer {
+                q.extend(quote! { self.#field_name.set_is_signer(); });
             }
+            if is_mutable {
+                q.extend(quote! { self.#field_name.set_is_writable(); });
+            }
+            q.extend(quote! { metas.push(self.#field_name.to_account_meta()); });
+            q
         } else if is_single_account {
-            quote! {
-                metas.push(self.#field_name.to_account_meta());
+            let mut q = quote! {};
+            if is_signer {
+                q.extend(quote! { self.#field_name.set_is_signer(); });
             }
+            if is_mutable {
+                q.extend(quote! { self.#field_name.set_is_writable(); });
+            }
+            q.extend(quote! { metas.push(self.#field_name.to_account_meta()); });
+            q
         } else {
             quote! {
                 metas.extend(self.#field_name.to_account_meta());
@@ -55,23 +81,26 @@ pub fn trident_accounts_derive(input: TokenStream) -> TokenStream {
         }
     });
 
-    // Extract all named fields except those marked with #[skip_snapshot]
-    let snapshots_fields = match &input.data {
-        Data::Struct(data) => match &data.fields {
-            Fields::Named(fields) => fields
-                .named
-                .iter()
-                .filter(|f| {
-                    // Skip fields that have #[skip_snapshot] attribute
-                    !f.attrs
-                        .iter()
-                        .any(|attr| attr.path.is_ident("skip_snapshot"))
-                })
-                .collect::<Vec<_>>(),
-            _ => panic!("Only named fields are supported"),
-        },
-        _ => panic!("Only structs are supported"),
-    };
+    // Extract all named fields except those marked with skip_snapshot
+    let snapshots_fields = fields
+        .iter()
+        .filter(|f| {
+            !f.attrs.iter().any(|attr| {
+                if attr.path.is_ident("account") {
+                    if let Ok(Meta::List(meta_list)) = attr.parse_meta() {
+                        return meta_list.nested.iter().any(|nested| {
+                            if let NestedMeta::Meta(Meta::Path(path)) = nested {
+                                path.is_ident("skip_snapshot")
+                            } else {
+                                false
+                            }
+                        });
+                    }
+                }
+                false
+            })
+        })
+        .collect::<Vec<_>>();
 
     let snapshots_fields_idents = snapshots_fields
         .iter()

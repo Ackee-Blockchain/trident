@@ -15,14 +15,11 @@ pub struct InitializeInstructionAccounts {
     pub signer: TridentAccount,
     pub mint: TridentAccount,
     pub metadata_account: TridentAccount,
-    #[skip_snapshot]
-    #[address("metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s")]
+    #[account(address = "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s", skip_snapshot)]
     pub mpl_token_metadata: TridentAccount,
-    #[skip_snapshot]
-    #[address("11111111111111111111111111111111")]
+    #[account(address = "11111111111111111111111111111111", skip_snapshot)]
     pub system_program: TridentAccount,
-    #[skip_snapshot]
-    #[address("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA")]
+    #[account(address = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA", skip_snapshot)]
     pub token_program: TridentAccount,
 }
 /// Instruction Data

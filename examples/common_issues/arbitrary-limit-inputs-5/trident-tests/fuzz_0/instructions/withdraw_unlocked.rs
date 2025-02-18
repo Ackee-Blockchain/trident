@@ -18,11 +18,9 @@ pub struct WithdrawUnlockedInstructionAccounts {
     pub escrow_token_account: TridentAccount,
     pub escrow_pda_authority: TridentAccount,
     pub mint: TridentAccount,
-    #[skip_snapshot]
-    #[address("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA")]
+    #[account(address = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA", skip_snapshot)]
     pub token_program: TridentAccount,
-    #[skip_snapshot]
-    #[address("11111111111111111111111111111111")]
+    #[account(address = "11111111111111111111111111111111", skip_snapshot)]
     pub system_program: TridentAccount,
 }
 /// Instruction Data

@@ -12,6 +12,8 @@ incremented upon a breaking change and the patch version will be incremented for
 
 **Added**
 
+-Added additional attributes to TridentAccounts, mut and signer ([268](https://github.com/Ackee-Blockchain/trident/pull/268))
+
 **Removed**
 
 **Changed**
