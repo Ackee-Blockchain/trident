@@ -13,50 +13,53 @@ pub struct ProcessRustTypesInstruction {
 /// Instruction Accounts
 #[derive(Arbitrary, Debug, Clone, TridentAccounts)]
 pub struct ProcessRustTypesInstructionAccounts {
-    pub composite_account_nested: CompositeAccountNestedAccounts,
-    pub signer: TridentAccount,
-    pub data_account_1: TridentAccount,
-    pub data_account_2: TridentAccount,
-    pub data_account_3: TridentAccount,
-    pub data_account_4: TridentAccount,
-    pub data_account_5: TridentAccount,
-    pub data_account_6: TridentAccount,
-    pub composite_account: CompositeAccountAccounts,
+    composite_account_nested: CompositeAccountNestedAccounts,
+    #[account(signer)]
+    signer: TridentAccount,
+    data_account_1: TridentAccount,
+    data_account_2: TridentAccount,
+    data_account_3: TridentAccount,
+    data_account_4: TridentAccount,
+    data_account_5: TridentAccount,
+    data_account_6: TridentAccount,
+    composite_account: CompositeAccountAccounts,
 }
 #[derive(Arbitrary, Debug, Clone, TridentAccounts)]
 pub struct NestedInnerAccounts {
-    pub some_account: TridentAccount,
-    pub system_program: TridentAccount,
+    some_account: TridentAccount,
+    #[account(address = "11111111111111111111111111111111")]
+    system_program: TridentAccount,
 }
 #[derive(Arbitrary, Debug, Clone, TridentAccounts)]
 pub struct CompositeAccountNestedAccounts {
-    pub some_account: TridentAccount,
-    pub nested_inner: NestedInnerAccounts,
+    some_account: TridentAccount,
+    nested_inner: NestedInnerAccounts,
 }
 #[derive(Arbitrary, Debug, Clone, TridentAccounts)]
 pub struct CompositeAccountAccounts {
-    pub some_account: TridentAccount,
-    pub signer: TridentAccount,
-    pub data_account_1: TridentAccount,
+    some_account: TridentAccount,
+    #[account(signer)]
+    signer: TridentAccount,
+    data_account_1: TridentAccount,
 }
 /// Instruction Data
 #[derive(Arbitrary, Debug, BorshDeserialize, BorshSerialize, Clone)]
 pub struct ProcessRustTypesInstructionData {
-    pub _input_u8: u8,
-    pub _input_u16: u16,
-    pub _input_u32: u32,
-    pub _input_u64: u64,
-    pub _input_i8: i8,
-    pub _input_i16: i16,
-    pub _input_i32: i32,
-    pub _input_i64: i64,
-    pub _input_i128: i128,
-    pub _input_f32: f32,
-    pub _input_f64: f64,
-    pub _input_string: String,
-    pub _input_vec: Vec<u8>,
-    pub _input_vec_string: Vec<String>,
-    pub _input_bool: bool,
+    _input_u8: u8,
+    _input_u16: u16,
+    _input_u32: u32,
+    _input_u64: u64,
+    _input_i8: i8,
+    _input_i16: i16,
+    _input_i32: i32,
+    _input_i64: i64,
+    _input_i128: i128,
+    _input_f32: f32,
+    _input_f64: f64,
+    _input_string: String,
+    _input_vec: Vec<u8>,
+    _input_vec_string: Vec<String>,
+    _input_bool: bool,
 }
 /// Implementation of instruction setters for fuzzing
 ///

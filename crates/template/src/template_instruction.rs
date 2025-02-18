@@ -49,7 +49,7 @@ impl Template {
             /// Instruction Accounts
             #[derive(Arbitrary, Debug, Clone, TridentAccounts)]
             pub struct #instruction_accounts_name {
-                 #(pub #accounts),*
+                 #(#accounts),*
             }
         };
 
@@ -57,7 +57,7 @@ impl Template {
             /// Instruction Data
             #[derive(Arbitrary, Debug, BorshDeserialize, BorshSerialize, Clone)]
             pub struct #instruction_data_name {
-                 #(pub #data),*
+                 #(#data),*
             }
         };
 
@@ -125,7 +125,7 @@ impl Template {
     }
 }
 
-fn get_instruction_accounts(instruction: &IdlInstruction) -> Vec<syn::FnArg> {
+fn get_instruction_accounts(instruction: &IdlInstruction) -> Vec<syn::Field> {
     instruction
         .accounts
         .iter()
@@ -139,7 +139,7 @@ fn get_instruction_accounts(instruction: &IdlInstruction) -> Vec<syn::FnArg> {
                         "{}Accounts",
                         idl_instruction_accounts.name.to_case(Case::UpperCamel)
                     );
-                    let account: syn::FnArg = parse_quote!(#composite_name: #composite_type);
+                    let account: syn::Field = parse_quote!(#composite_name: #composite_type);
                     account_parameters.push(account);
                 }
                 IdlInstructionAccountItem::Single(idl_instruction_account) => {
@@ -152,12 +152,43 @@ fn get_instruction_accounts(instruction: &IdlInstruction) -> Vec<syn::FnArg> {
 
 fn process_single_account(
     idl_instruction_account: &IdlInstructionAccount,
-    account_parameters: &mut Vec<syn::FnArg>,
+    account_parameters: &mut Vec<syn::Field>,
 ) {
-    // If the account has constant address it is not needed to fuzz it
-    // So it will not be generated as a parameter.
     let name = format_ident!("{}", idl_instruction_account.name);
-    let account: syn::FnArg = parse_quote!(#name: TridentAccount);
+
+    let mut account_attrs: Vec<syn::Meta> = Vec::new();
+
+    // Add mut attribute if writable
+    // INFO this has to be done this way as mut is considered as a keyword
+    // and cannot be used directly in the attribute
+    if idl_instruction_account.writable {
+        account_attrs.push(syn::Meta::Path(syn::Path::from(quote::format_ident!(
+            "mut"
+        ))));
+    }
+
+    // Add signer attribute if signer
+    if idl_instruction_account.signer {
+        account_attrs.push(parse_quote!(signer));
+    }
+
+    // Add address attribute if present
+    if let Some(addr) = &idl_instruction_account.address {
+        account_attrs.push(parse_quote!(address = #addr));
+    }
+
+    // Create the account field with collected attributes
+    let account: syn::Field = if !account_attrs.is_empty() {
+        parse_quote! {
+            #[account(#(#account_attrs),*)]
+            #name: TridentAccount
+        }
+    } else {
+        parse_quote! {
+            #name: TridentAccount
+        }
+    };
+
     account_parameters.push(account);
 }
 
@@ -210,17 +241,14 @@ fn process_composite_account_item(
             .iter()
             .fold(Vec::new(), |mut fields, account| {
                 match account {
-                    IdlInstructionAccountItem::Single(acc) => {
-                        let name = format_ident!("{}", acc.name);
-                        let field: syn::FnArg = parse_quote!(#name: TridentAccount);
-                        fields.push(field);
+                    IdlInstructionAccountItem::Single(idl_instruction_account) => {
+                        process_single_account(idl_instruction_account, &mut fields);
                     }
                     IdlInstructionAccountItem::Composite(nested) => {
                         let name = format_ident!("{}", nested.name);
-                        // Convert nested composite type to camel case as well
                         let type_name =
                             format_ident!("{}Accounts", nested.name.to_case(Case::UpperCamel));
-                        let field: syn::FnArg = parse_quote!(#name: #type_name);
+                        let field: syn::Field = parse_quote!(#name: #type_name);
                         fields.push(field);
                     }
                 }
@@ -230,7 +258,7 @@ fn process_composite_account_item(
         let struct_def: syn::ItemStruct = parse_quote! {
             #[derive(Arbitrary, Debug, Clone, TridentAccounts)]
             pub struct #struct_name {
-                #(pub #fields),*
+                #(#fields),*
             }
         };
 

@@ -17,7 +17,7 @@ trident-template = { path = "../template", version = "0.0.1" }
 
 
 # Trident IDL spec
-trident-idl-spec = "0.0.1"
+trident-idl-spec = "0.0.2"
 
 # Misc
 tokio = { version = "1", features = ["full"] }

@@ -89,6 +89,21 @@ impl TridentAccount {
             None => panic!("Snapshot after is not set"),
         }
     }
+    pub fn set_is_signer(&mut self) {
+        match &mut self.account_meta {
+            Some(account_meta) => account_meta.is_signer = true,
+            None => panic!("Account meta is not set"),
+        }
+    }
+    pub fn set_is_writable(&mut self) {
+        match &mut self.account_meta {
+            Some(account_meta) => account_meta.is_writable = true,
+            None => panic!("Account meta is not set"),
+        }
+    }
+    pub fn set_address(&mut self, address: Pubkey) {
+        self.account_meta = Some(AccountMeta::new_readonly(address, false));
+    }
 }
 
 /// A struct that represents an account in the snapshot.
