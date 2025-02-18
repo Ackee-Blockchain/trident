@@ -2,7 +2,10 @@ name: Test Fuzz Tests
 
 on:
   workflow_dispatch:
-  pull_request:  # Workflow can be triggered by either a manual dispatch or a pull request
+  pull_request:
+    branches:
+      - develop
+      - master
 
 env:
   HONGGFUZZ_VERSION: 0.5.56    # Honggfuzz version to install in the environment
