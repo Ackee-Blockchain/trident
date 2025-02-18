@@ -13,7 +13,7 @@ pub struct InitializeCallerInstruction {
 #[derive(Arbitrary, Debug, Clone, TridentAccounts)]
 pub struct InitializeCallerInstructionAccounts {
     pub signer: TridentAccount,
-    #[address("HJR1TK8bgrUWzysdpS1pBGBYKF7zi1tU9cS4qj8BW8ZL")]
+    #[account(address = "HJR1TK8bgrUWzysdpS1pBGBYKF7zi1tU9cS4qj8BW8ZL")]
     pub program: TridentAccount,
 }
 /// Instruction Data

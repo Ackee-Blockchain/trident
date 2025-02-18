@@ -13,47 +13,50 @@ pub struct ProcessCustomTypesInstruction {
 /// Instruction Accounts
 #[derive(Arbitrary, Debug, Clone, TridentAccounts)]
 pub struct ProcessCustomTypesInstructionAccounts {
-    pub composite_account_nested: CompositeAccountNestedAccounts,
-    pub signer: TridentAccount,
-    pub data_account_1: TridentAccount,
-    pub data_account_2: TridentAccount,
-    pub data_account_3: TridentAccount,
-    pub data_account_4: TridentAccount,
-    pub data_account_5: TridentAccount,
-    pub data_account_6: TridentAccount,
-    pub composite_account: CompositeAccountAccounts,
+    composite_account_nested: CompositeAccountNestedAccounts,
+    #[account(signer)]
+    signer: TridentAccount,
+    data_account_1: TridentAccount,
+    data_account_2: TridentAccount,
+    data_account_3: TridentAccount,
+    data_account_4: TridentAccount,
+    data_account_5: TridentAccount,
+    data_account_6: TridentAccount,
+    composite_account: CompositeAccountAccounts,
 }
 #[derive(Arbitrary, Debug, Clone, TridentAccounts)]
 pub struct NestedInnerAccounts {
-    pub some_account: TridentAccount,
-    pub system_program: TridentAccount,
+    some_account: TridentAccount,
+    #[account(address = "11111111111111111111111111111111")]
+    system_program: TridentAccount,
 }
 #[derive(Arbitrary, Debug, Clone, TridentAccounts)]
 pub struct CompositeAccountNestedAccounts {
-    pub some_account: TridentAccount,
-    pub nested_inner: NestedInnerAccounts,
+    some_account: TridentAccount,
+    nested_inner: NestedInnerAccounts,
 }
 #[derive(Arbitrary, Debug, Clone, TridentAccounts)]
 pub struct CompositeAccountAccounts {
-    pub some_account: TridentAccount,
-    pub signer: TridentAccount,
-    pub data_account_1: TridentAccount,
+    some_account: TridentAccount,
+    #[account(signer)]
+    signer: TridentAccount,
+    data_account_1: TridentAccount,
 }
 /// Instruction Data
 #[derive(Arbitrary, Debug, BorshDeserialize, BorshSerialize, Clone)]
 pub struct ProcessCustomTypesInstructionData {
-    pub _input_classic: ClassicStruct,
-    pub _input_optional: OptionalFields,
-    pub _input_tuple: TupleStruct,
-    pub _input_enum: SimpleEnum,
-    pub _input_data_enum: DataEnum,
-    pub _input_multi_data_enum: MultiDataEnum,
-    pub _input_named_fields_enum: NamedFieldsEnum,
-    pub _input_generic_enum: GenericEnum,
-    pub _input_unit_variants: UnitVariants,
-    pub _input_nested: NestedStruct,
-    pub _input_default: DefaultStruct,
-    pub _input_generic_struct: GenericStruct,
+    _input_classic: ClassicStruct,
+    _input_optional: OptionalFields,
+    _input_tuple: TupleStruct,
+    _input_enum: SimpleEnum,
+    _input_data_enum: DataEnum,
+    _input_multi_data_enum: MultiDataEnum,
+    _input_named_fields_enum: NamedFieldsEnum,
+    _input_generic_enum: GenericEnum,
+    _input_unit_variants: UnitVariants,
+    _input_nested: NestedStruct,
+    _input_default: DefaultStruct,
+    _input_generic_struct: GenericStruct,
 }
 /// Implementation of instruction setters for fuzzing
 ///
