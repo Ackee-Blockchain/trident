@@ -12,12 +12,11 @@ incremented upon a breaking change and the patch version will be incremented for
 
 **Added**
 
-- added support for multiple instructions within a transaction ([264](https://github.com/Ackee-Blockchain/trident/pull/264))
-
 **Removed**
 
 **Changed**
 
+- Trident Architecture changes containing multiple features and improvements (details in the PR)([267](https://github.com/Ackee-Blockchain/trident/pull/267))
 - get or create token account methods fixed for native token accounts ([262](https://github.com/Ackee-Blockchain/trident/pull/262))
 
 
