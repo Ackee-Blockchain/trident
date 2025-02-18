@@ -1,10 +1,14 @@
 name: Check Changelog
 on:
   pull_request:
+    paths-ignore:
+      - 'documentation/**'
+      - '.github/**'
     types: [assigned, opened, synchronize, reopened, labeled, unlabeled]
     branches:
       - develop
       - master
+
 jobs:
   Check-Changelog:
     name: Check Changelog Action
