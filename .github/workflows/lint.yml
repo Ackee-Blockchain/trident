@@ -3,6 +3,9 @@ name: Lint crates
 on:
   workflow_dispatch:
   pull_request:
+    paths-ignore:
+      - 'documentation/**'
+      - '.github/**'
     branches:
       - develop
       - master
