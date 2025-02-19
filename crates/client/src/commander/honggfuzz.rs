@@ -1,7 +1,7 @@
 use fehler::{throw, throws};
 use std::path::Path;
 use std::process;
-use std::{os::unix::process::CommandExt, process::Stdio};
+use std::process::Stdio;
 use tokio::process::Command;
 
 use trident_config::TridentConfig;
@@ -156,18 +156,23 @@ impl Commander {
 
         let mut rustflags = std::env::var("RUSTFLAGS").unwrap_or_default();
 
-        rustflags.push_str("--cfg honggfuzz");
+        rustflags.push_str("--cfg honggfuzz_debug");
 
         // using exec rather than spawn and replacing current process to avoid unflushed terminal output after ctrl+c signal
-        std::process::Command::new("cargo")
+        let mut child = tokio::process::Command::new("cargo")
+            .env("TRIDENT_LOG", "1")
             .env("CARGO_TARGET_DIR", cargo_target_dir)
             .env("RUSTFLAGS", rustflags)
-            .arg("hfuzz")
-            .arg("run-debug")
+            .arg("run")
             .arg(target)
-            .arg(crash_file)
-            .exec();
+            .stdin(Stdio::piped())
+            .spawn()?;
 
-        eprintln!("cannot execute \"cargo hfuzz run-debug\" command");
+        if let Some(mut stdin) = child.stdin.take() {
+            use tokio::io::AsyncWriteExt;
+            stdin.write_all(crash_file_path.as_bytes()).await?;
+        }
+
+        Self::handle_child(&mut child).await?;
     }
 }
