@@ -12,6 +12,10 @@ incremented upon a breaking change and the patch version will be incremented for
 
 **Added**
 
+- Program ID inside test_fuzz.rs file is now automatically filled in if it present in the program IDL ([---](https://github.com/Ackee-Blockchain/trident/pull/---))
+
+**Added**
+
 -Added additional attributes to TridentAccounts, mut and signer ([268](https://github.com/Ackee-Blockchain/trident/pull/268))
 
 **Removed**
