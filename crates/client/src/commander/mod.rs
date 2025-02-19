@@ -58,13 +58,15 @@ impl Commander {
     }
 
     #[throws]
-    pub async fn build_anchor_project() {
-        let success = Command::new("anchor")
-            .arg("build")
-            .spawn()?
-            .wait()
-            .await?
-            .success();
+    pub async fn build_anchor_project(program_name: Option<String>) {
+        let mut cmd = Command::new("anchor");
+        cmd.arg("build");
+
+        if let Some(name) = program_name {
+            cmd.args(["-p", name.as_str()]);
+        }
+
+        let success = cmd.spawn()?.wait().await?.success();
         if !success {
             throw!(Error::BuildProgramsFailed);
         }
