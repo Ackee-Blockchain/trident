@@ -4,11 +4,14 @@ use anyhow::{bail, Error};
 
 use clap::Subcommand;
 use fehler::throws;
+use heck::ToSnakeCase;
 use trident_client::___private::{Commander, TestGenerator};
 
 use crate::{_discover, show_howto};
 
 pub const TRIDENT_TOML: &str = "Trident.toml";
+pub const TRIDENT_TESTS: &str = "trident-tests";
+pub const SKIP: &str = "\x1b[33mSkip\x1b[0m";
 
 #[derive(Subcommand)]
 #[allow(non_camel_case_types)]
@@ -23,6 +26,14 @@ pub enum FuzzCommand {
             value_name = "FILE"
         )]
         program_name: Option<String>,
+        #[arg(
+            short,
+            long,
+            required = false,
+            help = "Name of the fuzz test to add.",
+            value_name = "NAME"
+        )]
+        test_name: Option<String>,
     },
     #[command(
         about = "Run the AFL on desired fuzz test.",
@@ -142,10 +153,17 @@ pub async fn fuzz(subcmd: FuzzCommand) {
         } => {
             commander.run_hfuzz_debug(target, crash_file_path).await?;
         }
-
-        FuzzCommand::Add { program_name } => {
+        FuzzCommand::Add { program_name, test_name } => {
+            let test_name_snake = test_name.map(|name| name.to_snake_case());
+            if let Some(name) = &test_name_snake {
+                let fuzz_test_dir = Path::new(&root).join(TRIDENT_TESTS).join(name);
+                if fuzz_test_dir.exists() {
+                    println!("{SKIP} [{}/{}] already exists", TRIDENT_TESTS, name);
+                    return;
+                }
+            }
             let mut generator = TestGenerator::new_with_root(&root)?;
-            generator.add_fuzz_test(program_name).await?;
+            generator.add_fuzz_test(program_name, test_name_snake).await?;
             show_howto();
         }
     };

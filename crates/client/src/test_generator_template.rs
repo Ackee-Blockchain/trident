@@ -93,12 +93,20 @@ impl TestGenerator {
     }
 
     #[throws]
-    pub(crate) async fn add_new_fuzz_test(&self) {
+    pub(crate) async fn add_new_fuzz_test(&self, test_name: Option<String>) {
         let trident_tests = construct_path!(self.root, TESTS_WORKSPACE_DIRECTORY);
 
-        let new_fuzz_test = format!("fuzz_{}", get_fuzz_id(&trident_tests)?);
+        let new_fuzz_test = match test_name {
+            Some(name) => name,
+            None => format!("fuzz_{}", get_fuzz_id(&trident_tests)?),
+        };
 
         let new_fuzz_test_dir = construct_path!(trident_tests, &new_fuzz_test);
+
+        if new_fuzz_test_dir.exists() {
+            println!("{SKIP} [{}] already exists", new_fuzz_test_dir.display());
+            return;
+        }
 
         self.create_instructions(&new_fuzz_test_dir).await?;
         self.create_transactions(&new_fuzz_test_dir).await?;

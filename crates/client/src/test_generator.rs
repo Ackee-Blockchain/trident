@@ -58,13 +58,13 @@ impl TestGenerator {
         }
     }
     #[throws]
-    pub async fn initialize(&mut self, program_name: Option<String>) {
+    pub async fn initialize(&mut self, program_name: Option<String>, test_name: Option<String>) {
         Commander::build_anchor_project(program_name.clone()).await?;
 
         self.get_program_packages(program_name.clone()).await?;
         self.load_programs_idl(program_name.clone())?;
         self.create_template().await?;
-        self.add_new_fuzz_test().await?;
+        self.add_new_fuzz_test(test_name).await?;
         self.create_trident_toml().await?;
 
         self.update_gitignore(CARGO_TARGET_DIR_DEFAULT_HFUZZ)?;
@@ -72,13 +72,13 @@ impl TestGenerator {
     }
 
     #[throws]
-    pub async fn add_fuzz_test(&mut self, program_name: Option<String>) {
+    pub async fn add_fuzz_test(&mut self, program_name: Option<String>, test_name: Option<String>) {
         Commander::build_anchor_project(program_name.clone()).await?;
 
         self.get_program_packages(program_name.clone()).await?;
         self.load_programs_idl(program_name.clone())?;
         self.create_template().await?;
-        self.add_new_fuzz_test().await?;
+        self.add_new_fuzz_test(test_name).await?;
 
         self.update_gitignore(CARGO_TARGET_DIR_DEFAULT_HFUZZ)?;
         self.update_gitignore(CARGO_TARGET_DIR_DEFAULT_AFL)?;
