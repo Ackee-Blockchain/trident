@@ -58,11 +58,11 @@ impl TestGenerator {
         }
     }
     #[throws]
-    pub async fn initialize(&mut self) {
-        Commander::build_anchor_project().await?;
+    pub async fn initialize(&mut self, program_name: Option<String>) {
+        Commander::build_anchor_project(program_name.clone()).await?;
 
-        self.get_program_packages().await?;
-        self.load_programs_idl()?;
+        self.get_program_packages(program_name.clone()).await?;
+        self.load_programs_idl(program_name.clone())?;
         self.create_template().await?;
         self.add_new_fuzz_test().await?;
         self.create_trident_toml().await?;
@@ -72,11 +72,11 @@ impl TestGenerator {
     }
 
     #[throws]
-    pub async fn add_fuzz_test(&mut self) {
-        Commander::build_anchor_project().await?;
+    pub async fn add_fuzz_test(&mut self, program_name: Option<String>) {
+        Commander::build_anchor_project(program_name.clone()).await?;
 
-        self.get_program_packages().await?;
-        self.load_programs_idl()?;
+        self.get_program_packages(program_name.clone()).await?;
+        self.load_programs_idl(program_name.clone())?;
         self.create_template().await?;
         self.add_new_fuzz_test().await?;
 
@@ -87,9 +87,9 @@ impl TestGenerator {
     }
 
     #[throws]
-    async fn get_program_packages(&mut self) {
+    async fn get_program_packages(&mut self, program_name: Option<String>) {
         // TODO consider optionally excluding packages
-        self.program_packages = collect_program_packages().await?;
+        self.program_packages = collect_program_packages(program_name).await?;
     }
 
     #[throws]
@@ -116,10 +116,10 @@ impl TestGenerator {
     }
 
     #[throws]
-    fn load_programs_idl(&mut self) {
+    fn load_programs_idl(&mut self, program_name: Option<String>) {
         let target_path = construct_path!(self.root, "target/idl/");
 
         // TODO consider optionally excluding packages
-        self.anchor_idls = crate::idl_loader::load_idls(target_path).unwrap();
+        self.anchor_idls = crate::idl_loader::load_idls(target_path, program_name).unwrap();
     }
 }
