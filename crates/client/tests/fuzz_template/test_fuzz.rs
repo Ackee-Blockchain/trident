@@ -32,12 +32,12 @@ struct TransactionsSequence;
 impl FuzzSequenceBuilder<FuzzTransactions> for TransactionsSequence {}
 fn main() {
     let program_additional_program = ProgramEntrypoint::new(
-        pubkey!("fill corresponding program ID here"),
+        pubkey!("8bPSKGoWCdAW8Hu3S1hLHPpBv8BNwse4jDyaXNrj3jWB"),
         None,
         processor!(entry_additional_program),
     );
     let program_idl_test = ProgramEntrypoint::new(
-        pubkey!("fill corresponding program ID here"),
+        pubkey!("HtD1eaPZ1JqtxcirNtYt3aAhUMoJWZ2Ddtzu4NDZCrhN"),
         None,
         processor!(entry_idl_test),
     );

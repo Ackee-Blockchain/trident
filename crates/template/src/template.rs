@@ -24,11 +24,19 @@ pub struct Template {
 
 impl Template {
     pub fn create_template(&mut self, idls: &[Idl], lib_names: &[String]) {
+        let mut program_ids = HashMap::new();
+
         for idl in idls {
+            // Assign program IDs to program names.
+            let program_name = idl.metadata.name.clone();
+            let program_id = idl.address.clone();
+
+            program_ids.insert(program_name, program_id);
+
             self.process_idl(idl);
         }
 
-        self.test_fuzz(lib_names);
+        self.test_fuzz(&program_ids, lib_names);
     }
 
     fn process_idl(&mut self, idl: &Idl) {
