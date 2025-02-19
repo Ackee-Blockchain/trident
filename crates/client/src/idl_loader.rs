@@ -1,3 +1,4 @@
+use heck::ToSnakeCase;
 use std::error::Error;
 use std::fs::{self, File};
 use std::io::Read;
@@ -5,13 +6,29 @@ use std::path::PathBuf;
 
 use trident_idl_spec::Idl;
 
-pub fn load_idls(dir_path: PathBuf) -> Result<Vec<Idl>, Box<dyn Error>> {
+pub fn load_idls(
+    dir_path: PathBuf,
+    program_name: Option<String>,
+) -> Result<Vec<Idl>, Box<dyn Error>> {
     let mut idls = Vec::new();
 
     // Read the directory and iterate over each entry
     for entry in fs::read_dir(dir_path)? {
         let entry = entry?;
         let path = entry.path();
+
+        if let Some(ref program_name) = program_name {
+            if path.is_file()
+                && !path
+                    .file_name()
+                    .and_then(|name| name.to_str())
+                    // convert program_name to match case of IDL names
+                    .map(|name| name.trim_end_matches(".json") == program_name.to_snake_case())
+                    .unwrap_or(false)
+            {
+                continue;
+            }
+        }
 
         // Only process .json files
         if path.is_file() && path.extension().and_then(|ext| ext.to_str()) == Some("json") {

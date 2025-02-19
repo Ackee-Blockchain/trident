@@ -11,7 +11,7 @@ pub const TRIDENT_TOML: &str = "Trident.toml";
 pub const SKIP: &str = "\x1b[33mSkip\x1b[0m";
 
 #[throws]
-pub async fn init(force: bool) {
+pub async fn init(force: bool, program_name: Option<String>) {
     // look for Anchor.toml
     let root = if let Some(r) = _discover(ANCHOR_TOML)? {
         r
@@ -22,7 +22,7 @@ pub async fn init(force: bool) {
     let mut generator: TestGenerator = TestGenerator::new_with_root(&root)?;
 
     if force {
-        generator.initialize().await?;
+        generator.initialize(program_name).await?;
         show_howto();
     } else {
         let root_path = Path::new(&root).join(TRIDENT_TOML);
@@ -34,7 +34,7 @@ pub async fn init(force: bool) {
                 root
             );
         } else {
-            generator.initialize().await?;
+            generator.initialize(program_name).await?;
             show_howto();
         }
     }
