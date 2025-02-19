@@ -111,6 +111,7 @@ impl TestGenerator {
             })
             .collect::<Vec<String>>();
 
+        // Older anchor idls didnt't contain program names so we parse them for backwards compatibility
         self.template.create_template(&self.anchor_idls, &lib_names);
     }
 
