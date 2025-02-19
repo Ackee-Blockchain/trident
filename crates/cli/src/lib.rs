@@ -50,6 +50,14 @@ enum Command {
             value_name = "FILE"
         )]
         program_name: Option<String>,
+        #[arg(
+            short,
+            long,
+            required = false,
+            help = "Name of the fuzz test to initialize.",
+            value_name = "NAME"
+        )]
+        test_name: Option<String>,
     },
     #[command(
         about = "Run fuzz subcommands.",
@@ -78,7 +86,8 @@ pub async fn start() {
         Command::Init {
             force,
             program_name,
-        } => command::init(force, program_name).await?,
+            test_name
+        } => command::init(force, program_name, test_name).await?,
         Command::Clean => command::clean().await?,
     }
 }

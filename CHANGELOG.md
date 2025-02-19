@@ -16,9 +16,11 @@ incremented upon a breaking change and the patch version will be incremented for
 
 **Added**
 
--Added additional attributes to TridentAccounts, mut and signer ([268](https://github.com/Ackee-Blockchain/trident/pull/268))
+- Added additional attributes to TridentAccounts, mut and signer ([268](https://github.com/Ackee-Blockchain/trident/pull/268))
 
 - Users can now specify a program for which they want to add or initialize a fuzz test using `--program-name` flag ([273](https://github.com/Ackee-Blockchain/trident/pull/273))
+
+- Allow custom test name specification in fuzz test creation with `--test-name` flag ([274](https://github.com/Ackee-Blockchain/trident/pull/274))
 
 **Removed**
 
