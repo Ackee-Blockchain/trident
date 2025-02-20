@@ -3,7 +3,6 @@ use crate::types::*;
 use borsh::{BorshDeserialize, BorshSerialize};
 use trident_fuzz::fuzzing::*;
 #[derive(Arbitrary, Debug, TridentInstruction)]
-#[accounts("accounts")]
 #[program_id("HtD1eaPZ1JqtxcirNtYt3aAhUMoJWZ2Ddtzu4NDZCrhN")]
 # [discriminator ([74u8 , 102u8 , 18u8 , 245u8 , 253u8 , 10u8 , 252u8 , 246u8 ,])]
 pub struct ProcessRustTypesInstruction {

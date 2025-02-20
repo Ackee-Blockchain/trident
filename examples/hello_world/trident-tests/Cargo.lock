@@ -3732,7 +3732,8 @@ version = "0.0.1"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 1.0.109",
+ "syn 2.0.98",
+ "trident-syn",
 ]
 
 [[package]]
@@ -3760,6 +3761,7 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.98",
+ "trident-syn",
 ]
 
 [[package]]
@@ -3768,7 +3770,8 @@ version = "0.0.1"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 1.0.109",
+ "syn 2.0.98",
+ "trident-syn",
 ]
 
 [[package]]
@@ -3778,6 +3781,7 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.98",
+ "trident-syn",
 ]
 
 [[package]]
@@ -3839,6 +3843,15 @@ dependencies = [
  "solana_rbpf",
  "trident-syscall-stubs-v1",
  "trident-syscall-stubs-v2",
+]
+
+[[package]]
+name = "trident-syn"
+version = "0.0.1"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.98",
 ]
 
 [[package]]

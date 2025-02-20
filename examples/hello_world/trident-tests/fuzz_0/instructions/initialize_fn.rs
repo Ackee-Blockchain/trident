@@ -2,7 +2,6 @@ use crate::fuzz_transactions::FuzzAccounts;
 use borsh::{BorshDeserialize, BorshSerialize};
 use trident_fuzz::fuzzing::*;
 #[derive(Arbitrary, Debug, TridentInstruction)]
-#[accounts("accounts")]
 #[program_id("FtevoQoDMv6ZB3N9Lix5Tbjs8EVuNL8vDSqG9kzaZPit")]
 # [discriminator ([18u8 , 187u8 , 169u8 , 213u8 , 94u8 , 180u8 , 86u8 , 152u8 ,])]
 pub struct InitializeFnInstruction {
@@ -14,8 +13,7 @@ pub struct InitializeFnInstruction {
 pub struct InitializeFnInstructionAccounts {
     pub author: TridentAccount,
     pub hello_world_account: TridentAccount,
-    #[skip_snapshot]
-    #[address("11111111111111111111111111111111")]
+    #[account(address = "11111111111111111111111111111111", skip_snapshot)]
     pub system_program: TridentAccount,
 }
 /// Instruction Data
