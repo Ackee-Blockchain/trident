@@ -2,7 +2,6 @@ use crate::fuzz_transactions::FuzzAccounts;
 use borsh::{BorshDeserialize, BorshSerialize};
 use trident_fuzz::fuzzing::*;
 #[derive(Arbitrary, Debug, TridentInstruction)]
-#[accounts("accounts")]
 #[program_id("AGpdCBtXUyLWKutvMCVDeTywkxgvQVjJk54btLQNLMiZ")]
 # [discriminator ([213u8 , 161u8 , 76u8 , 199u8 , 38u8 , 28u8 , 209u8 , 80u8 ,])]
 pub struct WithdrawUnlockedInstruction {

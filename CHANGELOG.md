@@ -12,6 +12,7 @@ incremented upon a breaking change and the patch version will be incremented for
 
 **Added**
 
+- Derive macros now use own syn parser for better extensibility UX ([275](https://github.com/Ackee-Blockchain/trident/pull/275))
 - Program ID inside test_fuzz.rs file is now automatically filled in if it present in the program IDL ([272](https://github.com/Ackee-Blockchain/trident/pull/272))
 
 **Added**
