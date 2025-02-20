@@ -86,7 +86,7 @@ pub async fn start() {
         Command::Init {
             force,
             program_name,
-            test_name
+            test_name,
         } => command::init(force, program_name, test_name).await?,
         Command::Clean => command::clean().await?,
     }

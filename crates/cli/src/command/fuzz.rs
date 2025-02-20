@@ -153,7 +153,10 @@ pub async fn fuzz(subcmd: FuzzCommand) {
         } => {
             commander.run_hfuzz_debug(target, crash_file_path).await?;
         }
-        FuzzCommand::Add { program_name, test_name } => {
+        FuzzCommand::Add {
+            program_name,
+            test_name,
+        } => {
             let test_name_snake = test_name.map(|name| name.to_snake_case());
             if let Some(name) = &test_name_snake {
                 let fuzz_test_dir = Path::new(&root).join(TRIDENT_TESTS).join(name);
@@ -163,7 +166,9 @@ pub async fn fuzz(subcmd: FuzzCommand) {
                 }
             }
             let mut generator = TestGenerator::new_with_root(&root)?;
-            generator.add_fuzz_test(program_name, test_name_snake).await?;
+            generator
+                .add_fuzz_test(program_name, test_name_snake)
+                .await?;
             show_howto();
         }
     };
