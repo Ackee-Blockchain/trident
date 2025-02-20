@@ -36,7 +36,6 @@ impl Template {
 
         let instruction_struct: syn::ItemStruct = parse_quote! {
             #[derive(Arbitrary, Debug, TridentInstruction)]
-            #[accounts("accounts")]
             #[program_id(#program_id)]
             #[discriminator([#(#instruction_discriminator,)*])]
             pub struct #instruction_struct_name {
