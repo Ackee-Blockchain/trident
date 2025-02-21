@@ -14,14 +14,11 @@ resolver = "1"
 [workspace.dependencies]
 # Solana
 solana-sdk = "~2.0"
-spl-token = { version = "5", features = ["no-entrypoint"] }
-solana-vote-program = "~2.0"
-solana-stake-program = "~2.0"
 
 # ARBITRARY
 arbitrary = { version = "1.3.0", features = ["derive"] }
 
-# ARBITRARY
+# Honggfuzz
 honggfuzz = { version = "0.5.55" }
 
 #AFL
