@@ -4240,8 +4240,6 @@ dependencies = [
  "serde",
  "serde_json",
  "solana-sdk 2.0.25",
- "solana-stake-program",
- "solana-vote-program",
  "spl-token 5.0.2",
  "thiserror",
  "tokio",

@@ -1,8 +1,6 @@
 use std::collections::HashMap;
 
 use solana_sdk::account::AccountSharedData;
-use solana_sdk::clock::Clock;
-use solana_sdk::clock::Epoch;
 use solana_sdk::native_token::LAMPORTS_PER_SOL;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
@@ -10,8 +8,6 @@ use solana_sdk::signer::Signer;
 
 use crate::traits::FuzzClient;
 use crate::types::AccountId;
-
-use solana_stake_program::stake_state::Lockup;
 
 use super::derive_pda;
 use super::AccountMetadata;
@@ -72,6 +68,7 @@ impl AccountsStorage {
         }
     }
 
+    #[cfg(feature = "token")]
     #[allow(clippy::too_many_arguments)]
     pub fn get_or_create_token_account(
         &mut self,
@@ -110,6 +107,7 @@ impl AccountsStorage {
         }
     }
 
+    #[cfg(feature = "token")]
     /// Get Initialized or Create new Mint Account
     #[allow(clippy::too_many_arguments)]
     pub fn get_or_create_mint_account(
@@ -135,6 +133,7 @@ impl AccountsStorage {
         }
     }
 
+    #[cfg(feature = "stake")]
     #[allow(clippy::too_many_arguments)]
     pub fn get_or_create_delegated_account(
         &mut self,
@@ -145,9 +144,9 @@ impl AccountsStorage {
         staker: Pubkey,
         withdrawer: Pubkey,
         stake: u64,
-        activation_epoch: Epoch,
-        deactivation_epoch: Option<Epoch>,
-        lockup: Option<Lockup>,
+        activation_epoch: solana_sdk::clock::Epoch,
+        deactivation_epoch: Option<solana_sdk::clock::Epoch>,
+        lockup: Option<solana_stake_program::stake_state::Lockup>,
     ) -> Pubkey {
         match self.accounts.get(&account_id) {
             Some(address) => *address,
@@ -173,6 +172,7 @@ impl AccountsStorage {
         }
     }
 
+    #[cfg(feature = "stake")]
     #[allow(clippy::too_many_arguments)]
     /// Get Initialized or Create new Initialized Stake Account
     pub fn get_or_create_initialized_account(
@@ -182,7 +182,7 @@ impl AccountsStorage {
         seeds: Option<PdaSeeds>,
         staker: Pubkey,
         withdrawer: Pubkey,
-        lockup: Option<Lockup>,
+        lockup: Option<solana_stake_program::stake_state::Lockup>,
     ) -> Pubkey {
         match self.accounts.get(&account_id) {
             Some(address) => *address,
@@ -198,6 +198,7 @@ impl AccountsStorage {
         }
     }
 
+    #[cfg(feature = "vote")]
     /// Get Initialized or Create new Vote Account
     #[allow(clippy::too_many_arguments)]
     pub fn get_or_create_vote_account(
@@ -209,7 +210,7 @@ impl AccountsStorage {
         authorized_voter: &Pubkey,
         authorized_withdrawer: &Pubkey,
         commission: u8,
-        clock: &Clock,
+        clock: &solana_sdk::clock::Clock,
     ) -> Pubkey {
         match self.accounts.get(&account_id) {
             Some(address) => *address,

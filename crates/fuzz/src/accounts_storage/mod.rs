@@ -1,7 +1,15 @@
 pub mod account_storage;
+
+#[cfg(feature = "token")]
 mod mint_account;
+
+#[cfg(feature = "stake")]
 mod stake_account;
+
+#[cfg(feature = "token")]
 mod token_account;
+
+#[cfg(feature = "vote")]
 mod vote_account;
 
 use solana_sdk::pubkey::Pubkey;
