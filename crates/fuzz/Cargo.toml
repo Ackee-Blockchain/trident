@@ -7,6 +7,13 @@ license-file = "../../LICENSE"
 readme = "../../README.md"
 description = "The trident_fuzz crate helps you to write Rust Fuzz Tests for your programs with Trident."
 
+
+[features]
+all = ["vote", "stake", "token"]
+vote = ["dep:solana-vote-program"]
+stake = ["dep:solana-stake-program"]
+token = ["dep:spl-token"]
+
 [dependencies]
 # Derive macros
 trident-derive-displayix = { path = "../fuzz/derive/display_ix", version = "0.0.4" }
@@ -15,6 +22,7 @@ trident-derive-transaction = { path = "../fuzz/derive/transaction", version = "0
 trident-derive-instruction = { path = "../fuzz/derive/instruction", version = "0.0.1" }
 trident-derive-accounts = { path = "../fuzz/derive/accounts", version = "0.0.1" }
 trident-derive-remaining-accounts = { path = "../fuzz/derive/remaining_accounts", version = "0.0.1" }
+
 # Config (Trident.toml)
 trident-config = { path = "../config", version = "0.0.1" }
 
@@ -23,9 +31,11 @@ trident-svm = "0.0.2"
 
 # Solana
 solana-sdk = { workspace = true }
-spl-token = { workspace = true }
-solana-vote-program = { workspace = true }
-solana-stake-program = { workspace = true }
+
+# Solana additonal programs
+solana-vote-program = { version = "~2.0", optional = true }
+solana-stake-program = { version = "~2.0", optional = true }
+spl-token = { version = "5", features = ["no-entrypoint"], optional = true }
 
 # Honggfuzz
 honggfuzz = { workspace = true }

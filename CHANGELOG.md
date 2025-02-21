@@ -12,6 +12,7 @@ incremented upon a breaking change and the patch version will be incremented for
 
 **Added**
 
+- Additional methods accessing the AccountsStorage and creating corresponding accounts are now optional ("token","vote", "stake") ([279](https://github.com/Ackee-Blockchain/trident/pull/279))
 - Derive macros now use own syn parser for better extensibility and UX ([275](https://github.com/Ackee-Blockchain/trident/pull/275))
 - Program ID inside test_fuzz.rs file is now automatically filled in is present in the program IDL ([272](https://github.com/Ackee-Blockchain/trident/pull/272))
 - Added additional attributes to TridentAccounts, mut and signer ([268](https://github.com/Ackee-Blockchain/trident/pull/268))

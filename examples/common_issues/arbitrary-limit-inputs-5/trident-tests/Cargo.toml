@@ -18,6 +18,7 @@ spl-token = "5"
 
 [dependencies.trident-fuzz]
 path = "../../../../crates/fuzz"
+features = ["token"]
 
 [dependencies.arbitrary-limit-inputs-5]
 path = "../programs/arbitrary-limit-inputs-5"
