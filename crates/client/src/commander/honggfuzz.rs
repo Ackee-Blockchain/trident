@@ -164,6 +164,7 @@ impl Commander {
             .env("CARGO_TARGET_DIR", cargo_target_dir)
             .env("RUSTFLAGS", rustflags)
             .arg("run")
+            .arg("--bin")
             .arg(target)
             .stdin(Stdio::piped())
             .spawn()?;
