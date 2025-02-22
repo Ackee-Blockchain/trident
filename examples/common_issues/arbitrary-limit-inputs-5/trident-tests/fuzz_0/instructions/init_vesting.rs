@@ -10,12 +10,13 @@ pub struct InitVestingInstruction {
 }
 /// Instruction Accounts
 #[derive(Arbitrary, Debug, Clone, TridentAccounts)]
+#[instruction_data(InitVestingInstructionData)]
 pub struct InitVestingInstructionAccounts {
     #[account(signer, mut,storage = sender)]
     pub sender: TridentAccount,
     #[account(mut)]
     pub sender_token_account: TridentAccount,
-    #[account(mut)]
+    #[account(mut,storage = escrow,seeds = [instruction_data.recipient.get_pubkey().as_ref(), b"ESCROW_SEED"])]
     pub escrow: TridentAccount,
     #[account(mut)]
     pub escrow_token_account: TridentAccount,
@@ -103,16 +104,11 @@ impl InstructionSetters for InitVestingInstruction {
         self.data.recipient.set_pubkey(recipient);
     }
     fn set_accounts(&mut self, client: &mut impl FuzzClient, fuzz_accounts: &mut Self::IxAccounts) {
-        let recipient = fuzz_accounts.recipient.get_or_create(
-            self.data.recipient.account_id,
-            client,
-            None,
-            None,
-        );
+        let sender = self.accounts.sender.pubkey();
 
         let mint = fuzz_accounts
             .mint
-            .get_or_create_mint_account(0, client, None, 6, &recipient, None);
+            .get_or_create_mint_account(0, client, None, 6, &sender, None);
 
         self.accounts.mint.set_address(mint);
 
@@ -123,7 +119,7 @@ impl InstructionSetters for InitVestingInstruction {
                 client,
                 None,
                 mint,
-                self.accounts.sender.pubkey(),
+                sender,
                 u64::MAX,
                 None,
                 false,
@@ -133,17 +129,6 @@ impl InstructionSetters for InitVestingInstruction {
         self.accounts
             .sender_token_account
             .set_address(sender_token_account);
-
-        let escrow = fuzz_accounts.escrow.get_or_create(
-            self.accounts.escrow.account_id,
-            client,
-            Some(PdaSeeds::new(
-                &[&recipient.to_bytes(), b"ESCROW_SEED"],
-                self.get_program_id(),
-            )),
-            None,
-        );
-        self.accounts.escrow.set_address(escrow);
 
         let escrow_token_account = fuzz_accounts
             .escrow_token_account
