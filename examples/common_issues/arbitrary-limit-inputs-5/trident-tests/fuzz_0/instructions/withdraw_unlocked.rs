@@ -10,6 +10,7 @@ pub struct WithdrawUnlockedInstruction {
 }
 /// Instruction Accounts
 #[derive(Arbitrary, Debug, Clone, TridentAccounts)]
+#[instruction_data(WithdrawUnlockedInstructionData)]
 pub struct WithdrawUnlockedInstructionAccounts {
     #[account(signer, mut, storage = recipient)]
     pub recipient: TridentAccount,
@@ -19,7 +20,7 @@ pub struct WithdrawUnlockedInstructionAccounts {
     pub escrow: TridentAccount,
     #[account(mut,storage = escrow_token_account)]
     pub escrow_token_account: TridentAccount,
-    #[account(mut)]
+    #[account(mut,storage = escrow_pda_authority,seeds = [b"ESCROW_PDA_AUTHORITY"])]
     pub escrow_pda_authority: TridentAccount,
     #[account(mut,storage = mint)]
     pub mint: TridentAccount,
@@ -57,19 +58,5 @@ impl InstructionSetters for WithdrawUnlockedInstruction {
         self.accounts
             .recipient_token_account
             .set_address(recipient_token_account);
-
-        let escrow_pda_authority = fuzz_accounts.escrow_pda_authority.get_or_create(
-            self.accounts.escrow_pda_authority.account_id,
-            client,
-            Some(PdaSeeds::new(
-                &[b"ESCROW_PDA_AUTHORITY"],
-                self.get_program_id(),
-            )),
-            None,
-        );
-
-        self.accounts
-            .escrow_pda_authority
-            .set_address(escrow_pda_authority);
     }
 }
