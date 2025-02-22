@@ -3822,6 +3822,7 @@ dependencies = [
 name = "trident-syn"
 version = "0.0.1"
 dependencies = [
+ "petgraph",
  "proc-macro2",
  "quote",
  "syn 2.0.98",

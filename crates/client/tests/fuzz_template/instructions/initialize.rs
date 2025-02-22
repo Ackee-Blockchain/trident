@@ -11,6 +11,7 @@ pub struct InitializeInstruction {
 }
 /// Instruction Accounts
 #[derive(Arbitrary, Debug, Clone, TridentAccounts)]
+#[instruction_data(InitializeInstructionData)]
 pub struct InitializeInstructionAccounts {}
 /// Instruction Data
 #[derive(Arbitrary, Debug, BorshDeserialize, BorshSerialize, Clone)]

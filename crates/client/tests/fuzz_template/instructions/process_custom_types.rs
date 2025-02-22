@@ -11,6 +11,7 @@ pub struct ProcessCustomTypesInstruction {
 }
 /// Instruction Accounts
 #[derive(Arbitrary, Debug, Clone, TridentAccounts)]
+#[instruction_data(ProcessCustomTypesInstructionData)]
 pub struct ProcessCustomTypesInstructionAccounts {
     composite_account_nested: CompositeAccountNestedAccounts,
     #[account(signer)]
@@ -24,17 +25,20 @@ pub struct ProcessCustomTypesInstructionAccounts {
     composite_account: CompositeAccountAccounts,
 }
 #[derive(Arbitrary, Debug, Clone, TridentAccounts)]
+#[instruction_data(ProcessCustomTypesInstructionData)]
 pub struct NestedInnerAccounts {
     some_account: TridentAccount,
     #[account(address = "11111111111111111111111111111111")]
     system_program: TridentAccount,
 }
 #[derive(Arbitrary, Debug, Clone, TridentAccounts)]
+#[instruction_data(ProcessCustomTypesInstructionData)]
 pub struct CompositeAccountNestedAccounts {
     some_account: TridentAccount,
     nested_inner: NestedInnerAccounts,
 }
 #[derive(Arbitrary, Debug, Clone, TridentAccounts)]
+#[instruction_data(ProcessCustomTypesInstructionData)]
 pub struct CompositeAccountAccounts {
     some_account: TridentAccount,
     #[account(signer)]

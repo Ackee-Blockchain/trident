@@ -10,12 +10,18 @@ pub struct InitializeInstruction {
 }
 /// Instruction Accounts
 #[derive(Arbitrary, Debug, Clone, TridentAccounts)]
+#[instruction_data(InitializeInstructionData)]
 pub struct InitializeInstructionAccounts {
     #[account(signer,mut,storage = signer)]
     pub signer: TridentAccount,
     #[account(signer,mut,storage = mint)]
     pub mint: TridentAccount,
-    #[account(mut)]
+    #[account(
+        mut,
+        storage = metadata_account,
+        seeds = [b"metadata", mpl_token_metadata.as_ref(), mint.as_ref()],
+        program_id = mpl_token_metadata
+    )]
     pub metadata_account: TridentAccount,
     #[account(address = "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s", skip_snapshot)]
     pub mpl_token_metadata: TridentAccount,
@@ -40,22 +46,10 @@ pub struct InitializeInstructionData {
 /// - (Optional) Set remaining accounts during fuzzing
 impl InstructionSetters for InitializeInstruction {
     type IxAccounts = FuzzAccounts;
-    fn set_accounts(&mut self, client: &mut impl FuzzClient, fuzz_accounts: &mut Self::IxAccounts) {
-        let mint = self.accounts.mint.pubkey();
-
-        let metadata_account = fuzz_accounts.metadata_account.get_or_create(
-            self.accounts.metadata_account.account_id,
-            client,
-            Some(PdaSeeds::new(
-                &[
-                    b"metadata",
-                    pubkey!("metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s").as_ref(),
-                    mint.as_ref(),
-                ],
-                pubkey!("metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s"),
-            )),
-            None,
-        );
-        self.accounts.metadata_account.set_address(metadata_account);
+    fn set_accounts(
+        &mut self,
+        _client: &mut impl FuzzClient,
+        _fuzz_accounts: &mut Self::IxAccounts,
+    ) {
     }
 }
