@@ -53,7 +53,7 @@ impl TransactionCustomMethods for WithdrawUnlockedTransaction {
                 Err(_) => return Ok(()),
             };
 
-            if escrow.recipient.pubkey == recipient {
+            if escrow.recipient.get_pubkey() == recipient {
                 if recipient_token_account_pre.amount == recipient_token_account_post.amount {
                     // Recipient was not able to withdraw
                     return Err(FuzzingError::CustomMessage("BALANCE MISMATCH".to_string()));

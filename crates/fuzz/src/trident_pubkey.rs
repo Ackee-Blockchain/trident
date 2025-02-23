@@ -6,10 +6,19 @@ use solana_sdk::pubkey::Pubkey;
 
 use crate::types::AccountId;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub struct TridentPubkey {
     pub account_id: AccountId,
-    pub pubkey: Pubkey,
+    pubkey: Pubkey,
+}
+
+impl TridentPubkey {
+    pub fn set_pubkey(&mut self, pubkey: Pubkey) {
+        self.pubkey = pubkey;
+    }
+    pub fn get_pubkey(&self) -> Pubkey {
+        self.pubkey
+    }
 }
 
 impl<'a> Arbitrary<'a> for TridentPubkey {
