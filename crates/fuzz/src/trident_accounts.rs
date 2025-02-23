@@ -44,6 +44,7 @@ impl TridentAccount {
             self.account_meta = Some(AccountMeta::new_readonly(address, is_signer));
         }
     }
+    #[doc(hidden)]
     pub fn capture_before(&mut self, client: &mut impl FuzzClient) {
         match &self.account_meta {
             Some(account_meta) => {
@@ -56,6 +57,7 @@ impl TridentAccount {
             None => {}
         }
     }
+    #[doc(hidden)]
     pub fn capture_after(&mut self, client: &mut impl FuzzClient) {
         match &self.account_meta {
             Some(account_meta) => {
@@ -68,12 +70,14 @@ impl TridentAccount {
             None => {}
         }
     }
+    #[doc(hidden)]
     pub fn to_account_meta(&self) -> AccountMeta {
         match &self.account_meta {
             Some(account_meta) => account_meta.clone(),
             None => panic!("Account meta is not set"),
         }
     }
+    #[doc(hidden)]
     pub fn is_account_meta_set(&self) -> bool {
         self.account_meta.is_some()
     }

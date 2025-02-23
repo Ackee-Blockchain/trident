@@ -41,7 +41,6 @@ impl<'a> Arbitrary<'a> for InitVestingInstructionData {
     fn arbitrary(u: &mut arbitrary::Unstructured<'a>) -> arbitrary::Result<Self> {
         // obtain AccountId
         let recipient = AccountId::arbitrary(u)?;
-        let recipient_pubkey = Pubkey::new_unique();
 
         // limit the generated amount to the 1_000_000
         let amount = u.int_in_range(1..=1_000_000)?;
@@ -75,10 +74,7 @@ impl<'a> Arbitrary<'a> for InitVestingInstructionData {
         }
 
         Ok(InitVestingInstructionData {
-            recipient: TridentPubkey {
-                account_id: recipient,
-                pubkey: recipient_pubkey,
-            },
+            recipient: TridentPubkey::from(recipient),
             amount,
             start_at,
             end_at,
@@ -104,7 +100,7 @@ impl InstructionSetters for InitVestingInstruction {
             None,
         );
 
-        self.data.recipient.pubkey = recipient;
+        self.data.recipient.set_pubkey(recipient);
     }
     fn set_accounts(&mut self, client: &mut impl FuzzClient, fuzz_accounts: &mut Self::IxAccounts) {
         let recipient = fuzz_accounts.recipient.get_or_create(
