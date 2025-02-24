@@ -26,6 +26,16 @@ impl ToTokens for TridentInstructionStruct {
             (quote! {}, quote! {}, quote! {})
         };
 
+        let debug_remaining_accounts =
+            if let Some(ref remaining_field) = self.remaining_accounts_field {
+                let remaining = syn::Ident::new(remaining_field, proc_macro2::Span::call_site());
+                quote! {
+                    .field("\x1b[96mremaining_accounts\x1b[0m", &self.#remaining)
+                }
+            } else {
+                quote! {}
+            };
+
         let expanded = quote! {
             impl InstructionMethods for #name {
                 fn get_discriminator(&self) -> Vec<u8> {
@@ -67,6 +77,18 @@ impl ToTokens for TridentInstructionStruct {
                     fuzz_accounts: &mut Self::IxAccounts,
                 ) {
                     self.#accounts.resolve_accounts(client, fuzz_accounts);
+                }
+            }
+
+            impl std::fmt::Debug for #name {
+                fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                    f.debug_struct(stringify!(#name))
+                        .field("\x1b[96mprogram_id\x1b[0m", &format_args!("\x1b[93m{}\x1b[0m", pubkey!(#program_id)))
+                        .field("\x1b[96mdiscriminator\x1b[0m", &format_args!("{:?}", vec![#(#discriminator_bytes),*]))
+                        .field("\x1b[96maccounts\x1b[0m", &self.#accounts)
+                        #debug_remaining_accounts
+                        .field("\x1b[96mdata\x1b[0m", &self.data)
+                        .finish()
                 }
             }
         };

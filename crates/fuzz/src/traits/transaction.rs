@@ -8,7 +8,7 @@ use crate::traits::FuzzClient;
 use trident_config::TridentConfig;
 
 /// Trait providing methods to prepare data and accounts for transaction
-pub trait TransactionMethods: TransactionCustomMethods {
+pub trait TransactionMethods: TransactionCustomMethods + std::fmt::Debug {
     type IxAccounts;
 
     /// Get transaction name
@@ -58,6 +58,16 @@ pub trait TransactionMethods: TransactionCustomMethods {
 
         // get accounts
         let accounts = self.get_instruction_accounts(client, fuzz_accounts);
+
+        #[allow(unexpected_cfgs)]
+        {
+            if cfg!(fuzzing_debug) {
+                println!(
+                    "\x1b[96mCurrently processing transaction with instructions\x1b[0m: {:#?}",
+                    self
+                );
+            }
+        }
 
         // create instructions
         let instructions: Vec<Instruction> =
