@@ -107,6 +107,7 @@ impl Commander {
 
         // using exec rather than spawn and replacing current process to avoid unflushed terminal output after ctrl+c signal
         let mut child = Command::new("cargo")
+            .env("TRIDENT_LOG", "1")
             .env("RUSTFLAGS", rustflags)
             .arg("afl")
             .arg("run")
