@@ -21,6 +21,8 @@ incremented upon a breaking change and the patch version will be incremented for
 
 **Removed**
 
+- The DisplayIx macro is now removed, Debug trait was implemented for instruction inputs ([281](https://github.com/Ackee-Blockchain/trident/pull/281))
+
 **Changed**
 
 - AccountsStorages are simplified, no types are required to define ([276](https://github.com/Ackee-Blockchain/trident/pull/276))
