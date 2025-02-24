@@ -10,7 +10,7 @@ use solana_sdk::pubkey::Pubkey;
 
 use crate::{fuzzing::FuzzClient, types::AccountId};
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct TridentAccount {
     pub account_id: AccountId,
     account_meta: Option<AccountMeta>,
@@ -116,6 +116,27 @@ impl TridentAccount {
             Some(account_meta) => account_meta.pubkey,
             None => panic!("Account meta is not set"),
         }
+    }
+}
+
+impl std::fmt::Debug for TridentAccount {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "TridentAccount {{ account_id: {}, account_meta: ",
+            self.account_id
+        )?;
+        match &self.account_meta {
+            Some(meta) => {
+                write!(f, "{{ ")?;
+                write!(f, "address: \x1b[93m{}\x1b[0m, ", meta.pubkey)?;
+                write!(f, "is_signer: \x1b[33m{}\x1b[0m, ", meta.is_signer)?;
+                write!(f, "is_writable: \x1b[94m{}\x1b[0m", meta.is_writable)?;
+                write!(f, " }}")?;
+            }
+            None => write!(f, "none")?,
+        }
+        write!(f, " }}")
     }
 }
 

@@ -7,7 +7,7 @@ use trident_fuzz::fuzzing::*;
 /// The transaction struct contains the instruction and the accounts and data.
 ///
 /// You can create your own transactions by adding new variants to the enum.
-#[derive(Arbitrary, FuzzTestExecutor)]
+#[derive(Arbitrary, Debug, FuzzTestExecutor)]
 pub enum FuzzTransactions {
     InitializeFnTransaction(InitializeFnTransaction),
 }

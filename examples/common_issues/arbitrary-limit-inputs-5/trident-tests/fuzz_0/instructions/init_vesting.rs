@@ -1,7 +1,7 @@
 use crate::fuzz_transactions::FuzzAccounts;
 use borsh::{BorshDeserialize, BorshSerialize};
 use trident_fuzz::fuzzing::*;
-#[derive(Arbitrary, Debug, TridentInstruction)]
+#[derive(Arbitrary, TridentInstruction)]
 #[program_id("AGpdCBtXUyLWKutvMCVDeTywkxgvQVjJk54btLQNLMiZ")]
 # [discriminator ([119u8 , 192u8 , 67u8 , 41u8 , 47u8 , 82u8 , 152u8 , 27u8 ,])]
 pub struct InitVestingInstruction {
