@@ -14,6 +14,18 @@ impl ToTokens for TridentTransactionStruct {
             None => quote! { stringify!(#name).to_string() },
         };
 
+        // Generate instruction blocks for each field
+        let instruction_blocks = self.fields.iter().map(|f| {
+            let field_ident = &f.ident;
+            quote! {
+                {
+                    self.#field_ident.resolve_accounts(client, fuzz_accounts);
+                    self.#field_ident.set_accounts(client, fuzz_accounts);
+                    self.#field_ident.set_remaining_accounts(client, fuzz_accounts);
+                }
+            }
+        });
+
         let expanded = quote! {
             impl TransactionMethods for #name {
                 type IxAccounts = FuzzAccounts;
@@ -50,9 +62,7 @@ impl ToTokens for TridentTransactionStruct {
                     client: &mut impl FuzzClient,
                     fuzz_accounts: &mut FuzzAccounts,
                 ) -> Vec<Vec<AccountMeta>> {
-                    #(self.#field_idents.resolve_accounts(client, fuzz_accounts);)*
-                    #(self.#field_idents.set_accounts(client, fuzz_accounts);)*
-                    #(self.#field_idents.set_remaining_accounts(client, fuzz_accounts);)*
+                    #(#instruction_blocks)*
                     vec![
                         #(self.#field_idents.to_account_metas()),*
                     ]
