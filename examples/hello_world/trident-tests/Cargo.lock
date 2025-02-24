@@ -3412,21 +3412,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "spl-token"
-version = "5.0.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b03756db22e8391ce33d2c0410a5a27edd44e6d9904c0f83c4fc9b556850730a"
-dependencies = [
- "arrayref",
- "bytemuck",
- "num-derive",
- "num-traits",
- "num_enum",
- "solana-program 2.0.25",
- "thiserror",
-]
-
-[[package]]
 name = "stable_deref_trait"
 version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3737,15 +3722,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "trident-derive-displayix"
-version = "0.0.4"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 1.0.109",
-]
-
-[[package]]
 name = "trident-derive-fuzz-test-executor"
 version = "0.0.5"
 dependencies = [
@@ -3803,15 +3779,11 @@ dependencies = [
  "serde",
  "serde_json",
  "solana-sdk",
- "solana-stake-program",
- "solana-vote-program",
- "spl-token",
  "thiserror",
  "tokio",
  "toml 0.8.20",
  "trident-config",
  "trident-derive-accounts",
- "trident-derive-displayix",
  "trident-derive-fuzz-test-executor",
  "trident-derive-instruction",
  "trident-derive-remaining-accounts",

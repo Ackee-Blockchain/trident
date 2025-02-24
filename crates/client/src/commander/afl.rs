@@ -99,7 +99,7 @@ impl Commander {
 
         let mut rustflags = std::env::var("RUSTFLAGS").unwrap_or_default();
 
-        rustflags.push_str("--cfg afl");
+        rustflags.push_str("--cfg afl --cfg fuzzing_debug");
 
         let mut file = File::open(crash_file)?;
         let mut file_contents = Vec::new();

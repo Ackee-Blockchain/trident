@@ -156,7 +156,7 @@ impl Commander {
 
         let mut rustflags = std::env::var("RUSTFLAGS").unwrap_or_default();
 
-        rustflags.push_str("--cfg honggfuzz_debug");
+        rustflags.push_str("--cfg honggfuzz_debug --cfg fuzzing_debug");
 
         // using exec rather than spawn and replacing current process to avoid unflushed terminal output after ctrl+c signal
         let mut child = tokio::process::Command::new("cargo")

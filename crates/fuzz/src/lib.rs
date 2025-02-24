@@ -38,7 +38,6 @@ pub mod fuzzing {
 
     /// trident derive
     pub use trident_derive_accounts::TridentAccounts;
-    pub use trident_derive_displayix::DisplayIx;
     pub use trident_derive_fuzz_test_executor::FuzzTestExecutor;
     pub use trident_derive_instruction::TridentInstruction;
     pub use trident_derive_remaining_accounts::TridentRemainingAccounts;

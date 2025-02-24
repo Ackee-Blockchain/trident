@@ -74,23 +74,8 @@ impl<T: FuzzTestExecutor<U>, U: Default> FuzzData<T, U> {
         client: &mut TridentSVM,
         config: &TridentConfig,
     ) -> core::result::Result<(), Box<dyn Error + 'static>> {
-        #[cfg(feature = "fuzzing_debug")]
-        {
-            eprintln!("\x1b[34mInstructions sequence\x1b[0m:");
-            for ix in self.iter() {
-                eprintln!("{}", ix);
-            }
-            eprintln!("------ End of Instructions sequence ------ ");
-        }
-
         let accounts = RefCell::new(U::default());
         for instructions_batch in self.iter_mut() {
-            // #[cfg(feature = "fuzzing_debug")]
-            // println!(
-            //     "\x1b[96mCurrently processing transaction with instructions\x1b[0m: {}",
-            //     instructions_batch
-            // );
-
             if instructions_batch
                 .process_transaction(client, config, &accounts)
                 .is_err()

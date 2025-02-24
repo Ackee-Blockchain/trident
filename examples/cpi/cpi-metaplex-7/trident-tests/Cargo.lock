@@ -4183,15 +4183,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "trident-derive-displayix"
-version = "0.0.4"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 1.0.109",
-]
-
-[[package]]
 name = "trident-derive-fuzz-test-executor"
 version = "0.0.5"
 dependencies = [
@@ -4254,7 +4245,6 @@ dependencies = [
  "toml 0.8.20",
  "trident-config",
  "trident-derive-accounts",
- "trident-derive-displayix",
  "trident-derive-fuzz-test-executor",
  "trident-derive-instruction",
  "trident-derive-remaining-accounts",
