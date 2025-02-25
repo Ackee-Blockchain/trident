@@ -27,5 +27,5 @@ trident fuzz run-afl <FUZZ_TARGET>
     TRIDENT_LOG=1 trident fuzz run-afl <fuzz_target>
     TRIDENT_LOG=1 trident fuzz run-hfuzz <fuzz_target>
     ```
-    
-For the output reference and additional options such as debugging the found issues, check the [Commands](../basics/commands.md).
+
+For the output reference and additional options such as debugging the found issues, check out [Commands](../../basics/commands.md).
