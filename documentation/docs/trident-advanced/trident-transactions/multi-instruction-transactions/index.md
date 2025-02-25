@@ -25,4 +25,4 @@ pub struct ExampleTransaction {
 impl TransactionCustomMethods for ExampleTransaction {}
 ```
 
-A newly created transactions need to be added to the `FuzzTransactions` enum in the `fuzz_transactions.rs` file. Check the [FuzzTransactions](../../../trident-api-macro/trident-types/fuzz_transactions/index.md) for more details.
+A newly created transactions need to be added to the `FuzzTransactions` enum in the `fuzz_transactions.rs` file. Check the [FuzzTransactions](../../../trident-api-macro/trident-types/fuzz-transactions.md) for more details.
