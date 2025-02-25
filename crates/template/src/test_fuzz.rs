@@ -41,10 +41,10 @@ impl Template {
 
             struct TransactionsSequence;
 
-            /// Define transaction sequences for execution.
+            /// Define transaction flows for execution.
             /// `starting_sequence` runs at the start, `middle` in the middle, and `ending` at the end.
             /// For example, to call `InitializeFn`, `UpdateFn` and then `WithdrawFn` during each fuzzing iteration:
-            /// ```
+            ///
             /// impl FuzzDataBuilder<FuzzTransactions> for InstructionsSequence {
             ///     fn starting_sequence(fuzzer_data: &mut FuzzerData) -> SequenceResult<FuzzTransactions> {
             ///         let seq1 = sequence!([InitializeFn, UpdateFn], fuzzer_data);
@@ -55,8 +55,8 @@ impl Template {
             ///         Ok(seq1)
             ///     }
             ///}
-            /// ```
-            /// For more details, see: https://ackee.xyz/trident/docs/latest/features/instructions-sequences/#instructions-sequences
+            ///
+            /// Docs: https://ackee.xyz/trident/docs/latest/features/trident-advanced/trident-transactions/trident-fuzzing-flows/
             impl FuzzSequenceBuilder<FuzzTransactions> for TransactionsSequence {}
 
             fn main() {

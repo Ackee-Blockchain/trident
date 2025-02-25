@@ -14,6 +14,9 @@ impl Template {
         let instruction_struct_name: syn::Ident = parse_str(&instruction_name).unwrap();
 
         let transaction: syn::ItemStruct = parse_quote! {
+            /// Customize transaction behavior by adding more instructions.
+            ///
+            /// Docs: https://ackee.xyz/trident/docs/latest/trident-advanced/trident-transactions/multi-instruction-transactions/
             #[derive(Arbitrary, Debug, TridentTransaction)]
             pub struct #transaction_struct_name {
                 pub instruction: #instruction_struct_name,
@@ -21,13 +24,13 @@ impl Template {
         };
 
         let transaction_custom_methods_impl: syn::ItemImpl = parse_quote! {
-            /// Custom Transaction Methods
-            ///
-            /// Provides hooks for customizing transaction behavior:
+            /// Custom transaction methods provide hooks for customizing transaction behavior:
             /// - `pre_transaction`: Execute custom logic before transaction execution
             /// - `transaction_invariant_check`: Validate transaction-specific invariants
             /// - `transaction_error_handler`: Custom handling of transaction errors
             /// - `post_transaction`: Execute custom logic after transaction execution
+            ///
+            /// Docs: https://ackee.xyz/trident/docs/latest/trident-advanced/trident-transactions/transaction-methods/
             impl TransactionCustomMethods for #transaction_struct_name {}
         };
 
