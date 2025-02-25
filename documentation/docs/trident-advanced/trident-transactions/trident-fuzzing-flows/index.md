@@ -26,7 +26,7 @@ Each method works with its corresponding random date.
 // test_fuzz.rs
 impl FuzzSequenceBuilder<FuzzTransactions> for TransactionsSequence {
     fn starting_sequence(fuzzer_data: &mut FuzzerData) -> SequenceResult<FuzzTransactions> {
-        // starting sequence is not defined, so nothing will be
+        // starting sequence is empty, so nothing will be
         // executed at the start of each fuzzing iteration
         Ok(vec![])
     }
@@ -42,10 +42,36 @@ impl FuzzSequenceBuilder<FuzzTransactions> for TransactionsSequence {
             fuzzer_data
         );
 
-        Ok(sq1)
+        Ok(flow1)
     }
 
     // ending sequence is not defined, so at the end of each fuzzing
     // iteration, random transactions will be executed
+}
+```
+
+```rust
+// test_fuzz.rs
+impl FuzzSequenceBuilder<FuzzTransactions> for TransactionsSequence {
+    // the middle and ending sequences return empty vectors, which means
+    // that during every fuzzing iteration only Transaction1 and Transaction2
+    // will be executed in this given order
+    fn starting_sequence(fuzzer_data: &mut FuzzerData) -> SequenceResult<FuzzTransactions> {
+        let flow1 = sequence!(
+            [
+                Transaction1,
+                Transaction2,
+            ],
+            fuzzer_data
+        );
+
+        Ok(flow1)
+    }
+    fn middle_sequence(fuzzer_data: &mut FuzzerData) -> SequenceResult<FuzzTransactions> {
+        Ok(vec![])
+    }
+    fn ending_sequence(fuzzer_data: &mut FuzzerData) -> SequenceResult<FuzzTransactions> {
+        Ok(vec![])
+    }
 }
 ```

@@ -1,4 +1,4 @@
-# Fuzz Transactions
+# FuzzTransactions
 
 `FuzzTransactions` is an enum that contains `all the transactions that can be used in the fuzz test`.
 
