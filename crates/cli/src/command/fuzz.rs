@@ -169,7 +169,6 @@ pub async fn fuzz(subcmd: FuzzCommand) {
             generator
                 .add_fuzz_test(program_name, test_name_snake)
                 .await?;
-            show_howto();
         }
     };
 }
