@@ -14,20 +14,20 @@ FuzzClient represents the fuzzing environment and provides methods to interact w
 
 Trident macros are used to define required methods for fuzzing.
 
-- [TridentTransaction](trident-macros/trident-transaction/index.md)
-- [TridentInstruction](trident-macros/trident-instruction/index.md)
-- [TridentAccounts](trident-macros/trident-accounts/index.md)
-- [TridentRemainingAccounts](trident-macros/trident-remaining-accounts/index.md)
-- [FuzzTestExecutor](trident-macros/trident-fuzz-executor/index.md)
+- [TridentTransaction](trident-macros/trident-transaction.md)
+- [TridentInstruction](trident-macros/trident-instruction.md)
+- [TridentAccounts](trident-macros/trident-accounts.md)
+- [TridentRemainingAccounts](trident-macros/trident-remaining-accounts.md)
+- [FuzzTestExecutor](trident-macros/trident-fuzz-executor.md)
 
 
 ## Trident Types
 
 Trident types represent the types utilized during fuzzing.
 
-- [FuzzTransactions](trident-types/fuzz_transactions/index.md)
-- [FuzzAccounts](trident-types/fuzz-accounts/index.md)
-- [TransactionsSequence](trident-types/transactions_sequences/index.md)
-- [TridentAccount](trident-types/trident_account/index.md)
-- [TridentPubkey](trident-types/trident_pubkey/index.md)
-- [CustomTypes](trident-types/custom_types/index.md)
+- [FuzzTransactions](trident-types/fuzz-transactions.md)
+- [FuzzAccounts](trident-types/fuzz-accounts.md)
+- [TransactionsSequence](trident-types/transactions-sequence.md)
+- [TridentAccount](trident-types/trident-account.md)
+- [TridentPubkey](trident-types/trident-pubkey.md)
+- [CustomTypes](trident-types/custom-types.md)

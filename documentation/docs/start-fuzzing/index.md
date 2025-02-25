@@ -6,7 +6,7 @@ To start writting fuzz tests, you need to initialize Trident in your Anchor-base
 trident init
 ```
 
-if you have already initialized Trident, you can add a new fuzz test using:
+If you have already initialized Trident, you can add a new fuzz test using:
 
 ```bash
 trident fuzz add

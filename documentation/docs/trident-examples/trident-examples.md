@@ -4,6 +4,8 @@ hide:
   - toc
 ---
 
+# Trident Examples
+
 <div class="grid cards" markdown>
 
 -   :material-hand-wave:{ .lg .middle } __Hello World!__
