@@ -24,13 +24,13 @@ impl Template {
         };
 
         let transaction_custom_methods_impl: syn::ItemImpl = parse_quote! {
-            /// Custom transaction methods provide hooks for customizing transaction behavior:
-            /// - `pre_transaction`: Execute custom logic before transaction execution
-            /// - `transaction_invariant_check`: Validate transaction-specific invariants
-            /// - `transaction_error_handler`: Custom handling of transaction errors
-            /// - `post_transaction`: Execute custom logic after transaction execution
-            ///
-            /// Docs: https://ackee.xyz/trident/docs/latest/trident-advanced/trident-transactions/transaction-methods/
+        /// Methods for customizing transaction behavior:
+        /// - `pre_transaction`: Execute custom logic before transaction execution
+        /// - `transaction_invariant_check`: Validate transaction-specific invariants
+        /// - `transaction_error_handler`: Custom handling of transaction errors
+        /// - `post_transaction`: Execute custom logic after transaction execution
+        ///
+        /// Docs: https://ackee.xyz/trident/docs/latest/trident-advanced/trident-transactions/transaction-methods/
             impl TransactionCustomMethods for #transaction_struct_name {}
         };
 
