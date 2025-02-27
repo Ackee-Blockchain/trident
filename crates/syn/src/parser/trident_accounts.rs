@@ -20,6 +20,19 @@ use crate::types::trident_accounts::TridentField;
 pub fn parse_trident_accounts(item_struct: &ItemStruct) -> ParseResult<TridentAccountsStruct> {
     let ident = item_struct.ident.clone();
 
+    // Parse the instruction type attribute (required)
+    let instruction_type = item_struct
+        .attrs
+        .iter()
+        .find(|attr| attr.path().is_ident("instruction_data"))
+        .ok_or_else(|| {
+            ParseError::new(
+                item_struct.span(),
+                "Missing required #[instruction_data(Type)] attribute",
+            )
+        })?
+        .parse_args::<syn::Type>()?;
+
     let fields = match &item_struct.fields {
         syn::Fields::Named(fields) => fields
             .named
@@ -34,7 +47,11 @@ pub fn parse_trident_accounts(item_struct: &ItemStruct) -> ParseResult<TridentAc
         }
     };
 
-    Ok(TridentAccountsStruct { ident, fields })
+    Ok(TridentAccountsStruct {
+        ident,
+        fields,
+        instruction_type,
+    })
 }
 
 fn parse_account_field(field: &Field) -> ParseResult<TridentAccountField> {
@@ -138,9 +155,46 @@ fn parse_constraints(attrs: &[Attribute]) -> ParseResult<TridentConstraints> {
                     constraints.skip_snapshot = true;
                     Ok(())
                 }
+                "seeds" => {
+                    if meta.input.peek(syn::Token![=]) {
+                        meta.input.parse::<syn::Token![=]>()?;
+                        let content;
+                        syn::bracketed!(content in meta.input);
+
+                        let mut seeds = Vec::new();
+                        while !content.is_empty() {
+                            let expr: syn::Expr = content.parse()?;
+                            seeds.push(expr);
+
+                            if !content.is_empty() {
+                                content.parse::<syn::Token![,]>()?;
+                            }
+                        }
+                        constraints.seeds = Some(seeds);
+                    }
+                    Ok(())
+                }
+                "program_id" => {
+                    if meta.input.peek(syn::Token![=]) {
+                        meta.input.parse::<syn::Token![=]>()?;
+                        let expr: syn::Expr = meta.input.parse()?;
+                        constraints.program_id = Some(expr);
+                    }
+                    Ok(())
+                }
                 _ => Err(meta.error("unsupported constraint")),
             }
         })?;
+    }
+
+    // Validate constraints
+    if (constraints.seeds.is_some() || constraints.program_id.is_some())
+        && constraints.storage.is_none()
+    {
+        return Err(ParseError::new(
+            proc_macro2::Span::call_site(),
+            "seeds require non-optional storage attribute",
+        ));
     }
 
     Ok(constraints)

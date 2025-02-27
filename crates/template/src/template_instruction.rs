@@ -32,7 +32,7 @@ impl Template {
         let instruction_discriminator = process_discriminator(instruction);
 
         // Generate composite account structs before main instruction struct
-        let composite_structs = get_composite_account_structs(instruction);
+        let composite_structs = get_composite_account_structs(instruction, &instruction_data_name);
 
         let instruction_struct: syn::ItemStruct = parse_quote! {
             #[derive(Arbitrary, TridentInstruction)]
@@ -47,6 +47,7 @@ impl Template {
         let instruction_input_accounts: syn::ItemStruct = parse_quote! {
             /// Instruction Accounts
             #[derive(Arbitrary, Debug, Clone, TridentAccounts)]
+            #[instruction_data(#instruction_data_name)]
             pub struct #instruction_accounts_name {
                  #(#accounts),*
             }
@@ -214,11 +215,14 @@ fn process_instruction_argument(argument: &IdlField, arguments: &mut Vec<FnArg>)
     arguments.push(parameter);
 }
 
-fn get_composite_account_structs(instruction: &IdlInstruction) -> Vec<syn::ItemStruct> {
+fn get_composite_account_structs(
+    instruction: &IdlInstruction,
+    instruction_data_name: &syn::Ident,
+) -> Vec<syn::ItemStruct> {
     let mut composite_structs = Vec::new();
 
     for account in &instruction.accounts {
-        process_composite_account_item(account, &mut composite_structs);
+        process_composite_account_item(account, &mut composite_structs, instruction_data_name);
     }
 
     composite_structs
@@ -227,11 +231,16 @@ fn get_composite_account_structs(instruction: &IdlInstruction) -> Vec<syn::ItemS
 fn process_composite_account_item(
     account: &IdlInstructionAccountItem,
     composite_structs: &mut Vec<syn::ItemStruct>,
+    instruction_data_name: &syn::Ident,
 ) {
     if let IdlInstructionAccountItem::Composite(composite) = account {
         // Process all nested composite accounts first
         for nested_account in &composite.accounts {
-            process_composite_account_item(nested_account, composite_structs);
+            process_composite_account_item(
+                nested_account,
+                composite_structs,
+                instruction_data_name,
+            );
         }
 
         // Convert to camel case for the struct name
@@ -258,6 +267,7 @@ fn process_composite_account_item(
 
         let struct_def: syn::ItemStruct = parse_quote! {
             #[derive(Arbitrary, Debug, Clone, TridentAccounts)]
+            #[instruction_data(#instruction_data_name)]
             pub struct #struct_name {
                 #(#fields),*
             }

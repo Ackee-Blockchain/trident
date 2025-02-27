@@ -3736,7 +3736,8 @@ version = "0.0.5"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 1.0.109",
+ "syn 2.0.98",
+ "trident-syn",
 ]
 
 [[package]]
@@ -3830,6 +3831,7 @@ dependencies = [
 name = "trident-syn"
 version = "0.0.1"
 dependencies = [
+ "petgraph",
  "proc-macro2",
  "quote",
  "syn 2.0.98",

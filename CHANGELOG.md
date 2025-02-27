@@ -12,6 +12,7 @@ incremented upon a breaking change and the patch version will be incremented for
 
 **Added**
 
+- Added support for seeds constraint for accounts structs ([284](https://github.com/Ackee-Blockchain/trident/pull/284))
 - Additional methods accessing the AccountsStorage and creating corresponding accounts are now optional ("token","vote", "stake") ([279](https://github.com/Ackee-Blockchain/trident/pull/279))
 - Derive macros now use own syn parser for better extensibility and UX ([275](https://github.com/Ackee-Blockchain/trident/pull/275))
 - Program ID inside test_fuzz.rs file is now automatically filled in is present in the program IDL ([272](https://github.com/Ackee-Blockchain/trident/pull/272))

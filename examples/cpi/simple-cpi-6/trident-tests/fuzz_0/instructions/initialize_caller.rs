@@ -10,6 +10,7 @@ pub struct InitializeCallerInstruction {
 }
 /// Instruction Accounts
 #[derive(Arbitrary, Debug, Clone, TridentAccounts)]
+#[instruction_data(InitializeCallerInstructionData)]
 pub struct InitializeCallerInstructionAccounts {
     #[account(signer, mut,storage = signer)]
     pub signer: TridentAccount,

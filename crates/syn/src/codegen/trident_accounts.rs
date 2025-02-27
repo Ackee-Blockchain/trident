@@ -1,5 +1,7 @@
-use proc_macro2::TokenStream;
+use petgraph::algo::toposort;
+use petgraph::Graph;
 use quote::{quote, ToTokens};
+use std::collections::HashMap;
 
 use crate::types::trident_accounts::TridentAccountField;
 use crate::types::trident_accounts::TridentAccountsStruct;
@@ -7,61 +9,122 @@ use crate::types::trident_accounts::TridentAccountsStruct;
 impl ToTokens for TridentAccountsStruct {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         let name = &self.ident;
+        let instruction_data = &self.instruction_type;
+        // Build dependency graph and sort fields
+        let dependencies = self.analyze_seed_dependencies();
+        let mut graph = Graph::new();
+        let mut node_indices = HashMap::new();
+        let mut field_positions = HashMap::new();
 
-        // Generate storage resolution code for resolve_accounts
-        let resolve_storage = self.fields.iter().map(|field| {
+        // Add all fields as nodes and track their positions
+        for (idx, field) in self.fields.iter().enumerate() {
+            let node_idx = graph.add_node(idx); // Store position instead of ident
+            node_indices.insert(field.ident().to_string(), node_idx);
+            field_positions.insert(field.ident().to_string(), idx);
+        }
+
+        // Add edges for dependencies - IMPORTANT: Reverse the direction!
+        for dep in dependencies {
+            let from = node_indices[&dep.dependent_field.to_string()];
+            let to = node_indices[&dep.required_field.to_string()];
+            // We were adding edges in the wrong direction
+            graph.add_edge(to, from, ()); // Changed order here
+        }
+
+        // Perform topological sort
+        let sorted_fields = match toposort(&graph, None) {
+            Ok(nodes) => nodes
+                .into_iter()
+                .map(|idx| &self.fields[graph[idx]]) // Use the stored position
+                .collect::<Vec<_>>(),
+            Err(_) => {
+                panic!("Circular dependencies detected in account seeds");
+            }
+        };
+
+        // Generate individual resolution blocks for each field
+        let resolve_storage = sorted_fields.iter().map(|field| {
             match field {
                 TridentAccountField::Field(f) => {
                     let field_name = &f.ident;
-                    let constraints = &f.constraints;
+                    let is_signer = f.constraints.signer;
+                    let is_mutable = f.constraints.mutable;
 
-                    let mut inner_code = TokenStream::new();
-
-                    if let Some(ref storage_ident) = constraints.storage {
-                        inner_code.extend(quote! {
-                            let address = ix_accounts
-                                .#storage_ident
-                                .get_or_create(self.#field_name.account_id, client, None, None);
-                            self.#field_name.set_address(address);
-                        });
-                    }
-
-                    if let Some(ref address) = constraints.address {
-                        inner_code.extend(quote! {
-                            self.#field_name.set_address(#address);
-                        });
-                    }
-
-                    if constraints.signer {
-                        inner_code.extend(quote! {
-                            self.#field_name.set_is_signer();
-                        });
-                    }
-
-                    if constraints.mutable {
-                        inner_code.extend(quote! {
-                            self.#field_name.set_is_writable();
-                        });
-                    }
-
-                    if !inner_code.is_empty() {
+                    // Generate the account resolution code based on constraints
+                    if let Some(address) = &f.constraints.address {
                         quote! {
-                            {
-                                // Resolve and configure account
-                                #inner_code
+                            let #field_name = {
+                                let account = #address;
+                                self.#field_name.set_address(account);
+
+                                if #is_signer {
+                                    self.#field_name.set_is_signer();
+                                }
+                                if #is_mutable {
+                                    self.#field_name.set_is_writable();
+                                }
+
+                                account
+                            };
+                        }
+                    } else if let Some(storage_ident) = &f.constraints.storage {
+                        let account_resolution = if let Some(seeds) = &f.constraints.seeds {
+                            // Get program_id from constraint if available, otherwise use the passed program_id
+                            let program_id_to_use = if let Some(program_id) = &f.constraints.program_id {
+                                quote!(#program_id)
+                            } else {
+                                quote!(program_id)
+                            };
+
+                            quote! {
+                                storage_accounts
+                                    .#storage_ident
+                                    .get_or_create(self.#field_name.account_id, client, Some(PdaSeeds::new(&[#(#seeds),*], #program_id_to_use)), None)
                             }
+                        } else {
+                            quote! {
+                                storage_accounts
+                                    .#storage_ident
+                                    .get_or_create(self.#field_name.account_id, client, None, None)
+                            }
+                        };
+
+                        quote! {
+                            let #field_name = {
+                                let account = #account_resolution;
+                                self.#field_name.set_address(account);
+
+                                if #is_signer {
+                                    self.#field_name.set_is_signer();
+                                }
+                                if #is_mutable {
+                                    self.#field_name.set_is_writable();
+                                }
+
+                                account
+                            };
                         }
                     } else {
-                        quote! {}
+                        // No address or storage specified, just set flags
+                        quote! {
+                            let #field_name = {
+                                if #is_signer {
+                                    self.#field_name.set_is_signer();
+                                }
+                                if #is_mutable {
+                                    self.#field_name.set_is_writable();
+                                }
+                            };
+                        }
                     }
                 }
                 TridentAccountField::CompositeField(f) => {
                     let field_name = &f.ident;
                     quote! {
-                        {
-                            // Resolve composite accounts
-                            self.#field_name.resolve_accounts(client, ix_accounts);
-                        }
+                        let #field_name = {
+                            self.#field_name.resolve_accounts(client, storage_accounts, program_id, instruction_data);
+                            &self.#field_name
+                        };
                     }
                 }
             }
@@ -104,11 +167,15 @@ impl ToTokens for TridentAccountsStruct {
         let expanded = quote! {
             impl AccountsMethods for #name {
                 type IxAccounts = FuzzAccounts;
+                type IxData = #instruction_data;
 
+                #[allow(unused_variables)]
                 fn resolve_accounts(
                     &mut self,
                     client: &mut impl FuzzClient,
-                    ix_accounts: &mut Self::IxAccounts,
+                    storage_accounts: &mut Self::IxAccounts,
+                    program_id: Pubkey,
+                    instruction_data: &Self::IxData,
                 ) {
                     #(#resolve_storage)*
                 }
