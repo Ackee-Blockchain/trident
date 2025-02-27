@@ -2,8 +2,13 @@ use crate::fuzz_transactions::FuzzAccounts;
 use crate::instructions::*;
 use trident_fuzz::fuzzing::*;
 #[derive(Arbitrary, Debug, TridentTransaction)]
-pub struct InitializeFnTransaction {
-    pub instruction: InitializeFnInstruction,
+pub struct InitializeFnTransaction2 {
+    pub instruction1: InitializeFnInstruction,
+    pub instruction2: InitializeFnInstruction,
+    pub instruction3: InitializeFnInstruction,
+    pub instruction4: InitializeFnInstruction,
+    pub instruction5: InitializeFnInstruction,
+    pub instruction6: InitializeFnInstruction,
 }
 /// Custom Transaction Methods
 ///
@@ -12,16 +17,6 @@ pub struct InitializeFnTransaction {
 /// - `transaction_invariant_check`: Validate transaction-specific invariants
 /// - `transaction_error_handler`: Custom handling of transaction errors
 /// - `post_transaction`: Execute custom logic after transaction execution
-impl TransactionCustomMethods for InitializeFnTransaction {
+impl TransactionCustomMethods for InitializeFnTransaction2 {
     type IxAccounts = FuzzAccounts;
-    fn transaction_invariant_check(&self) -> Result<(), FuzzingError> {
-        Ok(())
-    }
-    fn post_transaction(&self, client: &mut impl FuzzClient) {}
-    fn pre_transaction(&self, client: &mut impl FuzzClient) {
-        client.warp_to_timestamp(warp_timestamp);
-    }
-    fn transaction_error_handler(&self, e: TransactionError) -> Result<(), TransactionError> {
-        Ok(())
-    }
 }

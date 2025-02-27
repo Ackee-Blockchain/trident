@@ -7,9 +7,10 @@ use trident_fuzz::fuzzing::*;
 /// The transaction struct contains the instruction and the accounts and data.
 ///
 /// You can create your own transactions by adding new variants to the enum.
-#[derive(Arbitrary, Debug, FuzzTestExecutor)]
+#[derive(Arbitrary, Debug, Selector)]
 pub enum FuzzTransactions {
     InitializeFnTransaction(InitializeFnTransaction),
+    InitializeFnTransaction2(InitializeFnTransaction2),
 }
 /// Check supported AccountsStorages at
 /// https://ackee.xyz/trident/docs/latest/features/account-storages/

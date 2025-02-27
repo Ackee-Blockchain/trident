@@ -1,32 +1,14 @@
-use syn::parse::Error as ParseError;
 use syn::parse::Result as ParseResult;
-use syn::spanned::Spanned;
-use syn::{Data, DeriveInput};
+use syn::DeriveInput;
 
-use crate::types::trident_fuzz_test_executor::{
-    TridentFuzzTestExecutorEnum, TridentFuzzTestExecutorVariant,
-};
+use crate::types::trident_fuzz_test_executor::TridentFuzzTestExecutor;
 
 pub fn parse_trident_fuzz_test_executor(
     input: &DeriveInput,
-) -> ParseResult<TridentFuzzTestExecutorEnum> {
-    let ident = input.ident.clone();
-
-    let variants = match &input.data {
-        Data::Enum(enum_data) => enum_data
-            .variants
-            .iter()
-            .map(|variant| {
-                Ok(TridentFuzzTestExecutorVariant {
-                    ident: variant.ident.clone(),
-                })
-            })
-            .collect::<ParseResult<Vec<_>>>(),
-        _ => Err(ParseError::new(
-            input.span(),
-            "FuzzTestExecutor can only be derived for enums",
-        )),
-    }?;
-
-    Ok(TridentFuzzTestExecutorEnum { ident, variants })
+) -> ParseResult<TridentFuzzTestExecutor> {
+    Ok(TridentFuzzTestExecutor {
+        ident: input.ident.clone(),
+        generics: input.generics.params.iter().cloned().collect(),
+        where_clause: input.generics.where_clause.clone(),
+    })
 }

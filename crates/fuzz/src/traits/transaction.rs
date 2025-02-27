@@ -1,92 +1,56 @@
-use solana_sdk::instruction::AccountMeta;
-use solana_sdk::instruction::Instruction;
-
 use super::TransactionCustomMethods;
 use crate::error::*;
 use crate::fuzzing::FuzzingStatistics;
 use crate::traits::FuzzClient;
-use trident_config::TridentConfig;
+use crate::types::FuzzerData;
 
+use super::TransactionGetters;
+use super::TransactionSetters;
+use crate::traits::transaction_private::TransactionPrivateMethods;
+
+#[allow(private_bounds)]
 /// Trait providing methods to prepare data and accounts for transaction
-pub trait TransactionMethods: TransactionCustomMethods + std::fmt::Debug {
-    type IxAccounts;
-
-    /// Get transaction name
-    fn get_transaction_name(&self) -> String;
-
-    /// Get instruction discriminators
-    fn get_instruction_discriminators(&self) -> Vec<Vec<u8>>;
-
-    /// Get instruction program ids
-    fn get_instruction_program_ids(&self) -> Vec<solana_sdk::pubkey::Pubkey>;
-
-    /// Get instruction data
-    fn get_instruction_data(
-        &mut self,
+pub trait TransactionMethods:
+    TransactionCustomMethods + TransactionPrivateMethods + TransactionGetters + TransactionSetters
+{
+    fn build(
+        fuzzer_data: &mut FuzzerData,
         client: &mut impl FuzzClient,
         fuzz_accounts: &mut Self::IxAccounts,
-    ) -> Vec<Vec<u8>>;
-
-    /// Get instruction accounts
-    fn get_instruction_accounts(
+    ) -> arbitrary::Result<Self>
+    where
+        Self: std::marker::Sized + for<'a> arbitrary::Arbitrary<'a>;
+    fn execute(
         &mut self,
         client: &mut impl FuzzClient,
-        fuzz_accounts: &mut Self::IxAccounts,
-    ) -> Vec<Vec<AccountMeta>>;
-
-    /// Set accounts before transaction
-    fn set_snapshot_before(&mut self, client: &mut impl FuzzClient);
-
-    /// Set accounts after transaction
-    fn set_snapshot_after(&mut self, client: &mut impl FuzzClient);
-
-    /// DO NOT MODIFY THIS METHOD
-    fn process_transaction(
-        &mut self,
-        client: &mut impl FuzzClient,
-        config: &TridentConfig,
         fuzz_accounts: &mut Self::IxAccounts,
     ) -> Result<(), FuzzingError> {
-        // get discriminators
-        let discriminators = self.get_instruction_discriminators();
+        let transaction = self.create_transaction(client, fuzz_accounts);
 
-        // get program ids
-        let program_ids = self.get_instruction_program_ids();
+        // obtain snapshot of the accounts before the transaction is executed
+        self.set_snapshot_before(client);
 
-        // get data
-        let data = self.get_instruction_data(client, fuzz_accounts);
-
-        // get accounts
-        let accounts = self.get_instruction_accounts(client, fuzz_accounts);
-
-        #[allow(unexpected_cfgs)]
-        {
-            if cfg!(fuzzing_debug) {
-                println!(
-                    "\x1b[96mCurrently processing transaction with instructions\x1b[0m: {:#?}",
-                    self
-                );
+        match client.process_instructions(&transaction) {
+            Ok(_) => {
+                // Capture the accounts after the transaction is executed
+                self.set_snapshot_after(client);
+                Ok(())
             }
+            Err(e) => Err(FuzzingError::from(e)),
         }
+    }
 
-        // create instructions
-        let instructions: Vec<Instruction> =
-            itertools::multizip((discriminators, program_ids, data, accounts))
-                .map(|(discriminator, program_id, data, accounts)| {
-                    let mut ix_data = vec![];
-                    ix_data.extend(discriminator);
-                    ix_data.extend(data);
+    fn execute_with_hooks(
+        &mut self,
+        client: &mut impl FuzzClient,
+        fuzz_accounts: &mut Self::IxAccounts,
+    ) -> Result<(), FuzzingError> {
+        let transaction = self.create_transaction(client, fuzz_accounts);
 
-                    Instruction {
-                        program_id,
-                        data: ix_data,
-                        accounts,
-                    }
-                })
-                .collect();
+        let metrics = std::env::var("TRIDENT_METRICS");
 
         // If stats are enabled, log the invocation of the transaction
-        if config.get_fuzzing_with_stats() {
+        if metrics.is_ok() {
             let mut stats_logger = FuzzingStatistics::new();
 
             stats_logger.increase_invoked(self.get_transaction_name());
@@ -98,7 +62,7 @@ pub trait TransactionMethods: TransactionCustomMethods + std::fmt::Debug {
             self.set_snapshot_before(client);
 
             // Execute the transaction
-            let tx_result = client.process_instructions(&instructions);
+            let tx_result = client.process_instructions(&transaction);
 
             // Check the result of the instruction execution
             match tx_result {
@@ -149,7 +113,7 @@ pub trait TransactionMethods: TransactionCustomMethods + std::fmt::Debug {
             self.pre_transaction(client);
 
             // Execute the instruction
-            let tx_result = client.process_instructions(&instructions);
+            let tx_result = client.process_instructions(&transaction);
 
             // Check the result of the instruction execution
             match tx_result {

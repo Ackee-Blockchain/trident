@@ -1,32 +1,50 @@
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 
-use crate::types::trident_fuzz_test_executor::TridentFuzzTestExecutorEnum;
+use crate::types::trident_fuzz_test_executor::TridentFuzzTestExecutor;
 
-impl ToTokens for TridentFuzzTestExecutorEnum {
+impl ToTokens for TridentFuzzTestExecutor {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let name = &self.ident;
-        let variants = &self.variants;
-
-        let process_transaction_match_arms = variants.iter().map(|variant| {
-            let variant_name = &variant.ident;
-            quote! {
-                #name::#variant_name(tx) => {
-                    tx.process_transaction(client, config, &mut fuzz_accounts.borrow_mut())
-                }
-            }
-        });
+        let generics = &self.generics;
+        let where_clause = &self.where_clause;
 
         let expanded = quote! {
-            impl FuzzTestExecutor<FuzzAccounts> for #name {
-                fn process_transaction(
-                    &mut self,
-                    client: &mut TridentSVM,
-                    config: &TridentConfig,
-                    fuzz_accounts: &RefCell<FuzzAccounts>,
-                ) -> Result<(), FuzzingError> {
-                    match self {
-                        #(#process_transaction_match_arms)*
+            impl<#(#generics),*> #name<#(#generics),*> #where_clause {
+                fn fuzz() {
+                    let mut _self = Self {};
+
+                    let config = TridentConfig::new();
+                    let mut client = TridentSVM::new_client(Some(&config));
+
+                    if cfg!(honggfuzz) {
+                        loop {
+                            fuzz_honggfuzz(|fuzzer_data| {
+                                let mut buf = Unstructured::new(fuzzer_data);
+                                let res = _self.execute_flows(&mut buf, &mut client);
+                                client.clear_accounts();
+                            });
+                        }
+                    } else if cfg!(afl) {
+                        fuzz_afl(true, |fuzzer_data| {
+                            let mut buf = Unstructured::new(fuzzer_data);
+                            let res = _self.execute_flows(&mut buf, &mut client);
+                            client.clear_accounts();
+                        });
+                    } else if cfg!(honggfuzz_debug) {
+                        let mut crash_file = String::new();
+                        std::io::stdin()
+                            .read_line(&mut crash_file)
+                            .expect("Failed to read crash file path from stdin");
+                        let crash_file = crash_file.trim();
+
+                        let fuzzer_data = std::fs::read(crash_file).expect("Failed to read crash file");
+
+                        let mut buf = Unstructured::new(&fuzzer_data);
+                        let res = _self.execute_flows(&mut buf, &mut client);
+                        client.clear_accounts();
+                    } else {
+                        panic!("Select Honggfuzz or AFL for fuzzing!!!")
                     }
                 }
             }

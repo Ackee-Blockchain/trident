@@ -14,44 +14,29 @@ impl ToTokens for TridentTransactionStruct {
             None => quote! { stringify!(#name).to_string() },
         };
 
-        // Generate instruction blocks for each field
-        let instruction_blocks = self.fields.iter().map(|f| {
-            let field_ident = &f.ident;
-            quote! {
-                {
-                    self.#field_ident.resolve_accounts(client, fuzz_accounts);
-                    self.#field_ident.set_accounts(client, fuzz_accounts);
-                    self.#field_ident.set_remaining_accounts(client, fuzz_accounts);
-                }
-            }
-        });
-
         let expanded = quote! {
-            impl TransactionMethods for #name {
-                type IxAccounts = FuzzAccounts;
-
+            impl TransactionGetters for #name {
                 fn get_transaction_name(&self) -> String {
                     #name_impl
                 }
 
                 fn get_instruction_discriminators(&self) -> Vec<Vec<u8>> {
                     vec![
-                        #(self.#field_idents.get_discriminator()),*
+                        #(self.#field_idents.discriminator()),*
                     ]
                 }
 
                 fn get_instruction_program_ids(&self) -> Vec<solana_sdk::pubkey::Pubkey> {
                     vec![
-                        #(self.#field_idents.get_program_id()),*
+                        #(self.#field_idents.program_id()),*
                     ]
                 }
 
                 fn get_instruction_data(
                     &mut self,
                     client: &mut impl FuzzClient,
-                    fuzz_accounts: &mut FuzzAccounts,
+                    fuzz_accounts: &mut Self::IxAccounts,
                 ) -> Vec<Vec<u8>> {
-                    #(self.#field_idents.set_data(client, fuzz_accounts);)*
                     vec![
                         #(borsh::to_vec(&self.#field_idents.data).unwrap()),*
                     ]
@@ -60,28 +45,43 @@ impl ToTokens for TridentTransactionStruct {
                 fn get_instruction_accounts(
                     &mut self,
                     client: &mut impl FuzzClient,
-                    fuzz_accounts: &mut FuzzAccounts,
+                    fuzz_accounts: &mut Self::IxAccounts,
                 ) -> Vec<Vec<AccountMeta>> {
-                    #(#instruction_blocks)*
                     vec![
                         #(self.#field_idents.to_account_metas()),*
                     ]
                 }
+            }
 
-                fn set_snapshot_before(
-                    &mut self,
-                    client: &mut impl FuzzClient,
-                ) {
+            impl TransactionSetters for #name {
+                fn set_snapshot_before(&mut self, client: &mut impl FuzzClient) {
                     #(self.#field_idents.set_snapshot_before(client);)*
                 }
 
-                fn set_snapshot_after(
-                    &mut self,
-                    client: &mut impl FuzzClient,
-                ) {
+                fn set_snapshot_after(&mut self, client: &mut impl FuzzClient) {
                     #(self.#field_idents.set_snapshot_after(client);)*
                 }
             }
+
+            impl TransactionMethods for #name {
+                fn build(
+                    fuzzer_data: &mut FuzzerData,
+                    client: &mut impl FuzzClient,
+                    fuzz_accounts: &mut Self::IxAccounts,
+                ) -> arbitrary::Result<Self> {
+                    let mut tx = Self::arbitrary(fuzzer_data)?;
+                    #(
+                        tx.#field_idents.set_data(client, fuzz_accounts);
+                        tx.#field_idents.resolve_accounts(client, fuzz_accounts);
+                        tx.#field_idents.set_accounts(client, fuzz_accounts);
+                        tx.#field_idents.set_remaining_accounts(client, fuzz_accounts);
+                    )*
+                    Ok(tx)
+                }
+            }
+
+            // Note: TransactionPrivateMethods is automatically implemented
+            // for any type that implements TransactionMethods
         };
 
         tokens.extend(expanded);

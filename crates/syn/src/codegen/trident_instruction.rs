@@ -7,8 +7,6 @@ impl ToTokens for TridentInstructionStruct {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let name = &self.ident;
         let accounts = syn::Ident::new(&self.accounts_field, proc_macro2::Span::call_site());
-        let program_id = &self.program_id;
-        let discriminator_bytes = &self.discriminator;
 
         // Generate remaining accounts code if field exists
         let (
@@ -37,38 +35,34 @@ impl ToTokens for TridentInstructionStruct {
             };
 
         let expanded = quote! {
-            impl InstructionMethods for #name {
-                fn get_discriminator(&self) -> Vec<u8> {
-                    vec![#(#discriminator_bytes),*]
+            impl std::fmt::Debug for #name {
+                fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                    f.debug_struct(stringify!(#name))
+                        .field("\x1b[96maccounts\x1b[0m", &self.#accounts)
+                        #debug_remaining_accounts
+                        .field("\x1b[96mdata\x1b[0m", &self.data)
+                        .finish()
                 }
+            }
 
-                fn get_program_id(&self) -> solana_sdk::pubkey::Pubkey {
-                    pubkey!(#program_id)
-                }
-
-                fn set_snapshot_before(
-                    &mut self,
-                    client: &mut impl FuzzClient,
-                ) {
-                    self.#accounts.capture_before(client);
-                    #remaining_accounts_snapshots
-                }
-
-                fn set_snapshot_after(
-                    &mut self,
-                    client: &mut impl FuzzClient,
-                ) {
-                    self.#accounts.capture_after(client);
-                    #remaining_accounts_snapshots_after
-                }
-
-                fn to_account_metas(
-                    &mut self,
-                ) -> Vec<AccountMeta> {
+            impl InstructionGetters for #name {
+                fn to_account_metas(&mut self) -> Vec<AccountMeta> {
                     let mut metas = Vec::new();
                     metas.extend(self.#accounts.to_account_meta());
                     #remaining_accounts_extension
                     metas
+                }
+            }
+
+            impl InstructionSetters for #name {
+                fn set_snapshot_before(&mut self, client: &mut impl FuzzClient) {
+                    self.#accounts.capture_before(client);
+                    #remaining_accounts_snapshots
+                }
+
+                fn set_snapshot_after(&mut self, client: &mut impl FuzzClient) {
+                    self.#accounts.capture_after(client);
+                    #remaining_accounts_snapshots_after
                 }
 
                 fn resolve_accounts(
@@ -77,18 +71,6 @@ impl ToTokens for TridentInstructionStruct {
                     fuzz_accounts: &mut Self::IxAccounts,
                 ) {
                     self.#accounts.resolve_accounts(client, fuzz_accounts);
-                }
-            }
-
-            impl std::fmt::Debug for #name {
-                fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                    f.debug_struct(stringify!(#name))
-                        .field("\x1b[96mprogram_id\x1b[0m", &format_args!("\x1b[93m{}\x1b[0m", pubkey!(#program_id)))
-                        .field("\x1b[96mdiscriminator\x1b[0m", &format_args!("{:?}", vec![#(#discriminator_bytes),*]))
-                        .field("\x1b[96maccounts\x1b[0m", &self.#accounts)
-                        #debug_remaining_accounts
-                        .field("\x1b[96mdata\x1b[0m", &self.data)
-                        .finish()
                 }
             }
         };

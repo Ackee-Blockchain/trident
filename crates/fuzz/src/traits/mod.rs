@@ -1,13 +1,22 @@
 pub mod account;
-pub mod executor;
 pub mod fuzz_client;
-pub mod instruction;
+pub mod instruction_custom;
+pub mod instruction_getters;
+pub mod instruction_setters;
+pub mod selector;
 pub mod transaction;
 pub mod transaction_custom;
+pub mod transaction_getters;
+pub mod transaction_private;
+pub mod transaction_setters;
 
 pub use account::*;
-pub use executor::*;
 pub use fuzz_client::*;
-pub use instruction::*;
+pub use instruction_custom::*;
+pub use instruction_getters::*;
+pub use instruction_setters::*;
+pub use selector::*;
 pub use transaction::*;
 pub use transaction_custom::*;
+pub use transaction_getters::*;
+pub use transaction_setters::*;

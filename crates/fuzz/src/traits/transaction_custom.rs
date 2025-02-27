@@ -7,6 +7,8 @@ use solana_sdk::transaction::TransactionError;
 
 /// Trait providing custom methods for transactions
 pub trait TransactionCustomMethods {
+    type IxAccounts;
+
     /// Method to perform custom actions before the transaction is executed
     #[allow(unused_variables)]
     fn pre_transaction(&self, client: &mut impl FuzzClient) {}

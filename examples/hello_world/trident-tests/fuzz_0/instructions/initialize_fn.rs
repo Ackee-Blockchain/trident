@@ -2,8 +2,6 @@ use crate::fuzz_transactions::FuzzAccounts;
 use borsh::{BorshDeserialize, BorshSerialize};
 use trident_fuzz::fuzzing::*;
 #[derive(Arbitrary, TridentInstruction)]
-#[program_id("FtevoQoDMv6ZB3N9Lix5Tbjs8EVuNL8vDSqG9kzaZPit")]
-# [discriminator ([18u8 , 187u8 , 169u8 , 213u8 , 94u8 , 180u8 , 86u8 , 152u8 ,])]
 pub struct InitializeFnInstruction {
     pub accounts: InitializeFnInstructionAccounts,
     pub data: InitializeFnInstructionData,
@@ -29,14 +27,21 @@ pub struct InitializeFnInstructionData {
 /// - Set instruction data during fuzzing
 /// - Configure instruction accounts during fuzzing
 /// - (Optional) Set remaining accounts during fuzzing
-impl InstructionSetters for InitializeFnInstruction {
+impl InstructionCustomMethods for InitializeFnInstruction {
     type IxAccounts = FuzzAccounts;
+
+    fn program_id(&self) -> Pubkey {
+        pubkey!("FtevoQoDMv6ZB3N9Lix5Tbjs8EVuNL8vDSqG9kzaZPit")
+    }
+    fn discriminator(&self) -> Vec<u8> {
+        vec![18u8, 187u8, 169u8, 213u8, 94u8, 180u8, 86u8, 152u8]
+    }
 
     fn set_accounts(&mut self, client: &mut impl FuzzClient, fuzz_accounts: &mut Self::IxAccounts) {
         let hello_world_account = fuzz_accounts.hello_world_account.get_or_create(
             self.accounts.hello_world_account.account_id,
             client,
-            Some(PdaSeeds::new(&[b"hello_world_seed"], self.get_program_id())),
+            Some(PdaSeeds::new(&[b"hello_world_seed"], self.program_id())),
             None,
         );
         self.accounts

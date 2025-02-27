@@ -17,36 +17,42 @@ use crate::traits::FuzzClient;
 use solana_sdk::transaction::TransactionError;
 
 impl FuzzClient for TridentSVM<'_> {
-    fn new_client(programs: &[ProgramEntrypoint], config: &TridentConfig) -> Self {
-        let sbf_programs =
-            config
-                .programs()
-                .iter()
-                .fold(Vec::new(), |mut sbf_programs, config_program| {
-                    let target = SBFTargets::new(
-                        config_program.address,
-                        None, // TODO add authority to the config fuzzing program
-                        config_program.data.clone(),
-                    );
+    fn deploy(&mut self, program: &ProgramEntrypoint) {}
 
-                    sbf_programs.push(target);
-                    sbf_programs
-                });
+    fn new_client(config: Option<&TridentConfig>) -> Self {
+        match config {
+            Some(config) => {
+                let sbf_programs = config.programs().iter().fold(
+                    Vec::new(),
+                    |mut sbf_programs, config_program| {
+                        let target = SBFTargets::new(
+                            config_program.address,
+                            None, // TODO add authority to the config fuzzing program
+                            config_program.data.clone(),
+                        );
 
-        let permanent_accounts =
-            config
-                .accounts()
-                .iter()
-                .fold(Vec::new(), |mut permanent_accounts, config_account| {
-                    let account = TridentAccountSharedData::new(
-                        config_account.pubkey,
-                        config_account.account.clone(),
-                    );
-                    permanent_accounts.push(account);
-                    permanent_accounts
-                });
+                        sbf_programs.push(target);
+                        sbf_programs
+                    },
+                );
 
-        TridentSVM::new_with_syscalls(programs, &sbf_programs, &permanent_accounts)
+                let permanent_accounts = config.accounts().iter().fold(
+                    Vec::new(),
+                    |mut permanent_accounts, config_account| {
+                        let account = TridentAccountSharedData::new(
+                            config_account.pubkey,
+                            config_account.account.clone(),
+                        );
+                        permanent_accounts.push(account);
+                        permanent_accounts
+                    },
+                );
+            }
+            None => {}
+        }
+
+        TridentSVM::default()
+        // TridentSVM::new_with_syscalls(programs, &sbf_programs, &permanent_accounts)
     }
     fn warp_to_epoch(&mut self, warp_epoch: u64) {
         let mut clock = self.get_sysvar::<Clock>();

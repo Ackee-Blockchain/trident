@@ -3722,6 +3722,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "trident-derive-flow-executor"
+version = "0.0.1"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.98",
+ "trident-syn",
+]
+
+[[package]]
 name = "trident-derive-fuzz-test-executor"
 version = "0.0.5"
 dependencies = [
@@ -3743,6 +3753,16 @@ dependencies = [
 
 [[package]]
 name = "trident-derive-remaining-accounts"
+version = "0.0.1"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.98",
+ "trident-syn",
+]
+
+[[package]]
+name = "trident-derive-selector"
 version = "0.0.1"
 dependencies = [
  "proc-macro2",
@@ -3785,9 +3805,11 @@ dependencies = [
  "toml 0.8.20",
  "trident-config",
  "trident-derive-accounts",
+ "trident-derive-flow-executor",
  "trident-derive-fuzz-test-executor",
  "trident-derive-instruction",
  "trident-derive-remaining-accounts",
+ "trident-derive-selector",
  "trident-derive-transaction",
  "trident-svm",
 ]
