@@ -1,33 +1,58 @@
 
 
-# How To start fuzzing.
+# HOW TO START FUZZING
 
-## To start fuzzing, follow these steps:
+## 1. Install Honggfuzz and AFL:
 
-- Install ***Honggfuzz***
+To install **Honggfuzz**, run:
 
 ```bash
 cargo install honggfuzz
 ```
 
-For supported versions check https://ackee.xyz/trident/docs/latest/getting-started/getting-started/#supported-versions
+To install **AFL**, run:
 
-For more info about Honggfuzz installation check https://github.com/rust-fuzz/honggfuzz-rs?tab=readme-ov-file#dependencies
+```bash
+cargo install cargo-afl
+```
 
-- Initialize ***Trident*** using
+## 2. Initialize **Trident**
+
+Navigate to the project directory and run:
 
 ```bash
 trident init
 ```
 
-## Write Fuzz Test
+## 3. Write Fuzz Test
 
-- Implement the ***todo!*** placeholders in ***fuzz_instructions.rs*** based on the provided descriptions.
+In order to start fuzzing, you need to guide the fuzzer to use correct and meaningful instruction inputs. Trident also provides various features to tailor your fuzz tests to your specific needs, behavior, and use cases. To learn more, check out the documentation.
 
-- Run fuzzing with ***Honggfuzz***
+## 4. Run Fuzz Test
+
+You can run the fuzz test using either AFL or Honggfuzz:
 
 ```bash
 trident fuzz run-hfuzz <FUZZ_TARGET>
 ```
 
-### For more details, refer to the Trident documentation: https://ackee.xyz/trident/docs/latest/
+```bash
+trident fuzz run-afl <FUZZ_TARGET>
+```
+
+## 5. Debugging
+
+To debug your program, run:
+
+```bash
+trident fuzz debug-hfuzz <FUZZ_TARGET> <CRASH_FILE>
+```
+
+```bash
+trident fuzz debug-afl <FUZZ_TARGET> <CRASH_FILE>
+```
+
+## Resources
+
+- Use the `--help` flag for more information
+- Documentation: https://ackee.xyz/trident/docs/latest/
