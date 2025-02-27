@@ -1,3 +1,9 @@
+---
+hide:
+  - navigation
+  - toc
+---
+
 # Trident SVM
 
 TridentSVM is a fast execution and accounts storage environment which is utilized within the Trident.

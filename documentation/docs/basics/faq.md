@@ -7,15 +7,15 @@
 
 *I created the Fuzz Test, what should I do next?*
 
-- Start here [Start Fuzzing](../start-fuzzing/start-fuzzing.md).
+- Start here [Start Fuzzing](../start-fuzzing/index.md).
 
 *Is Trident open-source?*
 
-- Yes, here [Trident](https://github.com/Ackee-Blockchain/trident)
+- Yes, here [Trident](https://github.com/Ackee-Blockchain/trident).
 
 *I would like to report an Issue with Trident, what should I do?*
 
-- Write Issue [Issues](https://github.com/Ackee-Blockchain/trident/issues)
+- Create [issue](https://github.com/Ackee-Blockchain/trident/issues).
 
 *Is Trident deployed on Mainnet / Devnet / Testenet?*
 

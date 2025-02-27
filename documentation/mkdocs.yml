@@ -16,13 +16,14 @@ nav:
       - basics/faq.md
       - basics/get-help.md
   - Start Fuzzing:
-      - start-fuzzing/start-fuzzing.md
+      - start-fuzzing/index.md
       - Writting Fuzz Test:
-        - start-fuzzing/writting-fuzz-test/writing-fuzz-test.md
+        - start-fuzzing/writting-fuzz-test/index.md
         - start-fuzzing/writting-fuzz-test/instruction-accounts.md
         - start-fuzzing/writting-fuzz-test/instruction-data.md
         - start-fuzzing/writting-fuzz-test/remaining-accounts.md
-      - start-fuzzing/executing-fuzz-test.md
+      - Executing Fuzz Test:
+        - start-fuzzing/executing-fuzz-test/index.md
   - Advanced Customization:
       - trident-advanced/index.md
       - Transaction Methods:
@@ -39,43 +40,26 @@ nav:
       - trident-api-macro/index.md
       - Fuzz Client:
           - trident-api-macro/trident-fuzz-client/index.md
-      - TridentTransaction:
-          - trident-api-macro/trident-macros/trident-transaction/index.md
-          - Attributes: trident-api-macro/trident-macros/trident-transaction/attributes.md
-      - TridentInstruction:
-          - trident-api-macro/trident-macros/trident-instruction/index.md
-          - Attributes: trident-api-macro/trident-macros/trident-instruction/attributes.md
-      - TridentAccounts:
-          - trident-api-macro/trident-macros/trident-accounts/index.md
-          - Attributes: trident-api-macro/trident-macros/trident-accounts/attributes.md
-      - TridentRemainingAccounts:
-          - trident-api-macro/trident-macros/trident-remaining-accounts/index.md
-          - Attributes: trident-api-macro/trident-macros/trident-remaining-accounts/attributes.md
-      - FuzzTestExecutor:
-          - trident-api-macro/trident-macros/trident-fuzz-executor/index.md
-          - Attributes: trident-api-macro/trident-macros/trident-fuzz-executor/attributes.md
-      - Fuzz Transactions:
-          - trident-api-macro/trident-types/fuzz_transactions/index.md
-      - Fuzz Accounts:
-          - trident-api-macro/trident-types/fuzz-accounts/index.md
-          - Methods: trident-api-macro/trident-types/fuzz-accounts/methods.md
-      - Transactions Sequences:
-          - trident-api-macro/trident-types/transactions_sequences/index.md
-      - Trident Account:
-          - trident-api-macro/trident-types/trident_account/index.md
-          - Methods: trident-api-macro/trident-types/trident_account/methods.md
-      - Trident Pubkey:
-          - trident-api-macro/trident-types/trident_pubkey/index.md
-          - Methods: trident-api-macro/trident-types/trident_pubkey/methods.md
-      - Custom Types:
-          - trident-api-macro/trident-types/custom_types/index.md
+      - Trident Macros:
+          - trident-api-macro/trident-macros/trident-transaction.md
+          - trident-api-macro/trident-macros/trident-instruction.md
+          - trident-api-macro/trident-macros/trident-accounts.md
+          - trident-api-macro/trident-macros/trident-remaining-accounts.md
+          - trident-api-macro/trident-macros/trident-fuzz-executor.md
+      - Trident Types:
+          - trident-api-macro/trident-types/fuzz-transactions.md
+          - trident-api-macro/trident-types/fuzz-accounts.md
+          - trident-api-macro/trident-types/transactions-sequence.md
+          - trident-api-macro/trident-types/trident-account.md
+          - trident-api-macro/trident-types/trident-pubkey.md
+          - trident-api-macro/trident-types/custom-types.md
   - Trident Manifest:
-      - trident-manifest/trident-manifest.md
+      - trident-manifest/index.md
       - trident-manifest/general.md
       - trident-manifest/afl.md
       - trident-manifest/honggfuzz.md
   - TridentSVM:
-      - trident-svm/trident-svm.md
+      - trident-svm/index.md
   - Trident Examples:
       - trident-examples/trident-examples.md
 

@@ -33,7 +33,7 @@ pub struct ExampleInstructionAccounts {
 ```
 
 !!! warning "Storage Prerequisite for PDAs"
-    Program Derived Addresses (PDAs) must be inserted into storage before they can be referenced using the `storage` attribute. More about the `TridentAccounts` macro can be found in the [TridentAccounts](../../trident-api-macro/trident-macros/trident-accounts/index.md).
+    Program Derived Addresses (PDAs) must be inserted into storage before they can be referenced using the `storage` attribute. More about the `TridentAccounts` macro can be found in the [TridentAccounts](../../trident-api-macro/trident-macros/trident-accounts.md).
 
 ## Manual Account Setup
 
