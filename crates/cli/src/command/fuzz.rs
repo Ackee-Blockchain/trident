@@ -7,7 +7,7 @@ use fehler::throws;
 use heck::ToSnakeCase;
 use trident_client::___private::{Commander, TestGenerator};
 
-use crate::{_discover, show_howto};
+use crate::_discover;
 
 pub const TRIDENT_TOML: &str = "Trident.toml";
 pub const TRIDENT_TESTS: &str = "trident-tests";
@@ -169,7 +169,6 @@ pub async fn fuzz(subcmd: FuzzCommand) {
             generator
                 .add_fuzz_test(program_name, test_name_snake)
                 .await?;
-            show_howto();
         }
     };
 }

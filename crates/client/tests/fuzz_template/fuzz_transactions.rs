@@ -2,19 +2,20 @@ use crate::transactions::*;
 use trident_fuzz::fuzzing::*;
 /// FuzzTransactions contains all available transactions
 ///
-/// Below, the transaction variants are defined.
-/// Each variant contains a transaction struct.
-/// The transaction struct contains the instruction and the accounts and data.
-///
 /// You can create your own transactions by adding new variants to the enum.
+///
+/// Docs: https://ackee.xyz/trident/docs/latest/trident-api-macro/trident-types/fuzz-transactions/
 #[derive(Arbitrary, FuzzTestExecutor)]
 pub enum FuzzTransactions {
     InitializeTransaction(InitializeTransaction),
     ProcessCustomTypesTransaction(ProcessCustomTypesTransaction),
     ProcessRustTypesTransaction(ProcessRustTypesTransaction),
 }
-/// Check supported AccountsStorages at
-/// https://ackee.xyz/trident/docs/latest/features/account-storages/
+/// FuzzAccounts contains all available accounts
+///
+/// You can create your own accounts by adding new fields to the struct.
+///
+/// Docs: https://ackee.xyz/trident/docs/latest/trident-api-macro/trident-types/fuzz-accounts/
 #[derive(Default)]
 pub struct FuzzAccounts {
     pub data_account_6: AccountsStorage,

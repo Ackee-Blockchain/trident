@@ -67,6 +67,8 @@ impl Template {
             /// - Set instruction data during fuzzing
             /// - Configure instruction accounts during fuzzing
             /// - (Optional) Set remaining accounts during fuzzing
+            ///
+            /// Docs: https://ackee.xyz/trident/docs/latest/start-fuzzing/writting-fuzz-test/
             impl InstructionSetters for #instruction_struct_name {
                 type IxAccounts = FuzzAccounts;
 
