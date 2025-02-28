@@ -48,6 +48,7 @@ impl Template {
             /// Instruction Accounts
             #[derive(Arbitrary, Debug, Clone, TridentAccounts)]
             #[instruction_data(#instruction_data_name)]
+            #[storage(FuzzAccounts)]
             pub struct #instruction_accounts_name {
                  #(#accounts),*
             }
@@ -268,6 +269,7 @@ fn process_composite_account_item(
         let struct_def: syn::ItemStruct = parse_quote! {
             #[derive(Arbitrary, Debug, Clone, TridentAccounts)]
             #[instruction_data(#instruction_data_name)]
+            #[storage(FuzzAccounts)]
             pub struct #struct_name {
                 #(#fields),*
             }
