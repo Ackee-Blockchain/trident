@@ -1,45 +1,22 @@
-use solana_sdk::instruction::AccountMeta;
-use solana_sdk::instruction::Instruction;
-
+use super::transaction_private::TransactionPrivateMethods;
 use super::TransactionCustomMethods;
+use super::TransactionGetters;
+use super::TransactionSetters;
 use crate::error::*;
 use crate::fuzzing::FuzzingStatistics;
 use crate::traits::FuzzClient;
+
 use trident_config::TridentConfig;
 
+#[allow(private_bounds)]
 /// Trait providing methods to prepare data and accounts for transaction
-pub trait TransactionMethods: TransactionCustomMethods + std::fmt::Debug {
-    type IxAccounts;
-
-    /// Get transaction name
-    fn get_transaction_name(&self) -> String;
-
-    /// Get instruction discriminators
-    fn get_instruction_discriminators(&self) -> Vec<Vec<u8>>;
-
-    /// Get instruction program ids
-    fn get_instruction_program_ids(&self) -> Vec<solana_sdk::pubkey::Pubkey>;
-
-    /// Get instruction data
-    fn get_instruction_data(
-        &mut self,
-        client: &mut impl FuzzClient,
-        fuzz_accounts: &mut Self::IxAccounts,
-    ) -> Vec<Vec<u8>>;
-
-    /// Get instruction accounts
-    fn get_instruction_accounts(
-        &mut self,
-        client: &mut impl FuzzClient,
-        fuzz_accounts: &mut Self::IxAccounts,
-    ) -> Vec<Vec<AccountMeta>>;
-
-    /// Set accounts before transaction
-    fn set_snapshot_before(&mut self, client: &mut impl FuzzClient);
-
-    /// Set accounts after transaction
-    fn set_snapshot_after(&mut self, client: &mut impl FuzzClient);
-
+pub trait TransactionMethods:
+    TransactionCustomMethods
+    + TransactionGetters
+    + TransactionSetters
+    + TransactionPrivateMethods
+    + std::fmt::Debug
+{
     /// DO NOT MODIFY THIS METHOD
     fn process_transaction(
         &mut self,
@@ -47,43 +24,45 @@ pub trait TransactionMethods: TransactionCustomMethods + std::fmt::Debug {
         config: &TridentConfig,
         fuzz_accounts: &mut Self::IxAccounts,
     ) -> Result<(), FuzzingError> {
-        // get discriminators
-        let discriminators = self.get_instruction_discriminators();
+        // // get discriminators
+        // let discriminators = self.get_instruction_discriminators();
 
-        // get program ids
-        let program_ids = self.get_instruction_program_ids();
+        // // get program ids
+        // let program_ids = self.get_instruction_program_ids();
 
-        // get data
-        let data = self.get_instruction_data(client, fuzz_accounts);
+        // // get data
+        // let data = self.get_instruction_data(client, fuzz_accounts);
 
-        // get accounts
-        let accounts = self.get_instruction_accounts(client, fuzz_accounts);
+        // // get accounts
+        // let accounts = self.get_instruction_accounts(client, fuzz_accounts);
 
-        #[allow(unexpected_cfgs)]
-        {
-            if cfg!(fuzzing_debug) {
-                println!(
-                    "\x1b[96mCurrently processing transaction with instructions\x1b[0m: {:#?}",
-                    self
-                );
-            }
-        }
+        // #[allow(unexpected_cfgs)]
+        // {
+        //     if cfg!(fuzzing_debug) {
+        //         println!(
+        //             "\x1b[96mCurrently processing transaction with instructions\x1b[0m: {:#?}",
+        //             self
+        //         );
+        //     }
+        // }
 
-        // create instructions
-        let instructions: Vec<Instruction> =
-            itertools::multizip((discriminators, program_ids, data, accounts))
-                .map(|(discriminator, program_id, data, accounts)| {
-                    let mut ix_data = vec![];
-                    ix_data.extend(discriminator);
-                    ix_data.extend(data);
+        // // create instructions
+        // let instructions: Vec<Instruction> =
+        //     itertools::multizip((discriminators, program_ids, data, accounts))
+        //         .map(|(discriminator, program_id, data, accounts)| {
+        //             let mut ix_data = vec![];
+        //             ix_data.extend(discriminator);
+        //             ix_data.extend(data);
 
-                    Instruction {
-                        program_id,
-                        data: ix_data,
-                        accounts,
-                    }
-                })
-                .collect();
+        //             Instruction {
+        //                 program_id,
+        //                 data: ix_data,
+        //                 accounts,
+        //             }
+        //         })
+        //         .collect();
+
+        let instructions = self.create_transaction(client, fuzz_accounts);
 
         // If stats are enabled, log the invocation of the transaction
         if config.get_fuzzing_with_stats() {
