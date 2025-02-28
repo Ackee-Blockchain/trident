@@ -12,6 +12,7 @@ pub struct ProcessRustTypesInstruction {
 /// Instruction Accounts
 #[derive(Arbitrary, Debug, Clone, TridentAccounts)]
 #[instruction_data(ProcessRustTypesInstructionData)]
+#[storage(FuzzAccounts)]
 pub struct ProcessRustTypesInstructionAccounts {
     composite_account_nested: CompositeAccountNestedAccounts,
     #[account(signer)]
@@ -26,6 +27,7 @@ pub struct ProcessRustTypesInstructionAccounts {
 }
 #[derive(Arbitrary, Debug, Clone, TridentAccounts)]
 #[instruction_data(ProcessRustTypesInstructionData)]
+#[storage(FuzzAccounts)]
 pub struct NestedInnerAccounts {
     some_account: TridentAccount,
     #[account(address = "11111111111111111111111111111111")]
@@ -33,12 +35,14 @@ pub struct NestedInnerAccounts {
 }
 #[derive(Arbitrary, Debug, Clone, TridentAccounts)]
 #[instruction_data(ProcessRustTypesInstructionData)]
+#[storage(FuzzAccounts)]
 pub struct CompositeAccountNestedAccounts {
     some_account: TridentAccount,
     nested_inner: NestedInnerAccounts,
 }
 #[derive(Arbitrary, Debug, Clone, TridentAccounts)]
 #[instruction_data(ProcessRustTypesInstructionData)]
+#[storage(FuzzAccounts)]
 pub struct CompositeAccountAccounts {
     some_account: TridentAccount,
     #[account(signer)]

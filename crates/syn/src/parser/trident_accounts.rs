@@ -33,6 +33,19 @@ pub fn parse_trident_accounts(item_struct: &ItemStruct) -> ParseResult<TridentAc
         })?
         .parse_args::<syn::Type>()?;
 
+    // Parse the storage type attribute (required)
+    let storage_type = item_struct
+        .attrs
+        .iter()
+        .find(|attr| attr.path().is_ident("storage"))
+        .ok_or_else(|| {
+            ParseError::new(
+                item_struct.span(),
+                "Missing required #[storage(Type)] attribute",
+            )
+        })?
+        .parse_args::<syn::Type>()?;
+
     let fields = match &item_struct.fields {
         syn::Fields::Named(fields) => fields
             .named
@@ -51,6 +64,7 @@ pub fn parse_trident_accounts(item_struct: &ItemStruct) -> ParseResult<TridentAc
         ident,
         fields,
         instruction_type,
+        storage_type,
     })
 }
 
