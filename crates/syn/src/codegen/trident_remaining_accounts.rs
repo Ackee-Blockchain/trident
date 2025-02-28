@@ -9,8 +9,7 @@ impl ToTokens for TridentRemainingAccountsStruct {
         let field_name = &self.field_name;
 
         let expanded = quote! {
-            impl AccountsMethods for #name {
-                type IxAccounts = FuzzAccounts;
+            impl RemainingAccountsMethods for #name {
                 fn capture_before(
                     &mut self,
                     client: &mut impl FuzzClient,

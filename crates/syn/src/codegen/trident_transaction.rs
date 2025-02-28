@@ -27,9 +27,8 @@ impl ToTokens for TridentTransactionStruct {
         });
 
         let expanded = quote! {
-            impl TransactionMethods for #name {
-                type IxAccounts = FuzzAccounts;
-
+            // Implement the getters trait
+            impl TransactionGetters for #name {
                 fn get_transaction_name(&self) -> String {
                     #name_impl
                 }
@@ -49,9 +48,12 @@ impl ToTokens for TridentTransactionStruct {
                 fn get_instruction_data(
                     &mut self,
                     client: &mut impl FuzzClient,
-                    fuzz_accounts: &mut FuzzAccounts,
+                    fuzz_accounts: &mut Self::IxAccounts,
                 ) -> Vec<Vec<u8>> {
-                    #(self.#field_idents.set_data(client, fuzz_accounts);)*
+                    // Call the set_data method first
+                    self.set_data(client, fuzz_accounts);
+
+                    // Then return the serialized data
                     vec![
                         #(borsh::to_vec(&self.#field_idents.data).unwrap()),*
                     ]
@@ -60,14 +62,20 @@ impl ToTokens for TridentTransactionStruct {
                 fn get_instruction_accounts(
                     &mut self,
                     client: &mut impl FuzzClient,
-                    fuzz_accounts: &mut FuzzAccounts,
+                    fuzz_accounts: &mut Self::IxAccounts,
                 ) -> Vec<Vec<AccountMeta>> {
-                    #(#instruction_blocks)*
+                    // Call the set_accounts method first
+                    self.set_accounts(client, fuzz_accounts);
+
+                    // Then return the account metas
                     vec![
                         #(self.#field_idents.to_account_metas()),*
                     ]
                 }
+            }
 
+            // Implement the setters trait
+            impl TransactionSetters for #name {
                 fn set_snapshot_before(
                     &mut self,
                     client: &mut impl FuzzClient,
@@ -81,7 +89,27 @@ impl ToTokens for TridentTransactionStruct {
                 ) {
                     #(self.#field_idents.set_snapshot_after(client);)*
                 }
+
+                fn set_data(
+                    &mut self,
+                    client: &mut impl FuzzClient,
+                    fuzz_accounts: &mut Self::IxAccounts,
+                ) {
+                    #(self.#field_idents.set_data(client, fuzz_accounts);)*
+                }
+
+                fn set_accounts(
+                    &mut self,
+                    client: &mut impl FuzzClient,
+                    fuzz_accounts: &mut Self::IxAccounts,
+                ) {
+                    #(#instruction_blocks)*
+                }
             }
+
+            // Implement the main trait that combines all others
+            // TransactionPrivateMethods is automatically implemented for types that implement TransactionMethods
+            impl TransactionMethods for #name {}
         };
 
         tokens.extend(expanded);
