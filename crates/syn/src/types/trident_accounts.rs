@@ -8,6 +8,7 @@ pub struct TridentAccountsStruct {
     pub ident: Ident,
     pub fields: Vec<TridentAccountField>,
     pub instruction_type: syn::Type,
+    pub storage_type: syn::Type,
 }
 
 #[derive(Debug)]

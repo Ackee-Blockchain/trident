@@ -10,6 +10,7 @@ impl ToTokens for TridentAccountsStruct {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         let name = &self.ident;
         let instruction_data = &self.instruction_type;
+        let storage_type = &self.storage_type;
         // Build dependency graph and sort fields
         let dependencies = self.analyze_seed_dependencies();
         let mut graph = Graph::new();
@@ -166,7 +167,7 @@ impl ToTokens for TridentAccountsStruct {
 
         let expanded = quote! {
             impl AccountsMethods for #name {
-                type IxAccounts = FuzzAccounts;
+                type IxAccounts = #storage_type;
                 type IxData = #instruction_data;
 
                 #[allow(unused_variables)]
