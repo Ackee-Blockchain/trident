@@ -49,9 +49,11 @@ pub mod fuzzing {
     pub use super::traits::FuzzTestExecutor;
     pub use super::traits::InstructionMethods;
     pub use super::traits::InstructionSetters;
+    pub use super::traits::RemainingAccountsMethods;
     pub use super::traits::TransactionCustomMethods;
+    pub use super::traits::TransactionGetters;
     pub use super::traits::TransactionMethods;
-
+    pub use super::traits::TransactionSetters;
     /// trident svm
     pub use trident_svm::processor;
 
