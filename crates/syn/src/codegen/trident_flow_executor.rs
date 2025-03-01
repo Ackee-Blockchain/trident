@@ -56,7 +56,7 @@ impl ToTokens for TridentFlowExecutorImpl {
                 ) -> std::result::Result<(), FuzzingError> {
                     let mut transactions = <Vec<FuzzTransactions>>::arbitrary(fuzzer_data)?;
                     for transaction in transactions.iter_mut() {
-                        transaction.transaction_selector(&mut self.client, &self.config, accounts)?
+                        transaction.transaction_selector(&mut self.client, accounts)?
                     }
                     Ok(())
                 }
