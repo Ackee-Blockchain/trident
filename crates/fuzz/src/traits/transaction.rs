@@ -41,12 +41,8 @@ pub trait TransactionMethods:
     /// - Performs invariant checks
     /// - Runs post-transaction hooks
     /// - Handles any errors
-    fn execute(
-        &mut self,
-        client: &mut impl FuzzClient,
-        fuzz_accounts: &mut Self::IxAccounts,
-    ) -> Result<(), FuzzingError> {
-        let instructions = self.create_transaction(client, fuzz_accounts);
+    fn execute(&mut self, client: &mut impl FuzzClient) -> Result<(), FuzzingError> {
+        let instructions = self.create_transaction(client);
 
         let fuzzing_metrics = std::env::var("FUZZING_METRICS");
 
@@ -148,12 +144,8 @@ pub trait TransactionMethods:
     /// - Records statistics if enabled
     ///
     /// It does NOT run pre/post hooks or invariant checks.
-    fn execute_no_hooks(
-        &mut self,
-        client: &mut impl FuzzClient,
-        fuzz_accounts: &mut Self::IxAccounts,
-    ) -> Result<(), TransactionError> {
-        let instructions = self.create_transaction(client, fuzz_accounts);
+    fn execute_no_hooks(&mut self, client: &mut impl FuzzClient) -> Result<(), TransactionError> {
+        let instructions = self.create_transaction(client);
 
         let fuzzing_metrics = std::env::var("FUZZING_METRICS");
 

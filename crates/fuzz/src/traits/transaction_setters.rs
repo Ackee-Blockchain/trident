@@ -12,10 +12,10 @@ pub trait TransactionSetters: TransactionCustomMethods {
     fn set_snapshot_after(&mut self, client: &mut impl FuzzClient);
 
     #[doc(hidden)]
-    /// Set data for the transaction
-    fn set_data(&mut self, client: &mut impl FuzzClient, fuzz_accounts: &mut Self::IxAccounts);
-
-    #[doc(hidden)]
-    /// Set accounts for the transaction
-    fn set_accounts(&mut self, client: &mut impl FuzzClient, fuzz_accounts: &mut Self::IxAccounts);
+    /// Set instructions for the transaction
+    fn set_instructions(
+        &mut self,
+        client: &mut impl FuzzClient,
+        fuzz_accounts: &mut Self::IxAccounts,
+    );
 }
