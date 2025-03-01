@@ -36,7 +36,6 @@ impl Template {
 
             #[derive(Default, FuzzTestExecutor)]
             struct FuzzTest {
-                config: TridentConfig,
                 client: TridentSVM,
             }
 
@@ -51,10 +50,9 @@ impl Template {
 
             fn main() {
 
-                let config = TridentConfig::new();
-                let client = TridentSVM::new_client(&[], &config);
+                let client = TridentSVM::new_client(&[], &TridentConfig::new());
 
-                FuzzTest::new(client, config).fuzz();
+                FuzzTest::new(client).fuzz();
             }
         };
 

@@ -8,7 +8,6 @@ use crate::traits::FuzzClient;
 use crate::types::FuzzerData;
 
 use solana_sdk::transaction::TransactionError;
-use trident_config::TridentConfig;
 
 #[allow(private_bounds)]
 /// Trait providing methods to prepare data and accounts for transaction execution
@@ -45,13 +44,14 @@ pub trait TransactionMethods:
     fn execute(
         &mut self,
         client: &mut impl FuzzClient,
-        config: &TridentConfig,
         fuzz_accounts: &mut Self::IxAccounts,
     ) -> Result<(), FuzzingError> {
         let instructions = self.create_transaction(client, fuzz_accounts);
 
+        let fuzzing_metrics = std::env::var("FUZZING_METRICS");
+
         // If stats are enabled, use the stats logger
-        if config.get_fuzzing_with_stats() {
+        if fuzzing_metrics.is_ok() {
             let mut stats_logger = FuzzingStatistics::new();
 
             // Record transaction invocation
@@ -151,13 +151,14 @@ pub trait TransactionMethods:
     fn execute_no_hooks(
         &mut self,
         client: &mut impl FuzzClient,
-        config: &TridentConfig,
         fuzz_accounts: &mut Self::IxAccounts,
     ) -> Result<(), TransactionError> {
         let instructions = self.create_transaction(client, fuzz_accounts);
 
+        let fuzzing_metrics = std::env::var("FUZZING_METRICS");
+
         // If stats are enabled, use the stats logger
-        if config.get_fuzzing_with_stats() {
+        if fuzzing_metrics.is_ok() {
             let mut stats_logger = FuzzingStatistics::new();
 
             // Record transaction invocation

@@ -8,7 +8,6 @@ use hello_world::entry as entry_hello_world;
 pub use transactions::*;
 #[derive(Default, FuzzTestExecutor)]
 struct FuzzTest {
-    config: TridentConfig,
     client: TridentSVM,
 }
 #[flow_executor]
@@ -28,17 +27,13 @@ impl FuzzTest {
         fuzzer_data: &mut FuzzerData,
         accounts: &mut FuzzAccounts,
     ) -> Result<(), FuzzingError> {
-        InitializeFnTransaction::build(fuzzer_data, &mut self.client, accounts)?.execute(
-            &mut self.client,
-            &self.config,
-            accounts,
-        )?;
+        InitializeFnTransaction::build(fuzzer_data, &mut self.client, accounts)?
+            .execute(&mut self.client, accounts)?;
 
         Ok(())
     }
 }
 fn main() {
-    let config = TridentConfig::new();
-    let client = TridentSVM::new_client(&[], &config);
-    FuzzTest::new(client, config).fuzz();
+    let client = TridentSVM::new_client(&[], &TridentConfig::new());
+    FuzzTest::new(client).fuzz();
 }

@@ -46,6 +46,8 @@ impl Commander {
             true => {
                 // enforce keep output to be true
                 fuzz_args.push_str("--keep_output");
+                std::env::set_var("FUZZING_METRICS", "1");
+
                 let mut child = Command::new("cargo")
                     .env("HFUZZ_RUN_ARGS", fuzz_args)
                     .env("CARGO_TARGET_DIR", cargo_target_dir)
@@ -104,6 +106,7 @@ impl Commander {
         match config.get_fuzzing_with_stats() {
             true => {
                 // enforce keep output to be true
+                std::env::set_var("FUZZING_METRICS", "1");
                 fuzz_args.push_str("--keep_output");
                 let mut child = Command::new("cargo")
                     .env("HFUZZ_RUN_ARGS", fuzz_args)
