@@ -11,6 +11,7 @@ pub struct InitializeFnInstruction {
 /// Instruction Accounts
 #[derive(Arbitrary, Debug, Clone, TridentAccounts)]
 #[instruction_data(InitializeFnInstructionData)]
+#[storage(FuzzAccounts)]
 pub struct InitializeFnInstructionAccounts {
     #[account(mut,signer,storage = author)]
     pub author: TridentAccount,
