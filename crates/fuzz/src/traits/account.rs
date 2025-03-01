@@ -6,6 +6,7 @@ pub trait AccountsMethods {
     type IxAccounts;
     type IxData;
 
+    #[doc(hidden)]
     #[allow(unused_variables)]
     fn resolve_accounts(
         &mut self,
@@ -15,7 +16,13 @@ pub trait AccountsMethods {
         instruction_data: &Self::IxData,
     ) {
     }
+
+    #[doc(hidden)]
     fn to_account_meta(&mut self) -> Vec<AccountMeta>;
+
+    #[doc(hidden)]
     fn capture_before(&mut self, client: &mut impl FuzzClient);
+
+    #[doc(hidden)]
     fn capture_after(&mut self, client: &mut impl FuzzClient);
 }
