@@ -1,12 +1,8 @@
-use syn::Ident;
+use syn::{Generics, Ident, Type};
 
 #[derive(Debug)]
-pub struct TridentFuzzTestExecutorEnum {
+pub struct TridentFuzzTestExecutor {
     pub ident: Ident,
-    pub variants: Vec<TridentFuzzTestExecutorVariant>,
-}
-
-#[derive(Debug)]
-pub struct TridentFuzzTestExecutorVariant {
-    pub ident: Ident,
+    pub generics: Generics,
+    pub client_type: Type,
 }

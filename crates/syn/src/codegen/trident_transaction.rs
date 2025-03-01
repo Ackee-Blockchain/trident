@@ -107,9 +107,22 @@ impl ToTokens for TridentTransactionStruct {
                 }
             }
 
-            // Implement the main trait that combines all others
-            // TransactionPrivateMethods is automatically implemented for types that implement TransactionMethods
-            impl TransactionMethods for #name {}
+            impl TransactionMethods for #name {
+                fn build(
+                    fuzzer_data: &mut FuzzerData,
+                    client: &mut impl FuzzClient,
+                    fuzz_accounts: &mut Self::IxAccounts,
+                ) -> arbitrary::Result<Self> {
+                    let mut tx = Self::arbitrary(fuzzer_data)?;
+                    #(
+                        tx.#field_idents.set_data(client, fuzz_accounts);
+                        tx.#field_idents.resolve_accounts(client, fuzz_accounts);
+                        tx.#field_idents.set_accounts(client, fuzz_accounts);
+                        tx.#field_idents.set_remaining_accounts(client, fuzz_accounts);
+                    )*
+                    Ok(tx)
+                }
+            }
         };
 
         tokens.extend(expanded);

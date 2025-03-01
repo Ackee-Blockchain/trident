@@ -5,9 +5,20 @@ use super::TransactionMethods;
 
 use crate::traits::FuzzClient;
 
+/// Private trait that provides internal implementation details for transaction processing
+///
+/// This trait is not meant to be implemented directly by users.
+/// It's implemented automatically for any type that implements TransactionMethods.
 pub(crate) trait TransactionPrivateMethods:
     TransactionCustomMethods + std::fmt::Debug
 {
+    /// Creates a vector of Solana instructions from the transaction data
+    ///
+    /// This method assembles complete Solana instructions by combining:
+    /// - Instruction discriminators (identifiers)
+    /// - Program IDs that will process the instructions
+    /// - Instruction-specific data/parameters
+    /// - Account metadata needed for the instructions
     fn create_transaction(
         &mut self,
         client: &mut impl FuzzClient,
@@ -21,7 +32,7 @@ impl<T: TransactionMethods> TransactionPrivateMethods for T {
         client: &mut impl FuzzClient,
         fuzz_accounts: &mut Self::IxAccounts,
     ) -> Vec<Instruction> {
-        // Retrieve instruction identifiers used to distinguish between different instruction types
+        // Retrieve instruction discriminators (identifiers for different instruction types)
         let discriminators = self.get_instruction_discriminators();
 
         // Get the program IDs that will process these instructions
@@ -45,13 +56,18 @@ impl<T: TransactionMethods> TransactionPrivateMethods for T {
         }
 
         // Combine all components to create a vector of Instructions
-        // Each instruction is created by combining its discriminator, program_id, data, and accounts
+        // Each instruction consists of:
+        // - program_id: The program that will process this instruction
+        // - data: Combined discriminator and instruction-specific data
+        // - accounts: The accounts involved in this instruction
         itertools::multizip((discriminators, program_ids, data, accounts))
             .map(|(discriminator, program_id, data, accounts)| {
+                // Combine discriminator and instruction data into a single byte vector
                 let mut ix_data = vec![];
                 ix_data.extend(discriminator);
                 ix_data.extend(data);
 
+                // Create the complete Solana instruction
                 Instruction {
                     program_id,
                     data: ix_data,
