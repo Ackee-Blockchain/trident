@@ -14,17 +14,13 @@ impl Template {
 
         let mut programs: Vec<syn::Stmt> = Vec::new();
 
-        let mut input_array: Vec<syn::Ident> = Vec::new();
-
         for program in lib_names {
-            let (use_statement, program, program_variable) =
+            let (use_statement, program) =
                 process_program_entries(program, program_ids.get(program));
             // add to the use statements
             use_statements.push(use_statement);
             // add to the programs
             programs.push(program);
-            // add to the input array
-            input_array.push(program_variable);
         }
 
         let test_fuzz_definition: syn::File = parse_quote! {
@@ -39,28 +35,26 @@ impl Template {
             #(#use_statements)*
 
             #[derive(Default, FuzzTestExecutor)]
-            struct FuzzTest<'a> {
+            struct FuzzTest {
                 config: TridentConfig,
-                client: TridentSVM<'a>,
+                client: TridentSVM,
             }
 
             #[flow_executor]
-            impl<'a> FuzzTest {
+            impl FuzzTest {
                 #[init]
-                fn start(&mut self) {}
+                fn start(&mut self) {
+                    #(#programs)*
+                }
             }
 
 
             fn main() {
 
-                #(#programs)*
-
                 let config = TridentConfig::new();
-                let client = TridentSVM::new_client(&[ #(#input_array),* ], &config);
+                let client = TridentSVM::new_client(&[], &config);
 
-                let mut fuzz_test = FuzzTest::new(client, config);
-
-                fuzz_test.fuzz();
+                FuzzTest::new(client, config).fuzz();
             }
         };
 
@@ -71,14 +65,11 @@ impl Template {
 fn process_program_entries(
     lib_name: &String,
     program_id: Option<&String>,
-) -> (syn::ItemUse, syn::Stmt, syn::Ident) {
+) -> (syn::ItemUse, syn::Stmt) {
     // library name as identifier
     let library = format_ident!("{}", lib_name);
     // entry name as identifier
     let library_entry = format_ident!("entry_{}", lib_name);
-    // variable name as identifier
-    let variable_name = format_ident!("program_{}", library);
-
     // initial use statement
     let use_statement = parse_quote!(use #library::entry as #library_entry;);
 
@@ -88,14 +79,14 @@ fn process_program_entries(
         _ => "fill corresponding program ID here",
     };
 
-    // program definition
-    let program = parse_quote! {
-        let #variable_name = ProgramEntrypoint::new(
+    // program definition and deployment as a single expression
+    let program_stmt: syn::Stmt = parse_quote! {
+        self.client.deploy_native_program(ProgramEntrypoint::new(
             pubkey!(#program_id),
             None,
             processor!(#library_entry)
-        );
+        ));
     };
 
-    (use_statement, program, variable_name)
+    (use_statement, program_stmt)
 }
