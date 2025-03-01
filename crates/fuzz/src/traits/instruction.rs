@@ -25,21 +25,27 @@ pub trait InstructionSetters {
 }
 
 pub trait InstructionMethods: InstructionSetters {
+    #[doc(hidden)]
     /// Get Instruction discriminator
     fn get_discriminator(&self) -> Vec<u8>;
 
+    #[doc(hidden)]
     /// Get Instruction program id
     fn get_program_id(&self) -> solana_sdk::pubkey::Pubkey;
 
+    #[doc(hidden)]
     /// Set accounts before transaction
     fn set_snapshot_before(&mut self, client: &mut impl FuzzClient);
 
+    #[doc(hidden)]
     /// Set accounts after transaction
     fn set_snapshot_after(&mut self, client: &mut impl FuzzClient);
 
+    #[doc(hidden)]
     /// Convert accounts to account metas
     fn to_account_metas(&mut self) -> Vec<AccountMeta>;
 
+    #[doc(hidden)]
     /// Resolve accounts
     fn resolve_accounts(
         &mut self,

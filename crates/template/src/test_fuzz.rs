@@ -29,7 +29,6 @@ impl Template {
 
         let test_fuzz_definition: syn::File = parse_quote! {
             use trident_fuzz::fuzzing::*;
-            use fuzz_transactions::FuzzTransactions;
             use fuzz_transactions::*;
             mod fuzz_transactions;
             mod instructions;
@@ -39,25 +38,29 @@ impl Template {
 
             #(#use_statements)*
 
-            struct TransactionsSequence;
+            #[derive(Default, FuzzTestExecutor)]
+            struct FuzzTest<'a> {
+                config: TridentConfig,
+                client: TridentSVM<'a>,
+            }
 
-            /// Define the order in which the transactions are executed:
-            /// - `starting_sequence`
-            /// - `middle_sequence`
-            /// - `ending_sequence`
-            ///
-            /// Docs: https://ackee.xyz/trident/docs/latest/features/trident-advanced/trident-transactions/trident-fuzzing-flows/
-            impl FuzzSequenceBuilder<FuzzTransactions> for TransactionsSequence {}
+            #[flow_executor]
+            impl<'a> FuzzTest {
+                #[init]
+                fn start(&mut self) {}
+            }
+
 
             fn main() {
 
                 #(#programs)*
 
                 let config = TridentConfig::new();
-                let mut client = TridentSVM::new_client(&[ #(#input_array),* ], &config);
-                fuzz_trident!(
-                    |fuzz_data: TransactionsSequence, client: TridentSVM, config: TridentConfig|
-                );
+                let client = TridentSVM::new_client(&[ #(#input_array),* ], &config);
+
+                let mut fuzz_test = FuzzTest::new(client, config);
+
+                fuzz_test.fuzz();
             }
         };
 
