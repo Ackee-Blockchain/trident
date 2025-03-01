@@ -11,8 +11,8 @@ impl ToTokens for TridentFuzzTestExecutor {
 
         let expanded = quote! {
             impl #impl_generics #name #ty_generics {
-                fn new(client: #client_type, config: TridentConfig) -> Self {
-                    Self { client, config }
+                fn new(client: #client_type ) -> Self {
+                    Self { client }
                 }
 
                 fn fuzz(&mut self) {

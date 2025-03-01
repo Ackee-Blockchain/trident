@@ -9,7 +9,6 @@ use idl_test::entry as entry_idl_test;
 pub use transactions::*;
 #[derive(Default, FuzzTestExecutor)]
 struct FuzzTest {
-    config: TridentConfig,
     client: TridentSVM,
 }
 #[flow_executor]
@@ -29,7 +28,6 @@ impl FuzzTest {
     }
 }
 fn main() {
-    let config = TridentConfig::new();
-    let client = TridentSVM::new_client(&[], &config);
-    FuzzTest::new(client, config).fuzz();
+    let client = TridentSVM::new_client(&[], &TridentConfig::new());
+    FuzzTest::new(client).fuzz();
 }
