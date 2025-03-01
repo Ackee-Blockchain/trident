@@ -10,20 +10,20 @@ use trident_config::TridentConfig;
 
 use trident_svm::trident_svm::TridentSVM;
 use trident_svm::utils::ProgramEntrypoint;
-use trident_svm::utils::SBFTargets;
+use trident_svm::utils::SBFTarget;
 use trident_svm::utils::TridentAccountSharedData;
 
 use crate::traits::FuzzClient;
 use solana_sdk::transaction::TransactionError;
 
-impl FuzzClient for TridentSVM<'_> {
+impl FuzzClient for TridentSVM {
     fn new_client(programs: &[ProgramEntrypoint], config: &TridentConfig) -> Self {
         let sbf_programs =
             config
                 .programs()
                 .iter()
                 .fold(Vec::new(), |mut sbf_programs, config_program| {
-                    let target = SBFTargets::new(
+                    let target = SBFTarget::new(
                         config_program.address,
                         None, // TODO add authority to the config fuzzing program
                         config_program.data.clone(),
