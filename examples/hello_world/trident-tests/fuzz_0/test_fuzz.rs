@@ -20,7 +20,6 @@ impl FuzzTest {
             processor!(entry_hello_world),
         ));
     }
-
     #[flow]
     fn flow1(
         &mut self,
@@ -28,7 +27,7 @@ impl FuzzTest {
         accounts: &mut FuzzAccounts,
     ) -> Result<(), FuzzingError> {
         InitializeFnTransaction::build(fuzzer_data, &mut self.client, accounts)?
-            .execute(&mut self.client, accounts)?;
+            .execute(&mut self.client)?;
 
         Ok(())
     }

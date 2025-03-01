@@ -17,17 +17,9 @@ pub trait TransactionGetters: TransactionCustomMethods {
     fn get_instruction_program_ids(&self) -> Vec<solana_sdk::pubkey::Pubkey>;
 
     #[doc(hidden)]
-    fn get_instruction_data(
-        &mut self,
-        client: &mut impl FuzzClient,
-        fuzz_accounts: &mut Self::IxAccounts,
-    ) -> Vec<Vec<u8>>;
+    fn get_instruction_data(&mut self, client: &mut impl FuzzClient) -> Vec<Vec<u8>>;
 
     #[doc(hidden)]
     /// Get instruction accounts
-    fn get_instruction_accounts(
-        &mut self,
-        client: &mut impl FuzzClient,
-        fuzz_accounts: &mut Self::IxAccounts,
-    ) -> Vec<Vec<AccountMeta>>;
+    fn get_instruction_accounts(&mut self, client: &mut impl FuzzClient) -> Vec<Vec<AccountMeta>>;
 }
