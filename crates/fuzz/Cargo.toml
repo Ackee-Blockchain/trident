@@ -21,6 +21,9 @@ trident-derive-transaction = { path = "../fuzz/derive/transaction", version = "0
 trident-derive-instruction = { path = "../fuzz/derive/instruction", version = "0.0.1" }
 trident-derive-accounts = { path = "../fuzz/derive/accounts", version = "0.0.1" }
 trident-derive-remaining-accounts = { path = "../fuzz/derive/remaining_accounts", version = "0.0.1" }
+trident-derive-transaction-selector = { path = "../fuzz/derive/transaction_selector", version = "0.0.1" }
+trident-derive-flow-executor = { path = "../fuzz/derive/flow_executor", version = "0.0.1" }
+
 
 # Config (Trident.toml)
 trident-config = { path = "../config", version = "0.0.1" }
