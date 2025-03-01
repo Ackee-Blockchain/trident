@@ -12,7 +12,7 @@ impl ToTokens for TridentSelectorEnum {
             let variant_name = &variant.ident;
             quote! {
                 #name::#variant_name(tx) => {
-                    tx.execute(client, config, fuzz_accounts)
+                    tx.execute(client,fuzz_accounts)
                 }
             }
         });
@@ -22,7 +22,6 @@ impl ToTokens for TridentSelectorEnum {
                 fn transaction_selector(
                     &mut self,
                     client: &mut impl FuzzClient,
-                    config: &TridentConfig,
                     fuzz_accounts: &mut FuzzAccounts,
                 ) -> Result<(), FuzzingError> {
                     match self {
