@@ -12,7 +12,8 @@ impl ToTokens for TridentSelectorEnum {
             let variant_name = &variant.ident;
             quote! {
                 #name::#variant_name(tx) => {
-                    tx.execute(client,fuzz_accounts)
+                    tx.set_instructions(client, fuzz_accounts);
+                    tx.execute(client, fuzz_accounts)
                 }
             }
         });

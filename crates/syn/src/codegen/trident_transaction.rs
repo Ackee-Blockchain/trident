@@ -19,6 +19,7 @@ impl ToTokens for TridentTransactionStruct {
             let field_ident = &f.ident;
             quote! {
                 {
+                    self.#field_ident.set_data(client, fuzz_accounts);
                     self.#field_ident.resolve_accounts(client, fuzz_accounts);
                     self.#field_ident.set_accounts(client, fuzz_accounts);
                     self.#field_ident.set_remaining_accounts(client, fuzz_accounts);
@@ -50,9 +51,6 @@ impl ToTokens for TridentTransactionStruct {
                     client: &mut impl FuzzClient,
                     fuzz_accounts: &mut Self::IxAccounts,
                 ) -> Vec<Vec<u8>> {
-                    // Call the set_data method first
-                    self.set_data(client, fuzz_accounts);
-
                     // Then return the serialized data
                     vec![
                         #(borsh::to_vec(&self.#field_idents.data).unwrap()),*
@@ -64,9 +62,6 @@ impl ToTokens for TridentTransactionStruct {
                     client: &mut impl FuzzClient,
                     fuzz_accounts: &mut Self::IxAccounts,
                 ) -> Vec<Vec<AccountMeta>> {
-                    // Call the set_accounts method first
-                    self.set_accounts(client, fuzz_accounts);
-
                     // Then return the account metas
                     vec![
                         #(self.#field_idents.to_account_metas()),*
@@ -90,15 +85,7 @@ impl ToTokens for TridentTransactionStruct {
                     #(self.#field_idents.set_snapshot_after(client);)*
                 }
 
-                fn set_data(
-                    &mut self,
-                    client: &mut impl FuzzClient,
-                    fuzz_accounts: &mut Self::IxAccounts,
-                ) {
-                    #(self.#field_idents.set_data(client, fuzz_accounts);)*
-                }
-
-                fn set_accounts(
+                fn set_instructions(
                     &mut self,
                     client: &mut impl FuzzClient,
                     fuzz_accounts: &mut Self::IxAccounts,
@@ -114,12 +101,7 @@ impl ToTokens for TridentTransactionStruct {
                     fuzz_accounts: &mut Self::IxAccounts,
                 ) -> arbitrary::Result<Self> {
                     let mut tx = Self::arbitrary(fuzzer_data)?;
-                    #(
-                        tx.#field_idents.set_data(client, fuzz_accounts);
-                        tx.#field_idents.resolve_accounts(client, fuzz_accounts);
-                        tx.#field_idents.set_accounts(client, fuzz_accounts);
-                        tx.#field_idents.set_remaining_accounts(client, fuzz_accounts);
-                    )*
+                    tx.set_instructions(client, fuzz_accounts);
                     Ok(tx)
                 }
             }
