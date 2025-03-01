@@ -19,19 +19,11 @@ pub(crate) trait TransactionPrivateMethods:
     /// - Program IDs that will process the instructions
     /// - Instruction-specific data/parameters
     /// - Account metadata needed for the instructions
-    fn create_transaction(
-        &mut self,
-        client: &mut impl FuzzClient,
-        fuzz_accounts: &mut Self::IxAccounts,
-    ) -> Vec<Instruction>;
+    fn create_transaction(&mut self, client: &mut impl FuzzClient) -> Vec<Instruction>;
 }
 
 impl<T: TransactionMethods> TransactionPrivateMethods for T {
-    fn create_transaction(
-        &mut self,
-        client: &mut impl FuzzClient,
-        fuzz_accounts: &mut Self::IxAccounts,
-    ) -> Vec<Instruction> {
+    fn create_transaction(&mut self, client: &mut impl FuzzClient) -> Vec<Instruction> {
         // Retrieve instruction discriminators (identifiers for different instruction types)
         let discriminators = self.get_instruction_discriminators();
 
@@ -39,10 +31,10 @@ impl<T: TransactionMethods> TransactionPrivateMethods for T {
         let program_ids = self.get_instruction_program_ids();
 
         // Get the instruction-specific data/parameters
-        let data = self.get_instruction_data(client, fuzz_accounts);
+        let data = self.get_instruction_data(client);
 
         // Get the account metadata needed for the instructions
-        let accounts = self.get_instruction_accounts(client, fuzz_accounts);
+        let accounts = self.get_instruction_accounts(client);
 
         // Debug output when fuzzing_debug feature is enabled
         #[allow(unexpected_cfgs)]
