@@ -3731,6 +3731,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "trident-derive-flow-executor"
+version = "0.0.1"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.98",
+ "trident-syn",
+]
+
+[[package]]
 name = "trident-derive-fuzz-test-executor"
 version = "0.0.5"
 dependencies = [
@@ -3771,6 +3781,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "trident-derive-transaction-selector"
+version = "0.0.1"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.98",
+ "trident-syn",
+]
+
+[[package]]
 name = "trident-fuzz"
 version = "0.3.1"
 dependencies = [
@@ -3794,18 +3814,19 @@ dependencies = [
  "toml 0.8.20",
  "trident-config",
  "trident-derive-accounts",
+ "trident-derive-flow-executor",
  "trident-derive-fuzz-test-executor",
  "trident-derive-instruction",
  "trident-derive-remaining-accounts",
  "trident-derive-transaction",
+ "trident-derive-transaction-selector",
  "trident-svm",
 ]
 
 [[package]]
 name = "trident-svm"
 version = "0.0.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "914446040de98de1d2a7ddcd69d9258e73587c09f689227ec38217a99f436a02"
+source = "git+https://github.com/Ackee-Blockchain/trident-svm?branch=master#26bef93c7d43de12a36e2803905416b670dbce80"
 dependencies = [
  "bincode",
  "serde",
