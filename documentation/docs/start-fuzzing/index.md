@@ -32,4 +32,6 @@ project-root
 ```
 
 
-`Instructions` folder contains the `instructions` that can be used in the fuzz test. `Transactions` folder contains the `transactions` that will be used during the fuzzing, each transaction can contain `one` or `multiple instructions`, based on the developers choice. By default there is only one instruction in each transaction.
+`Instructions` folder contains the `instructions` that can be used in the fuzz test.
+
+`Transactions` folder contains the `transactions` that will be used during the fuzzing, each transaction can contain `one` or `multiple instructions`, based on the developers choice. By default there is only one instruction in each transaction.

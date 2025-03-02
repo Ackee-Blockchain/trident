@@ -18,8 +18,8 @@ Trident macros are used to define required methods for fuzzing.
 - [TridentInstruction](trident-macros/trident-instruction.md)
 - [TridentAccounts](trident-macros/trident-accounts.md)
 - [TridentRemainingAccounts](trident-macros/trident-remaining-accounts.md)
-- [FuzzTestExecutor](trident-macros/trident-fuzz-executor.md)
-
+- [TridentFlowExecutor](trident-macros/trident-flow-executor.md)
+- [TridentSelector](trident-macros/trident-selector.md)
 
 ## Trident Types
 
@@ -27,7 +27,6 @@ Trident types represent the types utilized during fuzzing.
 
 - [FuzzTransactions](trident-types/fuzz-transactions.md)
 - [FuzzAccounts](trident-types/fuzz-accounts.md)
-- [TransactionsSequence](trident-types/transactions-sequence.md)
 - [TridentAccount](trident-types/trident-account.md)
 - [TridentPubkey](trident-types/trident-pubkey.md)
 - [CustomTypes](trident-types/custom-types.md)

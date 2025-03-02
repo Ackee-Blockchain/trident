@@ -1,10 +1,14 @@
 # Instruction Data
 
-While Trident automatically generates random instruction data in most cases, there are situations where manual configuration is necessary. For example, when an instruction expects a specific `Pubkey` as input, using completely random data would be ineffective.
+!!! info "Introduction to Data"
+
+    Apart from accounts, additional instruction parameters can be specified on the Instruction's inputs.
+
+    Most of the time, these parameters are primitive data types, such as `u8`, `u16`, `u32`, `u64`, `bool`, etc. In this case, guidance is probably not required, and we can leave the fuzzer to generate random values. On the other hand, if the instruction expects, for example, a `Pubkey` as input, the `Pubkey` needs to be resolved similarly to how accounts are resolved (as you probably don't want the pubkey to be completely random but rather derived from the fuzzer's account storage).
 
 ## Manual Data Setup
 
-The `FuzzAccounts` struct provides methods to obtain specific accounts and their public keys for instruction data. Here's an example:
+The `set_data` method lets you manually set the instruction data (if required). Here's an example:
 
 ```rust
 impl InstructionSetters for DepositObligationCollateralV2Instruction {
@@ -12,7 +16,7 @@ impl InstructionSetters for DepositObligationCollateralV2Instruction {
 
     fn set_data(
         &mut self,
-        _client: &mut impl FuzzClient,
+        client: &mut impl FuzzClient,
         fuzz_accounts: &mut Self::IxAccounts
     ) {
         // Retrieve account from storage using the generated index
@@ -29,9 +33,9 @@ impl InstructionSetters for DepositObligationCollateralV2Instruction {
 }
 ```
 
-In this example:
+In the example above:
 
-1. We use the `get_or_create` method to retrieve an account using its index
-2. We then set the account's public key in the instruction data
+- We retrieved the `owner` account address from the `FuzzAccounts::owner` storage using the generated `self.data.owner.account_id` index.
+- We then set the `owner` account's public key in the instruction data.
 
 This approach ensures that the instruction data contains valid and meaningful values while still maintaining the benefits of fuzz testing.
