@@ -8,12 +8,20 @@ This section describes the methods that are available in the `FuzzClient`.
 
 ## Trident Client Methods
 
-
 ### `new_client`
 
 Creates a new instance of the fuzzing client with the specified programs and configuration.
 ```rust
 fn new_client(programs: &[ProgramEntrypoint], config: &TridentConfig) -> Self
+```
+
+---
+
+### `deploy_native_program`
+
+Deploys a native program to the fuzzing client.
+```rust
+fn deploy_native_program(program: ProgramEntrypoint)
 ```
 
 ---
