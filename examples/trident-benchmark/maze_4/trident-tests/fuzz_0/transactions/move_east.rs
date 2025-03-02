@@ -12,4 +12,4 @@ pub struct MoveEastTransaction {
 /// - `transaction_invariant_check`: Validate transaction-specific invariants
 /// - `transaction_error_handler`: Custom handling of transaction errors
 /// - `post_transaction`: Execute custom logic after transaction execution
-impl TransactionCustomMethods for MoveEastTransaction {}
+impl TransactionHooks for MoveEastTransaction {}

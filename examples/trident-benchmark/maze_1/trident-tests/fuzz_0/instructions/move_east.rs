@@ -32,7 +32,7 @@ pub struct MoveEastInstructionData {
 /// - Set instruction data during fuzzing
 /// - Configure instruction accounts during fuzzing
 /// - (Optional) Set remaining accounts during fuzzing
-impl InstructionSetters for MoveEastInstruction {
+impl InstructionHooks for MoveEastInstruction {
     type IxAccounts = FuzzAccounts;
     fn set_accounts(
         &mut self,

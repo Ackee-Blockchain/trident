@@ -37,11 +37,13 @@ pub mod fuzzing {
     /// trident traits
     pub use super::traits::AccountsMethods;
     pub use super::traits::FuzzClient;
-    pub use super::traits::InstructionMethods;
+    pub use super::traits::InstructionGetters;
+    pub use super::traits::InstructionHooks;
     pub use super::traits::InstructionSetters;
+
     pub use super::traits::RemainingAccountsMethods;
-    pub use super::traits::TransactionCustomMethods;
     pub use super::traits::TransactionGetters;
+    pub use super::traits::TransactionHooks;
     pub use super::traits::TransactionMethods;
     pub use super::traits::TransactionSelector;
     pub use super::traits::TransactionSetters;

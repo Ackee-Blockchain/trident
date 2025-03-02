@@ -15,6 +15,6 @@ pub struct InitVestingTransaction {
 /// - `post_transaction`: Execute custom logic after transaction execution
 ///
 /// Docs: https://ackee.xyz/trident/docs/latest/trident-advanced/trident-transactions/transaction-methods/
-impl TransactionCustomMethods for InitVestingTransaction {
+impl TransactionHooks for InitVestingTransaction {
     type IxAccounts = FuzzAccounts;
 }

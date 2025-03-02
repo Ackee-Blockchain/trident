@@ -28,7 +28,7 @@ pub struct UpdateInstructionData {
 /// - Set instruction data during fuzzing
 /// - Configure instruction accounts during fuzzing
 /// - (Optional) Set remaining accounts during fuzzing
-impl InstructionSetters for UpdateInstruction {
+impl InstructionHooks for UpdateInstruction {
     type IxAccounts = FuzzAccounts;
     fn set_accounts(&mut self, client: &mut impl FuzzClient, fuzz_accounts: &mut Self::IxAccounts) {
         let user = fuzz_accounts.user.get_or_create_account(

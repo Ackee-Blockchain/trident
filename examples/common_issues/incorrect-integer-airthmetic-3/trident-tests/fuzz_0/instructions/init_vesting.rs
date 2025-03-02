@@ -39,7 +39,7 @@ pub struct InitVestingInstructionData {
 /// - Set instruction data during fuzzing
 /// - Configure instruction accounts during fuzzing
 /// - (Optional) Set remaining accounts during fuzzing
-impl InstructionSetters for InitVestingInstruction {
+impl InstructionHooks for InitVestingInstruction {
     type IxAccounts = FuzzAccounts;
     fn set_data(&mut self, client: &mut impl FuzzClient, fuzz_accounts: &mut Self::IxAccounts) {
         let recipient = fuzz_accounts.recipient.get_or_create_account(

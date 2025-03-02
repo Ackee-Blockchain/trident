@@ -6,7 +6,7 @@ use crate::traits::FuzzClient;
 use solana_sdk::transaction::TransactionError;
 
 /// Trait providing custom methods for transactions
-pub trait TransactionCustomMethods {
+pub trait TransactionHooks {
     type IxAccounts;
 
     /// Method to perform custom actions before the transaction is executed
