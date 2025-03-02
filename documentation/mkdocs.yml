@@ -26,16 +26,18 @@ nav:
         - start-fuzzing/executing-fuzz-test/index.md
   - Advanced Customization:
       - trident-advanced/index.md
-      - Transaction Methods:
-          - trident-advanced/trident-transactions/transaction-methods/index.md
-          - trident-advanced/trident-transactions/transaction-methods/pre-post-execution.md
-          - trident-advanced/trident-transactions/transaction-methods/invariant-check.md
-          - trident-advanced/trident-transactions/transaction-methods/error-handler.md
-          - trident-advanced/trident-transactions/transaction-methods/typed-accounts.md
+      - Transaction Hooks:
+          - trident-advanced/trident-transactions/transaction-hooks/index.md
+          - trident-advanced/trident-transactions/transaction-hooks/pre-post-execution.md
+          - trident-advanced/trident-transactions/transaction-hooks/invariant-check.md
+          - trident-advanced/trident-transactions/transaction-hooks/error-handler.md
+          - trident-advanced/trident-transactions/transaction-hooks/typed-accounts.md
       - Multi-Instruction Transactions:
           - trident-advanced/trident-transactions/multi-instruction-transactions/index.md
       - Fuzzing Flows:
           - trident-advanced/trident-transactions/trident-fuzzing-flows/index.md
+          - trident-advanced/trident-transactions/trident-fuzzing-flows/initialization.md
+          - trident-advanced/trident-transactions/trident-fuzzing-flows/flow.md
   - API & Macro Reference:
       - trident-api-macro/index.md
       - Fuzz Client:
@@ -45,11 +47,11 @@ nav:
           - trident-api-macro/trident-macros/trident-instruction.md
           - trident-api-macro/trident-macros/trident-accounts.md
           - trident-api-macro/trident-macros/trident-remaining-accounts.md
-          - trident-api-macro/trident-macros/trident-fuzz-executor.md
+          - trident-api-macro/trident-macros/trident-flow-executor.md
+          - trident-api-macro/trident-macros/trident-selector.md
       - Trident Types:
           - trident-api-macro/trident-types/fuzz-transactions.md
           - trident-api-macro/trident-types/fuzz-accounts.md
-          - trident-api-macro/trident-types/transactions-sequence.md
           - trident-api-macro/trident-types/trident-account.md
           - trident-api-macro/trident-types/trident-pubkey.md
           - trident-api-macro/trident-types/custom-types.md
