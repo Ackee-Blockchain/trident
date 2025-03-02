@@ -41,7 +41,7 @@ pub struct WithdrawUnlockedInstructionData {}
 /// - (Optional) Set remaining accounts during fuzzing
 ///
 /// Docs: https://ackee.xyz/trident/docs/latest/start-fuzzing/writting-fuzz-test/
-impl InstructionSetters for WithdrawUnlockedInstruction {
+impl InstructionHooks for WithdrawUnlockedInstruction {
     type IxAccounts = FuzzAccounts;
     fn set_accounts(&mut self, client: &mut impl FuzzClient, fuzz_accounts: &mut Self::IxAccounts) {
         let recipient_token_account = fuzz_accounts

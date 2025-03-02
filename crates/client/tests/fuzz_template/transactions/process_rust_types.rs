@@ -15,6 +15,6 @@ pub struct ProcessRustTypesTransaction {
 /// - `post_transaction`: Execute custom logic after transaction execution
 ///
 /// Docs: https://ackee.xyz/trident/docs/latest/trident-advanced/trident-transactions/transaction-methods/
-impl TransactionCustomMethods for ProcessRustTypesTransaction {
+impl TransactionHooks for ProcessRustTypesTransaction {
     type IxAccounts = FuzzAccounts;
 }

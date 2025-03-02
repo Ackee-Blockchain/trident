@@ -13,7 +13,7 @@ pub struct RegisterTransaction {
 /// - `transaction_invariant_check`: Validate transaction-specific invariants
 /// - `transaction_error_handler`: Custom handling of transaction errors
 /// - `post_transaction`: Execute custom logic after transaction execution
-impl TransactionCustomMethods for RegisterTransaction {
+impl TransactionHooks for RegisterTransaction {
     fn transaction_invariant_check(&self) -> Result<(), FuzzingError> {
         // This fuzz check will reveal that registrations can be performed
         // even though registration windows is not open.

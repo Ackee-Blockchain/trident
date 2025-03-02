@@ -1,19 +1,19 @@
-use super::TransactionHooks;
 use crate::traits::FuzzClient;
 
-#[doc(hidden)]
-pub trait TransactionSetters: TransactionHooks {
+use super::InstructionHooks;
+
+pub trait InstructionSetters: InstructionHooks {
     #[doc(hidden)]
-    /// Set accounts before transaction
+    /// Set snapshot of accounts before transaction
     fn set_snapshot_before(&mut self, client: &mut impl FuzzClient);
 
     #[doc(hidden)]
-    /// Set accounts after transaction
+    /// Set snapshot of accounts after transaction
     fn set_snapshot_after(&mut self, client: &mut impl FuzzClient);
 
     #[doc(hidden)]
-    /// Set instructions for the transaction
-    fn set_instructions(
+    /// Resolve accounts
+    fn resolve_accounts(
         &mut self,
         client: &mut impl FuzzClient,
         fuzz_accounts: &mut Self::IxAccounts,

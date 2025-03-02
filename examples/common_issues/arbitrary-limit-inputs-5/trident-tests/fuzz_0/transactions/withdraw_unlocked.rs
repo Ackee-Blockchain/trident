@@ -17,7 +17,7 @@ pub struct WithdrawUnlockedTransaction {
 /// - `post_transaction`: Execute custom logic after transaction execution
 ///
 /// Docs: https://ackee.xyz/trident/docs/latest/trident-advanced/trident-transactions/transaction-methods/
-impl TransactionCustomMethods for WithdrawUnlockedTransaction {
+impl TransactionHooks for WithdrawUnlockedTransaction {
     type IxAccounts = FuzzAccounts;
     fn transaction_invariant_check(&self) -> Result<(), FuzzingError> {
         if let Ok(escrow) = Escrow::deserialize(

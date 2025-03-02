@@ -1,6 +1,6 @@
 use solana_sdk::instruction::Instruction;
 
-use super::TransactionCustomMethods;
+use super::TransactionHooks;
 use super::TransactionMethods;
 
 use crate::traits::FuzzClient;
@@ -9,9 +9,7 @@ use crate::traits::FuzzClient;
 ///
 /// This trait is not meant to be implemented directly by users.
 /// It's implemented automatically for any type that implements TransactionMethods.
-pub(crate) trait TransactionPrivateMethods:
-    TransactionCustomMethods + std::fmt::Debug
-{
+pub(crate) trait TransactionPrivateMethods: TransactionHooks + std::fmt::Debug {
     /// Creates a vector of Solana instructions from the transaction data
     ///
     /// This method assembles complete Solana instructions by combining:

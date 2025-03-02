@@ -37,49 +37,52 @@ impl ToTokens for TridentInstructionStruct {
             };
 
         let expanded = quote! {
-            impl InstructionMethods for #name {
+            // Implement InstructionGetters trait
+            impl InstructionGetters for #name {
+                /// Get the instruction discriminator (identifier bytes)
                 fn get_discriminator(&self) -> Vec<u8> {
                     vec![#(#discriminator_bytes),*]
                 }
 
+                /// Get the program ID that will process this instruction
                 fn get_program_id(&self) -> solana_sdk::pubkey::Pubkey {
                     pubkey!(#program_id)
                 }
 
-                fn set_snapshot_before(
-                    &mut self,
-                    client: &mut impl FuzzClient,
-                ) {
-                    self.#accounts.capture_before(client);
-                    #remaining_accounts_snapshots
-                }
-
-                fn set_snapshot_after(
-                    &mut self,
-                    client: &mut impl FuzzClient,
-                ) {
-                    self.#accounts.capture_after(client);
-                    #remaining_accounts_snapshots_after
-                }
-
-                fn to_account_metas(
-                    &mut self,
-                ) -> Vec<AccountMeta> {
+                /// Convert all accounts to AccountMeta format for Solana instructions
+                fn to_account_metas(&mut self) -> Vec<AccountMeta> {
                     let mut metas = Vec::new();
                     metas.extend(self.#accounts.to_account_meta());
                     #remaining_accounts_extension
                     metas
                 }
+            }
 
+            // Implement InstructionSetters trait
+            impl InstructionSetters for #name {
+                /// Capture the state of all accounts before transaction execution
+                fn set_snapshot_before(&mut self, client: &mut impl FuzzClient) {
+                    self.#accounts.capture_before(client);
+                    #remaining_accounts_snapshots
+                }
+
+                /// Capture the state of all accounts after transaction execution
+                fn set_snapshot_after(&mut self, client: &mut impl FuzzClient) {
+                    self.#accounts.capture_after(client);
+                    #remaining_accounts_snapshots_after
+                }
+
+                /// Resolve all accounts needed for this instruction
                 fn resolve_accounts(
                     &mut self,
                     client: &mut impl FuzzClient,
                     fuzz_accounts: &mut Self::IxAccounts,
                 ) {
-                    self.#accounts.resolve_accounts(client, fuzz_accounts,self.get_program_id(),&self.data);
+                    self.#accounts.resolve_accounts(client, fuzz_accounts, self.get_program_id(), &self.data);
                 }
             }
 
+            // Debug implementation for better logging and visualization
             impl std::fmt::Debug for #name {
                 fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
                     f.debug_struct(stringify!(#name))

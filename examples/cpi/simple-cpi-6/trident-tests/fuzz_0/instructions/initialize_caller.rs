@@ -31,6 +31,6 @@ pub struct InitializeCallerInstructionData {
 /// - (Optional) Set remaining accounts during fuzzing
 ///
 /// Docs: https://ackee.xyz/trident/docs/latest/start-fuzzing/writting-fuzz-test/
-impl InstructionSetters for InitializeCallerInstruction {
+impl InstructionHooks for InitializeCallerInstruction {
     type IxAccounts = FuzzAccounts;
 }

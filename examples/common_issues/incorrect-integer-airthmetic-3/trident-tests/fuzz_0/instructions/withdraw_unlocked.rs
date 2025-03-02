@@ -34,7 +34,7 @@ pub struct WithdrawUnlockedInstructionData {}
 /// - Set instruction data during fuzzing
 /// - Configure instruction accounts during fuzzing
 /// - (Optional) Set remaining accounts during fuzzing
-impl InstructionSetters for WithdrawUnlockedInstruction {
+impl InstructionHooks for WithdrawUnlockedInstruction {
     type IxAccounts = FuzzAccounts;
     fn set_accounts(&mut self, client: &mut impl FuzzClient, fuzz_accounts: &mut Self::IxAccounts) {
         let recipient = fuzz_accounts

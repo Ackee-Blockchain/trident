@@ -37,6 +37,6 @@ pub struct InitializeFnInstructionData {
 /// - (Optional) Set remaining accounts during fuzzing
 ///
 /// Docs: https://ackee.xyz/trident/docs/latest/start-fuzzing/writting-fuzz-test/
-impl InstructionSetters for InitializeFnInstruction {
+impl InstructionHooks for InitializeFnInstruction {
     type IxAccounts = FuzzAccounts;
 }

@@ -47,6 +47,6 @@ pub struct InitializeInstructionData {
 /// - (Optional) Set remaining accounts during fuzzing
 ///
 /// Docs: https://ackee.xyz/trident/docs/latest/start-fuzzing/writting-fuzz-test/
-impl InstructionSetters for InitializeInstruction {
+impl InstructionHooks for InitializeInstruction {
     type IxAccounts = FuzzAccounts;
 }

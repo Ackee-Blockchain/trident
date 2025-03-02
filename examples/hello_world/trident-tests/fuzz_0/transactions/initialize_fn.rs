@@ -15,6 +15,6 @@ pub struct InitializeFnTransaction {
 /// - `post_transaction`: Execute custom logic after transaction execution
 ///
 /// Docs: https://ackee.xyz/trident/docs/latest/trident-advanced/trident-transactions/transaction-methods/
-impl TransactionCustomMethods for InitializeFnTransaction {
+impl TransactionHooks for InitializeFnTransaction {
     type IxAccounts = FuzzAccounts;
 }

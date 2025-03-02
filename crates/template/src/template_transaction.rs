@@ -31,7 +31,7 @@ impl Template {
         /// - `post_transaction`: Execute custom logic after transaction execution
         ///
         /// Docs: https://ackee.xyz/trident/docs/latest/trident-advanced/trident-transactions/transaction-methods/
-            impl TransactionCustomMethods for #transaction_struct_name {
+            impl TransactionHooks for #transaction_struct_name {
                 type IxAccounts = FuzzAccounts;
             }
         };
