@@ -9,7 +9,7 @@
 
 Explore the various features Trident provides.
 
- - [Transaction Methods](./trident-advanced/trident-transactions/transaction-methods/index.md) - Create and manipulate transactions with different methods
+ - [Transaction Hooks](./trident-advanced/trident-transactions/transaction-hooks/index.md) - Create and manipulate transactions with different methods
  - [Fuzzing Flows](./trident-advanced/trident-transactions/trident-fuzzing-flows/index.md) - Explore different approaches to fuzz your program
  - [Multi-Instruction Transactions](./trident-advanced/trident-transactions/multi-instruction-transactions/index.md) - Compose fuzzed transactions with multiple instructions
  - [Trident Manifest](./trident-manifest/index.md) - Customize your fuzz tests with different configurations

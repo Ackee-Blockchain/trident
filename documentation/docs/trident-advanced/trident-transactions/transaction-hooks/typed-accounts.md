@@ -1,6 +1,6 @@
 # Typed Accounts
 
-If you need to work with `data accounts` in the `Transaction methods`, you will first need to deserialize the accounts. For deserialization into known structs, Trident generates `types.rs`, where each struct derives `BorshDeserialize` and `BorshSerialize`.
+If you need to work with `data accounts` in the `Transaction hooks`, you will first need to deserialize the accounts. For deserialization into known structs, Trident generates `types.rs`, where each struct derives `BorshDeserialize` and `BorshSerialize`.
 
 
 ```rust
@@ -20,7 +20,7 @@ pub struct ExampleTransaction {
     pub instruction: ExampleInstruction,
 }
 
-impl TransactionCustomMethods for ExampleTransaction {
+impl TransactionHooks for ExampleTransaction {
     fn post_transaction(&self, client: &mut impl FuzzClient) {
         // Take account
         let example_account =

@@ -1,85 +1,85 @@
 # TridentInstruction
 
-The `TridentInstruction` macro is used to derive required methods for `Instructions`.
+The `TridentInstruction` macro is used to derive required methods for `Instructions`. This procedural macro automatically implements instruction-related functionality for structs that represent instructions.
 
 
-## Derived trait
+!!! warning "Required Field Names"
+    The macro parser strictly requires the struct to have an `accounts` field named exactly `accounts`. If a remaining accounts field is used, it must be named exactly `remaining_accounts`.
 
-The macro implements the `InstructionMethods` trait with the corresponding methods:
+## Derived Traits
+
+The macro implements the following traits:
+
+- `InstructionGetters` - Methods to retrieve instruction data
+- `InstructionSetters` - Methods to set up instruction state
 
 !!! warning "Manual Implementation Note"
-    There is no need to specify any method of this trait manually.
+    There is no need to manually implement the getter, setter, or hook methods. The macro handles these implementations automatically based on the structure of your instruction.
+
+## Instruction Getters
 
 ### `get_discriminator`
 
-Get instruction discriminator
+Returns the instruction discriminator (identifier bytes) that uniquely identifies this instruction of the program.
 
 ```rust
-fn get_discriminator(&self) -> Vec<u8>;
+fn get_discriminator(&self) -> Vec<u8>
 ```
-
----
 
 ### `get_program_id`
 
-Get instruction program id
+Returns the program ID that will process this instruction.
 
 ```rust
-fn get_program_id(&self) -> solana_sdk::pubkey::Pubkey;
+fn get_program_id(&self) -> solana_sdk::pubkey::Pubkey
 ```
-
----
-
-### `set_snapshot_before`
-
-Set account snapshots before transaction
-
-```rust
-fn set_snapshot_before(&mut self, client: &mut impl FuzzClient);
-```
-
----
-
-### `set_snapshot_after`
-
-Set account snapshots after transaction
-
-```rust
-fn set_snapshot_after(&mut self, client: &mut impl FuzzClient);
-```
-
----
 
 ### `to_account_metas`
 
-Convert accounts to account metas
+Converts all accounts to AccountMeta format for Solana instructions.
 
 ```rust
-fn to_account_metas(&mut self) -> Vec<AccountMeta>;
+fn to_account_metas(&mut self) -> Vec<AccountMeta>
 ```
 
----
+## Instruction Setters
+
+### `set_snapshot_before`
+
+Captures the state of all accounts before instruction execution.
+
+```rust
+fn set_snapshot_before(&mut self, client: &mut impl FuzzClient)
+```
+
+### `set_snapshot_after`
+
+Captures the state of all accounts after instruction execution.
+
+```rust
+fn set_snapshot_after(&mut self, client: &mut impl FuzzClient)
+```
 
 ### `resolve_accounts`
 
-Resolve accounts
+Resolves all accounts needed for this instruction.
 
 ```rust
 fn resolve_accounts(
     &mut self,
     client: &mut impl FuzzClient,
-    ix_accounts: &mut Self::IxAccounts,
-);
+    fuzz_accounts: &mut Self::IxAccounts,
+)
 ```
 
-## Attributes
 
-This macro accepts the following attributes:
+## Struct-Level Attributes
 
+These attributes are applied to the struct definition itself.
 
 ### `program_id`
 
-The program to which the Instruction belongs.
+Specifies the program ID that will process this instruction. This can be provided as a string literal containing a base58-encoded public key.
 
 `This attribute is mandatory`
 
@@ -94,7 +94,7 @@ pub struct ExampleInstruction {
 
 ### `discriminator`
 
-The discriminator of the Instruction.
+Specifies the instruction discriminator bytes that uniquely identify this instruction to the program. This is typically an 8-byte array.
 
 `This attribute is mandatory`
 
