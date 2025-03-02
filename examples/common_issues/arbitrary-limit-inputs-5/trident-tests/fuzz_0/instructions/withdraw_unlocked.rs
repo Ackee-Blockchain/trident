@@ -11,6 +11,7 @@ pub struct WithdrawUnlockedInstruction {
 /// Instruction Accounts
 #[derive(Arbitrary, Debug, Clone, TridentAccounts)]
 #[instruction_data(WithdrawUnlockedInstructionData)]
+#[storage(FuzzAccounts)]
 pub struct WithdrawUnlockedInstructionAccounts {
     #[account(signer, mut, storage = recipient)]
     pub recipient: TridentAccount,
@@ -38,6 +39,8 @@ pub struct WithdrawUnlockedInstructionData {}
 /// - Set instruction data during fuzzing
 /// - Configure instruction accounts during fuzzing
 /// - (Optional) Set remaining accounts during fuzzing
+///
+/// Docs: https://ackee.xyz/trident/docs/latest/start-fuzzing/writting-fuzz-test/
 impl InstructionSetters for WithdrawUnlockedInstruction {
     type IxAccounts = FuzzAccounts;
     fn set_accounts(&mut self, client: &mut impl FuzzClient, fuzz_accounts: &mut Self::IxAccounts) {

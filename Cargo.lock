@@ -4040,7 +4040,7 @@ dependencies = [
 [[package]]
 name = "trident-svm"
 version = "0.0.2"
-source = "git+https://github.com/Ackee-Blockchain/trident-svm?branch=master#26bef93c7d43de12a36e2803905416b670dbce80"
+source = "git+https://github.com/Ackee-Blockchain/trident-svm?branch=master#0a96e8d3fba6d2c97d4af3de69a9b901fc9257d9"
 dependencies = [
  "bincode",
  "serde",

@@ -11,13 +11,15 @@ pub struct InitializeCalleeInstruction {
 /// Instruction Accounts
 #[derive(Arbitrary, Debug, Clone, TridentAccounts)]
 #[instruction_data(InitializeCalleeInstructionData)]
+#[storage(FuzzAccounts)]
 pub struct InitializeCalleeInstructionAccounts {
-    pub signer: TridentAccount,
+    #[account(signer)]
+    signer: TridentAccount,
 }
 /// Instruction Data
 #[derive(Arbitrary, Debug, BorshDeserialize, BorshSerialize, Clone)]
 pub struct InitializeCalleeInstructionData {
-    pub input: u16,
+    input: u16,
 }
 /// Implementation of instruction setters for fuzzing
 ///
@@ -25,6 +27,8 @@ pub struct InitializeCalleeInstructionData {
 /// - Set instruction data during fuzzing
 /// - Configure instruction accounts during fuzzing
 /// - (Optional) Set remaining accounts during fuzzing
+///
+/// Docs: https://ackee.xyz/trident/docs/latest/start-fuzzing/writting-fuzz-test/
 impl InstructionSetters for InitializeCalleeInstruction {
     type IxAccounts = FuzzAccounts;
 }

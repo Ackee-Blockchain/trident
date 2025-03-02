@@ -11,6 +11,7 @@ pub struct InitVestingInstruction {
 /// Instruction Accounts
 #[derive(Arbitrary, Debug, Clone, TridentAccounts)]
 #[instruction_data(InitVestingInstructionData)]
+#[storage(FuzzAccounts)]
 pub struct InitVestingInstructionAccounts {
     #[account(signer, mut,storage = sender)]
     pub sender: TridentAccount,
@@ -29,11 +30,11 @@ pub struct InitVestingInstructionAccounts {
 /// Instruction Data
 #[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
 pub struct InitVestingInstructionData {
-    pub recipient: TridentPubkey,
-    pub amount: u64,
-    pub start_at: u64,
-    pub end_at: u64,
-    pub interval: u64,
+    recipient: TridentPubkey,
+    amount: u64,
+    start_at: u64,
+    end_at: u64,
+    interval: u64,
 }
 // -------------------------------------------------------------------
 // -------------------------------------------------------------------
@@ -91,6 +92,8 @@ impl<'a> Arbitrary<'a> for InitVestingInstructionData {
 /// - Set instruction data during fuzzing
 /// - Configure instruction accounts during fuzzing
 /// - (Optional) Set remaining accounts during fuzzing
+///
+/// Docs: https://ackee.xyz/trident/docs/latest/start-fuzzing/writting-fuzz-test/
 impl InstructionSetters for InitVestingInstruction {
     type IxAccounts = FuzzAccounts;
     fn set_data(&mut self, client: &mut impl FuzzClient, fuzz_accounts: &mut Self::IxAccounts) {
@@ -106,9 +109,14 @@ impl InstructionSetters for InitVestingInstruction {
     fn set_accounts(&mut self, client: &mut impl FuzzClient, fuzz_accounts: &mut Self::IxAccounts) {
         let sender = self.accounts.sender.pubkey();
 
-        let mint = fuzz_accounts
-            .mint
-            .get_or_create_mint_account(0, client, None, 6, &sender, None);
+        let mint = fuzz_accounts.mint.get_or_create_mint_account(
+            self.accounts.mint.account_id,
+            client,
+            None,
+            6,
+            &sender,
+            None,
+        );
 
         self.accounts.mint.set_address(mint);
 

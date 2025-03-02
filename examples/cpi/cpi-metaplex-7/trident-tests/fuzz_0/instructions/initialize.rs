@@ -11,6 +11,7 @@ pub struct InitializeInstruction {
 /// Instruction Accounts
 #[derive(Arbitrary, Debug, Clone, TridentAccounts)]
 #[instruction_data(InitializeInstructionData)]
+#[storage(FuzzAccounts)]
 pub struct InitializeInstructionAccounts {
     #[account(signer,mut,storage = signer)]
     pub signer: TridentAccount,
@@ -33,10 +34,10 @@ pub struct InitializeInstructionAccounts {
 /// Instruction Data
 #[derive(Arbitrary, Debug, BorshDeserialize, BorshSerialize, Clone)]
 pub struct InitializeInstructionData {
-    pub input: u8,
-    pub name: String,
-    pub symbol: String,
-    pub uri: String,
+    input: u8,
+    name: String,
+    symbol: String,
+    uri: String,
 }
 /// Implementation of instruction setters for fuzzing
 ///
@@ -44,12 +45,8 @@ pub struct InitializeInstructionData {
 /// - Set instruction data during fuzzing
 /// - Configure instruction accounts during fuzzing
 /// - (Optional) Set remaining accounts during fuzzing
+///
+/// Docs: https://ackee.xyz/trident/docs/latest/start-fuzzing/writting-fuzz-test/
 impl InstructionSetters for InitializeInstruction {
     type IxAccounts = FuzzAccounts;
-    fn set_accounts(
-        &mut self,
-        _client: &mut impl FuzzClient,
-        _fuzz_accounts: &mut Self::IxAccounts,
-    ) {
-    }
 }
