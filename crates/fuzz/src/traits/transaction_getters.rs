@@ -1,9 +1,9 @@
-use super::TransactionCustomMethods;
+use super::TransactionHooks;
 use crate::traits::FuzzClient;
 use solana_sdk::instruction::AccountMeta;
 
 #[doc(hidden)]
-pub trait TransactionGetters: TransactionCustomMethods {
+pub trait TransactionGetters: TransactionHooks {
     #[doc(hidden)]
     /// Get transaction name
     fn get_transaction_name(&self) -> String;

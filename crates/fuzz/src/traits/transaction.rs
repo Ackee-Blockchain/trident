@@ -1,6 +1,6 @@
 use super::transaction_private::TransactionPrivateMethods;
-use super::TransactionCustomMethods;
 use super::TransactionGetters;
+use super::TransactionHooks;
 use super::TransactionSetters;
 use crate::error::*;
 use crate::fuzzing::FuzzingStatistics;
@@ -12,7 +12,7 @@ use solana_sdk::transaction::TransactionError;
 #[allow(private_bounds)]
 /// Trait providing methods to prepare data and accounts for transaction execution
 pub trait TransactionMethods:
-    TransactionCustomMethods
+    TransactionHooks
     + TransactionGetters
     + TransactionSetters
     + TransactionPrivateMethods

@@ -24,7 +24,7 @@ pub struct EndRegistrationsInstructionData {}
 /// - Set instruction data during fuzzing
 /// - Configure instruction accounts during fuzzing
 /// - (Optional) Set remaining accounts during fuzzing
-impl InstructionSetters for EndRegistrationsInstruction {
+impl InstructionHooks for EndRegistrationsInstruction {
     type IxAccounts = FuzzAccounts;
     fn set_accounts(
         &mut self,
