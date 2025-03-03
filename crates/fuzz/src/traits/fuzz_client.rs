@@ -13,7 +13,12 @@ use trident_svm::utils::ProgramEntrypoint;
 
 /// A trait providing methods to read and write (manipulate) accounts
 pub trait FuzzClient {
+    /// Deploy a native program
+    fn deploy_native_program(&mut self, program: ProgramEntrypoint);
+
+    /// Create a new client
     fn new_client(programs: &[ProgramEntrypoint], config: &TridentConfig) -> Self;
+
     /// Get the cluster rent
     fn get_sysvar<T: Sysvar>(&self) -> T;
 

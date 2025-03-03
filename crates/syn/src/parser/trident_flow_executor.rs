@@ -9,7 +9,17 @@ pub fn parse_trident_flow_executor(
     _attr: proc_macro2::TokenStream,
     input: &ItemImpl,
 ) -> ParseResult<TridentFlowExecutorImpl> {
-    let type_name = input.self_ty.clone();
+    // Extract just the path without any generics
+    let type_name = if let syn::Type::Path(type_path) = &*input.self_ty {
+        let mut cleaned_path = type_path.clone();
+        // Clear any generic arguments from the last segment
+        if let Some(last_segment) = cleaned_path.path.segments.last_mut() {
+            last_segment.arguments = syn::PathArguments::None;
+        }
+        Box::new(syn::Type::Path(cleaned_path))
+    } else {
+        input.self_ty.clone()
+    };
     let generics = input.generics.clone();
 
     let mut init_method = None;

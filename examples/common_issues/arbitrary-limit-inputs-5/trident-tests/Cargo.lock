@@ -4184,16 +4184,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "trident-derive-fuzz-test-executor"
-version = "0.0.5"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.98",
- "trident-syn",
-]
-
-[[package]]
 name = "trident-derive-instruction"
 version = "0.0.1"
 dependencies = [
@@ -4259,7 +4249,6 @@ dependencies = [
  "trident-config",
  "trident-derive-accounts",
  "trident-derive-flow-executor",
- "trident-derive-fuzz-test-executor",
  "trident-derive-instruction",
  "trident-derive-remaining-accounts",
  "trident-derive-transaction",

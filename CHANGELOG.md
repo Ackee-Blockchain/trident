@@ -26,6 +26,7 @@ incremented upon a breaking change and the patch version will be incremented for
 
 **Changed**
 
+- FuzzTestExecutor and FlowExecutor are grouped together and FuzzTest has client as generic instead of TridentSVM ([294](https://github.com/Ackee-Blockchain/trident/pull/294))
 - Changed Transaction sequence logic ([289](https://github.com/Ackee-Blockchain/trident/pull/289))
 - AccountsStorages are simplified, no types are required to define ([276](https://github.com/Ackee-Blockchain/trident/pull/276))
 - Trident Architecture changes containing multiple features and improvements (details in the PR)([267](https://github.com/Ackee-Blockchain/trident/pull/267))

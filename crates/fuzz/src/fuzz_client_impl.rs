@@ -17,6 +17,9 @@ use crate::traits::FuzzClient;
 use solana_sdk::transaction::TransactionError;
 
 impl FuzzClient for TridentSVM {
+    fn deploy_native_program(&mut self, program: ProgramEntrypoint) {
+        trident_svm::trident_svm::TridentSVM::deploy_native_program(self, program);
+    }
     fn new_client(programs: &[ProgramEntrypoint], config: &TridentConfig) -> Self {
         let sbf_programs =
             config
