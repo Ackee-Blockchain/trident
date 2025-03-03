@@ -12,6 +12,7 @@ incremented upon a breaking change and the patch version will be incremented for
 
 **Added**
 
+- TransactionSelector allows to select and execute random transaction with hooks and without hooks ([297](https://github.com/Ackee-Blockchain/trident/pull/297))
 - Added "random_tail" attribute to TridentFlowExecutor macro to allow random tail generation ([296](https://github.com/Ackee-Blockchain/trident/pull/296))
 - Added support for seeds constraint for accounts structs ([284](https://github.com/Ackee-Blockchain/trident/pull/284))
 - Additional methods accessing the AccountsStorage and creating corresponding accounts are now optional ("token","vote", "stake") ([279](https://github.com/Ackee-Blockchain/trident/pull/279))
