@@ -54,7 +54,6 @@ pub mod fuzzing {
     pub use trident_derive_flow_executor::flow_ignore;
     pub use trident_derive_flow_executor::init;
 
-    pub use trident_derive_fuzz_test_executor::FuzzTestExecutor;
     pub use trident_derive_instruction::TridentInstruction;
     pub use trident_derive_remaining_accounts::TridentRemainingAccounts;
     pub use trident_derive_transaction::TridentTransaction;

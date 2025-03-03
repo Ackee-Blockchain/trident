@@ -16,7 +16,6 @@ token = ["dep:spl-token"]
 
 [dependencies]
 # Derive macros
-trident-derive-fuzz-test-executor = { path = "../fuzz/derive/fuzz_test_executor", version = "0.0.5" }
 trident-derive-transaction = { path = "../fuzz/derive/transaction", version = "0.0.1" }
 trident-derive-instruction = { path = "../fuzz/derive/instruction", version = "0.0.1" }
 trident-derive-accounts = { path = "../fuzz/derive/accounts", version = "0.0.1" }
