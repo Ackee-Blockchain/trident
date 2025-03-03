@@ -1,52 +1,36 @@
----
-hide:
-  - navigation
-  - toc
+# Trident Documentation
 
-title: Trident
----
+##  Getting started
 
-<h1 style="font-size: 65px;">{{ config.site_name }}</h1>
+ - [Installation](./basics/installation.md) - Install the Trident Fuzz Testing Framework
+ - [Start Fuzzing](./start-fuzzing/index.md) - Focus on security and start fuzzing immediately
 
-![Trident](./images/trident-logo-smaller.png){ align=right }
+## Advanced fuzzing customization
 
-Rust-based Fuzzing framework for Solana programs to help you ship secure code.
+Explore the various features Trident provides.
 
-<div class="grid cards" markdown>
+ - [Transaction Hooks](./trident-advanced/trident-transactions/transaction-hooks/index.md) - Create and manipulate transactions with different methods
+ - [Fuzzing Flows](./trident-advanced/trident-transactions/trident-fuzzing-flows/index.md) - Explore different approaches to fuzz your program
+ - [Multi-Instruction Transactions](./trident-advanced/trident-transactions/multi-instruction-transactions/index.md) - Compose fuzzed transactions with multiple instructions
+ - [Trident Manifest](./trident-manifest/index.md) - Customize your fuzz tests with different configurations
 
--   :material-download:{ .lg .middle } __Getting Started__
+## API & Macros Reference
 
-    ---
+Check out the API and macro reference for Trident.
 
-    Install the Trident Fuzz Testing Framework
+ - [Trident API & Macros](./trident-api-macro/index.md)
 
-    [Installation](./installation/installation.md)
+## Trident Examples
 
--   :material-test-tube:{ .lg .middle } __Start Fuzzing__
+Check out examples to learn how to use Trident.
 
-    ---
+ - [Trident Examples](./trident-examples/trident-examples.md)
 
-    Focus on security and start fuzzing immediately
+## TridentSVM
 
-    [Start Fuzzing](./writing-fuzz-test/writing-fuzz-test.md)
+Check out the TridentSVM, lightweight fuzzing execution and account storage environment.
 
--   :octicons-mark-github-24:{ .lg .middle } __Check the GitHub for unreleased features__
-
-    ---
-
-    Check our GitHub repository to see the unreleased features
-
-    [Trident Repository](https://github.com/Ackee-Blockchain/trident/tree/develop)
-
--   :material-run-fast:{ .lg .middle } __Trident by Examples__
-
-    ---
-
-    Try the Fuzzing Examples
-
-    [Trident Examples](./examples/examples.md)
-
-</div>
+ - [TridentSVM](./trident-svm/index.md)
 
 
 ## What is Fuzzing ?
@@ -59,28 +43,3 @@ Rust-based Fuzzing framework for Solana programs to help you ship secure code.
     AsciinemaPlayer.create('./images/trident.cast', document.getElementById('fuzz-asciinema'), { preload: true, autoPlay: true, rows: 35 });
 }
 </script>
-
-<!-- {{ config.site_name }} equips developers with tools to efficiently develop fuzz tests for Anchor-based programs. It streamlines the fuzz testing process through automation and comprehensive support
-
-<div class="grid cards" markdown>
-
-- __Trident Workflow__
-
-    ---
-
-    - **Builds Anchor-based programs** to generate necessary implementations for deserializing instruction accounts.
-    - **Generates templates** for developers to customize according to the specific needs of their fuzz test scenarios.
-    - **Offers derive macros** to effortlessly implement required traits, reducing manual coding efforts.
-    - **Includes a bank client** and helper functions for simplified account management during testing.
-    - **Provides a Command-Line Interface** (CLI) for executing and debugging fuzz tests with ease.
-
-- __Trident Capabilities__
-
-    ---
-
-    - **Execution Order of Instructions**: Test different sequences and their effects on the program to uncover sequence-related vulnerabilities.
-    - **Instruction Parameters**: Identify how variations in inputs influence program behavior, testing for robustness against a wide range of data.
-    - **Instruction Accounts**: Explore the impact of different account states on the software's functionality, ensuring comprehensive account testing.
-    - **Comprehensive Testing**: Conduct thorough and effective fuzz testing by combining any of the above aspects.
-
-</div> -->
