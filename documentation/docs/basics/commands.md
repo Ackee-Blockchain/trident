@@ -23,6 +23,12 @@ project-root
 └── ...
 ```
 
+#### Options
+
+- `-f, --force` - Force Trident initialization. Updates Trident dependencies based on the CLI version.
+- `-p, --program-name <NAME>` - Specify the program name for which the fuzz test will be generated.
+- `-t, --test-name <NAME>` - Specify a custom name for the fuzz test to initialize.
+
 ---
 
 ## `trident how`
@@ -112,6 +118,11 @@ Debug Honggfuzz crashes by analyzing specific crash files.
     This commands needs to be executed from the project root directory.
 
 Adds a new Fuzz Test Template.
+
+#### Options
+
+- `-p, --program-name <NAME>` - Specify the program name for which the fuzz test will be generated.
+- `-t, --test-name <NAME>` - Specify a custom name for the fuzz test to add.
 
 ---
 
