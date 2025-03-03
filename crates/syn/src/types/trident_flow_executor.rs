@@ -7,4 +7,11 @@ pub struct TridentFlowExecutorImpl {
     pub flow_methods: Vec<Ident>,
     pub init_method: Option<Ident>,
     pub generics: Generics,
+    pub args: FlowExecutorArgs,
+}
+
+#[derive(Debug, Default)]
+pub struct FlowExecutorArgs {
+    pub random_tail: bool,
+    // More fields can be added here in the future
 }
