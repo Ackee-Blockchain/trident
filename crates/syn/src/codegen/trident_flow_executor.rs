@@ -26,9 +26,20 @@ impl ToTokens for TridentFlowExecutorImpl {
                 self.default_random_transactions(fuzzer_data, &mut accounts)?;
             }
         } else {
+            let random_tail = if self.args.random_tail {
+                quote! {
+                    self.default_random_transactions(fuzzer_data, &mut accounts)?;
+                }
+            } else {
+                quote! {}
+            };
+
             quote! {
                 // Execute all defined flow methods
                 #(self.#methods(fuzzer_data, &mut accounts)?;)*
+
+                // Optional random tail transactions
+                #random_tail
             }
         };
 
