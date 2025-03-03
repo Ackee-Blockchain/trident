@@ -10,7 +10,6 @@ impl ToTokens for TridentFlowExecutorImpl {
         let methods = &self.flow_methods;
         let (impl_generics, ty_generics, where_clause) = self.generics.split_for_impl();
 
-        // Generate init call if present
         let init_call = if let Some(init_method) = &self.init_method {
             quote! {
                 self.#init_method();
@@ -19,10 +18,8 @@ impl ToTokens for TridentFlowExecutorImpl {
             quote! {}
         };
 
-        // Use default_random_flows if there are no flow methods
         let execute_impl = if methods.is_empty() {
             quote! {
-                // No flow methods or all are ignored, use default implementation
                 self.default_random_transactions(fuzzer_data, &mut accounts)?;
             }
         } else {
@@ -34,11 +31,81 @@ impl ToTokens for TridentFlowExecutorImpl {
                 quote! {}
             };
 
-            quote! {
-                // Execute all defined flow methods
-                #(self.#methods(fuzzer_data, &mut accounts)?;)*
+            let flow_execution = if self.args.shuffle {
+                // Global shuffle - shuffle all methods
+                let indices: Vec<usize> = (0..methods.len()).collect();
+                quote! {
+                    let mut indices = vec![#(#indices),*];
+                    indices.shuffle(&mut rand::thread_rng());
 
-                // Optional random tail transactions
+                    for &i in indices.iter() {
+                        match i {
+                            #(
+                                #indices => self.#methods(fuzzer_data, &mut accounts)?,
+                            )*
+                            _ => unreachable!(),
+                        }
+                    }
+                }
+            } else {
+                // Process methods in order, shuffling marked ones when encountered
+                let mut current_shuffle_group = Vec::new();
+                let mut execution_tokens = TokenStream::new();
+
+                for method in &self.flow_methods {
+                    if self.shuffled_methods.contains(method) {
+                        // Add to current shuffle group
+                        current_shuffle_group.push(method);
+                    } else {
+                        // If we have a shuffle group, emit it before this method
+                        if !current_shuffle_group.is_empty() {
+                            let shuffle_indices: Vec<usize> =
+                                (0..current_shuffle_group.len()).collect();
+                            let shuffle_methods = &current_shuffle_group;
+                            execution_tokens.extend(quote! {
+                                let mut shuffle_indices = vec![#(#shuffle_indices),*];
+                                shuffle_indices.shuffle(&mut rand::thread_rng());
+                                for &i in shuffle_indices.iter() {
+                                    match i {
+                                        #(
+                                            #shuffle_indices => self.#shuffle_methods(fuzzer_data, &mut accounts)?,
+                                        )*
+                                        _ => unreachable!(),
+                                    }
+                                }
+                            });
+                            current_shuffle_group.clear();
+                        }
+                        // Emit the current non-shuffled method
+                        execution_tokens.extend(quote! {
+                            self.#method(fuzzer_data, &mut accounts)?;
+                        });
+                    }
+                }
+
+                // Handle any remaining shuffle group at the end
+                if !current_shuffle_group.is_empty() {
+                    let shuffle_indices: Vec<usize> = (0..current_shuffle_group.len()).collect();
+                    let shuffle_methods = &current_shuffle_group;
+                    execution_tokens.extend(quote! {
+                        let mut shuffle_indices = vec![#(#shuffle_indices),*];
+                        shuffle_indices.shuffle(&mut rand::thread_rng());
+                        for &i in shuffle_indices.iter() {
+                            match i {
+                                #(
+                                    #shuffle_indices => self.#shuffle_methods(fuzzer_data, &mut accounts)?,
+                                )*
+                                _ => unreachable!(),
+                            }
+                        }
+                    });
+                }
+
+                quote! { #execution_tokens }
+            };
+
+            quote! {
+                #flow_execution
                 #random_tail
             }
         };

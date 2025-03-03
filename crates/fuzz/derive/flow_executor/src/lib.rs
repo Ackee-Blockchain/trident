@@ -3,6 +3,13 @@ use quote::ToTokens;
 use syn::{parse_macro_input, ItemFn, ItemImpl};
 use trident_syn::parser::trident_flow_executor::parse_trident_flow_executor;
 
+/// Marks a flow method to be shuffled when executing flows
+#[proc_macro_attribute]
+pub fn shuffle(_attr: TokenStream, item: TokenStream) -> TokenStream {
+    let input_fn = parse_macro_input!(item as ItemFn);
+    quote::quote!(#input_fn).into()
+}
+
 /// Marks a method to be executed as part of the fuzzing flow
 #[proc_macro_attribute]
 pub fn flow(_attr: TokenStream, item: TokenStream) -> TokenStream {

@@ -1,4 +1,4 @@
-use fuzz_transactions::FuzzTransactions;
+use fuzz_transactions::*;
 use trident_fuzz::fuzzing::*;
 mod fuzz_transactions;
 mod instructions;
@@ -6,40 +6,85 @@ mod transactions;
 mod types;
 use maze1::entry as entry_maze1;
 pub use transactions::*;
-struct TransactionsSequence;
-/// Define transaction sequences for execution.
-/// `starting_sequence` runs at the start, `middle` in the middle, and `ending`
-/// at the end.
-/// For example, to call `InitializeFn`, `UpdateFn` and then `WithdrawFn` during
-/// each fuzzing iteration:
-/// ```
-/// impl FuzzDataBuilder<FuzzTransactions> for InstructionsSequence {
-///     fn starting_sequence(fuzzer_data: &mut FuzzerData) ->
-/// SequenceResult<FuzzTransactions> {
-///         let seq1 = sequence!([InitializeFn, UpdateFn], fuzzer_data);
-///         Ok(seq1)
-///     }
-///     fn middle_sequence(fuzzer_data: &mut FuzzerData) ->
-/// SequenceResult<FuzzTransactions> {
-///         let seq1 = sequence!([WithdrawFn], fuzzer_data);
-///         Ok(seq1)
-///     }
-///}
-/// ```
-/// For more details, see: https://ackee.xyz/trident/docs/latest/features/instructions-sequences/#instructions-sequences
-impl FuzzSequenceBuilder<FuzzTransactions> for TransactionsSequence {
-    fn starting_sequence(fuzzer_data: &mut FuzzerData) -> SequenceResult<FuzzTransactions> {
-        let seq1 = sequence!([InitializeTransaction], fuzzer_data);
-        Ok(seq1)
+#[derive(Default)]
+struct FuzzTest<C> {
+    client: C,
+}
+#[flow_executor]
+impl<C: FuzzClient + std::panic::RefUnwindSafe> FuzzTest<C> {
+    fn new(client: C) -> Self {
+        Self { client }
+    }
+    #[init]
+    fn start(&mut self) {
+        self.client.deploy_native_program(ProgramEntrypoint::new(
+            pubkey!("5e554BrmQN7a2nbKrSUUxP8PMbq55rMntnkoCPmwr3Aq"),
+            None,
+            processor!(entry_maze1),
+        ));
+    }
+
+    #[flow]
+    fn flow1(
+        &mut self,
+        fuzzer_data: &mut FuzzerData,
+        accounts: &mut FuzzAccounts,
+    ) -> Result<(), FuzzingError> {
+        InitializeTransaction::build(fuzzer_data, &mut self.client, accounts)?
+            .execute(&mut self.client)?;
+
+        Ok(())
+    }
+    #[shuffle]
+    #[flow]
+    fn flow2(
+        &mut self,
+        fuzzer_data: &mut FuzzerData,
+        accounts: &mut FuzzAccounts,
+    ) -> Result<(), FuzzingError> {
+        MoveEastTransaction::build(fuzzer_data, &mut self.client, accounts)?
+            .execute(&mut self.client)?;
+
+        Ok(())
+    }
+    #[shuffle]
+    #[flow]
+    fn flow3(
+        &mut self,
+        fuzzer_data: &mut FuzzerData,
+        accounts: &mut FuzzAccounts,
+    ) -> Result<(), FuzzingError> {
+        MoveNorthTransaction::build(fuzzer_data, &mut self.client, accounts)?
+            .execute(&mut self.client)?;
+
+        Ok(())
+    }
+    #[shuffle]
+    #[flow]
+    fn flow4(
+        &mut self,
+        fuzzer_data: &mut FuzzerData,
+        accounts: &mut FuzzAccounts,
+    ) -> Result<(), FuzzingError> {
+        MoveSouthTransaction::build(fuzzer_data, &mut self.client, accounts)?
+            .execute(&mut self.client)?;
+
+        Ok(())
+    }
+    #[shuffle]
+    #[flow]
+    fn flow5(
+        &mut self,
+        fuzzer_data: &mut FuzzerData,
+        accounts: &mut FuzzAccounts,
+    ) -> Result<(), FuzzingError> {
+        MoveWestTransaction::build(fuzzer_data, &mut self.client, accounts)?
+            .execute(&mut self.client)?;
+
+        Ok(())
     }
 }
 fn main() {
-    let program_maze1 = ProgramEntrypoint::new(
-        pubkey!("5e554BrmQN7a2nbKrSUUxP8PMbq55rMntnkoCPmwr3Aq"),
-        None,
-        processor!(entry_maze1),
-    );
-    let config = TridentConfig::new();
-    let mut client = TridentSVM::new_client(&[program_maze1], &config);
-    fuzz_trident ! (| fuzz_data : TransactionsSequence , client : TridentSVM , config : TridentConfig |);
+    let client = TridentSVM::new_client(&[], &TridentConfig::new());
+    FuzzTest::new(client).fuzz();
 }

@@ -5,6 +5,7 @@ pub struct TridentFlowExecutorImpl {
     pub type_name: Box<syn::Type>,
     pub impl_block: Vec<ImplItem>,
     pub flow_methods: Vec<Ident>,
+    pub shuffled_methods: Vec<Ident>,
     pub init_method: Option<Ident>,
     pub generics: Generics,
     pub args: FlowExecutorArgs,
@@ -13,5 +14,6 @@ pub struct TridentFlowExecutorImpl {
 #[derive(Debug, Default)]
 pub struct FlowExecutorArgs {
     pub random_tail: bool,
+    pub shuffle: bool,
     // More fields can be added here in the future
 }

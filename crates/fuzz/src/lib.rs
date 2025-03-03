@@ -53,6 +53,7 @@ pub mod fuzzing {
     pub use trident_derive_flow_executor::flow_executor;
     pub use trident_derive_flow_executor::flow_ignore;
     pub use trident_derive_flow_executor::init;
+    pub use trident_derive_flow_executor::shuffle;
 
     pub use trident_derive_instruction::TridentInstruction;
     pub use trident_derive_remaining_accounts::TridentRemainingAccounts;
@@ -87,4 +88,7 @@ pub mod fuzzing {
     pub use borsh::{BorshDeserialize, BorshSerialize};
 
     pub use arbitrary::Unstructured;
+
+    pub use rand;
+    pub use rand::seq::SliceRandom;
 }

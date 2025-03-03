@@ -37,19 +37,15 @@ impl Parse for FlowExecutorArgs {
                     }
                 }
                 Meta::Path(path) => {
-                    return Err(ParseError::new(
-                        path.span(),
-                        format!("unknown flag attribute: {}", path.get_ident().unwrap()).as_str(),
-                    ));
-                    // if path.is_ident("shuffle") {
-                    //     args.shuffle = true;
-                    // } else {
-                    //     return Err(ParseError::new(
-                    //         path.span(),
-                    //         format!("unknown flag attribute: {}", path.get_ident().unwrap())
-                    //             .as_str(),
-                    //     ));
-                    // }
+                    if path.is_ident("shuffle") {
+                        args.shuffle = true;
+                    } else {
+                        return Err(ParseError::new(
+                            path.span(),
+                            format!("unknown flag attribute: {}", path.get_ident().unwrap())
+                                .as_str(),
+                        ));
+                    }
                 }
                 _ => {
                     return Err(ParseError::new(
@@ -90,6 +86,7 @@ pub fn parse_trident_flow_executor(
 
     let mut init_method = None;
     let mut flow_methods = Vec::new();
+    let mut shuffled_methods = Vec::new();
 
     // Collect init and flow methods
     for item in &input.items {
@@ -113,8 +110,18 @@ pub fn parse_trident_flow_executor(
                     .attrs
                     .iter()
                     .any(|attr| attr.path().is_ident("flow_ignore"));
+
                 if !is_ignored {
                     flow_methods.push(method.sig.ident.clone());
+
+                    // Check if this method should be shuffled
+                    if method
+                        .attrs
+                        .iter()
+                        .any(|attr| attr.path().is_ident("shuffle"))
+                    {
+                        shuffled_methods.push(method.sig.ident.clone());
+                    }
                 }
             }
         }
@@ -124,6 +131,7 @@ pub fn parse_trident_flow_executor(
         type_name,
         impl_block: input.items.clone(),
         flow_methods,
+        shuffled_methods,
         init_method,
         generics,
         args,
