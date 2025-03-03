@@ -7,12 +7,15 @@ mod types;
 use callee::entry as entry_callee;
 use caller::entry as entry_caller;
 pub use transactions::*;
-#[derive(Default, FuzzTestExecutor)]
-struct FuzzTest {
-    client: TridentSVM,
+#[derive(Default)]
+struct FuzzTest<C> {
+    client: C,
 }
 #[flow_executor]
-impl FuzzTest {
+impl<C: FuzzClient + std::panic::RefUnwindSafe> FuzzTest<C> {
+    fn new(client: C) -> Self {
+        Self { client }
+    }
     #[init]
     fn start(&mut self) {
         self.client.deploy_native_program(ProgramEntrypoint::new(
