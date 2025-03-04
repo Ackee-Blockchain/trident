@@ -1,7 +1,12 @@
 [package]
 name = "trident-derive-remaining-accounts"
-version = "0.0.1"
-edition = "2021"
+
+version = { workspace = true }
+edition = { workspace = true }
+repository = { workspace = true }
+description = { workspace = true }
+license-file = { workspace = true }
+readme = { workspace = true }
 
 [lib]
 proc-macro = true

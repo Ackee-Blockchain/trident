@@ -1,11 +1,12 @@
 [package]
 name = "trident-config"
-version = "0.0.1"
-edition = "2021"
-repository = "https://github.com/Ackee-Blockchain/trident"
-license-file = "../../LICENSE"
-readme = "../../README.md"
-description = "The trident config crate is dedicated to manage Trident.toml."
+
+version = { workspace = true }
+edition = { workspace = true }
+repository = { workspace = true }
+description = { workspace = true }
+license-file = { workspace = true }
+readme = { workspace = true }
 
 [dependencies]
 
