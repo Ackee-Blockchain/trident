@@ -12,7 +12,7 @@ resolver = "1"
 
 
 [workspace.package]
-version = "0.9.1"
+version = "0.10.0-rc.1"
 edition = "2021"
 authors = ["Ackee Blockchain Security"]
 repository = "https://github.com/Ackee-Blockchain/trident"
@@ -33,3 +33,5 @@ honggfuzz = { version = "0.5.55" }
 
 #AFL
 afl = { version = "0.15.10" }
+
+syn = { version = "2.0", features = ["full", "parsing", "visit"] }

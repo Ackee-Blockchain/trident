@@ -3,7 +3,6 @@ use syn::visit::{self, Visit};
 use syn::Ident;
 use syn::TypePath;
 
-#[derive(Debug)]
 pub struct TridentAccountsStruct {
     pub ident: Ident,
     pub fields: Vec<TridentAccountField>,
@@ -11,7 +10,6 @@ pub struct TridentAccountsStruct {
     pub storage_type: syn::Type,
 }
 
-#[derive(Debug)]
 pub enum TridentAccountField {
     Field(TridentField),
     CompositeField(CompositeField),
@@ -26,31 +24,27 @@ impl TridentAccountField {
     }
 }
 
-#[derive(Debug)]
 pub struct CompositeField {
     pub ident: Ident,
     pub constraints: TridentConstraints,
     pub ty: String, // Store the composite type name
 }
 
-#[derive(Debug)]
 pub struct TridentField {
     pub ident: Ident,
     pub ty: TridentAccountType,
     pub constraints: TridentConstraints,
 }
 
-#[derive(Debug)]
 pub enum TridentAccountType {
     TridentAccount(TridentAccountTy),
 }
 
-#[derive(Debug)]
 pub struct TridentAccountTy {
     pub program_type_path: TypePath,
 }
 
-#[derive(Debug, Default)]
+#[derive(Default)]
 pub struct TridentConstraints {
     pub mutable: bool,
     pub signer: bool,
@@ -61,7 +55,6 @@ pub struct TridentConstraints {
     pub program_id: Option<syn::Expr>,
 }
 
-#[derive(Debug)]
 pub struct SeedDependency {
     pub dependent_field: Ident,
     pub required_field: Ident,

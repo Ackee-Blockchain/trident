@@ -8,10 +8,13 @@ description = { workspace = true }
 license-file = { workspace = true }
 readme = { workspace = true }
 
-[dependencies]
 
 # Trident
-trident-client = { path = "../client" }
+[dependencies.trident-client]
+path = "../client"
+version = "0.10.0-rc.1"
+
+[dependencies]
 
 # Misc
 clap = { version = "4", features = ["derive"] }

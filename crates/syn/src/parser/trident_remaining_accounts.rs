@@ -61,7 +61,7 @@ fn is_valid_remaining_accounts_type(ty: &Type) -> bool {
                     .path
                     .segments
                     .last()
-                    .map_or(false, |seg| seg.ident == "TridentAccount")
+                    .is_some_and(|seg| seg.ident == "TridentAccount")
             } else {
                 false
             }

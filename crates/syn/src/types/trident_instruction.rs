@@ -1,7 +1,5 @@
 use syn::Ident;
 
-// Add these new structures for TridentInstruction
-#[derive(Debug)]
 pub struct TridentInstructionStruct {
     pub ident: Ident,
     pub accounts_field: String,
