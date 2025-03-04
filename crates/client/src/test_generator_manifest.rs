@@ -22,12 +22,13 @@ impl TestGenerator {
         // Ensure the required dependencies are present in the 'dependencies' section.
         let dependencies_table = ensure_table(&mut cargo_toml, "dependencies")?;
 
+        let current_package_version = env!("CARGO_PKG_VERSION");
         // Add 'trident-fuzz' dependency in table format.
         dependencies_table.entry("trident-fuzz").or_insert_with(|| {
             let mut trident_client = toml::Table::new();
             trident_client.insert(
                 "version".to_string(),
-                Value::String(self.versions_config.trident_fuzz.clone()),
+                Value::String(current_package_version.to_string()),
             );
             Value::Table(trident_client)
         });
