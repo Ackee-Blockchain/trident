@@ -3870,7 +3870,7 @@ dependencies = [
 
 [[package]]
 name = "trident-cli"
-version = "0.9.1"
+version = "0.10.0-rc.1"
 dependencies = [
  "anyhow",
  "clap",
@@ -3883,7 +3883,7 @@ dependencies = [
 
 [[package]]
 name = "trident-client"
-version = "0.9.1"
+version = "0.10.0-rc.1"
 dependencies = [
  "anyhow",
  "cargo_metadata",
@@ -3905,7 +3905,7 @@ dependencies = [
 
 [[package]]
 name = "trident-config"
-version = "0.9.1"
+version = "0.10.0-rc.1"
 dependencies = [
  "afl",
  "anyhow",
@@ -3922,7 +3922,7 @@ dependencies = [
 
 [[package]]
 name = "trident-derive-accounts"
-version = "0.9.1"
+version = "0.10.0-rc.1"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -3932,7 +3932,7 @@ dependencies = [
 
 [[package]]
 name = "trident-derive-flow-executor"
-version = "0.9.1"
+version = "0.10.0-rc.1"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -3942,7 +3942,7 @@ dependencies = [
 
 [[package]]
 name = "trident-derive-instruction"
-version = "0.9.1"
+version = "0.10.0-rc.1"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -3952,7 +3952,7 @@ dependencies = [
 
 [[package]]
 name = "trident-derive-remaining-accounts"
-version = "0.9.1"
+version = "0.10.0-rc.1"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -3962,7 +3962,7 @@ dependencies = [
 
 [[package]]
 name = "trident-derive-transaction"
-version = "0.9.1"
+version = "0.10.0-rc.1"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -3972,7 +3972,7 @@ dependencies = [
 
 [[package]]
 name = "trident-derive-transaction-selector"
-version = "0.9.1"
+version = "0.10.0-rc.1"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -3982,7 +3982,7 @@ dependencies = [
 
 [[package]]
 name = "trident-fuzz"
-version = "0.9.1"
+version = "0.10.0-rc.1"
 dependencies = [
  "afl",
  "anyhow",
@@ -4054,7 +4054,7 @@ dependencies = [
 
 [[package]]
 name = "trident-syn"
-version = "0.9.1"
+version = "0.10.0-rc.1"
 dependencies = [
  "petgraph",
  "proc-macro2",
@@ -4087,7 +4087,7 @@ dependencies = [
 
 [[package]]
 name = "trident-template"
-version = "0.9.1"
+version = "0.10.0-rc.1"
 dependencies = [
  "convert_case",
  "quote",

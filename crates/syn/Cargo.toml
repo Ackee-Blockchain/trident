@@ -11,5 +11,5 @@ readme = { workspace = true }
 [dependencies]
 proc-macro2 = "1.0"
 quote = "1.0"
-syn = { version = "2.0", features = ["full", "parsing"] }
+syn = { workspace = true }
 petgraph = "0.6"

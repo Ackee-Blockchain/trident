@@ -299,7 +299,7 @@ fn get_crash_files(
         .map(|dir_entry| dir_entry.path())
         // Filter out all paths with extensions other than `extension`
         .filter_map(|path| {
-            if path.extension().map_or(false, |ext| ext == extension) {
+            if path.extension().is_some_and(|ext| ext == extension) {
                 Some(path)
             } else {
                 None
