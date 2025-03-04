@@ -9,14 +9,21 @@ license-file = { workspace = true }
 readme = { workspace = true }
 
 
-[dependencies]
-
 # Trident
-trident-fuzz = { path = "../fuzz" }
-trident-config = { path = "../config" }
-trident-template = { path = "../template" }
+[dependencies.trident-fuzz]
+path = "../fuzz"
+version = "0.10.0-rc.1"
+
+[dependencies.trident-config]
+path = "../config"
+version = "0.10.0-rc.1"
+
+[dependencies.trident-template]
+path = "../template"
+version = "0.10.0-rc.1"
 
 
+[dependencies]
 # Trident IDL spec
 trident-idl-spec = "0.0.2"
 

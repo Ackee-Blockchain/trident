@@ -30,7 +30,7 @@ pub fn parse_trident_instruction(input: &DeriveInput) -> ParseResult<TridentInst
     // Find the accounts field
     let accounts_field = fields
         .iter()
-        .find(|f| f.ident.as_ref().map_or(false, |id| id == "accounts"))
+        .find(|f| f.ident.as_ref().is_some_and(|id| id == "accounts"))
         .ok_or_else(|| ParseError::new(input.span(), "Struct must contain an 'accounts' field"))?
         .ident
         .as_ref()
@@ -43,7 +43,7 @@ pub fn parse_trident_instruction(input: &DeriveInput) -> ParseResult<TridentInst
         .find(|f| {
             f.ident
                 .as_ref()
-                .map_or(false, |id| id == "remaining_accounts")
+                .is_some_and(|id| id == "remaining_accounts")
         })
         .map(|f| f.ident.as_ref().unwrap().to_string());
 

@@ -46,28 +46,22 @@ impl TridentAccount {
     }
     #[doc(hidden)]
     pub fn capture_before(&mut self, client: &mut impl FuzzClient) {
-        match &self.account_meta {
-            Some(account_meta) => {
-                let account = client.get_account(&account_meta.pubkey);
-                self.snapshot_before = Some(SnapshotAccount {
-                    address: account_meta.pubkey,
-                    account,
-                });
-            }
-            None => {}
+        if let Some(account_meta) = &self.account_meta {
+            let account = client.get_account(&account_meta.pubkey);
+            self.snapshot_before = Some(SnapshotAccount {
+                address: account_meta.pubkey,
+                account,
+            });
         }
     }
     #[doc(hidden)]
     pub fn capture_after(&mut self, client: &mut impl FuzzClient) {
-        match &self.account_meta {
-            Some(account_meta) => {
-                let account = client.get_account(&account_meta.pubkey);
-                self.snapshot_after = Some(SnapshotAccount {
-                    address: account_meta.pubkey,
-                    account,
-                });
-            }
-            None => {}
+        if let Some(account_meta) = &self.account_meta {
+            let account = client.get_account(&account_meta.pubkey);
+            self.snapshot_after = Some(SnapshotAccount {
+                address: account_meta.pubkey,
+                account,
+            });
         }
     }
     #[doc(hidden)]

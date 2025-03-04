@@ -14,7 +14,7 @@ readme = { workspace = true }
 trident-idl-spec = "0.0.2"
 
 # Misc
-syn = { version = "2", features = ["visit", "full"] }
+syn = { workspace = true }
 quote = "1"
 convert_case = "0.6"
 sha2 = "0.10.0"

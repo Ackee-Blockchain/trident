@@ -1,6 +1,5 @@
 use syn::{Generics, Ident, ImplItem};
 
-#[derive(Debug)]
 pub struct TridentFlowExecutorImpl {
     pub type_name: Box<syn::Type>,
     pub impl_block: Vec<ImplItem>,
