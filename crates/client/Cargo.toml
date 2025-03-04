@@ -1,19 +1,20 @@
 [package]
 name = "trident-client"
-version = "0.9.1"
-edition = "2021"
-repository = "https://github.com/Ackee-Blockchain/trident"
-license-file = "../../LICENSE"
-readme = "../../README.md"
-description = "The trident_client crate helps you build and deploy an Anchor program to a local cluster and run a test suite against it."
+
+version = { workspace = true }
+edition = { workspace = true }
+repository = { workspace = true }
+description = { workspace = true }
+license-file = { workspace = true }
+readme = { workspace = true }
 
 
 [dependencies]
 
 # Trident
-trident-fuzz = { path = "../fuzz", version = "0.3.1" }
-trident-config = { path = "../config", version = "0.0.1" }
-trident-template = { path = "../template", version = "0.0.1" }
+trident-fuzz = { path = "../fuzz" }
+trident-config = { path = "../config" }
+trident-template = { path = "../template" }
 
 
 # Trident IDL spec
