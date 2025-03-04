@@ -3,6 +3,15 @@
 If you need to work with `data accounts` in the `Transaction hooks`, you will first need to deserialize the accounts. For deserialization into known structs, Trident generates `types.rs`, where each struct derives `BorshDeserialize` and `BorshSerialize`.
 
 
+## Example
+
+The following example demonstrates:
+
+- Obtaining example data account after the transaction, with `.get_snapshot_after()` (post transaction snapshot)
+- `.data_no_discriminator()` ensures that the first 8 bytes (account discriminator) are not included in the deserialization
+- Deserializing the data account into the `ExampleDataAccount` struct
+
+
 ```rust
 // types.rs
 #[derive(Arbitrary, Debug, BorshDeserialize, BorshSerialize, Clone)]

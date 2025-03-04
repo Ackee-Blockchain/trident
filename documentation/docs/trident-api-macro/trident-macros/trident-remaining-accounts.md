@@ -11,16 +11,25 @@ pub struct ExampleRemainingAccounts {
 }
 ```
 
+## Derived Traits
+
+The macro implements the following trait:
+
+- `RemainingAccountsMethods` - Methods to resolve remaining accounts
+
+!!! warning "Manual Implementation Note"
+    There is no need to manually implement any methods of this trait. The macro handles all implementations automatically based on the account structure and attributes.
+
 !!! warning "Dynamic Sizing Behavior"
     The macro will only process accounts until it encounters the first unset remaining account. This allows for dynamic sizing of remaining accounts.
 
 
-## Derived trait
+## Remaining Accounts Methods
 
-The macro implements the `AccountsMethods` trait with the corresponding methods:
+!!! warning "Internal Method"
+    These methods are used internally by Trident and is not expected to use them manually.
 
-!!! warning "Manual Implementation Note"
-    There is no need to specify any method of this trait manually.
+The macro implements the `RemainingAccountsMethods` trait with the corresponding methods:
 
 ### `to_account_meta`
 

@@ -18,6 +18,9 @@ The macro implements the following traits:
 
 ## Instruction Getters
 
+!!! warning "Internal Method"
+    These methods are used internally by Trident and is not expected to use them manually.
+
 ### `get_discriminator`
 
 Returns the instruction discriminator (identifier bytes) that uniquely identifies this instruction of the program.
@@ -25,6 +28,8 @@ Returns the instruction discriminator (identifier bytes) that uniquely identifie
 ```rust
 fn get_discriminator(&self) -> Vec<u8>
 ```
+
+---
 
 ### `get_program_id`
 
@@ -34,6 +39,8 @@ Returns the program ID that will process this instruction.
 fn get_program_id(&self) -> solana_sdk::pubkey::Pubkey
 ```
 
+---
+
 ### `to_account_metas`
 
 Converts all accounts to AccountMeta format for Solana instructions.
@@ -42,7 +49,12 @@ Converts all accounts to AccountMeta format for Solana instructions.
 fn to_account_metas(&mut self) -> Vec<AccountMeta>
 ```
 
+---
+
 ## Instruction Setters
+
+!!! warning "Internal Method"
+    These methods are used internally by Trident and is not expected to use them manually.
 
 ### `set_snapshot_before`
 
@@ -52,6 +64,8 @@ Captures the state of all accounts before instruction execution.
 fn set_snapshot_before(&mut self, client: &mut impl FuzzClient)
 ```
 
+---
+
 ### `set_snapshot_after`
 
 Captures the state of all accounts after instruction execution.
@@ -59,6 +73,8 @@ Captures the state of all accounts after instruction execution.
 ```rust
 fn set_snapshot_after(&mut self, client: &mut impl FuzzClient)
 ```
+
+---
 
 ### `resolve_accounts`
 
@@ -71,6 +87,8 @@ fn resolve_accounts(
     fuzz_accounts: &mut Self::IxAccounts,
 )
 ```
+
+---
 
 
 ## Struct-Level Attributes
@@ -91,6 +109,8 @@ pub struct ExampleInstruction {
     pub data: ExampleInstructionData,
 }
 ```
+
+---
 
 ### `discriminator`
 

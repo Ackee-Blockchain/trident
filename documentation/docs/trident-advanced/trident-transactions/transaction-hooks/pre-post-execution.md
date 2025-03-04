@@ -7,27 +7,43 @@ These methods accept a `FuzzClient` parameter, which provides methods to interac
 !!! warning "Post-Transaction Execution Order"
     The `post_transaction` method is called only after the transaction is `SUCCESSFULLY` executed.
 
-## Pre-Transaction Execution
-
-Example: always forward in time before the transaction.
 
 ```rust
 impl TransactionHooks for ExampleTransaction {
     fn pre_transaction(&self, client: &mut impl FuzzClient) {
-        // before the transaction, always forward in time
+        // Your custom logic goes here
+    }
+}
+```
+
+```rust
+impl TransactionHooks for ExampleTransaction {
+    fn post_transaction(&self, client: &mut impl FuzzClient) {
+        // Your custom logic goes here
+    }
+}
+```
+
+
+## Example
+
+The following examples demonstrates:
+
+- Always forward in time before the transaction
+- Always forward in time after the transaction
+
+
+```rust
+impl TransactionHooks for ExampleTransaction {
+    fn pre_transaction(&self, client: &mut impl FuzzClient) {
         client.forward_in_time(500);
     }
 }
 ```
 
-## Post-Transaction Execution
-
-Example: always forward in time after the transaction.
-
 ```rust
 impl TransactionHooks for ExampleTransaction {
     fn post_transaction(&self, client: &mut impl FuzzClient) {
-        // after the transaction, always forward in time
         client.forward_in_time(500);
     }
 }

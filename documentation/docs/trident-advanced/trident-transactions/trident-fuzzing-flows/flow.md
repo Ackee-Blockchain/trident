@@ -24,6 +24,42 @@ struct FuzzTest {
 impl FuzzTest {
     #[init]
     fn start(&mut self) {
+        // Initialize the fuzz test
+    }
+    #[flow]
+    fn flow1(
+        &mut self,
+        fuzzer_data: &mut FuzzerData,
+        accounts: &mut FuzzAccounts,
+    ) -> Result<(), FuzzingError> {
+        // Some logic here
+
+        Ok(())
+    }
+}
+```
+
+
+## Example
+
+The following example demonstrates:
+
+- Deploying a native program in the method marked with `#[init]`
+- Executing a sequence of transactions (`SomeTransaction` and `AnotherTransaction`) in the method (`flow1`) marked with `#[flow]`
+- Executing another sequence of transactions (`AnotherTransaction`) in the method (`flow2`) marked with `#[flow]`
+- Executing random transaction from the `FuzzTransactions` enum in the method (`flow3`) marked with `#[flow]`
+- The execution is sequential, i.e., the flow methods are executed one after another
+- Using `#[flow_executor(random_tail = true)]` to execute random Transactions at the end (after all of the flow methods are executed)
+
+```rust
+#[derive(Default, FuzzTestExecutor)]
+struct FuzzTest {
+    client: TridentSVM,
+}
+#[flow_executor(random_tail = true)]
+impl FuzzTest {
+    #[init]
+    fn start(&mut self) {
         self.client.deploy_native_program(ProgramEntrypoint::new(
             pubkey!("FtevoQoDMv6ZB3N9Lix5Tbjs8EVuNL8vDSqG9kzaZPit"),
             None,
@@ -36,7 +72,6 @@ impl FuzzTest {
         fuzzer_data: &mut FuzzerData,
         accounts: &mut FuzzAccounts,
     ) -> Result<(), FuzzingError> {
-        // Execute transactions in a specific sequence
         SomeTransaction::build(fuzzer_data, &mut self.client, accounts)?
             .execute(&mut self.client)?;
 
@@ -55,6 +90,17 @@ impl FuzzTest {
 
         AnotherTransaction::build(fuzzer_data, &mut self.client, accounts)?
             .execute(&mut self.client)?;
+
+        Ok(())
+    }
+    #[flow]
+    fn flow3(
+        &mut self,
+        fuzzer_data: &mut FuzzerData,
+        accounts: &mut FuzzAccounts,
+    ) -> Result<(), FuzzingError> {
+
+        FuzzTransactions::select_n_execute(fuzzer_data, &mut self.client, accounts)?;
 
         Ok(())
     }
