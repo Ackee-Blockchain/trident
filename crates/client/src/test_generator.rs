@@ -1,7 +1,6 @@
 use crate::commander::{Commander, Error as CommanderError};
 use crate::constants::*;
-use crate::versions_config::TridentVersionsConfig;
-use crate::{construct_path, load_template, utils::*};
+use crate::{construct_path, utils::*};
 use cargo_metadata::Package;
 use fehler::throws;
 use std::num::ParseIntError;
@@ -41,20 +40,15 @@ pub struct TestGenerator {
     pub program_packages: Vec<Package>,
     pub anchor_idls: Vec<Idl>,
     pub template: Template,
-    pub versions_config: TridentVersionsConfig,
 }
 impl TestGenerator {
     #[throws]
     pub fn new_with_root(root: &str) -> Self {
-        let versions_config: TridentVersionsConfig =
-            serde_json::from_str(load_template!("/config.json"))?;
-
         Self {
             root: Path::new(&root).to_path_buf(),
             program_packages: Vec::default(),
             anchor_idls: Vec::default(),
             template: Template::default(),
-            versions_config,
         }
     }
     #[throws]

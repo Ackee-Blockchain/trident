@@ -12,7 +12,6 @@ mod test_generator_gitignore;
 mod test_generator_manifest;
 mod test_generator_template;
 mod utils;
-mod versions_config;
 
 pub mod ___private {
     pub use super::cleaner::*;
