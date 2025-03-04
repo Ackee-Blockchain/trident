@@ -3696,7 +3696,7 @@ dependencies = [
 
 [[package]]
 name = "trident-config"
-version = "0.0.1"
+version = "0.9.1"
 dependencies = [
  "afl",
  "anyhow",
@@ -3713,7 +3713,7 @@ dependencies = [
 
 [[package]]
 name = "trident-derive-accounts"
-version = "0.0.1"
+version = "0.9.1"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -3723,7 +3723,7 @@ dependencies = [
 
 [[package]]
 name = "trident-derive-flow-executor"
-version = "0.0.1"
+version = "0.9.1"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -3733,7 +3733,7 @@ dependencies = [
 
 [[package]]
 name = "trident-derive-instruction"
-version = "0.0.1"
+version = "0.9.1"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -3743,7 +3743,7 @@ dependencies = [
 
 [[package]]
 name = "trident-derive-remaining-accounts"
-version = "0.0.1"
+version = "0.9.1"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -3753,7 +3753,7 @@ dependencies = [
 
 [[package]]
 name = "trident-derive-transaction"
-version = "0.0.1"
+version = "0.9.1"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -3763,7 +3763,7 @@ dependencies = [
 
 [[package]]
 name = "trident-derive-transaction-selector"
-version = "0.0.1"
+version = "0.9.1"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -3773,7 +3773,7 @@ dependencies = [
 
 [[package]]
 name = "trident-fuzz"
-version = "0.3.1"
+version = "0.9.1"
 dependencies = [
  "afl",
  "anyhow",
@@ -3784,7 +3784,7 @@ dependencies = [
  "byteorder",
  "fehler",
  "honggfuzz",
- "itertools 0.10.5",
+ "itertools 0.12.1",
  "prettytable",
  "rand 0.8.5",
  "serde",
@@ -3805,8 +3805,9 @@ dependencies = [
 
 [[package]]
 name = "trident-svm"
-version = "0.0.2"
-source = "git+https://github.com/Ackee-Blockchain/trident-svm?branch=master#26bef93c7d43de12a36e2803905416b670dbce80"
+version = "0.0.3-rc.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bbd3d1eccd9c490a8c06bdf4cb5fea6b9541e0b7a634d44c16638e65ce2c7795"
 dependencies = [
  "bincode",
  "serde",
@@ -3830,7 +3831,7 @@ dependencies = [
 
 [[package]]
 name = "trident-syn"
-version = "0.0.1"
+version = "0.9.1"
 dependencies = [
  "petgraph",
  "proc-macro2",

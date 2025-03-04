@@ -11,6 +11,16 @@ exclude = ["examples/"]
 resolver = "1"
 
 
+[workspace.package]
+version = "0.9.1"
+edition = "2021"
+authors = ["Ackee Blockchain Security"]
+repository = "https://github.com/Ackee-Blockchain/trident"
+documentation = "https://ackee.xyz/trident/docs/latest/"
+description = "Trident is Rust based fuzzing framework for Solana programs written in Anchor."
+license-file = "./LICENSE"
+readme = "./README.md"
+
 [workspace.dependencies]
 # Solana
 solana-sdk = "~2.0"

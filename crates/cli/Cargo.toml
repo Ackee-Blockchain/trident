@@ -1,16 +1,17 @@
 [package]
 name = "trident-cli"
-version = "0.9.1"
-edition = "2021"
-repository = "https://github.com/Ackee-Blockchain/trident"
-license-file = "../../LICENSE"
-readme = "../../README.md"
-description = "Trident is Rust based testing framework providing several convenient developer tools for testing Solana programs written in Anchor."
+
+version = { workspace = true }
+edition = { workspace = true }
+repository = { workspace = true }
+description = { workspace = true }
+license-file = { workspace = true }
+readme = { workspace = true }
 
 [dependencies]
 
 # Trident
-trident-client = { path = "../client", version = "0.9.1" }
+trident-client = { path = "../client" }
 
 # Misc
 clap = { version = "4", features = ["derive"] }
