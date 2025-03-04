@@ -12,8 +12,27 @@ impl TransactionHooks for ExampleTransaction {
     type IxAccounts = FuzzAccounts;
 
     fn transaction_error_handler(&self, e: TransactionError) -> Result<(), TransactionError> {
+        // Your custom error handling logic goes here
+    }
+}
+```
+
+
+## Example
+
+The following example demonstrates:
+
+- Logging the error
+- Returning Ok to suppress the error
+
+
+```rust
+impl TransactionHooks for ExampleTransaction {
+    type IxAccounts = FuzzAccounts;
+
+    fn transaction_error_handler(&self, e: TransactionError) -> Result<(), TransactionError> {
         // Example: Log the error and decide whether to propagate it
-        println!("Transaction failed with error: {:?}", e);
+        eprintln!("Transaction failed with error: {:?}", e);
 
         // Return Ok to suppress the error, or Err to propagate it
         Ok(())

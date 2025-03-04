@@ -58,7 +58,7 @@ impl<C: FuzzClient + std::panic::RefUnwindSafe> FuzzTest<C> {
 }
 ```
 
-## Macro Details
+## Implementation-Level attributes
 
 ### `#[flow_executor]`
 
@@ -71,11 +71,23 @@ impl<C: FuzzClient + std::panic::RefUnwindSafe> FuzzTest<C> {
 }
 ```
 
-This macro:
+---
 
-- Analyzes all methods in the impl block
-- Identifies methods marked with `#[flow]` and `#[init]`
-- Generates code to execute these methods in the defined order
+### `random_tail`
+
+The `random_tail` attribute is used to specify if remaining random data after flow execution should be used to execute random transactions.
+
+```rust
+#[flow_executor(random_tail = true)]
+impl<C: FuzzClient + std::panic::RefUnwindSafe> FuzzTest<C> {
+    // Flow methods...
+}
+```
+
+---
+
+
+## Method-Level attributes
 
 ### `#[flow]`
 
@@ -98,6 +110,8 @@ fn step_one(
 }
 ```
 
+---
+
 ### `#[init]`
 
 The `init` attribute macro marks a method as the initialization method for the flow.
@@ -113,11 +127,8 @@ fn initialize(&mut self) {
 }
 ```
 
-The init method:
-- Is executed before any flow methods
-- Should set up any necessary state for the flow
-- Must have the same signature as flow methods
-- Is optional - if not provided, the flow will start with the first flow method
+---
+
 
 ### `#[flow_ignore]`
 

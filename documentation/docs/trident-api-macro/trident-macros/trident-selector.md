@@ -2,9 +2,6 @@
 
 The `TransactionSelector` macro is used to derive required methods for random transaction selection during fuzzing operations. This macro automatically implements functionality for selecting and executing transactions based on enum variants.
 
-!!! note "Selection Behavior"
-    The macro will automatically implement random selection between the enum variants during fuzzing operations.
-
 ## Derived Traits
 
 The macro implements the following trait:
@@ -18,12 +15,46 @@ The macro implements the following trait:
 
 ### `transaction_selector`
 
-Selects and executes a transaction based on the enum variant.
+Internal method used by the fuzzer to execute selected transactions. This method should not be called directly - use `select_n_execute` instead.
 
 ```rust
 fn transaction_selector(
     &mut self,
     client: &mut impl FuzzClient,
     fuzz_accounts: &mut T,
+) -> Result<(), FuzzingError>
+```
+
+---
+
+### `select_n_execute`
+
+Selects a random transaction variant and executes it.
+
+!!! warning "Transaction Hooks"
+    The `select_n_execute` method executes the transaction `with` all transaction hooks enabled.
+
+```rust
+fn select_n_execute(
+    fuzzer_data: &mut FuzzerData,
+    client: &mut impl FuzzClient,
+    accounts: &mut T,
+) -> Result<(), FuzzingError>
+```
+
+---
+
+### `select_n_execute_no_hooks`
+
+Selects a random transaction variant and executes it.
+
+!!! warning "Transaction Hooks"
+    The `select_n_execute_no_hooks` method executes the transaction `without` any transaction hooks.
+
+```rust
+fn select_n_execute_no_hooks(
+    fuzzer_data: &mut FuzzerData,
+    client: &mut impl FuzzClient,
+    accounts: &mut T,
 ) -> Result<(), FuzzingError>
 ```

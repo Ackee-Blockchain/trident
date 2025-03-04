@@ -25,12 +25,16 @@ Sets the public key for this instance.
 fn set_pubkey(&mut self, pubkey: Pubkey)
 ```
 
+---
+
 ### `get_pubkey`
 
 Returns the stored public key.
 ```rust
 fn get_pubkey(&self) -> Pubkey
 ```
+
+---
 
 ## Implemented Traits
 

@@ -11,6 +11,24 @@ This is useful to validate transaction behavior and ensure accounts are not modi
 ```rust
 impl TransactionHooks for ExampleTransaction {
     fn transaction_invariant_check(&self) -> Result<(), FuzzingError> {
+        // Your custom differential analysis goes here
+    }
+}
+```
+
+
+
+## Example
+
+The following example demonstrates:
+
+- Obtaining the owner's balance after the transaction, with `.get_snapshot_after()` (post transaction snapshot)
+- Comparing the balance to the expected balance (500 lamports)
+
+
+```rust
+impl TransactionHooks for ExampleTransaction {
+    fn transaction_invariant_check(&self) -> Result<(), FuzzingError> {
         // Obtain the owner's balance after the transaction
         let owner_lamports = self
             .instruction
