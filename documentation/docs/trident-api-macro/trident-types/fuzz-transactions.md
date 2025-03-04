@@ -1,6 +1,6 @@
 # FuzzTransactions
 
-`FuzzTransactions` is an enum that contains `all the transactions that can be selected for random selection sequence`, if default callback is used.
+`FuzzTransactions` is an enum that contains `all the transactions that can be used for random selection sequence`, if default callback is used.
 
 By default, Trident generates the enum based on the program's idl, i.e. for each instruction Trident generates a transaction which contains the instruction.
 

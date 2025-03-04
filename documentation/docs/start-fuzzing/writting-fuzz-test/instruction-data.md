@@ -1,10 +1,8 @@
 # Instruction Data
 
-!!! info "Introduction to Data"
+Apart from accounts, additional instruction parameters can be specified on the Instruction's inputs.
 
-    Apart from accounts, additional instruction parameters can be specified on the Instruction's inputs.
-
-    Most of the time, these parameters are primitive data types, such as `u8`, `u16`, `u32`, `u64`, `bool`, etc. In this case, guidance is probably not required, and we can leave the fuzzer to generate random values. On the other hand, if the instruction expects, for example, a `Pubkey` as input, the `Pubkey` needs to be resolved similarly to how accounts are resolved (as you probably don't want the pubkey to be completely random but rather derived from the fuzzer's account storage).
+Most of the time, these parameters are primitive data types, such as `u8`, `u16`, `u32`, `u64`, `bool`, etc. In this case, guidance is probably not required, and we can leave the fuzzer to generate random values. On the other hand, if the instruction expects, for example, a `Pubkey` as input, the `Pubkey` needs to be resolved similarly to how accounts are resolved (as you probably don't want the pubkey to be completely random but rather derived from the fuzzer's account storage).
 
 ## Manual Data Setup
 

@@ -14,6 +14,9 @@ The macro implements the following trait:
 
 ## Accounts Methods
 
+!!! warning "Internal Method"
+    These methods are used internally by Trident and is not expected to use them manually.
+
 ### `resolve_accounts`
 
 Resolves all accounts based on their constraints and dependencies. The macro automatically analyzes seed dependencies and sorts fields in the correct resolution order.
@@ -28,6 +31,8 @@ fn resolve_accounts(
 )
 ```
 
+---
+
 ### `to_account_meta`
 
 Converts all accounts to AccountMeta format for Solana instructions.
@@ -35,6 +40,8 @@ Converts all accounts to AccountMeta format for Solana instructions.
 ```rust
 fn to_account_meta(&mut self) -> Vec<AccountMeta>
 ```
+
+---
 
 ### `capture_before`
 
@@ -44,6 +51,8 @@ Captures the state of accounts before transaction execution.
 fn capture_before(&mut self, client: &mut impl FuzzClient)
 ```
 
+---
+
 ### `capture_after`
 
 Captures the state of accounts after transaction execution.
@@ -51,6 +60,8 @@ Captures the state of accounts after transaction execution.
 ```rust
 fn capture_after(&mut self, client: &mut impl FuzzClient)
 ```
+
+---
 
 ## Struct-Level Attributes
 
@@ -70,6 +81,8 @@ pub struct ExampleAccounts {
 }
 ```
 
+---
+
 ### `storage`
 
 Specifies the storage type for accounts, which is used to manage account state during fuzzing.
@@ -83,6 +96,8 @@ pub struct ExampleAccounts {
     // fields...
 }
 ```
+
+---
 
 ## Field-Level Attributes
 
@@ -102,6 +117,8 @@ pub struct ExampleAccounts {
 }
 ```
 
+---
+
 ### `account(signer)`
 
 Marks the account as a signer. This will set the `is_signer` flag to `true` in the generated `AccountMeta`.
@@ -115,6 +132,8 @@ pub struct ExampleAccounts {
     pub authority: TridentAccount,
 }
 ```
+
+---
 
 ### `account(address)`
 
@@ -130,6 +149,8 @@ pub struct ExampleAccounts {
 }
 ```
 
+---
+
 ### `account(storage)`
 
 Specifies which storage to use for the account. This determines where the account address is stored and managed.
@@ -143,6 +164,8 @@ pub struct ExampleAccounts {
     pub owner: TridentAccount,
 }
 ```
+
+---
 
 ### `account(skip_snapshot)`
 
@@ -158,6 +181,8 @@ pub struct ExampleAccounts {
 }
 ```
 
+---
+
 ### `account(seeds)`
 
 Defines Program Derived Address (PDA) seeds for the account. The seeds can include references to other accounts in the struct, allowing for dependency-based PDA derivation.
@@ -171,6 +196,8 @@ pub struct ExampleAccounts {
     pub pda_account: TridentAccount,
 }
 ```
+
+---
 
 ### `account(program_id)`
 

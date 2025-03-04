@@ -20,6 +20,29 @@ struct FuzzTest {
 impl FuzzTest {
     #[init]
     fn example_init_method(&mut self) {
+        // ...
+    }
+    // ...
+}
+```
+
+
+## Example
+
+The following example demonstrates:
+
+- Deploying a native program in the method marked with `#[init]`
+
+```rust
+#[derive(FuzzTestExecutor)]
+struct FuzzTest {
+    client: TridentSVM,
+}
+
+#[flow_executor]
+impl FuzzTest {
+    #[init]
+    fn example_init_method(&mut self) {
         // Example deploy hello-world program
 
         self.client.deploy_native_program(ProgramEntrypoint::new(

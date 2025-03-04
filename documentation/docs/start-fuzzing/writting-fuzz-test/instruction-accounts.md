@@ -1,18 +1,11 @@
 # Instruction Accounts
 
-Each program instruction has a corresponding file in the instructions directory.
 
-Instructions consist of two main components:
+Accounts are storage entities on the Solana Blockchain. They may be simple wallets (consisting of regular keypairs) or accounts with more complex address structures, such as Program Derived Addresses (PDAs).
 
-- Instruction Accounts
-- Instruction Data
+During fuzzing, Trident sends random Accounts to the program's instructions. However, the account addresses are not completely random but are taken from the Fuzz Test's account storage. Trident generates random indexes to the account storage. This approach is crucial, as allowing the fuzzer to generate completely random account addresses would lead to many failed transactions (i.e., nothing would be fuzzed).
 
-!!! info "Introduction to Accounts"
-    Accounts are storage entities on the Solana Blockchain. They may be simple wallets (consisting of regular keypairs) or accounts with more complex address structures, such as Program Derived Addresses (PDAs).
-
-    During fuzzing, Trident sends random Accounts to the program's instructions. However, the account addresses are not completely random but are taken from the Fuzz Test's account storage. Trident generates random indexes to the account storage. This approach is crucial, as allowing the fuzzer to generate completely random account addresses would lead to many failed transactions (i.e., nothing would be fuzzed).
-
-    Your responsibility is to guide Trident on which storage locations it should retrieve accounts from. Additionally, if particular account types are expected, such as Token Account, Mint Account, etc., your responsibility is to initialize them within the `set_accounts` method.
+Your responsibility is to guide Trident on which storage locations it should retrieve accounts from. Additionally, if particular account types are expected, such as Token Account, Mint Account, etc., your responsibility is to initialize them within the `set_accounts` method.
 
 ## Setup Instruction Accounts
 

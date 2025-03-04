@@ -27,6 +27,8 @@ fn build(
 ) -> arbitrary::Result<Self>
 ```
 
+---
+
 ### `execute`
 
 Execute the transaction with the TransactionHooks.
@@ -34,6 +36,8 @@ Execute the transaction with the TransactionHooks.
 ```rust
 fn execute(&mut self, client: &mut impl FuzzClient) -> Result<(), FuzzingError>
 ```
+
+---
 
 ### `execute_no_hooks`
 
@@ -43,7 +47,12 @@ Execute the transaction without the TransactionHooks (simplified version).
 fn execute_no_hooks(&mut self, client: &mut impl FuzzClient) -> Result<(), TransactionError>
 ```
 
+---
+
 ## Transaction Getters
+
+!!! warning "Internal Method"
+    These methods are used internally by Trident and is not expected to use them manually.
 
 ### `get_transaction_name`
 
@@ -53,6 +62,8 @@ Returns the name of the transaction. If a custom name is provided via the `#[nam
 fn get_transaction_name(&self) -> String
 ```
 
+---
+
 ### `get_instruction_discriminators`
 
 Returns the instruction discriminators (identifiers) for all instructions in the transaction.
@@ -60,6 +71,8 @@ Returns the instruction discriminators (identifiers) for all instructions in the
 ```rust
 fn get_instruction_discriminators(&self) -> Vec<Vec<u8>>
 ```
+
+---
 
 ### `get_instruction_program_ids`
 
@@ -69,6 +82,8 @@ Returns the program IDs that will process the instructions.
 fn get_instruction_program_ids(&self) -> Vec<solana_sdk::pubkey::Pubkey>
 ```
 
+---
+
 ### `get_instruction_data`
 
 Returns the instruction-specific data/parameters for all instructions in the transaction.
@@ -76,6 +91,8 @@ Returns the instruction-specific data/parameters for all instructions in the tra
 ```rust
 fn get_instruction_data(&mut self, client: &mut impl FuzzClient) -> Vec<Vec<u8>>
 ```
+
+---
 
 ### `get_instruction_accounts`
 
@@ -85,7 +102,12 @@ Returns the account metadata needed for the instructions.
 fn get_instruction_accounts(&mut self, client: &mut impl FuzzClient) -> Vec<Vec<AccountMeta>>
 ```
 
+---
+
 ## Transaction Setters
+
+!!! warning "Internal Method"
+    These methods are used internally by Trident and is not expected to use them manually.
 
 ### `set_snapshot_before`
 
@@ -95,6 +117,8 @@ Captures the state of all accounts before transaction execution.
 fn set_snapshot_before(&mut self, client: &mut impl FuzzClient)
 ```
 
+---
+
 ### `set_snapshot_after`
 
 Captures the state of all accounts after transaction execution.
@@ -102,6 +126,8 @@ Captures the state of all accounts after transaction execution.
 ```rust
 fn set_snapshot_after(&mut self, client: &mut impl FuzzClient)
 ```
+
+---
 
 ### `set_instructions`
 
@@ -123,6 +149,8 @@ fn set_instructions(
     fuzz_accounts: &mut Self::IxAccounts,
 )
 ```
+
+---
 
 ## Struct-Level Attributes
 
