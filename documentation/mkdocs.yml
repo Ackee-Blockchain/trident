@@ -129,7 +129,7 @@ plugins:
       type: timeago
   - mike:
       canonical_version: latest
-  # - social
+  - social
 
 # https://squidfunk.github.io/mkdocs-material/customization/?h=extra+css#additional-css
 extra_css:
