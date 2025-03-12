@@ -17,6 +17,38 @@ use crate::traits::FuzzClient;
 use solana_sdk::transaction::TransactionError;
 
 impl FuzzClient for TridentSVM {
+    fn new_client_metrics(programs: &[ProgramEntrypoint], config: &TridentConfig) -> Self {
+        let sbf_programs =
+            config
+                .programs()
+                .iter()
+                .fold(Vec::new(), |mut sbf_programs, config_program| {
+                    let target = SBFTarget::new(
+                        config_program.address,
+                        None, // TODO add authority to the config fuzzing program
+                        config_program.data.clone(),
+                    );
+
+                    sbf_programs.push(target);
+                    sbf_programs
+                });
+
+        let permanent_accounts =
+            config
+                .accounts()
+                .iter()
+                .fold(Vec::new(), |mut permanent_accounts, config_account| {
+                    let account = TridentAccountSharedData::new(
+                        config_account.pubkey,
+                        config_account.account.clone(),
+                    );
+                    permanent_accounts.push(account);
+                    permanent_accounts
+                });
+
+        TridentSVM::new_with_syscalls_n_metrics(programs, &sbf_programs, &permanent_accounts)
+    }
+
     fn deploy_native_program(&mut self, program: ProgramEntrypoint) {
         trident_svm::trident_svm::TridentSVM::deploy_native_program(self, program);
     }
@@ -49,7 +81,11 @@ impl FuzzClient for TridentSVM {
                     permanent_accounts
                 });
 
-        TridentSVM::new_with_syscalls(programs, &sbf_programs, &permanent_accounts)
+        if config.get_fuzzing_with_stats() {
+            TridentSVM::new_with_syscalls_n_metrics(programs, &sbf_programs, &permanent_accounts)
+        } else {
+            TridentSVM::new_with_syscalls(programs, &sbf_programs, &permanent_accounts)
+        }
     }
     fn warp_to_epoch(&mut self, warp_epoch: u64) {
         let mut clock = self.get_sysvar::<Clock>();
@@ -117,5 +153,30 @@ impl FuzzClient for TridentSVM {
 
     fn clear_accounts(&mut self) {
         self.clear_accounts();
+    }
+
+    // -*-*-*-*-*-*-*
+    // Metrics
+    // -*-*-*-*-*-*-*
+
+    fn record_transaction_error(&mut self, transaction_name: String, error: String) {
+        if cfg!(honggfuzz) {
+        } else if cfg!(afl) {
+            TridentSVM::record_transaction_error(self, transaction_name, error);
+        }
+    }
+
+    fn increment_transaction_success(&mut self, transaction_name: String) {
+        if cfg!(honggfuzz) {
+        } else if cfg!(afl) {
+            TridentSVM::increment_transaction_success(self, transaction_name);
+        }
+    }
+
+    fn increment_transaction_execution(&mut self, transaction_name: String) {
+        if cfg!(honggfuzz) {
+        } else if cfg!(afl) {
+            TridentSVM::increment_transaction_execution(self, transaction_name);
+        }
     }
 }

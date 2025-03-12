@@ -60,10 +60,13 @@ pub trait TransactionMethods:
             self.set_snapshot_before(client);
 
             // Execute the transaction
+            client.increment_transaction_execution(self.get_transaction_name());
             let tx_result = client.process_instructions(&instructions);
 
             match tx_result {
                 Ok(_) => {
+                    // Record successful execution
+                    client.increment_transaction_success(self.get_transaction_name());
                     // Record successful execution
                     stats_logger.increase_successful(self.get_transaction_name());
 
@@ -90,6 +93,7 @@ pub trait TransactionMethods:
                     self.post_transaction(client);
                 }
                 Err(e) => {
+                    client.record_transaction_error(self.get_transaction_name(), e.to_string());
                     // Record transaction failure
                     stats_logger.increase_failed(self.get_transaction_name());
                     stats_logger.output_serialized();
@@ -105,11 +109,15 @@ pub trait TransactionMethods:
             // Run pre-transaction hook
             self.pre_transaction(client);
 
+            client.increment_transaction_execution(self.get_transaction_name());
             // Execute the transaction
             let tx_result = client.process_instructions(&instructions);
 
             match tx_result {
                 Ok(_) => {
+                    // Record successful execution
+                    client.increment_transaction_success(self.get_transaction_name());
+
                     // Take snapshot of accounts after execution
                     self.set_snapshot_after(client);
 
@@ -126,6 +134,7 @@ pub trait TransactionMethods:
                     self.post_transaction(client);
                 }
                 Err(e) => {
+                    client.record_transaction_error(self.get_transaction_name(), e.to_string());
                     // Handle transaction error
                     self.transaction_error_handler(e)?
                 }

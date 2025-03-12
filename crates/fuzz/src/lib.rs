@@ -87,4 +87,8 @@ pub mod fuzzing {
     pub use borsh::{BorshDeserialize, BorshSerialize};
 
     pub use arbitrary::Unstructured;
+
+    pub use shared_memory;
+    pub use signal_hook;
+    pub use trident_svm::fuzz_stats::fuzz_stats::FuzzStats;
 }

@@ -58,10 +58,12 @@ impl AccountsStorage {
                     },
                 };
 
-                let account =
-                    AccountSharedData::new(metadata.lamports, metadata.space, &metadata.owner);
+                if client.get_account(&address) == AccountSharedData::default() {
+                    let account =
+                        AccountSharedData::new(metadata.lamports, metadata.space, &metadata.owner);
+                    client.set_account_custom(&address, &account);
+                }
 
-                client.set_account_custom(&address, &account);
                 self.accounts.insert(account_id, address);
                 address
             }
