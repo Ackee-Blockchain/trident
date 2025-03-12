@@ -8,6 +8,9 @@ description = { workspace = true }
 license-file = { workspace = true }
 readme = { workspace = true }
 
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(honggfuzz)', 'cfg(afl)'] }
+
 [features]
 all = ["vote", "stake", "token"]
 vote = ["dep:solana-vote-program"]
@@ -85,3 +88,5 @@ byteorder = "1.5.0"
 base64 = "0.22.1"
 itertools = "0"
 borsh = "1.5.3"
+shared_memory = "0.12.4"
+signal-hook = "0.3"
