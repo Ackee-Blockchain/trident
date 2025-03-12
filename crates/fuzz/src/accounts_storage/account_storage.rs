@@ -58,10 +58,13 @@ impl AccountsStorage {
                     },
                 };
 
-                let account =
-                    AccountSharedData::new(metadata.lamports, metadata.space, &metadata.owner);
+                // If account on the address is already initialized, we dont override it
+                if client.get_account(&address) == AccountSharedData::default() {
+                    let account =
+                        AccountSharedData::new(metadata.lamports, metadata.space, &metadata.owner);
+                    client.set_account_custom(&address, &account);
+                }
 
-                client.set_account_custom(&address, &account);
                 self.accounts.insert(account_id, address);
                 address
             }
@@ -88,17 +91,20 @@ impl AccountsStorage {
             None => {
                 let address = self.get_or_create_address(seeds);
 
-                self.create_token_account(
-                    client,
-                    address,
-                    mint,
-                    owner,
-                    amount,
-                    delegate,
-                    is_native,
-                    delegated_amount,
-                    close_authority,
-                );
+                // If account on the address is already initialized, we dont override it
+                if client.get_account(&address) == AccountSharedData::default() {
+                    self.create_token_account(
+                        client,
+                        address,
+                        mint,
+                        owner,
+                        amount,
+                        delegate,
+                        is_native,
+                        delegated_amount,
+                        close_authority,
+                    );
+                }
 
                 self.accounts.insert(account_id, address);
 
@@ -124,7 +130,10 @@ impl AccountsStorage {
             None => {
                 let address = self.get_or_create_address(seeds);
 
-                self.create_mint_account(client, address, decimals, owner, freeze_authority);
+                // If account on the address is already initialized, we dont override it
+                if client.get_account(&address) == AccountSharedData::default() {
+                    self.create_mint_account(client, address, decimals, owner, freeze_authority);
+                }
 
                 self.accounts.insert(account_id, address);
 
@@ -153,17 +162,20 @@ impl AccountsStorage {
             None => {
                 let address = self.get_or_create_address(seeds);
 
-                self.create_delegated_account(
-                    client,
-                    address,
-                    voter_pubkey,
-                    staker,
-                    withdrawer,
-                    stake,
-                    activation_epoch,
-                    deactivation_epoch,
-                    lockup,
-                );
+                // If account on the address is already initialized, we dont override it
+                if client.get_account(&address) == AccountSharedData::default() {
+                    self.create_delegated_account(
+                        client,
+                        address,
+                        voter_pubkey,
+                        staker,
+                        withdrawer,
+                        stake,
+                        activation_epoch,
+                        deactivation_epoch,
+                        lockup,
+                    );
+                }
 
                 self.accounts.insert(account_id, address);
 
@@ -189,7 +201,10 @@ impl AccountsStorage {
             None => {
                 let address = self.get_or_create_address(seeds);
 
-                self.create_initialized_account(client, address, staker, withdrawer, lockup);
+                // If account on the address is already initialized, we dont override it
+                if client.get_account(&address) == AccountSharedData::default() {
+                    self.create_initialized_account(client, address, staker, withdrawer, lockup);
+                }
 
                 self.accounts.insert(account_id, address);
 
@@ -217,15 +232,18 @@ impl AccountsStorage {
             None => {
                 let address = self.get_or_create_address(seeds);
 
-                self.create_vote_account(
-                    client,
-                    address,
-                    node_pubkey,
-                    authorized_voter,
-                    authorized_withdrawer,
-                    commission,
-                    clock,
-                );
+                // If account on the address is already initialized, we dont override it
+                if client.get_account(&address) == AccountSharedData::default() {
+                    self.create_vote_account(
+                        client,
+                        address,
+                        node_pubkey,
+                        authorized_voter,
+                        authorized_withdrawer,
+                        commission,
+                        clock,
+                    );
+                }
 
                 self.accounts.insert(account_id, address);
 
