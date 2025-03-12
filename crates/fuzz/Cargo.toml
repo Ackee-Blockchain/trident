@@ -48,7 +48,7 @@ version = "0.10.0-rc.1"
 # Config (Trident.toml)
 
 # Trident-SVM
-trident-svm = "0.0.3-rc.1"
+trident-svm = "0.0.3"
 
 
 # Solana
