@@ -8,11 +8,12 @@ use solana_sdk::sysvar::Sysvar;
 
 use trident_config::TridentConfig;
 
-use trident_svm::trident_account::TridentAccountSharedData;
-use trident_svm::trident_entrypoint::TridentEntrypoint;
-use trident_svm::trident_program::TridentProgram;
 use trident_svm::trident_svm::TridentSVM;
+use trident_svm::types::trident_account::TridentAccountSharedData;
+use trident_svm::types::trident_entrypoint::TridentEntrypoint;
+use trident_svm::types::trident_program::TridentProgram;
 
+use crate::fuzzing::FuzzingStatistics;
 use crate::traits::FuzzClient;
 use solana_sdk::transaction::TransactionError;
 
@@ -25,6 +26,7 @@ impl FuzzClient for TridentSVM {
         self.deploy_binary_program(&program);
     }
 
+    #[doc(hidden)]
     fn new_client(config: &TridentConfig) -> Self {
         let program_binaries =
             config
@@ -54,12 +56,23 @@ impl FuzzClient for TridentSVM {
                     permanent_accounts
                 });
 
-        TridentSVM::builder()
+        let svm = TridentSVM::builder()
             .with_syscalls_v1()
             .with_syscalls_v2()
             .with_sbf_programs(program_binaries)
-            .with_permanent_accounts(permanent_accounts)
-            .build()
+            .with_permanent_accounts(permanent_accounts);
+        if cfg!(afl) && config.get_fuzzing_with_stats() {
+            let metrics_path = std::env::current_dir()
+                .expect("Failed to get current directory")
+                .join("fuzz_stats.json")
+                .to_str()
+                .expect("Failed to convert path to string")
+                .to_string();
+
+            svm.with_fuzzing_metrics(metrics_path).build()
+        } else {
+            svm.build()
+        }
     }
     fn warp_to_epoch(&mut self, warp_epoch: u64) {
         let mut clock = self.get_sysvar::<Clock>();
@@ -104,7 +117,8 @@ impl FuzzClient for TridentSVM {
         panic!("Not yet implemented for TridentSVM");
     }
 
-    fn process_instructions(
+    #[doc(hidden)]
+    fn _process_instructions(
         &mut self,
         instructions: &[Instruction],
     ) -> Result<(), TransactionError> {
@@ -125,7 +139,50 @@ impl FuzzClient for TridentSVM {
         trident_svm::trident_svm::TridentSVM::get_sysvar::<T>(self)
     }
 
-    fn clear_accounts(&mut self) {
+    #[doc(hidden)]
+    fn _clear_accounts(&mut self) {
         self.clear_accounts();
+    }
+
+    // -*-*-*-*-*-*-*
+    // Metrics
+    // -*-*-*-*-*-*-*
+    #[doc(hidden)]
+    fn _record_transaction_error(
+        &mut self,
+        transaction_name: String,
+        error: String,
+        stats_logger: &mut FuzzingStatistics,
+    ) {
+        if cfg!(honggfuzz) {
+            stats_logger.increase_failed(transaction_name);
+        } else if cfg!(afl) {
+            self.record_transaction_error(transaction_name, error);
+        }
+    }
+    #[doc(hidden)]
+    fn _increment_transaction_success(
+        &mut self,
+        transaction_name: String,
+        stats_logger: &mut FuzzingStatistics,
+    ) {
+        if cfg!(honggfuzz) {
+            stats_logger.increase_successful(transaction_name);
+        } else if cfg!(afl) {
+            self.increment_transaction_success(transaction_name);
+        }
+    }
+
+    #[doc(hidden)]
+    fn _increment_transaction_execution(
+        &mut self,
+        transaction_name: String,
+        stats_logger: &mut FuzzingStatistics,
+    ) {
+        if cfg!(honggfuzz) {
+            stats_logger.increase_invoked(transaction_name);
+        } else if cfg!(afl) {
+            self.increment_transaction_execution(transaction_name)
+        }
     }
 }

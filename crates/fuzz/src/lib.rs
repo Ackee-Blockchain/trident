@@ -66,16 +66,20 @@ pub mod fuzzing {
     pub use super::accounts_storage::AccountMetadata;
     pub use super::accounts_storage::PdaSeeds;
 
+    /// trident config
     pub use trident_config::TridentConfig;
+
+    pub use trident_svm::fuzzing_metrics::stats::FuzzStats;
+    /// trident svm
+    pub use trident_svm::trident_svm::TridentSVM;
+    pub use trident_svm::types::trident_entrypoint::TridentEntrypoint;
+    pub use trident_svm::types::trident_program::TridentProgram;
 
     pub use super::error::*;
     pub use super::fuzz_stats::FuzzingStatistics;
 
     pub use std::cell::RefCell;
     pub use std::collections::HashMap;
-    pub use trident_svm::trident_entrypoint::TridentEntrypoint;
-    pub use trident_svm::trident_program::TridentProgram;
-    pub use trident_svm::trident_svm::TridentSVM;
 
     /// types
     pub use crate::types::AccountId;
@@ -88,4 +92,7 @@ pub mod fuzzing {
     pub use borsh::{BorshDeserialize, BorshSerialize};
 
     pub use arbitrary::Unstructured;
+
+    pub use shared_memory;
+    pub use signal_hook;
 }

@@ -52,6 +52,10 @@ impl Commander {
 
         rustflags.push_str("--cfg afl");
 
+        if config.get_fuzzing_with_stats() {
+            std::env::set_var("FUZZING_METRICS", "1");
+        }
+
         let mut child = Command::new("cargo")
             .env("RUSTFLAGS", rustflags)
             .arg("afl")
@@ -63,6 +67,7 @@ impl Commander {
         Self::handle_child(&mut child).await?;
 
         let mut child = Command::new("cargo")
+            .env("AFL_KILL_SIGNAL", "2")
             .arg("afl")
             .arg("fuzz")
             .args(["-i", &afl_workspace_in])

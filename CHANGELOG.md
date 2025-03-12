@@ -12,6 +12,8 @@ incremented upon a breaking change and the patch version will be incremented for
 
 **Added**
 
+- Added support for simple fuzzing metrics for AFL ([309](https://github.com/Ackee-Blockchain/trident/pull/309))
+
 **Removed**
 
 **Changed**
