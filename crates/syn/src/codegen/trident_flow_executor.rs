@@ -82,11 +82,29 @@ impl ToTokens for TridentFlowExecutorImpl {
                             });
                         }
                     } else if cfg!(afl) {
+                        let fuzzing_metrics = std::env::var("FUZZING_METRICS");
+                        if fuzzing_metrics.is_ok() {
+                            let mut signals = signal_hook::iterator::Signals::new([signal_hook::consts::SIGINT]).expect("Failed to register signal handlers");
+                            std::thread::spawn(move || {
+                                #[allow(clippy::never_loop)]
+                                for sig in signals.forever() {
+                                let shmem_id = format!("fuzzer_stats_{}", std::process::id());
+                                if let Ok(signal_shmem) = shared_memory::ShmemConf::new().os_id(&shmem_id).open() {
+                                    let stats = unsafe { &mut *(signal_shmem.as_ptr() as *mut FuzzStats) };
+                                    stats.save_to_file(Some(sig));
+                                }
+                                    // SHOULD_EXIT.store(true, Ordering::SeqCst);
+                                    std::process::exit(0);
+                                }
+                            });
+                        }
+
+
                         fuzz_afl(true, |fuzzer_data| {
                             let mut buf = Unstructured::new(fuzzer_data);
                             let _ = self.execute_flows(&mut buf);
                             self.client.clear_accounts();
-                        });
+                            });
                     } else if cfg!(honggfuzz_debug) {
                         let mut crash_file = String::new();
                         std::io::stdin()

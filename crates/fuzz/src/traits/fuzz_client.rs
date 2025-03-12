@@ -54,4 +54,19 @@ pub trait FuzzClient {
 
     // Clear Temp account created during fuzzing iteration
     fn clear_accounts(&mut self);
+
+    // -*-*-*-*-*-*-*
+    // Metrics
+    // -*-*-*-*-*-*-*
+    #[doc(hidden)]
+    /// Record a transaction error
+    fn record_transaction_error(&mut self, _transaction_name: String, _error: String) {}
+
+    #[doc(hidden)]
+    /// Increment the number of successful transaction executions
+    fn increment_transaction_success(&mut self, _transaction_name: String) {}
+
+    #[doc(hidden)]
+    /// Increment the number of transaction executions
+    fn increment_transaction_execution(&mut self, _transaction_name: String) {}
 }

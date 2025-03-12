@@ -49,7 +49,16 @@ impl FuzzClient for TridentSVM {
                     permanent_accounts
                 });
 
-        TridentSVM::new_with_syscalls(programs, &sbf_programs, &permanent_accounts)
+        if config.get_fuzzing_with_stats() {
+            TridentSVM::new_with_syscalls_n_metrics(
+                programs,
+                &sbf_programs,
+                &permanent_accounts,
+                "/home/andrej/solana/trident/trident/examples/hello_world/trident-tests/fuzz_stats.json".to_string(),
+            )
+        } else {
+            TridentSVM::new_with_syscalls(programs, &sbf_programs, &permanent_accounts)
+        }
     }
     fn warp_to_epoch(&mut self, warp_epoch: u64) {
         let mut clock = self.get_sysvar::<Clock>();
@@ -117,5 +126,30 @@ impl FuzzClient for TridentSVM {
 
     fn clear_accounts(&mut self) {
         self.clear_accounts();
+    }
+
+    // -*-*-*-*-*-*-*
+    // Metrics
+    // -*-*-*-*-*-*-*
+
+    fn record_transaction_error(&mut self, transaction_name: String, error: String) {
+        if cfg!(honggfuzz) {
+        } else if cfg!(afl) {
+            TridentSVM::record_transaction_error(self, transaction_name, error);
+        }
+    }
+
+    fn increment_transaction_success(&mut self, transaction_name: String) {
+        if cfg!(honggfuzz) {
+        } else if cfg!(afl) {
+            TridentSVM::increment_transaction_success(self, transaction_name);
+        }
+    }
+
+    fn increment_transaction_execution(&mut self, transaction_name: String) {
+        if cfg!(honggfuzz) {
+        } else if cfg!(afl) {
+            TridentSVM::increment_transaction_execution(self, transaction_name);
+        }
     }
 }
