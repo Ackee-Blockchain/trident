@@ -3807,9 +3807,9 @@ dependencies = [
 
 [[package]]
 name = "tokio-util"
-version = "0.7.13"
+version = "0.7.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d7fcaa8d55a2bdd6b83ace262b016eca0d79ee02818c5c1bcdf0305114081078"
+checksum = "6b9590b93e6fcc1739458317cccd391ad3955e2bde8913edf6f95f9e65a8f034"
 dependencies = [
  "bytes",
  "futures-core",
@@ -3889,7 +3889,7 @@ dependencies = [
 
 [[package]]
 name = "trident-cli"
-version = "0.10.0-rc.2"
+version = "0.10.0"
 dependencies = [
  "anyhow",
  "clap",
@@ -3902,7 +3902,7 @@ dependencies = [
 
 [[package]]
 name = "trident-client"
-version = "0.10.0-rc.2"
+version = "0.10.0"
 dependencies = [
  "anyhow",
  "cargo_metadata",
@@ -3924,7 +3924,7 @@ dependencies = [
 
 [[package]]
 name = "trident-config"
-version = "0.10.0-rc.2"
+version = "0.10.0"
 dependencies = [
  "afl",
  "anyhow",
@@ -3941,7 +3941,7 @@ dependencies = [
 
 [[package]]
 name = "trident-derive-accounts"
-version = "0.10.0-rc.2"
+version = "0.10.0"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -3951,7 +3951,7 @@ dependencies = [
 
 [[package]]
 name = "trident-derive-flow-executor"
-version = "0.10.0-rc.2"
+version = "0.10.0"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -3961,7 +3961,7 @@ dependencies = [
 
 [[package]]
 name = "trident-derive-instruction"
-version = "0.10.0-rc.2"
+version = "0.10.0"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -3971,7 +3971,7 @@ dependencies = [
 
 [[package]]
 name = "trident-derive-remaining-accounts"
-version = "0.10.0-rc.2"
+version = "0.10.0"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -3981,7 +3981,7 @@ dependencies = [
 
 [[package]]
 name = "trident-derive-transaction"
-version = "0.10.0-rc.2"
+version = "0.10.0"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -3991,7 +3991,7 @@ dependencies = [
 
 [[package]]
 name = "trident-derive-transaction-selector"
-version = "0.10.0-rc.2"
+version = "0.10.0"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -4001,7 +4001,7 @@ dependencies = [
 
 [[package]]
 name = "trident-fuzz"
-version = "0.10.0-rc.2"
+version = "0.10.0"
 dependencies = [
  "afl",
  "anyhow",
@@ -4073,7 +4073,7 @@ dependencies = [
 
 [[package]]
 name = "trident-syn"
-version = "0.10.0-rc.2"
+version = "0.10.0"
 dependencies = [
  "petgraph",
  "proc-macro2",
@@ -4106,7 +4106,7 @@ dependencies = [
 
 [[package]]
 name = "trident-template"
-version = "0.10.0-rc.2"
+version = "0.10.0"
 dependencies = [
  "convert_case",
  "quote",

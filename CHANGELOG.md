@@ -16,7 +16,7 @@ incremented upon a breaking change and the patch version will be incremented for
 
 **Changed**
 
-## [0.10.0] - 2025-03-12
+## [0.10.0] - 2025-03-13
 
 **Added**
 
