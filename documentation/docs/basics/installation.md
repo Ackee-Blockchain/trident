@@ -61,9 +61,9 @@ cargo install cargo-afl --version x.y.z
 
 | **Version Type** | **Anchor** | **Solana** | **Rust** | **Honggfuzz** | **AFL** |
 |:----------------|:-----------|:-----------|:---------|:--------------|:---------|
-| Development :material-developer-board: | `>=0.29.0` | `>=1.17.3` | `nightly` | `0.5.56` | `0.15.11` |
-| **Current (0.10.x)** :material-tag: | `>=0.29.0` | `>=1.17.3` | `nightly` | `0.5.56` | `0.15.11` |
-| **0.9.x** :material-tag: | `>=0.29.0` | `>=1.17.3` | `nightly` | `0.5.56` | `0.15.11` |
+| Development :material-developer-board: | `>=0.29.0 < 0.31.0` | `>=1.17.3 < 2.1` | `nightly` | `0.5.56` | `0.15.11` |
+| **Current (0.10.x)** :material-tag: | `>=0.29.0 < 0.31.0` | `>=1.17.3 < 2.1` | `nightly` | `0.5.56` | `0.15.11` |
+| **0.9.x** :material-tag: | `>=0.29.0 < 0.31.0` | `>=1.17.3 < 2.1` | `nightly` | `0.5.56` | `0.15.11` |
 | **0.8.x** :material-tag: | `0.30.1` | `^1.17.4` | `nightly` | `0.5.56` | `-` |
 | **0.7.x** :material-tag: | `>=0.29.*` | `^1.17.4` | `nightly` | `0.5.56` | `-` |
 | **0.6.x** :material-tag: | `>=0.29.*` | `^1.17` | `nightly` | `0.5.55` | `-` |
