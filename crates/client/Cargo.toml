@@ -12,15 +12,15 @@ readme = { workspace = true }
 # Trident
 [dependencies.trident-fuzz]
 path = "../fuzz"
-version = "0.10.0"
+version = "0.10.0-rc.2"
 
 [dependencies.trident-config]
 path = "../config"
-version = "0.10.0"
+version = "0.10.0-rc.2"
 
 [dependencies.trident-template]
 path = "../template"
-version = "0.10.0"
+version = "0.10.0-rc.2"
 
 
 [dependencies]
