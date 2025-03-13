@@ -12,7 +12,7 @@ resolver = "1"
 
 
 [workspace.package]
-version = "0.10.0-rc.2"
+version = "0.10.0"
 edition = "2021"
 authors = ["Ackee Blockchain Security"]
 repository = "https://github.com/Ackee-Blockchain/trident"
