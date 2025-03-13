@@ -19,9 +19,9 @@ checksum = "512761e0bb2578dd7380c6baaa0f4ce03e84f95e960231d1dec8bf4d7d6e2627"
 
 [[package]]
 name = "afl"
-version = "0.15.16"
+version = "0.15.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "374ce830a032af7091cb68081644c991adb0e7636f9528c503beaa2a06162602"
+checksum = "87a52fe37aa5cbfc75353ee072a0a096036bcb6361ff5f661f7201f3a7f062a2"
 dependencies = [
  "home",
  "libc",
@@ -1577,9 +1577,9 @@ checksum = "df3b46402a9d5adb4c86a0cf463f42e19994e3ee891101b1841f30a545cb49a9"
 
 [[package]]
 name = "humantime"
-version = "2.1.0"
+version = "2.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9a3a5bfb195931eeb336b2a7b4d761daec841b97f947d34394601737a7bba5e4"
+checksum = "9b112acc8b3adf4b107a8ec20977da0273a8c386765a3ec0229bd500a1443f9f"
 
 [[package]]
 name = "hyper"
@@ -3768,9 +3768,9 @@ checksum = "1f3ccbac311fea05f86f61904b462b55fb3df8837a366dfc601a0161d0532f20"
 
 [[package]]
 name = "tokio"
-version = "1.44.0"
+version = "1.44.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9975ea0f48b5aa3972bf2d888c238182458437cc2a19374b81b25cdf1023fb3a"
+checksum = "f382da615b842244d4b8738c82ed1275e6c5dd90c459a30941cd07080b06c91a"
 dependencies = [
  "backtrace",
  "bytes",
@@ -3889,7 +3889,7 @@ dependencies = [
 
 [[package]]
 name = "trident-cli"
-version = "0.10.0"
+version = "0.10.0-rc.2"
 dependencies = [
  "anyhow",
  "clap",
@@ -3902,7 +3902,7 @@ dependencies = [
 
 [[package]]
 name = "trident-client"
-version = "0.10.0"
+version = "0.10.0-rc.2"
 dependencies = [
  "anyhow",
  "cargo_metadata",
@@ -3924,7 +3924,7 @@ dependencies = [
 
 [[package]]
 name = "trident-config"
-version = "0.10.0"
+version = "0.10.0-rc.2"
 dependencies = [
  "afl",
  "anyhow",
@@ -3941,7 +3941,7 @@ dependencies = [
 
 [[package]]
 name = "trident-derive-accounts"
-version = "0.10.0"
+version = "0.10.0-rc.2"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -3951,7 +3951,7 @@ dependencies = [
 
 [[package]]
 name = "trident-derive-flow-executor"
-version = "0.10.0"
+version = "0.10.0-rc.2"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -3961,7 +3961,7 @@ dependencies = [
 
 [[package]]
 name = "trident-derive-instruction"
-version = "0.10.0"
+version = "0.10.0-rc.2"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -3971,7 +3971,7 @@ dependencies = [
 
 [[package]]
 name = "trident-derive-remaining-accounts"
-version = "0.10.0"
+version = "0.10.0-rc.2"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -3981,7 +3981,7 @@ dependencies = [
 
 [[package]]
 name = "trident-derive-transaction"
-version = "0.10.0"
+version = "0.10.0-rc.2"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -3991,7 +3991,7 @@ dependencies = [
 
 [[package]]
 name = "trident-derive-transaction-selector"
-version = "0.10.0"
+version = "0.10.0-rc.2"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -4001,7 +4001,7 @@ dependencies = [
 
 [[package]]
 name = "trident-fuzz"
-version = "0.10.0"
+version = "0.10.0-rc.2"
 dependencies = [
  "afl",
  "anyhow",
@@ -4073,7 +4073,7 @@ dependencies = [
 
 [[package]]
 name = "trident-syn"
-version = "0.10.0"
+version = "0.10.0-rc.2"
 dependencies = [
  "petgraph",
  "proc-macro2",
@@ -4106,7 +4106,7 @@ dependencies = [
 
 [[package]]
 name = "trident-template"
-version = "0.10.0"
+version = "0.10.0-rc.2"
 dependencies = [
  "convert_case",
  "quote",
@@ -4545,9 +4545,9 @@ checksum = "589f6da84c646204747d1270a2a5661ea66ed1cced2631d546fdfb155959f9ec"
 
 [[package]]
 name = "winnow"
-version = "0.7.3"
+version = "0.7.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0e7f4ea97f6f78012141bcdb6a216b2609f0979ada50b20ca5b52dde2eac2bb1"
+checksum = "0e97b544156e9bebe1a0ffbc03484fc1ffe3100cbce3ffb17eac35f7cdd7ab36"
 dependencies = [
  "memchr",
 ]
