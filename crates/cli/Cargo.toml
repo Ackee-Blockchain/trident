@@ -12,7 +12,7 @@ readme = { workspace = true }
 # Trident
 [dependencies.trident-client]
 path = "../client"
-version = "0.10.0"
+version = "0.10.1-rc.1"
 
 [dependencies]
 

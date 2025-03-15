@@ -21,4 +21,4 @@ syn = { workspace = true }
 
 [dependencies.trident-syn]
 path = "../../../syn"
-version = "0.10.0"
+version = "0.10.1-rc.1"

@@ -12,7 +12,7 @@ resolver = "1"
 
 
 [workspace.package]
-version = "0.10.0"
+version = "0.10.1-rc.1"
 edition = "2021"
 authors = ["Ackee Blockchain Security"]
 repository = "https://github.com/Ackee-Blockchain/trident"
@@ -23,7 +23,7 @@ readme = "./README.md"
 
 [workspace.dependencies]
 # Solana
-solana-sdk = "~2.0"
+solana-sdk = "2.1"
 
 # ARBITRARY
 arbitrary = { version = "1.3.0", features = ["derive"] }
