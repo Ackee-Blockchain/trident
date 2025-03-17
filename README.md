@@ -1,4 +1,5 @@
 <p align="center">
+  <a href="https://usetrident.xyz/">
     <picture>
       <source media="(prefers-color-scheme: dark)" srcset="https://abchprod.wpengine.com/wp-content/uploads/2024/05/Trident-Github.png?raw=true">
       <img alt="Trident Github" src="https://abchprod.wpengine.com/wp-content/uploads/2024/05/Trident-Github.png?raw=true" width="auto">
@@ -7,15 +8,30 @@
 </p>
 
 <p align="left">
-  <img height="100" width="100" src="https://abchprod.wpengine.com/wp-content/uploads/2024/05/Trident-Color.png" alt="Trident"/>
+  <a href="https://usetrident.xyz/">
+    <img height="100" width="100" src="https://abchprod.wpengine.com/wp-content/uploads/2024/05/Trident-Color.png" alt="Trident"/>
+  </a>
 
 # Trident
+
 
 <p align="left">
   Rust-based framework to Fuzz Solana programs, designed to help you ship secure code.
 <p>
 
 <p align="left">
+<a href="https://usetrident.xyz/" target="_blank" rel="noopener noreferrer">
+   <picture>
+     <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/website-usetrident.xyz-blue?colorA=21262d&colorB=0000FF&style=flat">
+     <img src="https://img.shields.io/badge/website-usetrident.xyz-blue?colorA=f6f8fa&colorB=0000FF&style=flat" alt="Website">
+   </picture>
+ </a>
+<a href="https://ackee.xyz/trident/docs/latest/" target="_blank" rel="noopener noreferrer">
+   <picture>
+     <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/docs-ackee.xyz-blue?colorA=21262d&colorB=0000FF&style=flat">
+     <img src="https://img.shields.io/badge/docs-ackee.xyz-blue?colorA=f6f8fa&colorB=0000FF&style=flat" alt="Documentation">
+   </picture>
+ </a>
 <a href="https://discord.gg/JhTVXUvaEr" target="_blank" rel="noopener noreferrer">
    <picture>
      <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/discord/867746290678104064?colorA=21262d&colorB=0000FF&style=flat">
@@ -50,18 +66,15 @@
 
 <br />
 
+
+
 ## Documentation
 
 For documentation and guides, visit [ackee.xyz/trident/docs](https://ackee.xyz/trident/docs/).
 
-## Prerequisites
-Check [Supported versions](https://ackee.xyz/trident/docs/latest/installation/installation/#supported-versions) section for further details.
-- Install [Rust](https://www.rust-lang.org/tools/install)
-- Install [Solana tool suite](https://docs.solana.com/cli/install-solana-cli-tools)
-- Install [Anchor](https://www.anchor-lang.com/docs/installation)
-- Install [Honggfuzz-rs](https://github.com/rust-fuzz/honggfuzz-rs#how-to-use-this-crate) for fuzz testing
-
 ## Installation
+
+Check the [Installation steps](https://ackee.xyz/trident/docs/latest/basics/installation/).
 
 ```shell
 cargo install trident-cli
@@ -72,20 +85,18 @@ cargo install trident-cli
 
 ## Features
 
-### Automated Test Generation
-Simplifies the testing process by automatically creating templates for fuzz and integration tests for programs written using the [Anchor Framework](https://www.anchor-lang.com/).
+### • Coverage-guided gray box fuzzer specifically for Solana programs
 
-### Dynamic Data Generation
-Increases test coverage with random instruction data and pseudo-random accounts for unpredictable fuzz test scenarios.
+### • Built in Rust for maximum performance and reliability
 
-### Custom Instruction Sequences
-Provides the flexibility to design specific sequences of instructions to meet particular testing needs or to focus on particular aspects of program behavior during fuzz testing.
+### • Intuitive Anchor-like macros for streamlined testing
 
-### Invariant Checks
-Allows for custom invariants checks to spot vulnerabilities and unwanted behaviors.
-</p>
+### • High-performance [TridentSVM](https://github.com/Ackee-Blockchain/trident-svm) client powered by [Anza's SVM API](https://www.anza.xyz/blog/anzas-new-svm-api)
 
-<br />
+### • Leverages battle-tested web2 fuzzers [Honggfuzz](https://github.com/google/honggfuzz) and [AFL](https://github.com/AFLplusplus/AFLplusplus)
+
+
+---
 
 ## Community
 
