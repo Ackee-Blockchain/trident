@@ -9,17 +9,21 @@ use solana_sdk::sysvar::Sysvar;
 use solana_sdk::transaction::TransactionError;
 
 use trident_config::TridentConfig;
-use trident_svm::utils::ProgramEntrypoint;
+use trident_svm::trident_entrypoint::TridentEntrypoint;
+use trident_svm::trident_program::TridentProgram;
 
 /// A trait providing methods to read and write (manipulate) accounts
 pub trait FuzzClient {
-    /// Deploy a native program
-    fn deploy_native_program(&mut self, program: ProgramEntrypoint);
+    /// Deploy program through its entrypoint
+    fn deploy_entrypoint(&mut self, program: TridentEntrypoint);
+
+    /// Deploy program as binary
+    fn deploy_program(&mut self, program: TridentProgram);
 
     /// Create a new client
-    fn new_client(programs: &[ProgramEntrypoint], config: &TridentConfig) -> Self;
+    fn new_client(config: &TridentConfig) -> Self;
 
-    /// Get the cluster rent
+    /// Get sysvar
     fn get_sysvar<T: Sysvar>(&self) -> T;
 
     /// Warp to specific epoch
@@ -34,7 +38,7 @@ pub trait FuzzClient {
     /// Forward in time by the desired number of seconds
     fn forward_in_time(&mut self, seconds: i64);
 
-    /// Create or overwrite a custom account, subverting normal runtime checks.
+    /// Create or overwrite an account
     fn set_account_custom(&mut self, address: &Pubkey, account: &AccountSharedData);
 
     /// Get the Keypair of the client's payer account

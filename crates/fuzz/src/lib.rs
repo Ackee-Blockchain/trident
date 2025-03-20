@@ -73,8 +73,9 @@ pub mod fuzzing {
 
     pub use std::cell::RefCell;
     pub use std::collections::HashMap;
+    pub use trident_svm::trident_entrypoint::TridentEntrypoint;
+    pub use trident_svm::trident_program::TridentProgram;
     pub use trident_svm::trident_svm::TridentSVM;
-    pub use trident_svm::utils::ProgramEntrypoint;
 
     /// types
     pub use crate::types::AccountId;
