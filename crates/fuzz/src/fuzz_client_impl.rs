@@ -8,25 +8,30 @@ use solana_sdk::sysvar::Sysvar;
 
 use trident_config::TridentConfig;
 
+use trident_svm::trident_account::TridentAccountSharedData;
+use trident_svm::trident_entrypoint::TridentEntrypoint;
+use trident_svm::trident_program::TridentProgram;
 use trident_svm::trident_svm::TridentSVM;
-use trident_svm::utils::ProgramEntrypoint;
-use trident_svm::utils::SBFTarget;
-use trident_svm::utils::TridentAccountSharedData;
 
 use crate::traits::FuzzClient;
 use solana_sdk::transaction::TransactionError;
 
 impl FuzzClient for TridentSVM {
-    fn deploy_native_program(&mut self, program: ProgramEntrypoint) {
-        trident_svm::trident_svm::TridentSVM::deploy_native_program(self, program);
+    fn deploy_entrypoint(&mut self, program: TridentEntrypoint) {
+        self.deploy_entrypoint_program(&program);
     }
-    fn new_client(programs: &[ProgramEntrypoint], config: &TridentConfig) -> Self {
-        let sbf_programs =
+
+    fn deploy_program(&mut self, program: TridentProgram) {
+        self.deploy_binary_program(&program);
+    }
+
+    fn new_client(config: &TridentConfig) -> Self {
+        let program_binaries =
             config
                 .programs()
                 .iter()
                 .fold(Vec::new(), |mut sbf_programs, config_program| {
-                    let target = SBFTarget::new(
+                    let target = TridentProgram::new(
                         config_program.address,
                         None, // TODO add authority to the config fuzzing program
                         config_program.data.clone(),
@@ -49,7 +54,12 @@ impl FuzzClient for TridentSVM {
                     permanent_accounts
                 });
 
-        TridentSVM::new_with_syscalls(programs, &sbf_programs, &permanent_accounts)
+        TridentSVM::builder()
+            .with_syscalls_v1()
+            .with_syscalls_v2()
+            .with_sbf_programs(program_binaries)
+            .with_permanent_accounts(permanent_accounts)
+            .build()
     }
     fn warp_to_epoch(&mut self, warp_epoch: u64) {
         let mut clock = self.get_sysvar::<Clock>();
@@ -79,7 +89,7 @@ impl FuzzClient for TridentSVM {
     }
 
     fn set_account_custom(&mut self, address: &Pubkey, account: &AccountSharedData) {
-        self.add_temp_account(address, account);
+        self.set_account(address, account, false);
     }
 
     fn payer(&self) -> solana_sdk::signature::Keypair {

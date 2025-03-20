@@ -67,7 +67,7 @@ impl Template {
 
             fn main() {
 
-                let client = TridentSVM::new_client(&[], &TridentConfig::new());
+                let client = TridentSVM::new_client(&TridentConfig::new());
 
                 FuzzTest::new(client).fuzz();
             }
@@ -96,7 +96,7 @@ fn process_program_entries(
 
     // program definition and deployment as a single expression
     let program_stmt: syn::Stmt = parse_quote! {
-        self.client.deploy_native_program(ProgramEntrypoint::new(
+        self.client.deploy_entrypoint(TridentEntrypoint::new(
             pubkey!(#program_id),
             None,
             processor!(#library_entry)

@@ -32,12 +32,12 @@ impl<C: FuzzClient + std::panic::RefUnwindSafe> FuzzTest<C> {
     }
     #[init]
     fn start(&mut self) {
-        self.client.deploy_native_program(ProgramEntrypoint::new(
+        self.client.deploy_entrypoint(TridentEntrypoint::new(
             pubkey!("8bPSKGoWCdAW8Hu3S1hLHPpBv8BNwse4jDyaXNrj3jWB"),
             None,
             processor!(entry_additional_program),
         ));
-        self.client.deploy_native_program(ProgramEntrypoint::new(
+        self.client.deploy_entrypoint(TridentEntrypoint::new(
             pubkey!("HtD1eaPZ1JqtxcirNtYt3aAhUMoJWZ2Ddtzu4NDZCrhN"),
             None,
             processor!(entry_idl_test),
@@ -45,6 +45,6 @@ impl<C: FuzzClient + std::panic::RefUnwindSafe> FuzzTest<C> {
     }
 }
 fn main() {
-    let client = TridentSVM::new_client(&[], &TridentConfig::new());
+    let client = TridentSVM::new_client(&TridentConfig::new());
     FuzzTest::new(client).fuzz();
 }

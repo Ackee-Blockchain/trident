@@ -17,7 +17,7 @@ impl<C: FuzzClient + std::panic::RefUnwindSafe> FuzzTest<C> {
     }
     #[init]
     fn start(&mut self) {
-        self.client.deploy_native_program(ProgramEntrypoint::new(
+        self.client.deploy_entrypoint(TridentEntrypoint::new(
             pubkey!("3XtULmXDGS867VbBXiPkjYr4EMjytGW8X12F6BS23Zcw"),
             None,
             processor!(entry_cpi_metaplex_7),
@@ -25,6 +25,6 @@ impl<C: FuzzClient + std::panic::RefUnwindSafe> FuzzTest<C> {
     }
 }
 fn main() {
-    let client = TridentSVM::new_client(&[], &TridentConfig::new());
+    let client = TridentSVM::new_client(&TridentConfig::new());
     FuzzTest::new(client).fuzz();
 }
