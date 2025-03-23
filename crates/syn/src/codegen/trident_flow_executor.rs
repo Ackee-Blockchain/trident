@@ -74,7 +74,18 @@ impl ToTokens for TridentFlowExecutorImpl {
 
                 fn fuzz(&mut self) {
                     if cfg!(honggfuzz) {
+                        let mut loop_count = std::env::var("HONGGFUZZ_FUZZER_LOOPCOUNT")
+                            .unwrap_or_default()
+                            .parse::<u64>()
+                            .unwrap_or(0);
+                        let mut collect_coverage = if loop_count > 0 {true} else {false};
+
                         loop {
+                            if collect_coverage {
+                                loop_count -= 1;
+                                if loop_count == 0 { break };
+                            }
+
                             fuzz_honggfuzz(|fuzzer_data| {
                                 let mut buf = Unstructured::new(fuzzer_data);
                                 let _ = self.execute_flows(&mut buf);

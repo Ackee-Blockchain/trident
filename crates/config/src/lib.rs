@@ -80,6 +80,12 @@ impl TridentConfig {
         let full_path = resolve_path(&path);
         full_path.to_str().unwrap().to_string()
     }
+    pub fn get_honggfuzz_fuzzer_loopcount(&self) -> u64 {
+        self.honggfuzz
+            .as_ref()
+            .map(|honggfuzz| honggfuzz.get_fuzzer_loopcount())
+            .unwrap_or(HONGGFUZZ_FUZZER_LOOPCOUNT_DEFAULT)
+    }
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // afl
     pub fn get_afl_target_dir(&self) -> String {
@@ -133,6 +139,12 @@ impl TridentConfig {
             .as_ref()
             .map(|afl| afl.get_seeds())
             .unwrap_or_else(|| vec![AflSeed::default()])
+    }
+    pub fn get_afl_fuzzer_loopcount(&self) -> u64 {
+        self.afl
+            .as_ref()
+            .map(|afl| afl.get_fuzzer_loopcount())
+            .unwrap_or(AFL_FUZZER_LOOPCOUNT_DEFAULT)
     }
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // fuzz

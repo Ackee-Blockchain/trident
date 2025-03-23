@@ -7,6 +7,7 @@ mod cleaner;
 mod commander;
 mod idl_loader;
 // mod source_code_generators;
+mod coverage;
 mod test_generator;
 mod test_generator_gitignore;
 mod test_generator_manifest;

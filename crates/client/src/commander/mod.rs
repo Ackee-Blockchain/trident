@@ -32,6 +32,8 @@ pub enum Error {
     NoProgramsFound,
     #[error("Incorrect AFL workspace provided")]
     BadAFLWorkspace,
+    #[error("Coverage error: {0}")]
+    Coverage(#[from] crate::coverage::CoverageError),
 }
 
 /// `Commander` allows you to start localnet, build programs,
