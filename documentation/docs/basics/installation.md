@@ -40,6 +40,9 @@ cargo install trident-cli --version x.y.z
 
 ## Install Hongfuzz and AFL
 
+!!! warning Honggfuzz Availability
+    Honggfuzz is not available for macOS versions newer than 13 (Ventura). Please use a Linux environment to install and run Honggfuzz.
+
 ```bash
 cargo install honggfuzz
 cargo install cargo-afl
