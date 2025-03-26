@@ -14,6 +14,7 @@ Trident requires the following prerequisites:
 
 ## Install system dependencies
 
+### Linux
 Update your package list:
 
 ```bash
