@@ -28,6 +28,22 @@ sudo apt-get install binutils-dev
 sudo apt-get install libunwind-dev
 ```
 
+### macOS
+Install [Homebrew](https://brew.sh/) (unless you have it already)
+```bash
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+```
+Update installed packages:
+```bash
+brew update
+brew upgrade
+```
+Install the required packages:
+```bash
+brew install binutils
+brew install protobuf
+```
+
 ## Install Trident
 
 ```bash
