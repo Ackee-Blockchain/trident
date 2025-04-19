@@ -11,10 +11,10 @@ pub struct AflCoverage {
 }
 
 impl Coverage for AflCoverage {
-    fn new(cargo_target_dir: &str, fuzzer_loopcount: u64) -> Self {
+    fn new(cargo_target_dir: &str, fuzzer_loopcount: u64, target: &str) -> Self {
         Self {
             profraw_file: format!("{}/{}", cargo_target_dir, AFL_PROFRAW_FILENAME),
-            coverage_file: format!("{}/{}", cargo_target_dir, AFL_COVERAGE_FILENAME),
+            coverage_file: format!("{}/{}-{}", cargo_target_dir, target, AFL_COVERAGE_FILENAME),
             coverage_target_dir: cargo_target_dir.to_string(),
             fuzzer_loopcount: fuzzer_loopcount.to_string(),
             ignore_regex: COVERAGE_IGNORE_REGEX.to_string(),

@@ -35,6 +35,7 @@ impl Commander {
         let coverage = AflCoverage::new(
             &config.get_afl_target_dir(),
             config.get_afl_fuzzer_loopcount(),
+            &target,
         );
 
         coverage.clean().await?;

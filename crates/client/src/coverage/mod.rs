@@ -13,7 +13,7 @@ pub enum CoverageError {
 }
 
 pub trait Coverage {
-    fn new(cargo_target_dir: &str, fuzzer_loopcount: u64) -> Self
+    fn new(cargo_target_dir: &str, fuzzer_loopcount: u64, target: &str) -> Self
     where
         Self: Sized;
 

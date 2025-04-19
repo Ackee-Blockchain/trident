@@ -12,13 +12,13 @@ pub struct HonggfuzzCoverage {
 }
 
 impl Coverage for HonggfuzzCoverage {
-    fn new(cargo_target_dir: &str, fuzzer_loopcount: u64) -> Self {
+    fn new(cargo_target_dir: &str, fuzzer_loopcount: u64, target: &str) -> Self {
         let target_triple = HonggfuzzCoverage::target_triple();
         let cargo_target_dir = format!("{}/{}", cargo_target_dir, target_triple);
 
         Self {
             profraw_file: format!("{}/{}", cargo_target_dir, HONGGFUZZ_PROFRAW_FILENAME),
-            coverage_file: format!("{}/{}", cargo_target_dir, HONGGFUZZ_COVERAGE_FILENAME),
+            coverage_file: format!("{}/{}-{}", cargo_target_dir, target, HONGGFUZZ_COVERAGE_FILENAME),
             coverage_target_dir: cargo_target_dir.to_string(),
             fuzzer_loopcount: fuzzer_loopcount.to_string(),
             ignore_regex: COVERAGE_IGNORE_REGEX.to_string(),
