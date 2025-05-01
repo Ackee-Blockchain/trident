@@ -52,9 +52,7 @@ impl AflCoverage {
         let result = self.try_generate_report(false).await;
         match result {
             Ok(_) => Ok(()),
-            Err(CoverageError::CorruptedProfrawFiles) => {
-                self.try_generate_report(false).await
-            }
+            Err(CoverageError::CorruptedProfrawFiles) => self.try_generate_report(false).await,
             Err(e) => Err(e),
         }
     }

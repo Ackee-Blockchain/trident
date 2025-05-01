@@ -59,9 +59,7 @@ impl HonggfuzzCoverage {
         let result = self.try_generate_report(true).await;
         match result {
             Ok(_) => Ok(()),
-            Err(CoverageError::CorruptedProfrawFiles) => {
-                self.try_generate_report(true).await
-            }
+            Err(CoverageError::CorruptedProfrawFiles) => self.try_generate_report(true).await,
             Err(e) => Err(e),
         }
     }

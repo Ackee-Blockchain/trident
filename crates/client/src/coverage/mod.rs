@@ -130,7 +130,8 @@ pub trait Coverage {
             .spawn()
             .map_err(|_| CoverageError::GeneratingReportFailed)?;
 
-        match self.handle_child(&mut child, CoverageError::GeneratingReportFailed)
+        match self
+            .handle_child(&mut child, CoverageError::GeneratingReportFailed)
             .await
         {
             Ok(_) => Ok(()),

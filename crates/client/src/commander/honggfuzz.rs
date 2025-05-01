@@ -21,7 +21,7 @@ impl Commander {
             let coverage = HonggfuzzCoverage::new(
                 &config.get_honggfuzz_target_dir(),
                 config.get_honggfuzz_fuzzer_loopcount(),
-                &target
+                &target,
             );
 
             coverage.clean().await?;
