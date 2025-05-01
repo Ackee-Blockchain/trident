@@ -134,7 +134,10 @@ pub trait Coverage {
             .handle_child(&mut child, CoverageError::GeneratingReportFailed)
             .await
         {
-            Ok(_) => Ok(()),
+            Ok(_) => {
+                println!("Report has been successfully generated.");
+                Ok(())
+            }
             Err(_) => {
                 println!("Report generation failed, attempting to remove corrupted files.");
                 self.remove_corrupted_files(&mut child).await?;
