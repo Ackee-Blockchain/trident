@@ -18,7 +18,10 @@ impl Coverage for HonggfuzzCoverage {
 
         Self {
             profraw_file: format!("{}/{}", cargo_target_dir, HONGGFUZZ_PROFRAW_FILENAME),
-            coverage_file: format!("{}/{}-{}", cargo_target_dir, target, HONGGFUZZ_COVERAGE_FILENAME),
+            coverage_file: format!(
+                "{}/{}-{}",
+                cargo_target_dir, target, HONGGFUZZ_COVERAGE_FILENAME
+            ),
             coverage_target_dir: cargo_target_dir.to_string(),
             fuzzer_loopcount: fuzzer_loopcount.to_string(),
             ignore_regex: COVERAGE_IGNORE_REGEX.to_string(),
@@ -53,20 +56,14 @@ impl Coverage for HonggfuzzCoverage {
 
 impl HonggfuzzCoverage {
     pub async fn generate_report(&self) -> Result<(), CoverageError> {
-        let mut child = tokio::process::Command::new("cargo")
-            .env("LLVM_PROFILE_FILE", self.get_profraw_file())
-            .env("CARGO_LLVM_COV_TARGET_DIR", self.get_coverage_target_dir())
-            .arg("llvm-cov")
-            .arg("report")
-            .arg("--json")
-            .arg("--skip-functions")
-            .arg("--release")
-            .args(["--output-path", &self.get_coverage_file()])
-            .args(["--ignore-filename-regex", &self.get_ignore_regex()])
-            .spawn()
-            .map_err(|_| CoverageError::GeneratingReportFailed)?;
-
-        Self::handle_child(&mut child, CoverageError::GeneratingReportFailed).await
+        let result = self.try_generate_report(true).await;
+        match result {
+            Ok(_) => Ok(()),
+            Err(CoverageError::CorruptedProfrawFiles) => {
+                self.try_generate_report(true).await
+            }
+            Err(e) => Err(e),
+        }
     }
 
     fn target_triple() -> String {

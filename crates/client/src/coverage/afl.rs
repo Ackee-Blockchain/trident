@@ -49,18 +49,13 @@ impl Coverage for AflCoverage {
 
 impl AflCoverage {
     pub async fn generate_report(&self) -> Result<(), CoverageError> {
-        let mut child = tokio::process::Command::new("cargo")
-            .env("LLVM_PROFILE_FILE", self.get_profraw_file())
-            .env("CARGO_LLVM_COV_TARGET_DIR", self.get_coverage_target_dir())
-            .arg("llvm-cov")
-            .arg("report")
-            .arg("--json")
-            .arg("--skip-functions")
-            .args(["--output-path", &self.get_coverage_file()])
-            .args(["--ignore-filename-regex", &self.get_ignore_regex()])
-            .spawn()
-            .map_err(|_| CoverageError::GeneratingReportFailed)?;
-
-        Self::handle_child(&mut child, CoverageError::GeneratingReportFailed).await
+        let result = self.try_generate_report(false).await;
+        match result {
+            Ok(_) => Ok(()),
+            Err(CoverageError::CorruptedProfrawFiles) => {
+                self.try_generate_report(false).await
+            }
+            Err(e) => Err(e),
+        }
     }
 }
