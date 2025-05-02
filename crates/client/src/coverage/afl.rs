@@ -1,6 +1,24 @@
+//! AFL-specific implementation of code coverage collection and reporting.
+//!
+//! This module provides functionality to generate and manage code coverage reports
+//! when using the AFL fuzzer. It handles profraw file management and report generation
+//! using LLVM coverage tools.
+
 use super::{Coverage, CoverageError};
 use crate::coverage::constants::*;
 
+/// Coverage implementation specific to AFL fuzzing operations.
+///
+/// This struct manages coverage data collection and reporting for AFL fuzzing sessions,
+/// including handling of profraw files and coverage report generation.
+///
+/// # Fields
+/// * `profraw_file` - Path to the LLVM profile raw data file
+/// * `coverage_file` - Path where the generated coverage report will be saved
+/// * `coverage_target_dir` - Directory containing build artifacts and coverage data
+/// * `fuzzer_loopcount` - Number of iterations each process must execute before finishing and writing gathered profraw data
+/// * `ignore_regex` - Pattern for files to exclude from coverage analysis
+/// * `rustflags` - Rust compiler flags for coverage instrumentation
 pub struct AflCoverage {
     profraw_file: String,
     coverage_file: String,
@@ -11,6 +29,15 @@ pub struct AflCoverage {
 }
 
 impl Coverage for AflCoverage {
+    /// Creates a new instance of AflCoverage.
+    ///
+    /// # Arguments
+    /// * `cargo_target_dir` - Base directory for build artifacts
+    /// * `fuzzer_loopcount` - Number of iterations each process must execute before finishing and writing gathered profraw data
+    /// * `target` - Name of the target being fuzzed
+    ///
+    /// # Returns
+    /// A new AflCoverage instance configured for the specified target
     fn new(cargo_target_dir: &str, fuzzer_loopcount: u64, target: &str) -> Self {
         Self {
             profraw_file: format!("{}/{}", cargo_target_dir, AFL_PROFRAW_FILENAME),
@@ -48,6 +75,20 @@ impl Coverage for AflCoverage {
 }
 
 impl AflCoverage {
+    /// Generates a coverage report for the current fuzzing session.
+    ///
+    /// This method attempts to generate a coverage report from the collected profraw data.
+    /// If corrupted profraw files are encountered, it will attempt to clean them up and
+    /// retry the report generation once.
+    ///
+    /// # Returns
+    /// * `Ok(())` if the report was generated successfully
+    /// * `Err(CoverageError)` if report generation failed
+    ///
+    /// # Errors
+    /// Can return various `CoverageError` variants depending on the type of failure:
+    /// * `CoverageError::GeneratingReportFailed` - If the initial report generation fails
+    /// * `CoverageError::CorruptedProfrawFiles` - If corrupted profraw files are detected
     pub async fn generate_report(&self) -> Result<(), CoverageError> {
         let result = self.try_generate_report(false).await;
         match result {
@@ -120,7 +161,10 @@ mod tests {
         assert!(cmd_str.contains(&output_path));
 
         // Ignore patterns
-        let ignore_regex = format!("\"--ignore-filename-regex\" \"{}\"", coverage.get_ignore_regex());
+        let ignore_regex = format!(
+            "\"--ignore-filename-regex\" \"{}\"",
+            coverage.get_ignore_regex()
+        );
         assert!(cmd_str.contains(&ignore_regex));
 
         // Environment variables

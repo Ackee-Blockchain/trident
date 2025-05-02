@@ -1,3 +1,9 @@
+//! Coverage trait and error handling for fuzzing operations.
+//!
+//! This module provides the core functionality for managing code coverage during fuzzing sessions.
+//! It defines the common interface and error types used by specific fuzzer implementations
+//! like AFL and Honggfuzz.
+
 pub mod afl;
 pub mod constants;
 pub mod honggfuzz;
@@ -6,6 +12,7 @@ use tokio::io::AsyncRead;
 use tokio::io::{AsyncBufReadExt, BufReader};
 use tokio::process::{Child, ChildStderr};
 
+/// Errors that can occur during coverage operations.
 #[derive(Error, Debug, Clone)]
 pub enum CoverageError {
     #[error("Cleaning of coverage directory failed")]
@@ -20,7 +27,21 @@ pub enum CoverageError {
     ExtractingCorruptedFilesFailed,
 }
 
+/// Common interface for coverage collection and reporting across different fuzzers.
+///
+/// This trait defines the core functionality needed to manage code coverage during fuzzing sessions.
+/// It provides methods for initializing coverage collection, managing profraw files, and generating
+/// coverage reports.
 pub trait Coverage {
+    /// Creates a new coverage instance for a specific fuzzing target.
+    ///
+    /// # Arguments
+    /// * `cargo_target_dir` - Base directory for build artifacts
+    /// * `fuzzer_loopcount` - Number of iterations each process must execute before finishing and writing gathered profraw data
+    /// * `target` - Name of the target being fuzzed
+    ///
+    /// # Returns
+    /// A new instance of the coverage implementation
     fn new(cargo_target_dir: &str, fuzzer_loopcount: u64, target: &str) -> Self
     where
         Self: Sized;
@@ -32,6 +53,15 @@ pub trait Coverage {
     fn get_rustflags(&self) -> String;
     fn get_fuzzer_loopcount(&self) -> String;
 
+    /// Handles a child process and its potential errors during coverage operations.
+    ///
+    /// # Arguments
+    /// * `child` - The child process to monitor
+    /// * `error` - The error to return if the process fails
+    ///
+    /// # Returns
+    /// * `Ok(())` if the process completes successfully
+    /// * `Err(CoverageError)` if the process fails or is interrupted
     async fn handle_child(
         &self,
         child: &mut Child,
@@ -54,6 +84,13 @@ pub trait Coverage {
         Ok(())
     }
 
+    /// Cleans up coverage-related files and directories.
+    ///
+    /// Removes profraw list files and cleans the coverage workspace.
+    ///
+    /// # Returns
+    /// * `Ok(())` if cleaning succeeds
+    /// * `Err(CoverageError)` if cleaning fails
     async fn clean(&self) -> Result<(), CoverageError> {
         // Remove profraw-list file, there should only be one in the target directory
         self.remove_profraw_list().await?;
@@ -71,6 +108,11 @@ pub trait Coverage {
             .await
     }
 
+    /// Removes profraw list files from the target directory.
+    ///
+    /// # Returns
+    /// * `Ok(())` if removal succeeds
+    /// * `Err(CoverageError)` if removal fails
     async fn remove_profraw_list(&self) -> Result<(), CoverageError> {
         let target_dir_str = self.get_coverage_target_dir();
         let target_dir = std::path::Path::new(&target_dir_str);
@@ -79,7 +121,6 @@ pub trait Coverage {
             .map_err(|_| CoverageError::CleaningFailed)?;
 
         while let Ok(Some(entry)) = entries.next_entry().await {
-
             match entry.file_name().to_str() {
                 Some(name) if name.ends_with("profraw-list") => name,
                 _ => continue,
@@ -97,6 +138,14 @@ pub trait Coverage {
         Ok(())
     }
 
+    /// Extracts paths of corrupted profraw files from process output.
+    ///
+    /// # Arguments
+    /// * `reader` - BufReader containing process output to analyze
+    ///
+    /// # Returns
+    /// * `Ok(Vec<String>)` containing paths to corrupted files
+    /// * `Err(CoverageError)` if extraction fails
     async fn extract_corrupted_files<R>(
         &self,
         reader: &mut BufReader<R>,
@@ -124,12 +173,23 @@ pub trait Coverage {
         Ok(corrupted_files)
     }
 
+    /// Removes specified files from the filesystem.
+    ///
+    /// # Arguments
+    /// * `files` - List of file paths to remove
     async fn remove_files(&self, files: &[String]) {
         for file in files {
             let _ = tokio::fs::remove_file(file).await;
         }
     }
 
+    /// Builds the command for generating coverage reports.
+    ///
+    /// # Arguments
+    /// * `release` - Whether to build in release mode
+    ///
+    /// # Returns
+    /// Command configured for coverage report generation
     fn build_coverage_command(&self, release: bool) -> tokio::process::Command {
         let mut cmd = tokio::process::Command::new("cargo");
         cmd.env("LLVM_PROFILE_FILE", self.get_profraw_file())
@@ -148,6 +208,14 @@ pub trait Coverage {
         cmd
     }
 
+    /// Attempts to generate a coverage report.
+    ///
+    /// # Arguments
+    /// * `release` - Whether to build in release mode
+    ///
+    /// # Returns
+    /// * `Ok(())` if report generation succeeds
+    /// * `Err(CoverageError)` if generation fails or files are corrupted
     async fn try_generate_report(&self, release: bool) -> Result<(), CoverageError> {
         let mut child = self
             .build_coverage_command(release)
@@ -171,6 +239,14 @@ pub trait Coverage {
         }
     }
 
+    /// Removes corrupted profraw files identified during report generation.
+    ///
+    /// # Arguments
+    /// * `child` - Child process containing error output identifying corrupted files
+    ///
+    /// # Returns
+    /// * `Ok(())` if removal succeeds
+    /// * `Err(CoverageError)` if removal fails
     async fn remove_corrupted_files(&self, child: &mut Child) -> Result<(), CoverageError> {
         let stderr = child
             .stderr
@@ -272,19 +348,18 @@ mod tests {
     #[tokio::test]
     async fn test_clean_removes_profraw_list() {
         let temp_dir = std::env::temp_dir();
-        let coverage = MockCoverage::new(
-            &format!("{}/test", temp_dir.to_str().unwrap()),
-            100,
-            "test",
-        );
+        let target_dir = format!("{}/test", temp_dir.to_str().unwrap());
+        let coverage = MockCoverage::new(&target_dir, 100, "test");
 
-        // Create a dummy profraw list file
-        let profraw_list =
-            PathBuf::from(&coverage.get_coverage_target_dir()).join("profraw-list");
+        let _ = fs::create_dir_all(&target_dir).await;
+
+        let profraw_list = PathBuf::from(&coverage.get_coverage_target_dir()).join("profraw-list");
         fs::write(&profraw_list, "test").await.unwrap();
 
         assert!(coverage.clean().await.is_ok());
         assert!(!profraw_list.exists());
+
+        let _ = fs::remove_dir_all(&target_dir).await;
     }
 
     #[tokio::test]
@@ -292,8 +367,7 @@ mod tests {
         let temp_dir = std::env::temp_dir();
         let coverage = MockCoverage::new(temp_dir.to_str().unwrap(), 100, "test");
 
-        let profraw_list =
-            PathBuf::from(&coverage.get_coverage_target_dir()).join("profraw-list");
+        let profraw_list = PathBuf::from(&coverage.get_coverage_target_dir()).join("profraw-list");
 
         assert!(!profraw_list.exists());
         assert!(coverage.clean().await.is_ok());
@@ -331,9 +405,11 @@ mod tests {
     #[tokio::test]
     async fn test_remove_corrupted_files() {
         let temp_dir = std::env::temp_dir();
-        let coverage = MockCoverage::new(temp_dir.to_str().unwrap(), 100, "test");
+        let target_dir = temp_dir.to_str().unwrap().to_string();
+        let coverage = MockCoverage::new(&target_dir, 100, "test");
 
-        // Create test files
+        let _ = fs::create_dir_all(&target_dir).await;
+
         let file1 = PathBuf::from(&coverage.get_coverage_target_dir()).join("test1.profraw");
         let file2 = PathBuf::from(&coverage.get_coverage_target_dir()).join("test2.profraw");
 
@@ -345,11 +421,12 @@ mod tests {
             file2.to_str().unwrap().to_string(),
         ];
 
-        // Test file removal
         coverage.remove_files(&files_to_remove).await;
 
         assert!(!file1.exists());
         assert!(!file2.exists());
+
+        let _ = fs::remove_dir_all(&target_dir).await;
     }
 
     #[tokio::test]
