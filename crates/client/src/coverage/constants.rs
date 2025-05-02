@@ -9,7 +9,6 @@ pub const AFL_COVERAGE_RUSTFLAGS: &str = "-C instrument-coverage
                                           -C link-arg=-lprofiler";
 
 //HONGGFUZZ COVERAGE CONSTANTS
-
 pub const HONGGFUZZ_PROFRAW_FILENAME: &str = "honggfuzz-cov-%p-%30m.profraw";
 pub const HONGGFUZZ_COVERAGE_FILENAME: &str = "honggfuzz-cov.json";
 pub const HONGGFUZZ_COVERAGE_RUSTFLAGS: &str =
@@ -17,5 +16,3 @@ pub const HONGGFUZZ_COVERAGE_RUSTFLAGS: &str =
 
 // GENERAL COVERAGE CONSTANTS
 pub const COVERAGE_IGNORE_REGEX: &str = "trident";
-// pub const COVERAGE_IGNORE_REGEX: &str = "trident/crates|trident-tests";
-pub const PROFRAW_LIST: &str = "trident-tests-profraw-list";

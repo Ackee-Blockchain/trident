@@ -77,3 +77,93 @@ impl HonggfuzzCoverage {
         triple.into()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tokio::fs;
+
+    async fn cleanup_test_dir() {
+        let _ = fs::remove_dir_all("/tmp/test").await;
+    }
+
+    #[tokio::test]
+    async fn test_honggfuzz_coverage_new() {
+        let target_triple = HonggfuzzCoverage::target_triple();
+        let coverage = HonggfuzzCoverage::new("/tmp/test", 1000, "test-target");
+
+        assert_eq!(
+            coverage.get_profraw_file(),
+            format!("/tmp/test/{}/{}", target_triple, HONGGFUZZ_PROFRAW_FILENAME)
+        );
+        assert_eq!(
+            coverage.get_coverage_file(),
+            format!(
+                "/tmp/test/{}/test-target-{}",
+                target_triple, HONGGFUZZ_COVERAGE_FILENAME
+            )
+        );
+        assert_eq!(
+            coverage.get_coverage_target_dir(),
+            format!("/tmp/test/{}", target_triple)
+        );
+        assert_eq!(coverage.get_fuzzer_loopcount(), "1000");
+        assert_eq!(coverage.get_ignore_regex(), COVERAGE_IGNORE_REGEX);
+        assert_eq!(coverage.get_rustflags(), HONGGFUZZ_COVERAGE_RUSTFLAGS);
+    }
+
+    #[test]
+    fn test_target_triple_format() {
+        let triple = HonggfuzzCoverage::target_triple();
+
+        assert!(triple.contains('-'));
+        assert!(!triple.contains("host: "));
+        assert!(!triple.is_empty());
+    }
+
+    #[tokio::test]
+    async fn test_generate_report_from_non_existing_target() {
+        let coverage = HonggfuzzCoverage::new("/tmp/test", 1000, "test-target");
+        let result = coverage.generate_report().await;
+        assert!(result.is_err());
+
+        cleanup_test_dir().await;
+    }
+
+    #[test]
+    fn test_build_coverage_command_contains_required_args() {
+        let coverage = HonggfuzzCoverage::new("/tmp/test", 100, "test");
+        let cmd = coverage.build_coverage_command(true);
+
+        let cmd_str = format!("{:?}", cmd);
+        // Basic command structure
+        assert!(cmd_str.contains("cargo"));
+        assert!(cmd_str.contains("llvm-cov"));
+        assert!(cmd_str.contains("report"));
+
+        // Required flags
+        assert!(cmd_str.contains("--release"));
+        assert!(cmd_str.contains("--json"));
+        assert!(cmd_str.contains("--skip-functions"));
+
+        // Output configuration
+        let output_path = format!("\"--output-path\" \"{}\"", coverage.get_coverage_file());
+        assert!(cmd_str.contains(output_path.as_str()));
+
+        // Ignore patterns
+        let ignore_regex = format!(
+            "\"--ignore-filename-regex\" \"{}\"",
+            coverage.get_ignore_regex()
+        );
+        assert!(cmd_str.contains(ignore_regex.as_str()));
+
+        // Environment variables
+        let env_vars = format!("LLVM_PROFILE_FILE=\"{}\"", coverage.get_profraw_file());
+        assert!(cmd_str.contains(env_vars.as_str()));
+        let env_vars = format!(
+            "CARGO_LLVM_COV_TARGET_DIR=\"{}\"",
+            coverage.get_coverage_target_dir()
+        );
+        assert!(cmd_str.contains(env_vars.as_str()));
+    }
+}
