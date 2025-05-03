@@ -10,7 +10,7 @@ pub mod honggfuzz;
 use thiserror::Error;
 use tokio::io::AsyncRead;
 use tokio::io::{AsyncBufReadExt, BufReader};
-use tokio::process::{Child, ChildStderr};
+use tokio::process::Child;
 
 /// Errors that can occur during coverage operations.
 #[derive(Error, Debug, Clone)]
@@ -264,6 +264,8 @@ pub trait Coverage {
 }
 
 mod tests {
+    #![allow(unused_imports)]
+    #![allow(dead_code)]
     use super::*;
     use std::path::PathBuf;
     use std::pin::Pin;

@@ -181,3 +181,20 @@ max_file_size = 1048576
 [honggfuzz]
 save_all = false
 ```
+
+---
+
+## `fuzzer_loopcount`
+
+- The fuzzer loopcount represents a number of iterations each fuzzer-created process needs to execute before it finishes and generates a profraw file.
+
+!!! warning "Impact on performance and code coverage accuracy"
+
+    If the loopcount is too low, the fuzzer will be slower because new processes will need to be created more often. However, the higher the loopcount, the higher the chance that the process will crash and not generate any profraw file, thus reducing the code coverage accuracy.
+
+`(default: 10)`
+
+```bash
+[honggfuzz]
+fuzzer_loopcount = 10
+```

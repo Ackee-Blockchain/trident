@@ -52,7 +52,7 @@ pub enum FuzzCommand {
             short,
             long,
             required = false,
-            help = "Gather code coverage and generate json report which can be displayed using our VSCode extension."
+            help = "Tracks code coverage during fuzzing and generates a JSON report upon completion. The coverage data can be visualized in your source code using our VS Code extension."
         )]
         generate_coverage: bool,
     },
@@ -80,7 +80,7 @@ pub enum FuzzCommand {
             short,
             long,
             required = false,
-            help = "Gather code coverage and generate json report which can be displayed using our VSCode extension."
+            help = "Tracks code coverage during fuzzing and generates a JSON report upon completion. The coverage data can be visualized in your source code using our VS Code extension."
         )]
         generate_coverage: bool,
     },

@@ -13,6 +13,7 @@ incremented upon a breaking change and the patch version will be incremented for
 **Added**
 
 - Added support for simple fuzzing metrics for AFL ([309](https://github.com/Ackee-Blockchain/trident/pull/309))
+- Code coverage tracking support for both AFL and Honggfuzz fuzzing via the `-g, --generate-coverage` flag. Coverage data can be visualized using the VS Code extension (ADD_PR_NUMBER)
 
 **Removed**
 
