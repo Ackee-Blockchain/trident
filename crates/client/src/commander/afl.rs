@@ -1,5 +1,5 @@
-use crate::constants::*;
 use fehler::{throw, throws};
+use rand::RngCore;
 use std::io::{Read, Write};
 use std::process::Stdio;
 use std::{fs::File, path::Path};
@@ -8,24 +8,43 @@ use tokio::{io::AsyncWriteExt, process::Command};
 use trident_config::afl::AflSeed;
 use trident_config::TridentConfig;
 
-use super::{Commander, Error};
-use rand::RngCore;
+use crate::commander::{Commander, Error};
+use crate::constants::*;
 
 impl Commander {
-    /// Runs fuzzer on the given target.
+    /// Runs AFL (American Fuzzy Lop) fuzzer on the specified target binary.
+    ///
+    /// # Arguments
+    /// * `target` - The name of the target binary to fuzz
+    ///
+    /// # Errors
+    /// Returns an error if:
+    /// * Failed to create AFL workspace directories
+    /// * Failed to create seed files
+    /// * Failed to build or run the fuzzer
+    ///
+    /// # Example
+    /// ```no_run
+    /// # use fehler::throws;
+    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// let commander = Commander::new();
+    /// commander.run_afl("my_target".to_string()).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
     #[throws]
     pub async fn run_afl(&self, target: String) {
         let config = TridentConfig::new();
 
-        // build args without cargo target dir
+        // Build args without cargo target dir
         let build_args = config.get_afl_build_args();
-        // fuzz args without afl workspace in and out
+        // Fuzz args without afl workspace in and out
         let fuzz_args = config.get_afl_fuzz_args();
 
-        // cargo target directory
+        // Cargo target directory
         let cargo_target_dir = config.get_afl_target_dir();
 
-        // afl workspace in and out
+        // AFL workspace in and out
         let afl_workspace_in = config.get_afl_workspace_in();
         let afl_workspace_out = config.get_afl_workspace_out();
 
@@ -74,7 +93,26 @@ impl Commander {
         Self::handle_child(&mut child).await?;
     }
 
-    /// Runs fuzzer on the given target.
+    /// Runs AFL fuzzer in debug mode on the given target with a specified crash file.
+    ///
+    /// # Arguments
+    /// * `target` - The name of the target binary to fuzz
+    /// * `crash_file` - The path to the crash file to use for fuzzing
+    ///
+    /// # Errors
+    /// Returns an error if:
+    /// * The crash file does not exist
+    /// * Failed to build or run the fuzzer
+    ///
+    /// # Example
+    /// ```no_run
+    /// # use fehler::throws;
+    /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
+    /// let commander = Commander::new();
+    /// commander.run_afl_debug("my_target".to_string(), "crash_file.txt".to_string()).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
     #[throws]
     pub async fn run_afl_debug(&self, target: String, crash_file: String) {
         let config = TridentConfig::new();
@@ -94,24 +132,22 @@ impl Commander {
             throw!(Error::CrashFileNotFound);
         }
 
-        // cargo target directory
-        let cargo_target_dir = config.get_afl_target_dir();
-
         let mut rustflags = std::env::var("RUSTFLAGS").unwrap_or_default();
-
         rustflags.push_str("--cfg afl --cfg fuzzing_debug");
 
         let mut file = File::open(crash_file)?;
         let mut file_contents = Vec::new();
         file.read_to_end(&mut file_contents)?;
 
-        // using exec rather than spawn and replacing current process to avoid unflushed terminal output after ctrl+c signal
+        let cargo_target_directory = config.get_afl_target_dir();
+
+        // Using exec rather than spawn and replacing current process to avoid unflushed terminal output after ctrl+c signal
         let mut child = Command::new("cargo")
             .env("TRIDENT_LOG", "1")
             .env("RUSTFLAGS", rustflags)
             .arg("afl")
             .arg("run")
-            .args(["--target-dir", &cargo_target_dir])
+            .args(["--target-dir", &cargo_target_directory])
             .args(["--bin", &target])
             .stdin(Stdio::piped())
             .spawn()?;
@@ -123,6 +159,32 @@ impl Commander {
     }
 }
 
+/// Creates a seed file for AFL fuzzing in the specified directory
+///
+/// # Arguments
+///
+/// * `path` - The directory path where the seed file will be created
+/// * `seed` - The AFL seed configuration containing file name and content details
+///
+/// # Returns
+///
+/// Returns `Ok(())` on successful file creation, or an IO error if file operations fail
+///
+/// # Examples
+///
+/// ```
+/// use std::path::Path;
+/// use trident_config::afl::AflSeed;
+///
+/// let path = Path::new("seeds");
+/// let seed = AflSeed {
+///     file_name: "test.txt".into(),
+///     bytes_count: Some(16),
+///     override_file: Some(true),
+///     seed: None
+/// };
+/// create_seed_file(path, &seed)?;
+/// ```
 fn create_seed_file(path: &Path, seed: &AflSeed) -> std::io::Result<()> {
     let (bytes, override_file) = obtain_seed(seed);
 
@@ -141,6 +203,36 @@ fn create_seed_file(path: &Path, seed: &AflSeed) -> std::io::Result<()> {
     Ok(())
 }
 
+/// Helper function to obtain seed bytes and override flag from an AFL seed configuration
+///
+/// # Arguments
+///
+/// * `value` - The AFL seed configuration
+///
+/// # Returns
+///
+/// Returns a tuple containing:
+/// - A vector of bytes representing the seed data
+/// - A boolean indicating whether to override existing files
+///
+/// # Examples
+///
+/// ```
+/// let seed = AflSeed {
+///     file_name: "test_seed".into(),
+///     bytes_count: Some(32),
+///     override_file: Some(true),
+///     seed: None
+/// };
+/// let (bytes, override_flag) = obtain_seed(&seed);
+/// assert_eq!(bytes.len(), 32);
+/// assert!(override_flag);
+/// ```
+///
+/// # Panics
+///
+/// Panics if seed value is empty when bytes_count is None or 0
+///
 fn obtain_seed(value: &AflSeed) -> (Vec<u8>, bool) {
     match value.bytes_count {
         Some(number_of_random_bytes) => {
