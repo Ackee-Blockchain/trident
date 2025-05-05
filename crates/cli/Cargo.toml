@@ -15,11 +15,9 @@ path = "../client"
 version = "0.10.0"
 
 [dependencies]
-
-# Misc
-clap = { version = "4", features = ["derive"] }
-tokio = { version = "1" }
-anyhow = { version = "1" }
-fehler = { version = "1" }
-termimad = "0.30.0"
-heck = "0.4.0"
+clap = { workspace = true }
+tokio = { workspace = true }
+anyhow = { workspace = true }
+fehler = { workspace = true }
+termimad = { workspace = true }
+heck = { workspace = true }
