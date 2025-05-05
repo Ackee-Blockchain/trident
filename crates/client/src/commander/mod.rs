@@ -1,18 +1,20 @@
 use fehler::{throw, throws};
-use std::path::{Path, PathBuf};
-use std::{io, process::Stdio, string::FromUtf8Error};
+use std::{
+    io,
+    path::{Path, PathBuf},
+    process::Stdio,
+    string::FromUtf8Error,
+};
 use thiserror::Error;
 use tokio::{
-    io::AsyncWriteExt,
+    io::{AsyncBufReadExt, AsyncWriteExt},
     process::{Child, Command},
     signal,
 };
+use trident_fuzz::fuzz_stats::FuzzingStatistics;
 
 mod afl;
 mod honggfuzz;
-
-use tokio::io::AsyncBufReadExt;
-use trident_fuzz::fuzz_stats::FuzzingStatistics;
 
 #[derive(Error, Debug)]
 pub enum Error {
