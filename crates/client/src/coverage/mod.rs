@@ -92,6 +92,13 @@ pub trait Coverage {
     /// * `Ok(())` if cleaning succeeds
     /// * `Err(CoverageError)` if cleaning fails
     async fn clean(&self) -> Result<(), CoverageError> {
+        if !tokio::fs::try_exists(self.get_coverage_target_dir())
+            .await
+            .unwrap_or(false)
+        {
+            return Ok(());
+        }
+
         // Remove profraw-list file, there should only be one in the target directory
         self.remove_profraw_list().await?;
 
