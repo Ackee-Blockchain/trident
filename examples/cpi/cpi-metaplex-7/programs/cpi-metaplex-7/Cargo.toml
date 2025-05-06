@@ -19,4 +19,4 @@ idl-build = ["anchor-lang/idl-build", "anchor-spl/idl-build"]
 [dependencies]
 anchor-lang = "0.31.1"
 anchor-spl = "0.31.1"
-mpl-token-metadata = "4.1.2"
+mpl-token-metadata = "5"
