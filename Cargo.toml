@@ -22,16 +22,42 @@ license-file = "./LICENSE"
 readme = "./README.md"
 
 [workspace.dependencies]
-# Solana
 solana-sdk = "~2.0"
-
-# ARBITRARY
 arbitrary = { version = "1.3.0", features = ["derive"] }
+syn = { version = "2.0", features = ["full", "parsing", "visit"] }
+clap = { version = "4", features = ["derive"] }
+tokio = { version = "1" }
+anyhow = { version = "1" }
+fehler = { version = "1" }
+termimad = "0.30.0"
+heck = "0.4.0"
+trident-idl-spec = "0.0.2"
+serde_json = "1"
+serde = { version = "1", default-features = false }
+thiserror = "^2.0.0"
+cargo_metadata = "0.18"
+toml = { version = "0.8", features = ["preserve_order"] }
+pathdiff = "0.2"
+rand = "0.8"
+base64 = "0.22.1"
+prettytable = "0.10"
+bincode = "1.3"
+byteorder = "1.5.0"
+itertools = "0"
+borsh = "1.5.3"
+shared_memory = "0.12.4"
+signal-hook = "0.3"
+proc-macro2 = "1.0"
+quote = "1.0"
+petgraph = "0.6"
+convert_case = "0.6"
+sha2 = "0.10.0"
 
-# Honggfuzz
+# fuzzing
 honggfuzz = { version = "0.5.55" }
-
-#AFL
 afl = { version = "0.15.10" }
 
-syn = { version = "2.0", features = ["full", "parsing", "visit"] }
+# programs
+solana-vote-program = { version = "~2.0" }
+solana-stake-program = { version = "~2.0" }
+spl-token = { version = "5", features = ["no-entrypoint"] }

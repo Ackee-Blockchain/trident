@@ -9,12 +9,8 @@ license-file = { workspace = true }
 readme = { workspace = true }
 
 [dependencies]
-
-# Trident IDL spec
-trident-idl-spec = "0.0.2"
-
-# Misc
+trident-idl-spec = { workspace = true }
 syn = { workspace = true }
-quote = "1"
-convert_case = "0.6"
-sha2 = "0.10.0"
+quote = { workspace = true }
+convert_case = { workspace = true }
+sha2 = { workspace = true }
