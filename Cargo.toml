@@ -63,7 +63,7 @@ trident-derive-flow-executor = { path = "crates/fuzz/derive/flow_executor", vers
 
 trident-config = { path = "crates/config", version = "0.10.0" }
 trident-template = { path = "crates/template", version = "0.10.0" }
-trident-svm = { git = "https://github.com/puhtaytow/trident-svm", branch = "feat/supress-program-crashes" }
+trident-svm = { git = "https://github.com/Ackee-Blockchain/trident-svm", branch = "master", version = "0.0.3" }
 trident-fuzz = { path = "crates/fuzz", version = "0.10.0" }
 trident-client = { path = "crates/client", version = "0.10.0" }
 
