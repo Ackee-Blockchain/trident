@@ -17,43 +17,6 @@ vote = ["dep:solana-vote-program"]
 stake = ["dep:solana-stake-program"]
 token = ["dep:spl-token"]
 
-# Derive macros
-[dependencies.trident-derive-transaction]
-path = "../fuzz/derive/transaction"
-version = "0.10.0"
-
-[dependencies.trident-derive-instruction]
-path = "../fuzz/derive/instruction"
-version = "0.10.0"
-
-[dependencies.trident-derive-accounts]
-path = "../fuzz/derive/accounts"
-version = "0.10.0"
-
-[dependencies.trident-derive-remaining-accounts]
-path = "../fuzz/derive/remaining_accounts"
-version = "0.10.0"
-
-[dependencies.trident-derive-transaction-selector]
-path = "../fuzz/derive/transaction_selector"
-version = "0.10.0"
-
-[dependencies.trident-derive-flow-executor]
-path = "../fuzz/derive/flow_executor"
-version = "0.10.0"
-
-# Config (Trident.toml)
-[dependencies.trident-config]
-path = "../config"
-version = "0.10.0"
-
-
-# Trident-SVM
-[dependencies.trident-svm]
-version = "0.0.3"
-git = "https://github.com/Ackee-Blockchain/trident-svm"
-branch = "master"
-
 [dependencies]
 arbitrary = { workspace = true }
 solana-sdk = { workspace = true }
@@ -74,9 +37,21 @@ borsh = { workspace = true }
 shared_memory = { workspace = true }
 signal-hook = { workspace = true }
 
+trident-derive-transaction = { workspace = true }
+trident-derive-instruction = { workspace = true }
+trident-derive-accounts = { workspace = true }
+trident-derive-remaining-accounts = { workspace = true }
+trident-derive-transaction-selector = { workspace = true }
+trident-derive-flow-executor = { workspace = true }
+
+trident-config = { workspace = true }
+trident-svm = { workspace = true }
+
 solana-vote-program = { workspace = true, optional = true }
 solana-stake-program = { workspace = true, optional = true }
 spl-token = { workspace = true, optional = true, features = ["no-entrypoint"] }
 
 honggfuzz = { workspace = true }
 afl = { workspace = true }
+
+

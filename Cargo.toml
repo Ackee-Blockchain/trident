@@ -53,6 +53,20 @@ petgraph = "0.6"
 convert_case = "0.6"
 sha2 = "0.10.0"
 
+# derive macros
+trident-derive-transaction = { path = "crates/fuzz/derive/transaction", version = "0.10.0" }
+trident-derive-instruction = { path = "crates/fuzz/derive/instruction", version = "0.10.0" }
+trident-derive-accounts = { path = "crates/fuzz/derive/accounts", version = "0.10.0" }
+trident-derive-remaining-accounts = { path = "crates/fuzz/derive/remaining_accounts", version = "0.10.0" }
+trident-derive-transaction-selector = { path = "crates/fuzz/derive/transaction_selector", version = "0.10.0" }
+trident-derive-flow-executor = { path = "crates/fuzz/derive/flow_executor", version = "0.10.0" }
+
+trident-config = { path = "crates/config", version = "0.10.0" }
+trident-template = { path = "crates/template", version = "0.10.0" }
+trident-svm = { git = "https://github.com/puhtaytow/trident-svm", branch = "feat/supress-program-crashes" }
+trident-fuzz = { path = "crates/fuzz", version = "0.10.0" }
+trident-client = { path = "crates/client", version = "0.10.0" }
+
 # fuzzing
 honggfuzz = { version = "0.5.55" }
 afl = { version = "0.15.10" }
@@ -61,3 +75,6 @@ afl = { version = "0.15.10" }
 solana-vote-program = { version = "~2.0" }
 solana-stake-program = { version = "~2.0" }
 spl-token = { version = "5", features = ["no-entrypoint"] }
+
+[workspace.dependencies.pretty_assertions]
+version = "1.1.0"

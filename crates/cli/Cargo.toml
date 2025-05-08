@@ -9,11 +9,6 @@ license-file = { workspace = true }
 readme = { workspace = true }
 
 
-# Trident
-[dependencies.trident-client]
-path = "../client"
-version = "0.10.0"
-
 [dependencies]
 clap = { workspace = true }
 tokio = { workspace = true }
@@ -21,3 +16,5 @@ anyhow = { workspace = true }
 fehler = { workspace = true }
 termimad = { workspace = true }
 heck = { workspace = true }
+
+trident-client = { workspace = true }

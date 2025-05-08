@@ -9,20 +9,6 @@ license-file = { workspace = true }
 readme = { workspace = true }
 
 
-# Trident
-[dependencies.trident-fuzz]
-path = "../fuzz"
-version = "0.10.0"
-
-[dependencies.trident-config]
-path = "../config"
-version = "0.10.0"
-
-[dependencies.trident-template]
-path = "../template"
-version = "0.10.0"
-
-
 [dependencies]
 trident-idl-spec = { workspace = true }
 tokio = { workspace = true, features = ["full"] }
@@ -37,5 +23,9 @@ pathdiff = { workspace = true }
 rand = { workspace = true }
 heck = { workspace = true }
 
+trident-fuzz = { workspace = true }
+trident-template = { workspace = true }
+trident-config = { workspace = true }
+
 [dev-dependencies]
-pretty_assertions = "1.1.0"
+pretty_assertions = { workspace = true }
