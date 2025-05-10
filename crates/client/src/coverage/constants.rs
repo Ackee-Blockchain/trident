@@ -16,3 +16,4 @@ pub const HONGGFUZZ_COVERAGE_RUSTFLAGS: &str =
 
 // GENERAL COVERAGE CONSTANTS
 pub const COVERAGE_IGNORE_REGEX: &str = "trident";
+pub const EXTENSION_NOTIFICATION_FILE: &str = "coverage-extension-notification.json";

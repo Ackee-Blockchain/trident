@@ -15,7 +15,7 @@ use rand::RngCore;
 
 impl Commander {
     #[throws]
-    pub async fn run_afl(&self, target: String, generate_coverage: bool) {
+    pub async fn run_afl(&self, target: String, generate_coverage: bool, dynamic_coverage: bool) {
         let config = TridentConfig::new();
 
         if config.get_fuzzing_with_stats() {
@@ -23,7 +23,8 @@ impl Commander {
         }
 
         if generate_coverage {
-            self.run_afl_with_coverage(&target, &config).await?;
+            self.run_afl_with_coverage(&target, &config, dynamic_coverage)
+                .await?;
         } else {
             self.build_afl_target(&target, &config, None).await?;
             self.run_afl_target(&target, &config, None).await?;
@@ -31,11 +32,17 @@ impl Commander {
     }
 
     #[throws]
-    pub async fn run_afl_with_coverage(&self, target: &str, config: &TridentConfig) {
+    pub async fn run_afl_with_coverage(
+        &self,
+        target: &str,
+        config: &TridentConfig,
+        dynamic_coverage: bool,
+    ) {
         let coverage = AflCoverage::new(
             &config.get_afl_target_dir(),
             config.get_afl_fuzzer_loopcount(),
             &target,
+            dynamic_coverage,
         );
 
         coverage.clean().await?;
@@ -164,6 +171,10 @@ impl Commander {
             .args(fuzz_args)
             .arg(&full_target_path)
             .spawn()?;
+
+        if let Some(coverage) = coverage {
+            coverage.notify_dynamic_coverage_start().await?;
+        }
 
         Self::handle_child(&mut child).await?;
     }

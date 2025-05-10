@@ -6,7 +6,7 @@
 
 use super::{Coverage, CoverageError};
 use crate::coverage::constants::*;
-
+use std::path::PathBuf;
 /// Coverage implementation specific to AFL fuzzing operations.
 ///
 /// This struct manages coverage data collection and reporting for AFL fuzzing sessions,
@@ -19,6 +19,8 @@ use crate::coverage::constants::*;
 /// * `fuzzer_loopcount` - Number of iterations each process must execute before finishing and writing gathered profraw data
 /// * `ignore_regex` - Pattern for files to exclude from coverage analysis
 /// * `rustflags` - Rust compiler flags for coverage instrumentation
+/// * `dynamic_coverage` - Whether to use dynamic coverage collection
+
 pub struct AflCoverage {
     profraw_file: String,
     coverage_file: String,
@@ -26,6 +28,7 @@ pub struct AflCoverage {
     fuzzer_loopcount: String,
     ignore_regex: String,
     rustflags: String,
+    dynamic_coverage: bool,
 }
 
 impl Coverage for AflCoverage {
@@ -35,10 +38,16 @@ impl Coverage for AflCoverage {
     /// * `cargo_target_dir` - Base directory for build artifacts
     /// * `fuzzer_loopcount` - Number of iterations each process must execute before finishing and writing gathered profraw data
     /// * `target` - Name of the target being fuzzed
+    /// * `dynamic_coverage` - Whether to use dynamic coverage collection
     ///
     /// # Returns
     /// A new AflCoverage instance configured for the specified target
-    fn new(cargo_target_dir: &str, fuzzer_loopcount: u64, target: &str) -> Self {
+    fn new(
+        cargo_target_dir: &str,
+        fuzzer_loopcount: u64,
+        target: &str,
+        dynamic_coverage: bool,
+    ) -> Self {
         Self {
             profraw_file: format!("{}/{}", cargo_target_dir, AFL_PROFRAW_FILENAME),
             coverage_file: format!("{}/{}-{}", cargo_target_dir, target, AFL_COVERAGE_FILENAME),
@@ -46,6 +55,7 @@ impl Coverage for AflCoverage {
             fuzzer_loopcount: fuzzer_loopcount.to_string(),
             ignore_regex: COVERAGE_IGNORE_REGEX.to_string(),
             rustflags: AFL_COVERAGE_RUSTFLAGS.to_string(),
+            dynamic_coverage,
         }
     }
 
@@ -72,6 +82,33 @@ impl Coverage for AflCoverage {
     fn get_rustflags(&self) -> String {
         self.rustflags.clone()
     }
+
+    fn get_dynamic_coverage(&self) -> bool {
+        self.dynamic_coverage.clone()
+    }
+
+    /// Returns the root fuzzing directory by traversing up from the coverage target directory.
+    ///
+    /// This function navigates up two directory levels from the coverage target directory
+    /// to locate the main fuzzing folder where AFL's input/output directories and other
+    /// fuzzing-related data are stored.
+    ///
+    /// # Returns
+    /// * `PathBuf` - Path to the fuzzing directory
+    fn get_fuzzing_folder(&self) -> PathBuf {
+        let target_dir = self.get_coverage_target_dir();
+        let mut path = std::path::PathBuf::from(&target_dir);
+
+        // Need to go up 2 levels to get to the fuzzing folder
+        let levels = 2;
+        for _ in 0..levels {
+            if let Some(parent) = path.parent() {
+                path = parent.to_path_buf();
+            }
+        }
+
+        path
+    }
 }
 
 impl AflCoverage {
@@ -97,6 +134,19 @@ impl AflCoverage {
             Err(e) => Err(e),
         }
     }
+
+    /// Initializes and notifies the start of dynamic coverage collection for AFL fuzzing.
+    ///
+    /// This method sets up the necessary environment for dynamic coverage collection
+    /// and signals that coverage tracking should begin. It is called just before
+    /// the AFL fuzzing process starts when dynamic coverage is enabled.
+    ///
+    /// # Returns
+    /// * `Ok(())` if dynamic coverage setup succeeds
+    /// * `Err(CoverageError)` if setup fails
+    pub async fn notify_dynamic_coverage_start(&self) -> Result<(), CoverageError> {
+        self.setup_dynamic_coverage("AFL").await
+    }
 }
 
 #[cfg(test)]
@@ -113,7 +163,7 @@ mod tests {
         let target_dir = "/tmp/test";
         let loopcount = 1000;
         let target = "test-target";
-        let coverage = AflCoverage::new(target_dir, loopcount, target);
+        let coverage = AflCoverage::new(target_dir, loopcount, target, false);
 
         assert_eq!(
             coverage.get_profraw_file(),
@@ -131,7 +181,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_generate_report_from_non_existing_target() {
-        let coverage = AflCoverage::new("/tmp/test", 1000, "test-target");
+        let coverage = AflCoverage::new("/tmp/test", 1000, "test-target", false);
 
         let result = coverage.generate_report().await;
         assert!(result.is_err());
@@ -141,7 +191,7 @@ mod tests {
 
     #[test]
     fn test_build_coverage_command_contains_required_args() {
-        let coverage = AflCoverage::new("/tmp", 100, "test");
+        let coverage = AflCoverage::new("/tmp", 100, "test", false);
         let cmd = coverage.build_coverage_command(false);
 
         let cmd_str = format!("{:?}", cmd);

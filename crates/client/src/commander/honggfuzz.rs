@@ -14,7 +14,13 @@ use super::{get_crash_dir_and_ext, get_crash_files, Commander, Error};
 impl Commander {
     /// Runs fuzzer on the given target.
     #[throws]
-    pub async fn run_honggfuzz(&self, target: String, exit_code: bool, generate_coverage: bool) {
+    pub async fn run_honggfuzz(
+        &self,
+        target: String,
+        exit_code: bool,
+        generate_coverage: bool,
+        dynamic_coverage: bool,
+    ) {
         let config = TridentConfig::new();
 
         if generate_coverage {
@@ -22,6 +28,7 @@ impl Commander {
                 &config.get_honggfuzz_target_dir(),
                 config.get_honggfuzz_fuzzer_loopcount(),
                 &target,
+                dynamic_coverage,
             );
 
             coverage.clean().await?;
@@ -94,13 +101,22 @@ impl Commander {
 
         if config.get_fuzzing_with_stats() {
             let mut child = command.stdout(Stdio::piped()).spawn()?;
+            Self::notify_coverage(coverage).await?;
             Self::handle_child_with_stats(&mut child).await?;
         } else {
             let mut child = command.spawn()?;
+            Self::notify_coverage(coverage).await?;
             Self::handle_child(&mut child).await?;
         }
 
         self.check_crash_dir(target, &env_vars, false, exit_code)?;
+    }
+
+    #[throws]
+    async fn notify_coverage(coverage: Option<&HonggfuzzCoverage>) {
+        if let Some(c) = coverage {
+            c.notify_dynamic_coverage_start().await?;
+        }
     }
 
     #[throws]

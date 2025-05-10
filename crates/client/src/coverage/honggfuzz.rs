@@ -6,6 +6,7 @@
 
 use super::{Coverage, CoverageError};
 use crate::coverage::constants::*;
+use std::path::PathBuf;
 use std::process::Command;
 
 /// Coverage implementation specific to Honggfuzz fuzzing operations.
@@ -20,6 +21,7 @@ use std::process::Command;
 /// * `fuzzer_loopcount` - Number of iterations each process must execute before finishing and writing gathered profraw data
 /// * `ignore_regex` - Pattern for files to exclude from coverage analysis
 /// * `rustflags` - Rust compiler flags for coverage instrumentation
+/// * `dynamic_coverage` - Whether to use dynamic coverage collection
 pub struct HonggfuzzCoverage {
     profraw_file: String,
     coverage_file: String,
@@ -27,6 +29,7 @@ pub struct HonggfuzzCoverage {
     fuzzer_loopcount: String,
     ignore_regex: String,
     rustflags: String,
+    dynamic_coverage: bool,
 }
 
 impl Coverage for HonggfuzzCoverage {
@@ -36,10 +39,16 @@ impl Coverage for HonggfuzzCoverage {
     /// * `cargo_target_dir` - Base directory for build artifacts
     /// * `fuzzer_loopcount` - Number of iterations each process must execute before finishing and writing gathered profraw data
     /// * `target` - Name of the target being fuzzed
+    /// * `dynamic_coverage` - Whether to use dynamic coverage collection
     ///
     /// # Returns
     /// A new HonggfuzzCoverage instance configured for the specified target
-    fn new(cargo_target_dir: &str, fuzzer_loopcount: u64, target: &str) -> Self {
+    fn new(
+        cargo_target_dir: &str,
+        fuzzer_loopcount: u64,
+        target: &str,
+        dynamic_coverage: bool,
+    ) -> Self {
         let target_triple = HonggfuzzCoverage::target_triple();
         let cargo_target_dir = format!("{}/{}", cargo_target_dir, target_triple);
 
@@ -53,6 +62,7 @@ impl Coverage for HonggfuzzCoverage {
             fuzzer_loopcount: fuzzer_loopcount.to_string(),
             ignore_regex: COVERAGE_IGNORE_REGEX.to_string(),
             rustflags: HONGGFUZZ_COVERAGE_RUSTFLAGS.to_string(),
+            dynamic_coverage,
         }
     }
 
@@ -78,6 +88,33 @@ impl Coverage for HonggfuzzCoverage {
 
     fn get_rustflags(&self) -> String {
         self.rustflags.clone()
+    }
+
+    fn get_dynamic_coverage(&self) -> bool {
+        self.dynamic_coverage.clone()
+    }
+
+    /// Returns the root fuzzing directory by traversing up from the coverage target directory.
+    ///
+    /// This function navigates up three directory levels from the coverage target directory
+    /// to locate the main fuzzing folder where Honggfuzz's input/output directories and other
+    /// fuzzing-related data are stored.
+    ///
+    /// # Returns
+    /// * `PathBuf` - Path to the fuzzing directory
+    fn get_fuzzing_folder(&self) -> PathBuf {
+        let target_dir = self.get_coverage_target_dir();
+        let mut path = std::path::PathBuf::from(&target_dir);
+
+        // Need to go up 3 levels to get to the fuzzing folder
+        let levels = 3;
+        for _ in 0..levels {
+            if let Some(parent) = path.parent() {
+                path = parent.to_path_buf();
+            }
+        }
+
+        path
     }
 }
 
@@ -127,6 +164,19 @@ impl HonggfuzzCoverage {
 
         triple.into()
     }
+
+    /// Initializes and notifies the start of dynamic coverage collection for Honggfuzz fuzzing.
+    ///
+    /// This method sets up the necessary environment for dynamic coverage collection
+    /// and signals that coverage tracking should begin. It is called just before
+    /// the Honggfuzz fuzzing process starts when dynamic coverage is enabled.
+    ///
+    /// # Returns
+    /// * `Ok(())` if dynamic coverage setup succeeds
+    /// * `Err(CoverageError)` if setup fails
+    pub async fn notify_dynamic_coverage_start(&self) -> Result<(), CoverageError> {
+        self.setup_dynamic_coverage("HFUZZ").await
+    }
 }
 
 #[cfg(test)]
@@ -141,7 +191,7 @@ mod tests {
     #[tokio::test]
     async fn test_honggfuzz_coverage_new() {
         let target_triple = HonggfuzzCoverage::target_triple();
-        let coverage = HonggfuzzCoverage::new("/tmp/test", 1000, "test-target");
+        let coverage = HonggfuzzCoverage::new("/tmp/test", 1000, "test-target", false);
 
         assert_eq!(
             coverage.get_profraw_file(),
@@ -174,7 +224,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_generate_report_from_non_existing_target() {
-        let coverage = HonggfuzzCoverage::new("/tmp/test", 1000, "test-target");
+        let coverage = HonggfuzzCoverage::new("/tmp/test", 1000, "test-target", false);
         let result = coverage.generate_report().await;
         assert!(result.is_err());
 
@@ -183,7 +233,7 @@ mod tests {
 
     #[test]
     fn test_build_coverage_command_contains_required_args() {
-        let coverage = HonggfuzzCoverage::new("/tmp/test", 100, "test");
+        let coverage = HonggfuzzCoverage::new("/tmp/test", 100, "test", false);
         let cmd = coverage.build_coverage_command(true);
 
         let cmd_str = format!("{:?}", cmd);

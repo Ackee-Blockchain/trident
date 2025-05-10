@@ -55,6 +55,13 @@ pub enum FuzzCommand {
             help = "Tracks code coverage during fuzzing and generates a JSON report upon completion. The coverage data can be visualized in your source code using our VS Code extension."
         )]
         generate_coverage: bool,
+        #[arg(
+            short,
+            long = "attach-extension",
+            required = false,
+            help = "Enables real-time coverage visualization in VS Code during fuzzing. The VS Code extension must be actively running to utilize this feature."
+        )]
+        attach_extension: bool,
     },
     #[command(
         about = "Run the Honggfuzz on desired fuzz test.",
@@ -83,6 +90,13 @@ pub enum FuzzCommand {
             help = "Tracks code coverage during fuzzing and generates a JSON report upon completion. The coverage data can be visualized in your source code using our VS Code extension."
         )]
         generate_coverage: bool,
+        #[arg(
+            short,
+            long = "attach-extension",
+            required = false,
+            help = "Enables real-time coverage visualization in VS Code during fuzzing. The VS Code extension must be actively running to utilize this feature."
+        )]
+        attach_extension: bool,
     },
     #[command(
         about = "Debug found crash using the AFL on desired fuzz test.",
@@ -144,16 +158,26 @@ pub async fn fuzz(subcmd: FuzzCommand) {
         FuzzCommand::Run_Afl {
             target,
             generate_coverage,
+            attach_extension,
         } => {
-            commander.run_afl(target, generate_coverage).await?;
+            if !generate_coverage && attach_extension {
+                bail!("Cannot attach extension without generating coverage!");
+            }
+            commander
+                .run_afl(target, generate_coverage, attach_extension)
+                .await?;
         }
         FuzzCommand::Run_Hfuzz {
             target,
             with_exit_code,
             generate_coverage,
+            attach_extension,
         } => {
+            if !generate_coverage && attach_extension {
+                bail!("Cannot attach extension without generating coverage!");
+            }
             commander
-                .run_honggfuzz(target, with_exit_code, generate_coverage)
+                .run_honggfuzz(target, with_exit_code, generate_coverage, attach_extension)
                 .await?;
         }
         FuzzCommand::Debug_Afl {
