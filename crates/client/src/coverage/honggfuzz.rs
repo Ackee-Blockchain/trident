@@ -91,7 +91,7 @@ impl Coverage for HonggfuzzCoverage {
     }
 
     fn get_dynamic_coverage(&self) -> bool {
-        self.dynamic_coverage.clone()
+        self.dynamic_coverage
     }
 
     /// Returns the root fuzzing directory by traversing up from the coverage target directory.

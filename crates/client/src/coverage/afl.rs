@@ -20,7 +20,6 @@ use std::path::PathBuf;
 /// * `ignore_regex` - Pattern for files to exclude from coverage analysis
 /// * `rustflags` - Rust compiler flags for coverage instrumentation
 /// * `dynamic_coverage` - Whether to use dynamic coverage collection
-
 pub struct AflCoverage {
     profraw_file: String,
     coverage_file: String,
@@ -84,7 +83,7 @@ impl Coverage for AflCoverage {
     }
 
     fn get_dynamic_coverage(&self) -> bool {
-        self.dynamic_coverage.clone()
+        self.dynamic_coverage
     }
 
     /// Returns the root fuzzing directory by traversing up from the coverage target directory.

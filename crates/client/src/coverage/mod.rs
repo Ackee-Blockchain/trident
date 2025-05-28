@@ -417,7 +417,7 @@ mod tests {
         }
 
         fn get_dynamic_coverage(&self) -> bool {
-            self.dynamic_coverage.clone()
+            self.dynamic_coverage
         }
 
         fn get_fuzzing_folder(&self) -> PathBuf {

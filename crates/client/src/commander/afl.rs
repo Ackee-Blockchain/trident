@@ -41,15 +41,14 @@ impl Commander {
         let coverage = AflCoverage::new(
             &config.get_afl_target_dir(),
             config.get_afl_fuzzer_loopcount(),
-            &target,
+            target,
             dynamic_coverage,
         );
 
         coverage.clean().await?;
-        self.build_afl_target(&target, &config, Some(&coverage))
+        self.build_afl_target(target, config, Some(&coverage))
             .await?;
-        self.run_afl_target(&target, &config, Some(&coverage))
-            .await?;
+        self.run_afl_target(target, config, Some(&coverage)).await?;
         coverage.generate_report().await?;
         coverage.clean().await?;
     }
@@ -127,7 +126,7 @@ impl Commander {
             .arg("build")
             .args(["--target-dir", &cargo_target_dir])
             .args(build_args)
-            .args(["--bin", &target])
+            .args(["--bin", target])
             .spawn()?;
 
         Self::handle_child(&mut child).await?;
