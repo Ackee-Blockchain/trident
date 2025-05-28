@@ -21,6 +21,8 @@ pub struct Afl {
     // seeds
     // -s
     pub seeds: Option<Vec<AflSeed>>,
+    // fuzzer_loopcount (env variable)
+    pub fuzzer_loopcount: Option<u64>,
 }
 
 impl Afl {
@@ -68,6 +70,14 @@ impl Afl {
             seeds.clone()
         } else {
             vec![AflSeed::default()]
+        }
+    }
+    pub fn get_fuzzer_loopcount(&self) -> u64 {
+        // fuzzer_loopcount
+        if let Some(fuzzer_loopcount) = &self.fuzzer_loopcount {
+            *fuzzer_loopcount
+        } else {
+            AFL_FUZZER_LOOPCOUNT_DEFAULT
         }
     }
     pub fn get_collect_build_args(&self) -> Vec<String> {
@@ -121,6 +131,7 @@ mod tests {
                 iterations: None,
                 run_time: None,
                 seeds: None,
+                fuzzer_loopcount: None,
             }
         }
     }
@@ -175,5 +186,14 @@ mod tests {
 
         let arg = afl.get_collect_fuzz_args();
         assert_eq!(arg, vec!["-V", "15"]);
+    }
+    #[test]
+    fn test_fuzzer_loopcount() {
+        let mut afl = Afl::clean();
+
+        afl.fuzzer_loopcount = Some(555);
+
+        let fuzzer_loopcount = afl.get_fuzzer_loopcount();
+        assert_eq!(fuzzer_loopcount, 555);
     }
 }

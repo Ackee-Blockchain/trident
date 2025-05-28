@@ -1,10 +1,12 @@
 use crate::constants::*;
 use fehler::{throw, throws};
+use std::collections::HashMap;
 use std::io::{Read, Write};
 use std::process::Stdio;
 use std::{fs::File, path::Path};
 use tokio::{io::AsyncWriteExt, process::Command};
 
+use crate::coverage::{afl::AflCoverage, Coverage};
 use trident_config::afl::AflSeed;
 use trident_config::TridentConfig;
 
@@ -12,85 +14,54 @@ use super::{Commander, Error};
 use rand::RngCore;
 
 impl Commander {
-    /// Runs fuzzer on the given target.
     #[throws]
-    pub async fn run_afl(&self, target: String) {
+    pub async fn run_afl(&self, target: String, generate_coverage: bool, dynamic_coverage: bool) {
         let config = TridentConfig::new();
-
-        // build args without cargo target dir
-        let build_args = config.get_afl_build_args();
-        // fuzz args without afl workspace in and out
-        let fuzz_args = config.get_afl_fuzz_args();
-
-        // cargo target directory
-        let cargo_target_dir = config.get_afl_target_dir();
-
-        // afl workspace in and out
-        let afl_workspace_in = config.get_afl_workspace_in();
-        let afl_workspace_out = config.get_afl_workspace_out();
-
-        let full_target_path = config.get_afl_target_path(&target);
-
-        let afl_workspace_in_path = Path::new(&afl_workspace_in);
-        let initial_seeds = config.get_initial_seed();
-
-        if !afl_workspace_in_path.exists() {
-            std::fs::create_dir_all(afl_workspace_in_path)?;
-
-            for x in initial_seeds {
-                create_seed_file(afl_workspace_in_path, &x)?;
-            }
-        } else if afl_workspace_in_path.is_dir() {
-            for x in initial_seeds {
-                create_seed_file(afl_workspace_in_path, &x)?;
-            }
-        } else {
-            throw!(Error::BadAFLWorkspace)
-        }
-
-        let mut rustflags = std::env::var("RUSTFLAGS").unwrap_or_default();
-
-        rustflags.push_str("--cfg afl");
 
         if config.get_fuzzing_with_stats() {
             std::env::set_var("FUZZING_METRICS", "1");
         }
 
-        let mut child = Command::new("cargo")
-            .env("RUSTFLAGS", rustflags)
-            .arg("afl")
-            .arg("build")
-            .args(["--target-dir", &cargo_target_dir])
-            .args(build_args)
-            .args(["--bin", &target])
-            .spawn()?;
-        Self::handle_child(&mut child).await?;
-
-        let mut child = Command::new("cargo")
-            .env("AFL_KILL_SIGNAL", "2")
-            .arg("afl")
-            .arg("fuzz")
-            .args(["-i", &afl_workspace_in])
-            .args(["-o", &afl_workspace_out])
-            .args(fuzz_args)
-            .arg(&full_target_path)
-            .spawn()?;
-
-        Self::handle_child(&mut child).await?;
+        if generate_coverage {
+            self.run_afl_with_coverage(&target, &config, dynamic_coverage)
+                .await?;
+        } else {
+            self.build_afl_target(&target, &config, None).await?;
+            self.run_afl_target(&target, &config, None).await?;
+        }
     }
 
-    /// Runs fuzzer on the given target.
+    #[throws]
+    pub async fn run_afl_with_coverage(
+        &self,
+        target: &str,
+        config: &TridentConfig,
+        dynamic_coverage: bool,
+    ) {
+        let coverage = AflCoverage::new(
+            &config.get_afl_target_dir(),
+            config.get_afl_fuzzer_loopcount(),
+            target,
+            dynamic_coverage,
+        );
+
+        coverage.clean().await?;
+        self.build_afl_target(target, config, Some(&coverage))
+            .await?;
+        self.run_afl_target(target, config, Some(&coverage)).await?;
+        coverage.generate_report().await?;
+        coverage.clean().await?;
+    }
+
     #[throws]
     pub async fn run_afl_debug(&self, target: String, crash_file: String) {
         let config = TridentConfig::new();
 
         let crash_file_path = Path::new(&crash_file);
-
         let crash_file = if crash_file_path.is_absolute() {
             crash_file_path
         } else {
             let cwd = std::env::current_dir()?;
-
             &cwd.join(crash_file_path)
         };
 
@@ -99,18 +70,15 @@ impl Commander {
             throw!(Error::CrashFileNotFound);
         }
 
-        // cargo target directory
-        let cargo_target_dir = config.get_afl_target_dir();
-
-        let mut rustflags = std::env::var("RUSTFLAGS").unwrap_or_default();
-
-        rustflags.push_str("--cfg afl --cfg fuzzing_debug");
-
         let mut file = File::open(crash_file)?;
         let mut file_contents = Vec::new();
         file.read_to_end(&mut file_contents)?;
 
-        // using exec rather than spawn and replacing current process to avoid unflushed terminal output after ctrl+c signal
+        let cargo_target_dir = config.get_afl_target_dir();
+
+        let mut rustflags = std::env::var("RUSTFLAGS").unwrap_or_default();
+        rustflags.push_str("--cfg afl --cfg fuzzing_debug");
+
         let mut child = Command::new("cargo")
             .env("TRIDENT_LOG", "1")
             .env("RUSTFLAGS", rustflags)
@@ -125,6 +93,89 @@ impl Commander {
             stdin.write_all(&file_contents).await?;
         }
         child.wait().await?;
+    }
+
+    #[throws]
+    async fn build_afl_target(
+        &self,
+        target: &str,
+        config: &TridentConfig,
+        coverage: Option<&AflCoverage>,
+    ) {
+        // build args without cargo target dir
+        let build_args = config.get_afl_build_args();
+        let cargo_target_dir = config.get_afl_target_dir();
+
+        let mut env_vars = HashMap::new();
+        let mut rustflags = std::env::var("RUSTFLAGS").unwrap_or_default();
+        rustflags.push_str("--cfg afl ");
+
+        if let Some(coverage) = coverage {
+            rustflags.push_str(&coverage.get_rustflags());
+            env_vars.insert("LLVM_PROFILE_FILE", coverage.get_profraw_file());
+            env_vars.insert(
+                "CARGO_LLVM_COV_TARGET_DIR",
+                coverage.get_coverage_target_dir(),
+            );
+        }
+
+        env_vars.insert("RUSTFLAGS", rustflags);
+        let mut child = Command::new("cargo")
+            .envs(env_vars)
+            .arg("afl")
+            .arg("build")
+            .args(["--target-dir", &cargo_target_dir])
+            .args(build_args)
+            .args(["--bin", target])
+            .spawn()?;
+
+        Self::handle_child(&mut child).await?;
+    }
+
+    #[throws]
+    async fn run_afl_target(
+        &self,
+        target: &str,
+        config: &TridentConfig,
+        coverage: Option<&AflCoverage>,
+    ) {
+        let afl_workspace_in = config.get_afl_workspace_in();
+        let afl_workspace_out = config.get_afl_workspace_out();
+        let full_target_path = config.get_afl_target_path(target);
+        let afl_workspace_in_path = Path::new(&afl_workspace_in);
+
+        validate_afl_workspace(afl_workspace_in_path, config)?;
+
+        // fuzz args without afl workspace in and out
+        let fuzz_args = config.get_afl_fuzz_args();
+
+        let mut env_vars = HashMap::new();
+        env_vars.insert("AFL_KILL_SIGNAL", "2".to_string());
+
+        if let Some(coverage) = coverage {
+            env_vars.insert("LLVM_PROFILE_FILE", coverage.get_profraw_file());
+            env_vars.insert(
+                "CARGO_LLVM_COV_TARGET_DIR",
+                coverage.get_coverage_target_dir(),
+            );
+            env_vars.insert("AFL_FUZZER_LOOPCOUNT", coverage.get_fuzzer_loopcount());
+        }
+
+        let mut child = Command::new("cargo")
+            .envs(env_vars)
+            .arg("afl")
+            .arg("fuzz")
+            .args(["-i", &afl_workspace_in])
+            .args(["-o", &afl_workspace_out])
+            .args(fuzz_args)
+            .arg(&full_target_path)
+            .spawn()?;
+
+        if let Some(coverage) = coverage {
+            coverage.notify_dynamic_coverage_start().await?;
+        }
+
+        Self::handle_child(&mut child).await?;
     }
 }
 
@@ -176,5 +227,23 @@ fn obtain_seed(value: &AflSeed) -> (Vec<u8>, bool) {
                 value.override_file.unwrap_or_default(),
             )
         }
+    }
+}
+
+#[throws]
+fn validate_afl_workspace(workspace: &Path, config: &TridentConfig) {
+    let initial_seeds = config.get_initial_seed();
+    if !workspace.exists() {
+        std::fs::create_dir_all(workspace)?;
+
+        for x in initial_seeds {
+            create_seed_file(workspace, &x)?;
+        }
+    } else if workspace.is_dir() {
+        for x in initial_seeds {
+            create_seed_file(workspace, &x)?;
+        }
+    } else {
+        throw!(Error::BadAFLWorkspace)
     }
 }

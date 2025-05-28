@@ -73,6 +73,9 @@ pub struct HonggFuzz {
     /// -u
     /// --save_all
     pub save_all: Option<bool>,
+    #[serde(default)]
+    /// fuzzer_loopcount (env variable)
+    pub fuzzer_loopcount: Option<u64>,
 }
 
 impl HonggFuzz {
@@ -164,6 +167,14 @@ impl HonggFuzz {
             }
         })
     }
+    pub fn get_fuzzer_loopcount(&self) -> u64 {
+        // fuzzer_loopcount
+        if let Some(fuzzer_loopcount) = &self.fuzzer_loopcount {
+            *fuzzer_loopcount
+        } else {
+            HONGGFUZZ_FUZZER_LOOPCOUNT_DEFAULT
+        }
+    }
     pub fn get_cargo_target_dir(&self) -> EnvironmentVariable {
         // cargo_target_dir
         if let Some(cargo_target_dir) = &self.cargo_target_dir {
@@ -253,6 +264,7 @@ mod tests {
                 run_time: None,
                 max_file_size: None,
                 save_all: None,
+                fuzzer_loopcount: None,
             }
         }
     }
@@ -384,6 +396,15 @@ mod tests {
 
         let arg = honggfuzz.get_collect_fuzz_args();
         assert_eq!(arg, vec!["-u", ""]);
+    }
+    #[test]
+    fn test_fuzzer_loopcount() {
+        let mut honggfuzz = HonggFuzz::clean();
+
+        honggfuzz.fuzzer_loopcount = Some(555);
+
+        let fuzzer_loopcount = honggfuzz.get_fuzzer_loopcount();
+        assert_eq!(fuzzer_loopcount, 555);
     }
     #[test]
     fn test_cargo_target_dir() {

@@ -5,6 +5,7 @@
 
 mod cleaner;
 mod commander;
+mod coverage;
 mod idl_loader;
 mod test_generator;
 mod test_generator_gitignore;

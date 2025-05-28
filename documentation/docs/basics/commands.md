@@ -55,6 +55,11 @@ Fuzzing-related commands with various subcommands:
 
 Runs AFL on the specified Fuzz Target (e.g., fuzz_0).
 
+#### Options
+
+- `-g, --generate-coverage` - Tracks code coverage during fuzzing and generates a JSON report upon completion. The coverage data can be visualized in your source code using our [VS Code extension](https://marketplace.visualstudio.com/items?itemName=AckeeBlockchain.solana).
+- `-a, --attach-extension` - Enables real-time coverage visualization in VS Code during fuzzing. The VS Code extension must be actively running to utilize this feature. Only works if the generate coverage flag is enabled.
+
 ---
 
 ### `trident fuzz run-hfuzz <fuzz_target>`
@@ -90,6 +95,12 @@ The output includes:
  Corpus Size : 98, max: 1048576 bytes, init: 0 files
     Coverage : edge: 10345/882951 [1%] pc: 163 cmp: 622547
 ```
+
+#### Options
+
+- `-w, --with-exit-code` - Run the Honggfuzz with exit code, i.e. if it discovers crash the Trident will exit with exit code 1.
+- `-g, --generate-coverage` - Tracks code coverage during fuzzing and generates a JSON report upon completion. The coverage data can be visualized in your source code using our [VS Code extension](https://marketplace.visualstudio.com/items?itemName=AckeeBlockchain.solana).
+- `-a, --attach-extension` - Enables real-time coverage visualization in VS Code during fuzzing. The VS Code extension must be actively running to utilize this feature. Only works if the generate coverage flag is enabled.
 
 ---
 

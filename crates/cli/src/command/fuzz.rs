@@ -48,6 +48,20 @@ pub enum FuzzCommand {
             help = "Name of the desired fuzz template to execute (for example fuzz_0)."
         )]
         target: String,
+        #[arg(
+            short,
+            long,
+            required = false,
+            help = "Tracks code coverage during fuzzing and generates a JSON report upon completion. The coverage data can be visualized in your source code using our VS Code extension."
+        )]
+        generate_coverage: bool,
+        #[arg(
+            short,
+            long = "attach-extension",
+            required = false,
+            help = "Enables real-time coverage visualization in VS Code during fuzzing. The VS Code extension must be actively running to utilize this feature."
+        )]
+        attach_extension: bool,
     },
     #[command(
         about = "Run the Honggfuzz on desired fuzz test.",
@@ -69,8 +83,21 @@ pub enum FuzzCommand {
             help = "Run the Honggfuzz with exit code, i.e. if it discovers crash the Trident will exit with exit code 1."
         )]
         with_exit_code: bool,
+        #[arg(
+            short,
+            long,
+            required = false,
+            help = "Tracks code coverage during fuzzing and generates a JSON report upon completion. The coverage data can be visualized in your source code using our VS Code extension."
+        )]
+        generate_coverage: bool,
+        #[arg(
+            short,
+            long = "attach-extension",
+            required = false,
+            help = "Enables real-time coverage visualization in VS Code during fuzzing. The VS Code extension must be actively running to utilize this feature."
+        )]
+        attach_extension: bool,
     },
-
     #[command(
         about = "Debug found crash using the AFL on desired fuzz test.",
         override_usage = "Specify the desired fuzz \x1b[92m<TARGET>\x1b[0m and \x1b[92m<PATH_TO_CRASHFILE>\x1b[0m.\
@@ -128,18 +155,30 @@ pub async fn fuzz(subcmd: FuzzCommand) {
     let commander = Commander::with_root(&Path::new(&root).to_path_buf());
 
     match subcmd {
-        FuzzCommand::Run_Afl { target } => {
-            commander.run_afl(target).await?;
+        FuzzCommand::Run_Afl {
+            target,
+            generate_coverage,
+            attach_extension,
+        } => {
+            if !generate_coverage && attach_extension {
+                bail!("Cannot attach extension without generating coverage!");
+            }
+            commander
+                .run_afl(target, generate_coverage, attach_extension)
+                .await?;
         }
         FuzzCommand::Run_Hfuzz {
             target,
             with_exit_code,
+            generate_coverage,
+            attach_extension,
         } => {
-            if with_exit_code {
-                commander.run_honggfuzz_with_exit_code(target).await?;
-            } else {
-                commander.run_honggfuzz(target).await?;
+            if !generate_coverage && attach_extension {
+                bail!("Cannot attach extension without generating coverage!");
             }
+            commander
+                .run_honggfuzz(target, with_exit_code, generate_coverage, attach_extension)
+                .await?;
         }
         FuzzCommand::Debug_Afl {
             target,

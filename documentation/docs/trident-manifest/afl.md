@@ -101,3 +101,18 @@ seed = ""
 override_file = true
 bytes_count = 20
 ```
+
+## `fuzzer_loopcount`
+
+- The fuzzer loopcount represents a number of iterations each fuzzer-created process needs to execute before it finishes and generates a profraw file.
+
+!!! warning "Impact on performance and code coverage accuracy"
+
+    If the loopcount is too low, the fuzzer will be slower because new processes will need to be created more often. However, the higher the loopcount, the higher the chance that the process will crash and not generate any profraw file, thus reducing the code coverage accuracy.
+
+`(default: 20)`
+
+```bash
+[afl]
+fuzzer_loopcount = 20
+```
