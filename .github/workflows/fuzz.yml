@@ -18,7 +18,7 @@ env:
 jobs:
   Fuzz-Tests:
     name: Fuzz Tests
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
       - run: echo "Starting Fuzz Tests"
 
@@ -26,7 +26,7 @@ jobs:
     name: Fuzz Tests (simple-cpi-6)
     needs: Fuzz-Tests
     # Runs on an Ubuntu 20.04 runner
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v3
         name: Checkout Repository  # Checkout the repository to get access to the project files
@@ -71,7 +71,7 @@ jobs:
     name: Fuzz Tests (arbitrary-limit-inputs-5)
     needs: Fuzz-Tests
     # Runs on an Ubuntu 20.04 runner for a different fuzz test
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v3
         name: Checkout Repository  # Checkout the repository
@@ -116,7 +116,7 @@ jobs:
     name: Fuzz Tests (cpi-metaplex-7)
     needs: Fuzz-Tests
     # Runs on an Ubuntu 20.04 runner for a different fuzz test
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v3
         name: Checkout Repository  # Checkout the repository
@@ -160,6 +160,6 @@ jobs:
   checks:
     name: Fuzz Tests (Checks)
     needs: [simple-cpi-6, arbitrary-limit-inputs-5,cpi-metaplex-7]
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
       - run: echo "All fuzz tests completed successfully"
