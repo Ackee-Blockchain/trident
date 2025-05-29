@@ -60,7 +60,7 @@ solana-sdk = { workspace = true }
 # Solana additonal programs
 solana-vote-program = { version = "2.2", optional = true }
 solana-stake-program = { version = "2.2", optional = true }
-spl-token = { version = "5", features = ["no-entrypoint"], optional = true }
+spl-token = { version = "^7", features = ["no-entrypoint"], optional = true }
 
 # Honggfuzz
 honggfuzz = { workspace = true }
