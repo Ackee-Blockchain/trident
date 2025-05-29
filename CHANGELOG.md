@@ -19,6 +19,8 @@ incremented upon a breaking change and the patch version will be incremented for
 
 **Changed**
 
+- Changed support of Solana to 2.2 and higher, to support projects written using Anchor 0.31.1 ([315](https://github.com/Ackee-Blockchain/trident/pull/315))
+
 ## [0.10.0] - 2025-03-13
 
 **Added**

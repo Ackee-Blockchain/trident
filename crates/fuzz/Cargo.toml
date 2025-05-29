@@ -20,39 +20,37 @@ token = ["dep:spl-token"]
 # Derive macros
 [dependencies.trident-derive-transaction]
 path = "../fuzz/derive/transaction"
-version = "0.10.0"
+version = "0.11.0-rc.1"
 
 [dependencies.trident-derive-instruction]
 path = "../fuzz/derive/instruction"
-version = "0.10.0"
+version = "0.11.0-rc.1"
 
 [dependencies.trident-derive-accounts]
 path = "../fuzz/derive/accounts"
-version = "0.10.0"
+version = "0.11.0-rc.1"
 
 [dependencies.trident-derive-remaining-accounts]
 path = "../fuzz/derive/remaining_accounts"
-version = "0.10.0"
+version = "0.11.0-rc.1"
 
 [dependencies.trident-derive-transaction-selector]
 path = "../fuzz/derive/transaction_selector"
-version = "0.10.0"
+version = "0.11.0-rc.1"
 
 [dependencies.trident-derive-flow-executor]
 path = "../fuzz/derive/flow_executor"
-version = "0.10.0"
+version = "0.11.0-rc.1"
 
 # Config (Trident.toml)
 [dependencies.trident-config]
 path = "../config"
-version = "0.10.0"
+version = "0.11.0-rc.1"
 
 
 # Trident-SVM
 [dependencies.trident-svm]
-version = "0.0.3"
-git = "https://github.com/Ackee-Blockchain/trident-svm"
-branch = "master"
+version = "0.0.4-rc.2"
 
 [dependencies]
 
@@ -60,9 +58,9 @@ branch = "master"
 solana-sdk = { workspace = true }
 
 # Solana additonal programs
-solana-vote-program = { version = "~2.0", optional = true }
-solana-stake-program = { version = "~2.0", optional = true }
-spl-token = { version = "5", features = ["no-entrypoint"], optional = true }
+solana-vote-program = { version = "2.2", optional = true }
+solana-stake-program = { version = "2.2", optional = true }
+spl-token = { version = "^7", features = ["no-entrypoint"], optional = true }
 
 # Honggfuzz
 honggfuzz = { workspace = true }
