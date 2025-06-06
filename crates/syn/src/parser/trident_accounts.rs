@@ -196,6 +196,30 @@ fn parse_constraints(attrs: &[Attribute]) -> ParseResult<TridentConstraints> {
                     }
                     Ok(())
                 }
+                "space" => {
+                    if meta.input.peek(syn::Token![=]) {
+                        meta.input.parse::<syn::Token![=]>()?;
+                        let expr: syn::Expr = meta.input.parse()?;
+                        constraints.space = Some(expr);
+                    }
+                    Ok(())
+                }
+                "owner" => {
+                    if meta.input.peek(syn::Token![=]) {
+                        meta.input.parse::<syn::Token![=]>()?;
+                        let expr: syn::Expr = meta.input.parse()?;
+                        constraints.owner = Some(expr);
+                    }
+                    Ok(())
+                }
+                "lamports" => {
+                    if meta.input.peek(syn::Token![=]) {
+                        meta.input.parse::<syn::Token![=]>()?;
+                        let expr: syn::Expr = meta.input.parse()?;
+                        constraints.lamports = Some(expr);
+                    }
+                    Ok(())
+                }
                 _ => Err(meta.error("unsupported constraint")),
             }
         })?;
@@ -208,6 +232,26 @@ fn parse_constraints(attrs: &[Attribute]) -> ParseResult<TridentConstraints> {
         return Err(ParseError::new(
             proc_macro2::Span::call_site(),
             "seeds require non-optional storage attribute",
+        ));
+    }
+
+    // Validate that owner is specified when space is used
+    if constraints.space.is_some() && constraints.owner.is_none() {
+        return Err(ParseError::new(
+            proc_macro2::Span::call_site(),
+            "space requires non-optional storage and owner attributes",
+        ));
+    }
+
+    // Validate that space, owner, and lamports can only be used with storage
+    if (constraints.space.is_some()
+        || constraints.owner.is_some()
+        || constraints.lamports.is_some())
+        && constraints.storage.is_none()
+    {
+        return Err(ParseError::new(
+            proc_macro2::Span::call_site(),
+            "space, owner, and lamports attributes require non-optional storage attribute",
         ));
     }
 
