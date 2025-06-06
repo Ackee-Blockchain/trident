@@ -77,16 +77,38 @@ impl ToTokens for TridentAccountsStruct {
                                 quote!(program_id)
                             };
 
+                            // Create AccountMetadata if space, owner, or lamports are specified
+                            let account_metadata = if f.constraints.space.is_some() || f.constraints.owner.is_some() || f.constraints.lamports.is_some() {
+                                let space = f.constraints.space.as_ref().map(|s| quote!(#s as usize)).unwrap_or_else(|| quote!(0));
+                                let owner = f.constraints.owner.as_ref().map(|o| quote!(#o)).unwrap_or_else(|| quote!(solana_sdk::system_program::ID));
+                                let lamports = f.constraints.lamports.as_ref().map(|l| quote!(#l)).unwrap_or_else(|| quote!(500 * solana_sdk::native_token::LAMPORTS_PER_SOL));
+
+                                quote!(Some(AccountMetadata::new(#lamports, #space, #owner)))
+                            } else {
+                                quote!(None)
+                            };
+
                             quote! {
                                 storage_accounts
                                     .#storage_ident
-                                    .get_or_create(self.#field_name.account_id, client, Some(PdaSeeds::new(&[#(#seeds),*], #program_id_to_use)), None)
+                                    .get_or_create(self.#field_name.account_id, client, Some(PdaSeeds::new(&[#(#seeds),*], #program_id_to_use)), #account_metadata)
                             }
                         } else {
+                            // Create AccountMetadata if space, owner, or lamports are specified
+                            let account_metadata = if f.constraints.space.is_some() || f.constraints.owner.is_some() || f.constraints.lamports.is_some() {
+                                let space = f.constraints.space.as_ref().map(|s| quote!(#s as usize)).unwrap_or_else(|| quote!(0));
+                                let owner = f.constraints.owner.as_ref().map(|o| quote!(#o)).unwrap_or_else(|| quote!(solana_sdk::system_program::ID));
+                                let lamports = f.constraints.lamports.as_ref().map(|l| quote!(#l)).unwrap_or_else(|| quote!(500 * solana_sdk::native_token::LAMPORTS_PER_SOL));
+
+                                quote!(Some(AccountMetadata::new(#lamports, #space, #owner)))
+                            } else {
+                                quote!(None)
+                            };
+
                             quote! {
                                 storage_accounts
                                     .#storage_ident
-                                    .get_or_create(self.#field_name.account_id, client, None, None)
+                                    .get_or_create(self.#field_name.account_id, client, None, #account_metadata)
                             }
                         };
 

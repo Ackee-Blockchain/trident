@@ -211,7 +211,67 @@ pub struct ExampleAccounts {
     #[account(
         storage = custom_pda,
         seeds = [b"seed"],
-        program_id = pubkey!("11111111111111111111111111111111"))]
+        program_id = pubkey!("11111111111111111111111111111111")
+    )]
+    pub custom_pda: TridentAccount,
+}
+```
+
+
+---
+
+### `account(lamports)`
+
+Specifies the lamports for the account. If not provided, the default is 500 * LAMPORTS_PER_SOL.
+
+`This attribute is optional but requires the storage attribute`
+
+```rust
+#[derive(TridentAccounts)]
+pub struct ExampleAccounts {
+    #[account(
+        storage = custom_pda,
+        lamports = 5 * LAMPORTS_PER_SOL
+    )]
+    pub wallet: TridentAccount,
+}
+```
+
+---
+
+### `account(space)`
+
+Specifies the space for the account. If not provided, the default is 0.
+
+`This attribute is optional but requires the storage attribute and owner attribute`
+
+```rust
+#[derive(TridentAccounts)]
+pub struct ExampleAccounts {
+    #[account(
+        storage = custom_pda,
+        space = 8 + 100,
+        owner = pubkey!("program id goes here")
+    )]
+    pub custom_pda: TridentAccount,
+}
+```
+
+---
+
+### `account(owner)`
+
+Specifies the owner for the account. If not provided, the system program is default.
+
+`This attribute is optional but requires the storage attribute`
+
+```rust
+#[derive(TridentAccounts)]
+pub struct ExampleAccounts {
+    #[account(
+        storage = custom_pda,
+        owner = pubkey!("program id goes here")
+    )]
     pub custom_pda: TridentAccount,
 }
 ```

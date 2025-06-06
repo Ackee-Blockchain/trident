@@ -18,6 +18,7 @@ pub struct InitializeFnInstructionAccounts {
     #[account(
         mut,
         storage = hello_world_account,
+        lamports = 5 * LAMPORTS_PER_SOL,
         seeds = [b"hello_world_seed"],
     )]
     pub hello_world_account: TridentAccount,

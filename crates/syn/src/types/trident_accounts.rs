@@ -53,6 +53,9 @@ pub struct TridentConstraints {
     pub storage: Option<Ident>,
     pub seeds: Option<Vec<syn::Expr>>, // Store the raw expressions from the array
     pub program_id: Option<syn::Expr>,
+    pub space: Option<syn::Expr>,
+    pub owner: Option<syn::Expr>,
+    pub lamports: Option<syn::Expr>,
 }
 
 pub struct SeedDependency {
