@@ -239,7 +239,7 @@ fn parse_constraints(attrs: &[Attribute]) -> ParseResult<TridentConstraints> {
     if constraints.space.is_some() && constraints.owner.is_none() {
         return Err(ParseError::new(
             proc_macro2::Span::call_site(),
-            "space requires non-optional storage attribute",
+            "space requires non-optional storage and owner attributes",
         ));
     }
 
