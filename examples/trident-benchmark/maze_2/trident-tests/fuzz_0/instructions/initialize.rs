@@ -1,4 +1,5 @@
 use crate::fuzz_transactions::FuzzAccounts;
+use crate::types::*;
 use borsh::{BorshDeserialize, BorshSerialize};
 use trident_fuzz::fuzzing::*;
 #[derive(Arbitrary, TridentInstruction)]
@@ -33,4 +34,14 @@ pub struct InitializeInstructionData {}
 /// Docs: https://ackee.xyz/trident/docs/latest/start-fuzzing/writting-fuzz-test/
 impl InstructionHooks for InitializeInstruction {
     type IxAccounts = FuzzAccounts;
+    fn set_data(&mut self, _client: &mut impl FuzzClient, _fuzz_accounts: &mut Self::IxAccounts) {
+        // nothing to do here
+    }
+    fn set_accounts(
+        &mut self,
+        _client: &mut impl FuzzClient,
+        _fuzz_accounts: &mut Self::IxAccounts,
+    ) {
+        // nothing to do here
+    }
 }

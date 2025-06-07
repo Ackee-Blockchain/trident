@@ -1,0 +1,20 @@
+# For the detailed description of the parameters, see: https://ackee.xyz/trident/docs/latest/features/trident-manifest/
+
+[fuzz]
+fuzzing_with_stats = true
+
+[honggfuzz]
+iterations = 10000
+run_time = 20
+exit_upon_crash = true
+fuzzer_loopcount = 10
+
+[afl]
+iterations = 10000
+run_time = 20
+fuzzer_loopcount = 20
+
+
+[[fuzz.programs]]
+address = "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s"
+program = "metaplex-program/metaplex-token-metadata.so"
