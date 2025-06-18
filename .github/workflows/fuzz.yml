@@ -159,7 +159,7 @@ jobs:
 
   checks:
     name: Fuzz Tests (Checks)
-    needs: [simple-cpi-6, arbitrary-limit-inputs-5,cpi-metaplex-7]
+    needs: [metaplex, maze-0, simple-cpi]
     runs-on: ubuntu-24.04
     steps:
       - run: echo "All fuzz tests completed successfully"
