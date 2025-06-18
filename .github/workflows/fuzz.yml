@@ -22,8 +22,8 @@ jobs:
     steps:
       - run: echo "Starting Fuzz Tests"
 
-  simple-cpi-6:
-    name: Fuzz Tests (simple-cpi-6)
+  simple-cpi:
+    name: Fuzz Tests - Simple CPI
     needs: Fuzz-Tests
     # Runs on an Ubuntu 20.04 runner
     runs-on: ubuntu-24.04
@@ -59,16 +59,16 @@ jobs:
       - name: Cache Target Folder
         uses: actions/cache@v3
         with:
-          path: examples/cpi/simple-cpi-6/trident-tests/fuzzing/honggfuzz/hfuzz_target  # Cache the folder where build artifacts are stored
-          key: target-${{ runner.os }}-simple-cpi-6  # Unique key for caching based on OS and test
+          path: examples/cpi/trident-tests/fuzzing/honggfuzz/hfuzz_target  # Cache the folder where build artifacts are stored
+          key: target-${{ runner.os }}-simple-cpi  # Unique key for caching based on OS and test
 
       # Run the fuzzing test using Trident in the simple-cpi-6 directory
       - name: Test Fuzz
-        working-directory: examples/cpi/simple-cpi-6/trident-tests  # Set the working directory for the fuzzing test
+        working-directory: examples/cpi/trident-tests  # Set the working directory for the fuzzing test
         run: trident fuzz run-hfuzz fuzz_0  # Run the fuzz test with trident
 
-  arbitrary-limit-inputs-5:
-    name: Fuzz Tests (arbitrary-limit-inputs-5)
+  maze-0:
+    name: Fuzz Tests - Trident Benchmark Maze 0
     needs: Fuzz-Tests
     # Runs on an Ubuntu 20.04 runner for a different fuzz test
     runs-on: ubuntu-24.04
@@ -104,16 +104,16 @@ jobs:
       - name: Cache Target Folder
         uses: actions/cache@v3
         with:
-          path: examples/common_issues/arbitrary-limit-inputs-5/trident-tests/fuzzing/honggfuzz/hfuzz_target  # Cache the folder where build artifacts are stored
-          key: target-${{ runner.os }}-arbitrary-limit-inputs-5  # Unique key for caching based on OS and test
+          path: examples/trident-benchmark/maze_0/trident-tests/fuzzing/honggfuzz/hfuzz_target  # Cache the folder where build artifacts are stored
+          key: target-${{ runner.os }}-trident-benchmark-maze-0  # Unique key for caching based on OS and test
 
       # Run the fuzzing test using Trident in the arbitrary-limit-inputs-5 directory
       - name: Test Fuzz
-        working-directory: examples/common_issues/arbitrary-limit-inputs-5/trident-tests  # Set the working directory for the fuzzing test
+        working-directory: examples/trident-benchmark/maze_0/trident-tests  # Set the working directory for the fuzzing test
         run: trident fuzz run-hfuzz fuzz_0  # Run the fuzz test with trident
 
-  cpi-metaplex-7:
-    name: Fuzz Tests (cpi-metaplex-7)
+  metaplex:
+    name: Fuzz Tests - Metaplex CPI
     needs: Fuzz-Tests
     # Runs on an Ubuntu 20.04 runner for a different fuzz test
     runs-on: ubuntu-24.04
@@ -149,12 +149,12 @@ jobs:
       - name: Cache Target Folder
         uses: actions/cache@v3
         with:
-          path: examples/cpi/cpi-metaplex-7/trident-tests/fuzzing/honggfuzz/hfuzz_target  # Cache the folder where build artifacts are stored
-          key: target-${{ runner.os }}-cpi-metaplex-7  # Unique key for caching based on OS and test
+          path: examples/metaplex/trident-tests/fuzzing/honggfuzz/hfuzz_target  # Cache the folder where build artifacts are stored
+          key: target-${{ runner.os }}-metaplex  # Unique key for caching based on OS and test
 
       # Run the fuzzing test using Trident in the cpi-metaplex-7 directory
       - name: Test Fuzz
-        working-directory: examples/cpi/cpi-metaplex-7/trident-tests  # Set the working directory for the fuzzing test
+        working-directory: examples/metaplex/trident-tests  # Set the working directory for the fuzzing test
         run: trident fuzz run-hfuzz fuzz_0  # Run the fuzz test with trident
 
   checks:
