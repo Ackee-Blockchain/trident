@@ -5,7 +5,8 @@ use solana_sdk::native_token::LAMPORTS_PER_SOL;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
-
+#[cfg(feature = "token2022")]
+use crate::accounts_storage::ParamValue;
 use crate::traits::FuzzClient;
 use crate::types::AccountId;
 
@@ -137,6 +138,87 @@ impl AccountsStorage {
 
                 self.accounts.insert(account_id, address);
 
+                address
+            }
+        }
+    }
+
+        #[cfg(feature = "token2022")]
+    #[allow(clippy::too_many_arguments)]
+    pub fn get_or_create_token_2022_mint(
+        &mut self,
+        account_id: AccountId,
+        client: &mut impl FuzzClient,
+        seeds: Option<PdaSeeds>,
+        decimals: u8,
+        mint_authority: &Pubkey,
+        freeze_authority: Option<Pubkey>,
+        extensions: Option<Vec<ParamValue>>,  
+    ) -> Pubkey {
+        match self.accounts.get(&account_id) {
+            Some(address) => *address,
+            None => {
+                let address = self.get_or_create_address(seeds);
+
+                // If account on the address is already initialized, we don't override it
+                if client.get_account(&address) == AccountSharedData::default() {
+                    self.create_token_2022_mint(
+                        client,
+                        address,
+                        decimals,
+                        mint_authority,
+                        freeze_authority,
+                        extensions,
+                    );
+                }
+
+                self.accounts.insert(account_id, address);
+                address
+            }
+        }
+    }
+
+
+
+    #[cfg(feature = "token2022")]
+    #[allow(clippy::too_many_arguments)]
+    pub fn get_or_create_token2022_account(
+        &mut self,
+        account_id: AccountId,
+        client: &mut impl FuzzClient,
+        seeds: Option<PdaSeeds>,
+        mint: Pubkey,
+        owner: Pubkey,
+        amount: u64,
+        delegate: Option<Pubkey>,
+        is_native: bool,
+        delegated_amount: u64,
+        close_authority: Option<Pubkey>,
+        extensions: Option<Vec<ParamValue>>,
+    ) -> Pubkey {
+        match self.accounts.get(&account_id) {
+            Some(address) => *address,
+            None => {
+                let address = self.get_or_create_address(seeds);
+
+                // If account on the address is already initialized, we don't override it
+                if client.get_account(&address) == AccountSharedData::default() {
+                    // Create the token account
+                    self.create_token_2022_account(
+                        client,
+                        address,
+                        mint,
+                        owner,
+                        amount,
+                        delegate.into(),
+                        is_native,
+                        delegated_amount,
+                        close_authority.into(),
+                        extensions,
+                    );
+                }
+
+                self.accounts.insert(account_id, address);
                 address
             }
         }
