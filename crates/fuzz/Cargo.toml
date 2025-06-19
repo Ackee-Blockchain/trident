@@ -52,10 +52,9 @@ version = "0.11.0-rc.1"
 
 # Trident-SVM
 [dependencies.trident-svm]
-path = "/home/m4ud-cairo/new_solana/trident-svm"
-#git = "https://github.com/Ackee-Blockchain/trident-svm"
-#branch = "solana-v2"
-#version = "0.0.4-rc.2"
+git = "https://github.com/Ackee-Blockchain/trident-svm"
+branch = "solana-v2"
+version = "0.0.4-rc.2"
 
 [dependencies]
 
