@@ -11,6 +11,7 @@ borsh = "1.5.3"
 spl-token-2022 = "~6"
 solana-zk-sdk = {version = "2.2"}
 
+
 [dependencies.trident-fuzz]
 path = "../../../crates/fuzz"
 features = ["token2022"]

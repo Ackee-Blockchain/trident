@@ -139,7 +139,7 @@ impl InstructionHooks for CreateMintAccountInstruction {
 
         let default_state_params = ParamValue::DefaultAccountState(
             DefaultAccountState {
-                state: 2, // <- Frozen state
+                state: 2,// <- Frozen state
             }
         );
 
@@ -175,7 +175,7 @@ impl InstructionHooks for CreateMintAccountInstruction {
         let confidential_transfer_mint_params = ParamValue::ConfidentialTransferMint(
             ConfidentialTransferMint {
                 authority: Some(authority),
-                auto_approve_new_accounts: true,
+                auto_approve_new_accounts: true, // Auto-approve new accounts
                 auditor_elgamal_pubkey: Some(PodElGamalPubkey::from(*auditor_keypair.pubkey())),
             }
         );
@@ -278,7 +278,7 @@ impl InstructionHooks for CreateMintAccountInstruction {
                 pending_balance_credit_counter: 0,
                 maximum_pending_balance_credit_counter: 100000,
                 expected_pending_balance_credit_counter: 0,
-                actual_pending_balance_credit_counter: 0, 
+                actual_pending_balance_credit_counter: 0,
             }
         );
 
@@ -308,7 +308,7 @@ impl InstructionHooks for CreateMintAccountInstruction {
 
         let mint_token_account = fuzz_accounts
             .mint_token_account 
-            .get_or_create_token2022_account(
+            .get_or_create_token2022_account( 
                 self.accounts.mint_token_account.account_id,
                 client,
                 None,
@@ -331,7 +331,7 @@ impl InstructionHooks for CreateMintAccountInstruction {
         let extra_metas_account = fuzz_accounts.extra_metas_account.get_or_create(
             self.accounts.extra_metas_account.account_id, 
             client, 
-            None,//Some(seeds), 
+            None,
             None,
         );
         

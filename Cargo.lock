@@ -5813,8 +5813,7 @@ dependencies = [
 
 [[package]]
 name = "trident-svm"
-version = "0.0.4-rc.2"
-source = "git+https://github.com/Ackee-Blockchain/trident-svm?branch=solana-v2#6b50a3bd4caaec8bd7ec874e62c19c6b64bf562e"
+version = "0.0.4-rc.1"
 dependencies = [
  "agave-feature-set",
  "bincode",
