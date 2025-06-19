@@ -1,0 +1,28 @@
+[package]
+name = "token-extensions"
+version = "0.1.0"
+description = "Created with Anchor"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "token_extensions"
+
+[features]
+default = []
+cpi = ["no-entrypoint"]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+idl-build = ["anchor-lang/idl-build", "anchor-spl/idl-build"]
+
+[dependencies]
+anchor-lang = { version = "0.31.1", features = ["init-if-needed"] }
+anchor-spl = "0.31.1"
+spl-tlv-account-resolution = "0.6.3"
+spl-transfer-hook-interface = "0.6.3"
+spl-type-length-value = "0.4.3"
+spl-pod = "=0.2.2"
+spl-token-2022 = { version = "~6", features = ["no-entrypoint"] }
+bytemuck = { version = "1.13", features = ["derive"] }
+spl-token-metadata-interface = "0.6.0"

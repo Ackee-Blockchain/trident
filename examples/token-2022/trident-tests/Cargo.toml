@@ -1,0 +1,23 @@
+[workspace]
+
+[package]
+name = "fuzz_tests"
+version = "0.1.0"
+description = "Created with Trident"
+edition = "2021"
+
+[dependencies]
+borsh = "1.5.3"
+spl-token-2022 = "~6"
+solana-zk-sdk = {version = "2.2"}
+
+[dependencies.trident-fuzz]
+path = "../../../crates/fuzz"
+features = ["token2022"]
+
+[dependencies.token-extensions]
+path = "../programs/token-extensions"
+
+[[bin]]
+name = "fuzz_0"
+path = "fuzz_0/test_fuzz.rs"
