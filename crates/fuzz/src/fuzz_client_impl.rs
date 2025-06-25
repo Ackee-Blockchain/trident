@@ -8,7 +8,6 @@ use solana_sdk::sysvar::Sysvar;
 
 use trident_config::TridentConfig;
 
-use trident_svm::processor::InstructionError;
 use trident_svm::trident_svm::TridentSVM;
 use trident_svm::types::trident_account::TridentAccountSharedData;
 use trident_svm::types::trident_entrypoint::TridentEntrypoint;
