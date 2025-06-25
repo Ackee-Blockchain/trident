@@ -1,7 +1,7 @@
 use crate::fuzz_transactions::FuzzAccounts;
 use borsh::{BorshDeserialize, BorshSerialize};
 use trident_fuzz::fuzzing::*;
-#[derive(Arbitrary, TridentInstruction)]
+#[derive(TridentInstruction, Default)]
 #[program_id("FtevoQoDMv6ZB3N9Lix5Tbjs8EVuNL8vDSqG9kzaZPit")]
 # [discriminator ([18u8 , 187u8 , 169u8 , 213u8 , 94u8 , 180u8 , 86u8 , 152u8 ,])]
 pub struct InitializeFnInstruction {
@@ -9,15 +9,21 @@ pub struct InitializeFnInstruction {
     pub data: InitializeFnInstructionData,
 }
 /// Instruction Accounts
-#[derive(Arbitrary, Debug, Clone, TridentAccounts)]
+#[derive(Debug, Clone, TridentAccounts, Default)]
 #[instruction_data(InitializeFnInstructionData)]
 #[storage(FuzzAccounts)]
 pub struct InitializeFnInstructionAccounts {
-    #[account(mut,signer,storage = author)]
+    #[account(
+        mut,
+        signer,
+        storage::name = author,
+        storage::account_id = (0..55)
+    )]
     pub author: TridentAccount,
     #[account(
         mut,
-        storage = hello_world_account,
+        storage::name = hello_world_account,
+        storage::account_id = 5,
         lamports = 5 * LAMPORTS_PER_SOL,
         seeds = [b"hello_world_seed"],
     )]
@@ -26,9 +32,9 @@ pub struct InitializeFnInstructionAccounts {
     pub system_program: TridentAccount,
 }
 /// Instruction Data
-#[derive(Arbitrary, Debug, BorshDeserialize, BorshSerialize, Clone)]
+#[derive(Debug, BorshDeserialize, BorshSerialize, Clone, Default)]
 pub struct InitializeFnInstructionData {
-    input: u8,
+    pub input: u8,
 }
 /// Implementation of instruction setters for fuzzing
 ///
@@ -40,4 +46,12 @@ pub struct InitializeFnInstructionData {
 /// Docs: https://ackee.xyz/trident/docs/latest/start-fuzzing/writting-fuzz-test/
 impl InstructionHooks for InitializeFnInstruction {
     type IxAccounts = FuzzAccounts;
+    fn set_data(
+        &mut self,
+        client: &mut impl FuzzClient,
+        fuzz_accounts: &mut Self::IxAccounts,
+        rng: &mut TridentRng,
+    ) {
+        self.data.input = rng.gen_range(0..u8::MAX);
+    }
 }

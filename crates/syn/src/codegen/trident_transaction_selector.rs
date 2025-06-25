@@ -12,17 +12,17 @@ impl ToTokens for TridentSelectorEnum {
             let variant_name = &variant.ident;
             quote! {
                 #name::#variant_name(ref mut tx) => {
-                    tx.set_instructions(client, fuzz_accounts);
-                    tx.execute(client)
+                    tx.set_instructions(client, fuzz_accounts, rng);
+                    tx.execute(client, stats_logger)
                 }
             }
         });
 
-        let process_transaction_no_hooks_match_arms = variants.iter().map(|variant| {
+        let _process_transaction_no_hooks_match_arms = variants.iter().map(|variant| {
             let variant_name = &variant.ident;
             quote! {
                 #name::#variant_name(ref mut tx) => {
-                    tx.set_instructions(client, accounts);
+                    tx.set_instructions(client, accounts, rng);
                     tx.execute_no_hooks(client).map_err(FuzzingError::TransactionFailed)
                 }
             }
@@ -32,8 +32,10 @@ impl ToTokens for TridentSelectorEnum {
             impl TransactionSelector<FuzzAccounts> for #name {
                 fn transaction_selector(
                     &mut self,
+                    stats_logger: &mut FuzzingStatistics,
                     client: &mut impl FuzzClient,
                     fuzz_accounts: &mut FuzzAccounts,
+                    rng: &mut TridentRng,
                 ) -> Result<(), FuzzingError> {
                     match self {
                         #(#process_transaction_match_arms)*
@@ -41,23 +43,27 @@ impl ToTokens for TridentSelectorEnum {
                 }
 
                 fn select_n_execute(
-                    fuzzer_data: &mut FuzzerData,
+                    stats_logger: &mut FuzzingStatistics,
                     client: &mut impl FuzzClient,
                     accounts: &mut FuzzAccounts,
+                    rng: &mut TridentRng,
                 ) -> Result<(), FuzzingError> {
-                    let mut transaction = Self::arbitrary(fuzzer_data)?;
-                    transaction.transaction_selector(client, accounts)
+                    // let mut transaction = Self::arbitrary(fuzzer_data)?;
+                    // transaction.transaction_selector(stats_logger, client, accounts, rng)
+                    Ok(())
                 }
 
                 fn select_n_execute_no_hooks(
-                    fuzzer_data: &mut FuzzerData,
                     client: &mut impl FuzzClient,
                     accounts: &mut FuzzAccounts,
+                    rng: &mut TridentRng,
                 ) -> Result<(), FuzzingError> {
-                    let mut transaction = Self::arbitrary(fuzzer_data)?;
-                    match transaction {
-                        #(#process_transaction_no_hooks_match_arms)*
-                    }
+                    // let mut transaction = Self::arbitrary(fuzzer_data)?;
+                    // match transaction {
+                    //     #(#process_transaction_no_hooks_match_arms)*
+                    // }
+                    Ok(())
+
                 }
             }
         };

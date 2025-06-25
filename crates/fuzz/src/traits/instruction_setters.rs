@@ -1,4 +1,4 @@
-use crate::traits::FuzzClient;
+use crate::{fuzzing::TridentRng, traits::FuzzClient};
 
 use super::InstructionHooks;
 
@@ -17,5 +17,6 @@ pub trait InstructionSetters: InstructionHooks {
         &mut self,
         client: &mut impl FuzzClient,
         fuzz_accounts: &mut Self::IxAccounts,
+        rng: &mut TridentRng,
     );
 }

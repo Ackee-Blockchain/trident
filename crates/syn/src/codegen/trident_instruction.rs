@@ -77,8 +77,9 @@ impl ToTokens for TridentInstructionStruct {
                     &mut self,
                     client: &mut impl FuzzClient,
                     fuzz_accounts: &mut Self::IxAccounts,
+                    rng: &mut TridentRng,
                 ) {
-                    self.#accounts.resolve_accounts(client, fuzz_accounts, self.get_program_id(), &self.data);
+                    self.#accounts.resolve_accounts(client, fuzz_accounts, self.get_program_id(), &self.data, rng);
                 }
             }
 

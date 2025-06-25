@@ -65,7 +65,7 @@ enum Command {
         template or you can run fuzz test on already initialzied one.\
         \n\n\x1b[1m\x1b[4mEXAMPLE:\x1b[0m\
         \n    trident add\
-        \n    trident fuzz run-hfuzz fuzz_0\
+        \n    trident fuzz run fuzz_0\
         \n    trident fuzz debug-hfuzz \x1b[92m<FUZZ_TARGET>\x1b[0m \x1b[92m<PATH_TO_CRASHFILE>\x1b[0m"
     )]
     Fuzz {

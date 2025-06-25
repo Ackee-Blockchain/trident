@@ -12,8 +12,6 @@ pub enum FuzzingError {
     CustomMessage(String),
     #[error("Transaction failed: {0}")]
     TransactionFailed(#[from] TransactionError),
-    #[error("Arbitrary error: {0}")]
-    ArbitraryError(#[from] arbitrary::Error),
 }
 
 impl FuzzingError {

@@ -1,7 +1,3 @@
-use arbitrary::Arbitrary;
-use arbitrary::Result;
-use arbitrary::Unstructured;
-
 use solana_sdk::account::AccountSharedData;
 use solana_sdk::account::ReadableAccount;
 use solana_sdk::clock::Epoch;
@@ -10,30 +6,12 @@ use solana_sdk::pubkey::Pubkey;
 
 use crate::{fuzzing::FuzzClient, types::AccountId};
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct TridentAccount {
     pub account_id: AccountId,
     account_meta: Option<AccountMeta>,
     snapshot_before: Option<SnapshotAccount>,
     snapshot_after: Option<SnapshotAccount>,
-}
-
-impl<'a> Arbitrary<'a> for TridentAccount {
-    fn arbitrary(u: &mut Unstructured<'a>) -> Result<Self> {
-        let mut buf = [0; std::mem::size_of::<AccountId>()];
-        u.fill_buffer(&mut buf)?;
-        Ok(Self {
-            account_id: AccountId::from_le_bytes(buf),
-            account_meta: None,
-            snapshot_before: None,
-            snapshot_after: None,
-        })
-    }
-    #[inline]
-    fn size_hint(_depth: usize) -> (usize, Option<usize>) {
-        let n = std::mem::size_of::<AccountId>();
-        (n, Some(n))
-    }
 }
 
 impl TridentAccount {

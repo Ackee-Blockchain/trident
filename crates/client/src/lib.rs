@@ -50,5 +50,4 @@ mod constants {
     // Formatting
     pub(crate) const SKIP: &str = "\x1b[33mSkip\x1b[0m";
     pub(crate) const FINISH: &str = "\x1b[92mFinished\x1b[0m";
-    pub(crate) const ERROR: &str = "\x1b[31mError\x1b[0m";
 }

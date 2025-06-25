@@ -7,15 +7,25 @@ mod types;
 use hello_world::entry as entry_hello_world;
 pub use transactions::*;
 
-#[derive(Default)]
-struct FuzzTest<C> {
-    client: C,
+use rand::{rngs::SmallRng, Rng, SeedableRng};
+
+struct FuzzTest {
+    /// for transaction executions
+    client: TridentSVM,
+    /// for storing fuzzing metrics
+    metrics: FuzzingStatistics,
+    /// for storing seed
+    rng: TridentRng,
 }
 
 #[flow_executor]
-impl<C: FuzzClient + std::panic::RefUnwindSafe> FuzzTest<C> {
-    fn new(client: C) -> Self {
-        Self { client }
+impl FuzzTest {
+    fn new() -> Self {
+        Self {
+            client: TridentSVM::new_client(&TridentConfig::new()),
+            metrics: FuzzingStatistics::default(),
+            rng: TridentRng::random(),
+        }
     }
     #[init]
     fn start(&mut self) {
@@ -26,18 +36,14 @@ impl<C: FuzzClient + std::panic::RefUnwindSafe> FuzzTest<C> {
         ));
     }
     #[flow]
-    fn flow1(
-        &mut self,
-        fuzzer_data: &mut FuzzerData,
-        accounts: &mut FuzzAccounts,
-    ) -> Result<(), FuzzingError> {
-        InitializeFnTransaction::build(fuzzer_data, &mut self.client, accounts)?
-            .execute(&mut self.client)?;
+    fn flow1(&mut self, accounts: &mut FuzzAccounts) -> Result<(), FuzzingError> {
+        InitializeFnTransaction::build(&mut self.client, accounts, &mut self.rng)
+            .execute(&mut self.client, &mut self.metrics)
+            .unwrap();
 
         Ok(())
     }
 }
 fn main() {
-    let client = TridentSVM::new_client(&TridentConfig::new());
-    FuzzTest::new(client).fuzz();
+    FuzzTest::fuzz_parallel(10000);
 }

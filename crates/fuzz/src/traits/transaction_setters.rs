@@ -1,5 +1,5 @@
 use super::TransactionHooks;
-use crate::traits::FuzzClient;
+use crate::{fuzzing::TridentRng, traits::FuzzClient};
 
 #[doc(hidden)]
 pub trait TransactionSetters: TransactionHooks {
@@ -17,5 +17,6 @@ pub trait TransactionSetters: TransactionHooks {
         &mut self,
         client: &mut impl FuzzClient,
         fuzz_accounts: &mut Self::IxAccounts,
+        rng: &mut TridentRng,
     );
 }

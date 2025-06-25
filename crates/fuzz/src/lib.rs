@@ -8,6 +8,8 @@ pub mod trident_accounts;
 
 pub mod trident_pubkey;
 
+pub mod trident_seed;
+
 pub mod types;
 
 pub mod fuzzing {
@@ -29,10 +31,7 @@ pub mod fuzzing {
     pub use solana_sdk::transaction::TransactionError;
 
     /// fuzzing
-    pub use afl::fuzz as fuzz_afl;
-    pub use arbitrary;
-    pub use arbitrary::Arbitrary;
-    pub use honggfuzz::fuzz as fuzz_honggfuzz;
+    pub use super::trident_seed::TridentRng;
 
     /// trident traits
     pub use super::traits::AccountsMethods;
@@ -82,7 +81,6 @@ pub mod fuzzing {
 
     /// types
     pub use crate::types::AccountId;
-    pub use crate::types::FuzzerData;
 
     /// trident accounts
     pub use crate::trident_accounts::TridentAccount;
@@ -90,5 +88,11 @@ pub mod fuzzing {
 
     pub use borsh::{BorshDeserialize, BorshSerialize};
 
-    pub use arbitrary::Unstructured;
+    pub use indicatif;
+
+    pub use shared_memory;
+    pub use signal_hook;
+
+    /// RNG
+    pub use rand;
 }
