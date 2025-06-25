@@ -20,7 +20,9 @@ impl TridentRng {
     }
     pub fn rotate_seed(&mut self) {
         let mut new_seed = [0; 32];
-        self.rng.fill_bytes(&mut new_seed);
+        if let Err(err) = getrandom::fill(&mut new_seed) {
+            panic!("from_entropy failed: {}", err);
+        }
         self.seed = new_seed;
         self.rng = SmallRng::from_seed(self.seed);
     }

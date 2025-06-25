@@ -60,5 +60,5 @@ pub trait FuzzClient {
 
     #[doc(hidden)]
     // Clear Temp account created during fuzzing iteration
-    fn clear_accounts(&mut self);
+    fn _clear_accounts(&mut self);
 }

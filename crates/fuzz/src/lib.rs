@@ -8,7 +8,7 @@ pub mod trident_accounts;
 
 pub mod trident_pubkey;
 
-pub mod trident_seed;
+pub mod trident_rng;
 
 pub mod types;
 
@@ -31,7 +31,7 @@ pub mod fuzzing {
     pub use solana_sdk::transaction::TransactionError;
 
     /// fuzzing
-    pub use super::trident_seed::TridentRng;
+    pub use super::trident_rng::TridentRng;
 
     /// trident traits
     pub use super::traits::AccountsMethods;

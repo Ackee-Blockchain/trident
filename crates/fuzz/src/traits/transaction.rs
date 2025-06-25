@@ -8,6 +8,7 @@ use crate::fuzzing::TridentRng;
 use crate::traits::FuzzClient;
 
 use solana_sdk::transaction::TransactionError;
+use trident_svm::processor::InstructionError;
 
 #[allow(private_bounds)]
 /// Trait providing methods to prepare data and accounts for transaction execution
@@ -43,6 +44,7 @@ pub trait TransactionMethods:
         &mut self,
         client: &mut impl FuzzClient,
         stats_logger: &mut FuzzingStatistics,
+        rng: &TridentRng,
     ) -> Result<(), FuzzingError> {
         let instructions = self.create_transaction(client);
 
@@ -71,23 +73,37 @@ pub trait TransactionMethods:
                     // Run invariant checks
                     if let Err(e) = self.transaction_invariant_check() {
                         // Record check failure
-                        stats_logger.increase_failed_check(self.get_transaction_name());
-
-                        eprintln!(
-                            "\x1b[31mCRASH DETECTED!\x1b[0m Custom check after the {} transaction did not pass!",
-                            self.get_transaction_name()
+                        stats_logger.increase_failed_invariant(
+                            self.get_transaction_name(),
+                            rng.get_seed(),
+                            e.to_string(),
                         );
-                        panic!("{}", e)
+
+                        return Err(e);
                     }
 
                     // Run post-transaction hook
                     self.post_transaction(client);
                 }
                 Err(e) => {
-                    stats_logger.increase_failed(self.get_transaction_name(), e.to_string());
+                    if let TransactionError::InstructionError(_x, e) = &e {
+                        match e {
+                            InstructionError::ProgramFailedToComplete => {
+                                stats_logger.increase_transaction_panicked(
+                                    self.get_transaction_name(),
+                                    rng.get_seed(),
+                                    e.to_string(),
+                                );
+                            }
+                            _ => {
+                                stats_logger
+                                    .increase_failed(self.get_transaction_name(), e.to_string());
+                            }
+                        }
+                    };
 
                     // Handle transaction error
-                    self.transaction_error_handler(e)?
+                    self.transaction_error_handler(e.clone())?;
                 }
             }
         } else {
@@ -119,7 +135,7 @@ pub trait TransactionMethods:
                 }
                 Err(e) => {
                     // Handle transaction error
-                    self.transaction_error_handler(e)?
+                    self.transaction_error_handler(e.clone())?;
                 }
             }
         }

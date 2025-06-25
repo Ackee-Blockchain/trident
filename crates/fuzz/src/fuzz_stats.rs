@@ -4,6 +4,8 @@ use prettytable::{row, Table};
 use std::collections::BTreeMap;
 use std::{fs::File, io::Write};
 
+use crate::types::Seed;
+
 /// Represents fuzzing statistics, specifically tracking the number of times
 /// an instruction was invoked and successfully executed.
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
@@ -11,13 +13,21 @@ pub struct IterationStats {
     pub invoked: u64,
     pub successful: u64,
     pub failed: u64,
-    pub failed_check: u64,
+    pub failed_invariant: u64,
+    pub transaction_panicked: u64,
+
     // error | number of occurances
     pub errors: BTreeMap<String, u64>,
+    pub crashes: BTreeMap<String, Crash>,
+}
+
+#[derive(Debug, serde::Serialize, serde::Deserialize, Clone, Copy)]
+pub struct Crash {
+    pub seed: Seed,
 }
 
 /// Manages and aggregates statistics for fuzzing instructions.
-#[derive(Debug, Default)]
+#[derive(Debug, Default, serde::Serialize, serde::Deserialize)]
 pub struct FuzzingStatistics {
     pub instructions: BTreeMap<String, IterationStats>,
 }
@@ -42,8 +52,10 @@ impl FuzzingStatistics {
                 invoked: 1,
                 successful: 0,
                 failed: 0,
-                failed_check: 0,
+                failed_invariant: 0,
+                transaction_panicked: 0,
                 errors: BTreeMap::new(),
+                crashes: BTreeMap::new(),
             });
     }
 
@@ -53,18 +65,7 @@ impl FuzzingStatistics {
     pub fn increase_successful(&mut self, instruction: String) {
         self.instructions
             .entry(instruction)
-            .and_modify(|iterations_stats| iterations_stats.successful += 1)
-            .or_insert(
-                // this should not occure as instruction has to be invoked
-                // and then successfully_invoked
-                IterationStats {
-                    invoked: 1,
-                    successful: 1,
-                    failed: 0,
-                    failed_check: 0,
-                    errors: BTreeMap::new(),
-                },
-            );
+            .and_modify(|iterations_stats| iterations_stats.successful += 1);
     }
     pub fn increase_failed(&mut self, instruction: String, error: String) {
         self.instructions
@@ -76,34 +77,37 @@ impl FuzzingStatistics {
                     .entry(error)
                     .and_modify(|count| *count += 1)
                     .or_insert(1);
-            })
-            .or_insert(
-                // this should not occure as instruction has to be invoked
-                // and then unsuccessfully_invoked
-                IterationStats {
-                    invoked: 1,
-                    successful: 0,
-                    failed: 1,
-                    failed_check: 0,
-                    errors: BTreeMap::new(),
-                },
-            );
+            });
     }
-    pub fn increase_failed_check(&mut self, instruction: String) {
+    pub fn increase_failed_invariant(&mut self, instruction: String, seed: Seed, error: String) {
         self.instructions
             .entry(instruction)
-            .and_modify(|iterations_stats| iterations_stats.failed_check += 1)
-            .or_insert(
-                // this should not occure as instruction has to be invoked
-                // and then unsuccessfully_invoked
-                IterationStats {
-                    invoked: 1,
-                    successful: 1,
-                    failed: 0,
-                    failed_check: 1,
-                    errors: BTreeMap::new(),
-                },
-            );
+            .and_modify(|iterations_stats| {
+                iterations_stats.failed_invariant += 1;
+                iterations_stats
+                    .crashes
+                    .entry(error)
+                    .and_modify(|crash| crash.seed = seed)
+                    .or_insert(Crash { seed });
+            });
+    }
+
+    pub fn increase_transaction_panicked(
+        &mut self,
+        instruction: String,
+        seed: Seed,
+        error: String,
+    ) {
+        self.instructions
+            .entry(instruction)
+            .and_modify(|iterations_stats| {
+                iterations_stats.transaction_panicked += 1;
+                iterations_stats
+                    .crashes
+                    .entry(error)
+                    .and_modify(|crash| crash.seed = seed)
+                    .or_insert(Crash { seed });
+            });
     }
 
     /// Displays the collected statistics in a formatted table.
@@ -113,16 +117,18 @@ impl FuzzingStatistics {
             "Instruction",
             "Invoked Total",
             "Ix Success",
-            "Check Failed",
             "Ix Failed",
+            "Invariant Failed",
+            "Instruction Panicked",
         ]);
         for (instruction, stats) in &self.instructions {
             table.add_row(row![
                 instruction,
                 stats.invoked,
                 stats.successful,
-                stats.failed_check,
                 stats.failed,
+                stats.failed_invariant,
+                stats.transaction_panicked,
             ]);
         }
         table.printstd();
@@ -131,7 +137,7 @@ impl FuzzingStatistics {
 
     pub fn print_to_file(&self, path: &str) {
         let mut file = File::create(path).unwrap();
-        let serialized = serde_json::to_string(&self.instructions).unwrap();
+        let serialized = serde_json::to_string_pretty(&self).unwrap();
         file.write_all(serialized.as_bytes()).unwrap();
     }
 
@@ -146,13 +152,21 @@ impl FuzzingStatistics {
                     existing_stats.invoked += stats.invoked;
                     existing_stats.successful += stats.successful;
                     existing_stats.failed += stats.failed;
-                    existing_stats.failed_check += stats.failed_check;
+                    existing_stats.failed_invariant += stats.failed_invariant;
+                    existing_stats.transaction_panicked += stats.transaction_panicked;
                     for (error, count) in &stats.errors {
                         existing_stats
                             .errors
                             .entry(error.to_string())
                             .and_modify(|existing_count| *existing_count += count)
                             .or_insert(*count);
+                    }
+                    for (error, crash) in &stats.crashes {
+                        existing_stats
+                            .crashes
+                            .entry(error.to_string())
+                            .and_modify(|existing_crash| *existing_crash = *crash)
+                            .or_insert(*crash);
                     }
                 })
                 .or_insert(stats);

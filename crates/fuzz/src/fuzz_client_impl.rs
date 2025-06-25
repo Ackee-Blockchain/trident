@@ -8,7 +8,6 @@ use solana_sdk::sysvar::Sysvar;
 
 use trident_config::TridentConfig;
 
-use trident_svm::processor::InstructionError;
 use trident_svm::trident_svm::TridentSVM;
 use trident_svm::types::trident_account::TridentAccountSharedData;
 use trident_svm::types::trident_entrypoint::TridentEntrypoint;
@@ -121,20 +120,7 @@ impl FuzzClient for TridentSVM {
             Some(&self.payer().pubkey()),
         );
 
-        let res = self.process_transaction_with_settle(tx);
-
-        match res {
-            Ok(_) => Ok(()),
-            Err(e) => match e {
-                TransactionError::InstructionError(x, e) => match e {
-                    InstructionError::ProgramFailedToComplete => {
-                        panic!("Program failed to complete")
-                    }
-                    _ => Err(TransactionError::InstructionError(x, e)),
-                },
-                _ => Err(e),
-            },
-        }
+        self.process_transaction_with_settle(tx)
     }
 
     fn get_sysvar<T: Sysvar>(&self) -> T {

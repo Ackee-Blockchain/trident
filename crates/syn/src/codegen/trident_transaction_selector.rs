@@ -13,7 +13,7 @@ impl ToTokens for TridentSelectorEnum {
             quote! {
                 #name::#variant_name(ref mut tx) => {
                     tx.set_instructions(client, fuzz_accounts, rng);
-                    tx.execute(client, stats_logger)
+                    tx.execute(client, stats_logger, rng)
                 }
             }
         });

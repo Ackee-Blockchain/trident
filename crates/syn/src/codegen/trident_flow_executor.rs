@@ -13,7 +13,7 @@ impl ToTokens for TridentFlowExecutorImpl {
         // Generate init call if present
         let init_call = if let Some(init_method) = &self.init_method {
             quote! {
-                self.#init_method();
+                self.#init_method(&mut accounts);
             }
         } else {
             quote! {}
@@ -84,8 +84,10 @@ impl ToTokens for TridentFlowExecutorImpl {
                     pb.set_message("Fuzzing iterations...");
 
                     for i in 0..iterations {
-                        let _ = fuzzer.execute_flows();
+                        let result = fuzzer.execute_flows();
+
                         fuzzer.client._clear_accounts();
+                        fuzzer.rng.rotate_seed();
 
                         pb.set_position(i + 1);
                         pb.set_message(format!("Iteration {}/{}", i + 1, iterations));
@@ -159,6 +161,7 @@ impl ToTokens for TridentFlowExecutorImpl {
                             for i in 0..thread_iterations {
                                 let _ = fuzzer.execute_flows();
                                 fuzzer.client._clear_accounts();
+                                fuzzer.rng.rotate_seed();
 
                                 local_counter += 1;
 
