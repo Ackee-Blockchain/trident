@@ -50,9 +50,10 @@ version = "0.10.0"
 
 # Trident-SVM
 [dependencies.trident-svm]
-version = "0.0.3"
-git = "https://github.com/Ackee-Blockchain/trident-svm"
-branch = "master"
+path = "../../../trident-svm"
+# version = "0.0.3"
+# git = "https://github.com/Ackee-Blockchain/trident-svm"
+# branch = "master"
 
 [dependencies]
 
@@ -88,5 +89,3 @@ byteorder = "1.5.0"
 base64 = "0.22.1"
 itertools = "0"
 borsh = "1.5.3"
-shared_memory = "0.12.4"
-signal-hook = "0.3"

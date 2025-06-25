@@ -50,6 +50,9 @@ pub trait TransactionMethods:
         if fuzzing_metrics.is_ok() {
             let mut stats_logger = FuzzingStatistics::new();
 
+            // Record transaction invocation
+            stats_logger.increase_invoked(self.get_transaction_name());
+
             // Run pre-transaction hook
             self.pre_transaction(client);
 
@@ -57,16 +60,12 @@ pub trait TransactionMethods:
             self.set_snapshot_before(client);
 
             // Execute the transaction
-            client._increment_transaction_execution(self.get_transaction_name(), &mut stats_logger);
-            let tx_result = client._process_instructions(&instructions);
+            let tx_result = client.process_instructions(&instructions);
 
             match tx_result {
                 Ok(_) => {
                     // Record successful execution
-                    client._increment_transaction_success(
-                        self.get_transaction_name(),
-                        &mut stats_logger,
-                    );
+                    stats_logger.increase_successful(self.get_transaction_name());
 
                     // Take snapshot of accounts after execution
                     self.set_snapshot_after(client);
@@ -91,11 +90,8 @@ pub trait TransactionMethods:
                     self.post_transaction(client);
                 }
                 Err(e) => {
-                    client._record_transaction_error(
-                        self.get_transaction_name(),
-                        e.to_string(),
-                        &mut stats_logger,
-                    );
+                    // Record transaction failure
+                    stats_logger.increase_failed(self.get_transaction_name());
                     stats_logger.output_serialized();
 
                     // Handle transaction error
@@ -110,7 +106,7 @@ pub trait TransactionMethods:
             self.pre_transaction(client);
 
             // Execute the transaction
-            let tx_result = client._process_instructions(&instructions);
+            let tx_result = client.process_instructions(&instructions);
 
             match tx_result {
                 Ok(_) => {
@@ -157,31 +153,30 @@ pub trait TransactionMethods:
         if fuzzing_metrics.is_ok() {
             let mut stats_logger = FuzzingStatistics::new();
 
+            // Record transaction invocation
+            stats_logger.increase_invoked(self.get_transaction_name());
+
             // Take snapshot of accounts before execution
             self.set_snapshot_before(client);
 
-            client._increment_transaction_execution(self.get_transaction_name(), &mut stats_logger);
             // Execute the transaction
-            let tx_result = client._process_instructions(&instructions);
+            let tx_result = client.process_instructions(&instructions);
 
             match tx_result {
                 Ok(_) => {
-                    client._increment_transaction_success(
-                        self.get_transaction_name(),
-                        &mut stats_logger,
-                    );
+                    // Record successful execution
+                    stats_logger.increase_successful(self.get_transaction_name());
+
                     // Output statistics
                     stats_logger.output_serialized();
 
                     // Take snapshot of accounts after execution
                     self.set_snapshot_after(client);
                 }
-                Err(e) => {
-                    client._record_transaction_error(
-                        self.get_transaction_name(),
-                        e.to_string(),
-                        &mut stats_logger,
-                    );
+                Err(_e) => {
+                    // Record transaction failure
+                    stats_logger.increase_failed(self.get_transaction_name());
+
                     stats_logger.output_serialized();
                 }
             }
@@ -190,7 +185,7 @@ pub trait TransactionMethods:
             self.set_snapshot_before(client);
 
             // Execute the transaction
-            let tx_result = client._process_instructions(&instructions);
+            let tx_result = client.process_instructions(&instructions);
 
             match tx_result {
                 Ok(_) => {
