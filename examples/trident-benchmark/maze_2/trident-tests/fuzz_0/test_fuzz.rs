@@ -10,6 +10,20 @@ pub use transactions::*;
 struct FuzzTest<C> {
     client: C,
 }
+/// Use flows to specify custom sequences of behavior
+/// #[init]
+/// fn start(&mut self) {
+///     // Initialization goes here
+/// }
+/// #[flow]
+/// fn flow1(
+///     &mut self,
+///     fuzzer_data: &mut FuzzerData,
+///     accounts: &mut FuzzAccounts,
+/// ) -> Result<(), FuzzingError> {
+///     // Flow logic goes here
+///     Ok(())
+/// }
 #[flow_executor(random_tail = true)]
 impl<C: FuzzClient + std::panic::RefUnwindSafe> FuzzTest<C> {
     fn new(client: C) -> Self {
@@ -32,35 +46,6 @@ impl<C: FuzzClient + std::panic::RefUnwindSafe> FuzzTest<C> {
         InitializeTransaction::build(fuzzer_data, &mut self.client, accounts)?
             .execute(&mut self.client)?;
 
-        Ok(())
-    }
-
-    #[flow]
-    fn flow2(
-        &mut self,
-        fuzzer_data: &mut FuzzerData,
-        accounts: &mut FuzzAccounts,
-    ) -> Result<(), FuzzingError> {
-        FuzzTransactions::select_n_execute(fuzzer_data, &mut self.client, accounts)?;
-        Ok(())
-    }
-
-    #[flow]
-    fn flow3(
-        &mut self,
-        fuzzer_data: &mut FuzzerData,
-        accounts: &mut FuzzAccounts,
-    ) -> Result<(), FuzzingError> {
-        FuzzTransactions::select_n_execute_no_hooks(fuzzer_data, &mut self.client, accounts)?;
-        Ok(())
-    }
-    #[flow]
-    fn flow4(
-        &mut self,
-        fuzzer_data: &mut FuzzerData,
-        accounts: &mut FuzzAccounts,
-    ) -> Result<(), FuzzingError> {
-        FuzzTransactions::select_n_execute_no_hooks(fuzzer_data, &mut self.client, accounts)?;
         Ok(())
     }
 }

@@ -1,8 +1,8 @@
 use crate::fuzz_transactions::FuzzAccounts;
+use crate::types::*;
 use borsh::{BorshDeserialize, BorshSerialize};
 use trident_fuzz::fuzzing::*;
-#[derive(Arbitrary, Debug, TridentInstruction)]
-#[accounts("accounts")]
+#[derive(Arbitrary, TridentInstruction)]
 #[program_id("5e554BrmQN7a2nbKrSUUxP8PMbq55rMntnkoCPmwr3Aq")]
 # [discriminator ([65u8 , 4u8 , 235u8 , 142u8 , 120u8 , 215u8 , 181u8 , 131u8 ,])]
 pub struct MoveNorthInstruction {
@@ -11,20 +11,23 @@ pub struct MoveNorthInstruction {
 }
 /// Instruction Accounts
 #[derive(Arbitrary, Debug, Clone, TridentAccounts)]
+#[instruction_data(MoveNorthInstructionData)]
+#[storage(FuzzAccounts)]
 pub struct MoveNorthInstructionAccounts {
-    pub state: TridentAccount,
+    #[account(mut,storage = state)]
+    state: TridentAccount,
 }
 /// Instruction Data
 #[derive(Arbitrary, Debug, BorshDeserialize, BorshSerialize, Clone)]
 pub struct MoveNorthInstructionData {
-    pub p0: u64,
-    pub p1: u64,
-    pub p2: u64,
-    pub p3: u64,
-    pub p4: u64,
-    pub p5: u64,
-    pub p6: u64,
-    pub p7: u64,
+    p0: u64,
+    p1: u64,
+    p2: u64,
+    p3: u64,
+    p4: u64,
+    p5: u64,
+    p6: u64,
+    p7: u64,
 }
 /// Implementation of instruction setters for fuzzing
 ///
@@ -32,14 +35,18 @@ pub struct MoveNorthInstructionData {
 /// - Set instruction data during fuzzing
 /// - Configure instruction accounts during fuzzing
 /// - (Optional) Set remaining accounts during fuzzing
+///
+/// Docs: https://ackee.xyz/trident/docs/latest/start-fuzzing/writting-fuzz-test/
 impl InstructionHooks for MoveNorthInstruction {
     type IxAccounts = FuzzAccounts;
+    fn set_data(&mut self, _client: &mut impl FuzzClient, _fuzz_accounts: &mut Self::IxAccounts) {
+        // nothing to do here
+    }
     fn set_accounts(
         &mut self,
         _client: &mut impl FuzzClient,
-        fuzz_accounts: &mut Self::IxAccounts,
+        _fuzz_accounts: &mut Self::IxAccounts,
     ) {
-        let state = fuzz_accounts.state.get(1);
-        self.accounts.state.set_account_meta(state, false, true);
+        // nothing to do here
     }
 }

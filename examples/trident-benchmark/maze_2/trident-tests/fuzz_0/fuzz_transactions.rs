@@ -22,4 +22,5 @@ pub enum FuzzTransactions {
 pub struct FuzzAccounts {
     pub state_author: AccountsStorage,
     pub state: AccountsStorage,
+    pub system_program: AccountsStorage,
 }
