@@ -91,9 +91,6 @@ pub mod fuzzing {
 
     pub use indicatif;
 
-    pub use shared_memory;
-    pub use signal_hook;
-
     /// RNG
     pub use rand;
 }

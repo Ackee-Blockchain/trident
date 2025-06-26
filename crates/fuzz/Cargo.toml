@@ -52,7 +52,7 @@ version = "0.10.0"
 [dependencies.trident-svm]
 version = "0.0.3"
 git = "https://github.com/Ackee-Blockchain/trident-svm"
-branch = "master"
+branch = "update-tx-result"
 
 [dependencies]
 

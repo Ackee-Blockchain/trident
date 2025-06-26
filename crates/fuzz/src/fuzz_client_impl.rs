@@ -14,7 +14,6 @@ use trident_svm::types::trident_entrypoint::TridentEntrypoint;
 use trident_svm::types::trident_program::TridentProgram;
 
 use crate::traits::FuzzClient;
-use solana_sdk::transaction::TransactionError;
 
 impl FuzzClient for TridentSVM {
     fn deploy_entrypoint(&mut self, program: TridentEntrypoint) {
@@ -107,10 +106,10 @@ impl FuzzClient for TridentSVM {
     }
 
     #[doc(hidden)]
-    fn process_instructions(
+    fn _process_instructions(
         &mut self,
         instructions: &[Instruction],
-    ) -> Result<(), TransactionError> {
+    ) -> trident_svm::prelude::solana_svm::transaction_processor::LoadAndExecuteSanitizedTransactionsOutput{
         // there should be at least 1 RW fee-payer account.
         // But we do not pay for TX currently so has to be manually updated
         // tx.message.header.num_required_signatures = 1;
@@ -128,7 +127,7 @@ impl FuzzClient for TridentSVM {
     }
 
     #[doc(hidden)]
-    fn clear_accounts(&mut self) {
+    fn _clear_accounts(&mut self) {
         self.clear_accounts();
     }
 }

@@ -78,7 +78,7 @@ impl TridentFlowExecutorImpl {
     fn generate_init_call(&self) -> TokenStream {
         if let Some(init_method) = &self.init_method {
             quote! {
-                self.#init_method(&mut accounts);
+                self.#init_method(&mut accounts)?;
             }
         } else {
             quote! {}

@@ -17,8 +17,14 @@ pub struct IterationStats {
     pub transaction_panicked: u64,
 
     // error | number of occurances
-    pub errors: BTreeMap<String, u64>,
+    pub errors: BTreeMap<String, TransactionFailedMetric>,
     pub crashes: BTreeMap<String, Crash>,
+}
+
+#[derive(Debug, serde::Serialize, serde::Deserialize, Clone)]
+pub struct TransactionFailedMetric {
+    pub occurrences: u64,
+    pub logs: Option<Vec<String>>,
 }
 
 #[derive(Debug, serde::Serialize, serde::Deserialize, Clone, Copy)]
@@ -67,7 +73,12 @@ impl FuzzingStatistics {
             .entry(instruction)
             .and_modify(|iterations_stats| iterations_stats.successful += 1);
     }
-    pub fn increase_failed(&mut self, instruction: String, error: String) {
+    pub fn increase_failed(
+        &mut self,
+        instruction: String,
+        error: String,
+        logs: Option<Vec<String>>,
+    ) {
         self.instructions
             .entry(instruction)
             .and_modify(|iterations_stats| {
@@ -75,8 +86,11 @@ impl FuzzingStatistics {
                 iterations_stats
                     .errors
                     .entry(error)
-                    .and_modify(|count| *count += 1)
-                    .or_insert(1);
+                    .and_modify(|fail| fail.occurrences += 1)
+                    .or_insert(TransactionFailedMetric {
+                        occurrences: 1,
+                        logs,
+                    });
             });
     }
     pub fn increase_failed_invariant(&mut self, instruction: String, seed: Seed, error: String) {
@@ -154,12 +168,15 @@ impl FuzzingStatistics {
                     existing_stats.failed += stats.failed;
                     existing_stats.failed_invariant += stats.failed_invariant;
                     existing_stats.transaction_panicked += stats.transaction_panicked;
-                    for (error, count) in &stats.errors {
+                    for (error, failed_metric) in &stats.errors {
                         existing_stats
                             .errors
                             .entry(error.to_string())
-                            .and_modify(|existing_count| *existing_count += count)
-                            .or_insert(*count);
+                            .and_modify(|fail| fail.occurrences += failed_metric.occurrences)
+                            .or_insert(TransactionFailedMetric {
+                                occurrences: failed_metric.occurrences,
+                                logs: failed_metric.logs.clone(),
+                            });
                     }
                     for (error, crash) in &stats.crashes {
                         existing_stats

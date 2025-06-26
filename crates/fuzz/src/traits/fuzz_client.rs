@@ -6,7 +6,6 @@ use solana_sdk::instruction::Instruction;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
 use solana_sdk::sysvar::Sysvar;
-use solana_sdk::transaction::TransactionError;
 
 use trident_config::TridentConfig;
 use trident_svm::types::trident_entrypoint::TridentEntrypoint;
@@ -53,10 +52,10 @@ pub trait FuzzClient {
 
     #[doc(hidden)]
     /// Send a transaction and return until the transaction has been finalized or rejected.
-    fn process_instructions(
+    fn _process_instructions(
         &mut self,
         _instructions: &[Instruction],
-    ) -> Result<(), TransactionError>;
+    ) -> trident_svm::prelude::solana_svm::transaction_processor::LoadAndExecuteSanitizedTransactionsOutput;
 
     #[doc(hidden)]
     // Clear Temp account created during fuzzing iteration
