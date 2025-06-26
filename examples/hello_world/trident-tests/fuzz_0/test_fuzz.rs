@@ -4,7 +4,6 @@ mod fuzz_transactions;
 mod instructions;
 mod transactions;
 mod types;
-use hello_world::entry as entry_hello_world;
 pub use transactions::*;
 
 #[derive(FuzzTestMethods)]
