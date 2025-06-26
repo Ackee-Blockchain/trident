@@ -17,13 +17,13 @@ pub struct InitializeFnInstructionAccounts {
         mut,
         signer,
         storage::name = author,
-        storage::account_id = (0..55)
+        storage::account_id = (0..3)
     )]
     pub author: TridentAccount,
     #[account(
         mut,
         storage::name = hello_world_account,
-        storage::account_id = 5,
+        storage::account_id = (0..3),
         lamports = 5 * LAMPORTS_PER_SOL,
         seeds = [b"hello_world_seed"],
     )]
@@ -48,8 +48,8 @@ impl InstructionHooks for InitializeFnInstruction {
     type IxAccounts = FuzzAccounts;
     fn set_data(
         &mut self,
-        client: &mut impl FuzzClient,
-        fuzz_accounts: &mut Self::IxAccounts,
+        _client: &mut impl FuzzClient,
+        _fuzz_accounts: &mut Self::IxAccounts,
         rng: &mut TridentRng,
     ) {
         self.data.input = rng.gen_range(0..u8::MAX);

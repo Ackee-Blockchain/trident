@@ -4,10 +4,7 @@ mod fuzz_transactions;
 mod instructions;
 mod transactions;
 mod types;
-use hello_world::entry as entry_hello_world;
 pub use transactions::*;
-
-use rand::{rngs::SmallRng, Rng, SeedableRng};
 
 struct FuzzTest {
     /// for transaction executions
@@ -28,22 +25,15 @@ impl FuzzTest {
         }
     }
     #[init]
-    fn start(&mut self) {
-        self.client.deploy_entrypoint(TridentEntrypoint::new(
-            pubkey!("FtevoQoDMv6ZB3N9Lix5Tbjs8EVuNL8vDSqG9kzaZPit"),
-            None,
-            processor!(entry_hello_world),
-        ));
-    }
-    #[flow]
-    fn flow1(&mut self, accounts: &mut FuzzAccounts) -> Result<(), FuzzingError> {
-        InitializeFnTransaction::build(&mut self.client, accounts, &mut self.rng)
-            .execute(&mut self.client, &mut self.metrics)
-            .unwrap();
-
+    fn start(&mut self, accounts: &mut FuzzAccounts) -> Result<(), FuzzingError> {
+        InitializeFnTransaction::build(&mut self.client, accounts, &mut self.rng).execute(
+            &mut self.client,
+            &mut self.metrics,
+            &self.rng,
+        )?;
         Ok(())
     }
 }
 fn main() {
-    FuzzTest::fuzz_parallel(10000);
+    FuzzTest::fuzz_parallel(1000, 50);
 }

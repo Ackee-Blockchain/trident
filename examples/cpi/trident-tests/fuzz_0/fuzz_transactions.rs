@@ -5,7 +5,7 @@ use trident_fuzz::fuzzing::*;
 /// You can create your own transactions by adding new variants to the enum.
 ///
 /// Docs: https://ackee.xyz/trident/docs/latest/trident-api-macro/trident-types/fuzz-transactions/
-#[derive(Arbitrary, TransactionSelector)]
+#[derive(TransactionSelector)]
 pub enum FuzzTransactions {
     InitializeCallerTransaction(InitializeCallerTransaction),
     InitializeCalleeTransaction(InitializeCalleeTransaction),

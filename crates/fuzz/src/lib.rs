@@ -86,6 +86,7 @@ pub mod fuzzing {
     pub use crate::trident_accounts::TridentAccount;
     pub use crate::trident_pubkey::TridentPubkey;
 
+    pub use borsh;
     pub use borsh::{BorshDeserialize, BorshSerialize};
 
     pub use indicatif;
