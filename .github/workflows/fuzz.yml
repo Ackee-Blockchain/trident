@@ -11,7 +11,7 @@ on:
       - master
 
 env:
-  HONGGFUZZ_VERSION: 0.5.56    # Honggfuzz version to install in the environment
+  HONGGFUZZ_VERSION: 0.5.57    # Honggfuzz version to install in the environment
   AFL_VERSION: 0.15.10    # AFL version to install in the environment
 
 
