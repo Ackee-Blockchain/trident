@@ -12,8 +12,6 @@ use trident_config::TridentConfig;
 use trident_svm::types::trident_entrypoint::TridentEntrypoint;
 use trident_svm::types::trident_program::TridentProgram;
 
-use crate::fuzzing::FuzzingStatistics;
-
 /// A trait providing methods to read and write (manipulate) accounts
 pub trait FuzzClient {
     /// Deploy program through its entrypoint
@@ -55,43 +53,12 @@ pub trait FuzzClient {
 
     #[doc(hidden)]
     /// Send a transaction and return until the transaction has been finalized or rejected.
-    fn _process_instructions(
+    fn process_instructions(
         &mut self,
         _instructions: &[Instruction],
     ) -> Result<(), TransactionError>;
 
     #[doc(hidden)]
     // Clear Temp account created during fuzzing iteration
-    fn _clear_accounts(&mut self);
-
-    // -*-*-*-*-*-*-*
-    // Metrics
-    // -*-*-*-*-*-*-*
-    #[doc(hidden)]
-    /// Record a transaction error
-    fn _record_transaction_error(
-        &mut self,
-        _transaction_name: String,
-        _error: String,
-        _stats_logger: &mut FuzzingStatistics,
-    ) {
-    }
-
-    #[doc(hidden)]
-    /// Increment the number of successful transaction executions
-    fn _increment_transaction_success(
-        &mut self,
-        _transaction_name: String,
-        _stats_logger: &mut FuzzingStatistics,
-    ) {
-    }
-
-    #[doc(hidden)]
-    /// Increment the number of transaction executions
-    fn _increment_transaction_execution(
-        &mut self,
-        _transaction_name: String,
-        _stats_logger: &mut FuzzingStatistics,
-    ) {
-    }
+    fn clear_accounts(&mut self);
 }

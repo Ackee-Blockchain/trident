@@ -69,7 +69,6 @@ pub mod fuzzing {
     /// trident config
     pub use trident_config::TridentConfig;
 
-    pub use trident_svm::fuzzing_metrics::stats::FuzzStats;
     /// trident svm
     pub use trident_svm::trident_svm::TridentSVM;
     pub use trident_svm::types::trident_entrypoint::TridentEntrypoint;
@@ -92,7 +91,4 @@ pub mod fuzzing {
     pub use borsh::{BorshDeserialize, BorshSerialize};
 
     pub use arbitrary::Unstructured;
-
-    pub use shared_memory;
-    pub use signal_hook;
 }

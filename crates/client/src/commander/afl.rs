@@ -18,10 +18,6 @@ impl Commander {
     pub async fn run_afl(&self, target: String, generate_coverage: bool, dynamic_coverage: bool) {
         let config = TridentConfig::new();
 
-        if config.get_fuzzing_with_stats() {
-            std::env::set_var("FUZZING_METRICS", "1");
-        }
-
         if generate_coverage {
             self.run_afl_with_coverage(&target, &config, dynamic_coverage)
                 .await?;
@@ -150,8 +146,6 @@ impl Commander {
         let fuzz_args = config.get_afl_fuzz_args();
 
         let mut env_vars = HashMap::new();
-        env_vars.insert("AFL_KILL_SIGNAL", "2".to_string());
-
         if let Some(coverage) = coverage {
             env_vars.insert("LLVM_PROFILE_FILE", coverage.get_profraw_file());
             env_vars.insert(
