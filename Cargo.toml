@@ -29,7 +29,7 @@ solana-sdk = "~2.0"
 arbitrary = { version = "1.3.0", features = ["derive"] }
 
 # Honggfuzz
-honggfuzz = { version = "0.5.55" }
+honggfuzz = { version = "0.5.57" }
 
 #AFL
 afl = { version = "0.15.10" }
