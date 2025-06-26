@@ -50,10 +50,9 @@ version = "0.10.0"
 
 # Trident-SVM
 [dependencies.trident-svm]
-path = "../../../trident-svm"
-# version = "0.0.3"
-# git = "https://github.com/Ackee-Blockchain/trident-svm"
-# branch = "master"
+version = "0.0.3"
+git = "https://github.com/Ackee-Blockchain/trident-svm"
+branch = "master"
 
 [dependencies]
 
