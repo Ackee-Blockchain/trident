@@ -6,17 +6,22 @@ use solana_sdk::{
     pubkey::Pubkey,
 };
 use std::{fs, str::FromStr};
+use crate::constants::DEFAULT_LOOP_COUNT;
 
 #[derive(Debug, Deserialize, Clone, Default)]
 pub struct Fuzz {
     pub fuzzing_with_stats: Option<bool>,
     pub programs: Option<Vec<_FuzzProgram>>,
     pub accounts: Option<Vec<_FuzzAccount>>,
+    pub loop_count: Option<u64>,
 }
 
 impl Fuzz {
     pub fn get_fuzzing_with_stats(&self) -> bool {
         self.fuzzing_with_stats.unwrap_or(false)
+    }
+    pub fn get_loop_count(&self) -> u64 {
+        self.loop_count.unwrap_or(DEFAULT_LOOP_COUNT)
     }
 }
 

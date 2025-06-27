@@ -207,6 +207,7 @@ impl TridentFlowExecutorImpl {
     fn generate_fuzz_method(&self) -> TokenStream {
         let thread_management = self.generate_thread_management_logic();
         let single_threaded_fallback = self.generate_single_threaded_fallback();
+        let loopcount_retrieval = self.generate_loopcount_retrieval();
 
         quote! {
             fn fuzz(iterations: u64, flow_calls_per_iteration: u64) {
@@ -227,6 +228,8 @@ impl TridentFlowExecutorImpl {
                     .min(iterations as usize);
 
                 if num_threads <= 1 || iterations <= 1 {
+                    #loopcount_retrieval
+
                     // Single-threaded fallback
                     #single_threaded_fallback
                     return;
@@ -296,6 +299,8 @@ impl TridentFlowExecutorImpl {
 
     /// Generate the single-threaded fuzzing loop
     fn generate_single_threaded_fuzzing_loop(&self) -> TokenStream {
+        let generate_write_profile_logic = self.generate_write_profile_logic();
+
         quote! {
             for i in 0..iterations {
                 let result = fuzzer.execute_flows(flow_calls_per_iteration);
@@ -308,6 +313,8 @@ impl TridentFlowExecutorImpl {
 
                 pb.inc(flow_calls_per_iteration);
                 pb.set_message(format!("Iteration {}/{} completed", i + 1, iterations));
+
+                #generate_write_profile_logic
             }
 
             pb.finish_with_message("Fuzzing completed!");
@@ -367,6 +374,8 @@ impl TridentFlowExecutorImpl {
     /// Generate thread spawning logic
     fn generate_thread_spawn_logic(&self) -> TokenStream {
         let type_name = &self.type_name;
+        let generate_loopcount_retrieval = self.generate_loopcount_retrieval();
+        let generate_write_profile_logic = self.generate_write_profile_logic();
 
         quote! {
             let main_pb_clone = main_pb.clone();
@@ -380,6 +389,8 @@ impl TridentFlowExecutorImpl {
                 let update_duration = Duration::from_millis(50);
 
                 let mut local_counter = 0u64;
+
+                #generate_loopcount_retrieval
 
                 for i in 0..thread_iterations {
                     let _ = fuzzer.execute_flows(flow_calls_per_iteration);
@@ -401,6 +412,8 @@ impl TridentFlowExecutorImpl {
                         local_counter = 0;
                         last_update = Instant::now();
                     }
+
+                    #generate_write_profile_logic
                 }
 
                 // Ensure final update
@@ -444,6 +457,23 @@ impl TridentFlowExecutorImpl {
             if std::env::var("FUZZING_METRICS").is_ok() {
                 fuzzer.metrics.show_table();
                 fuzzer.metrics.print_to_file("fuzzing_metrics.json");
+            }
+        }
+    }
+
+    fn generate_loopcount_retrieval(&self) -> TokenStream {
+        quote! {
+            let loop_count = match std::env::var("FUZZER_LOOPCOUNT") {
+                Ok(val) => val.parse().unwrap_or(0),
+                Err(_) => 0,
+            };
+        }
+    }
+
+    fn generate_write_profile_logic(&self) -> TokenStream {
+        quote! {
+            if loop_count > 0 && i % loop_count == 0 {
+                unsafe { let _ = __llvm_profile_write_file(); }
             }
         }
     }
