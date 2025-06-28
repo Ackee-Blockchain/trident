@@ -8,8 +8,6 @@ description = { workspace = true }
 license-file = { workspace = true }
 readme = { workspace = true }
 
-[lints.rust]
-unexpected_cfgs = { level = "warn", check-cfg = ['cfg(honggfuzz)', 'cfg(afl)'] }
 
 [features]
 all = ["vote", "stake", "token"]

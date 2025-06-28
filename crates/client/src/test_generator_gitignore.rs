@@ -8,6 +8,7 @@ use std::io::prelude::*;
 use crate::___private::TestGenerator;
 use crate::construct_path;
 
+#[allow(unused)]
 impl TestGenerator {
     #[throws]
     pub(crate) fn update_gitignore(&self, ignored_path: &str) {

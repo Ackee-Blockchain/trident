@@ -35,7 +35,7 @@ impl Template {
         let composite_structs = get_composite_account_structs(instruction, &instruction_data_name);
 
         let instruction_struct: syn::ItemStruct = parse_quote! {
-            #[derive(Arbitrary, TridentInstruction)]
+            #[derive(TridentInstruction,Default)]
             #[program_id(#program_id)]
             #[discriminator([#(#instruction_discriminator,)*])]
             pub struct #instruction_struct_name {
@@ -46,7 +46,7 @@ impl Template {
 
         let instruction_input_accounts: syn::ItemStruct = parse_quote! {
             /// Instruction Accounts
-            #[derive(Arbitrary, Debug, Clone, TridentAccounts)]
+            #[derive(Debug, Clone, TridentAccounts,Default)]
             #[instruction_data(#instruction_data_name)]
             #[storage(FuzzAccounts)]
             pub struct #instruction_accounts_name {
@@ -56,7 +56,7 @@ impl Template {
 
         let instruction_input_data: syn::ItemStruct = parse_quote! {
             /// Instruction Data
-            #[derive(Arbitrary, Debug, BorshDeserialize, BorshSerialize, Clone)]
+            #[derive(Debug, BorshDeserialize, BorshSerialize, Clone,Default)]
             pub struct #instruction_data_name {
                  #(#data),*
             }

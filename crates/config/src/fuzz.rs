@@ -10,7 +10,6 @@ use std::{fs, str::FromStr};
 #[derive(Debug, Deserialize, Clone, Default)]
 pub struct Fuzz {
     pub fuzzing_with_stats: Option<bool>,
-    pub allow_duplicate_txs: Option<bool>,
     pub programs: Option<Vec<_FuzzProgram>>,
     pub accounts: Option<Vec<_FuzzAccount>>,
 }
@@ -18,9 +17,6 @@ pub struct Fuzz {
 impl Fuzz {
     pub fn get_fuzzing_with_stats(&self) -> bool {
         self.fuzzing_with_stats.unwrap_or(false)
-    }
-    pub fn get_allow_duplicate_txs(&self) -> bool {
-        self.allow_duplicate_txs.unwrap_or(false)
     }
 }
 

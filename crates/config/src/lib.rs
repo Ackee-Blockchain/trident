@@ -52,12 +52,6 @@ impl TridentConfig {
             .map(|fuzz| fuzz.get_fuzzing_with_stats())
             .unwrap_or_default()
     }
-    pub fn get_allow_duplicate_txs(&self) -> bool {
-        self.fuzz
-            .as_ref()
-            .map(|fuzz| fuzz.get_allow_duplicate_txs())
-            .unwrap_or_default()
-    }
 
     pub fn programs(&self) -> Vec<FuzzProgram> {
         self.fuzz

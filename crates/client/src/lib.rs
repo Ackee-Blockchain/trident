@@ -37,13 +37,6 @@ mod constants {
     pub(crate) const TYPES_FILE_NAME: &str = "types.rs";
     pub(crate) const FUZZ_TEST: &str = "test_fuzz.rs";
 
-    // Honggfuzz
-    pub(crate) const CARGO_TARGET_DIR_DEFAULT_HFUZZ: &str =
-        "trident-tests/fuzzing/honggfuzz/hfuzz_target";
-
-    // AFL
-    pub(crate) const CARGO_TARGET_DIR_DEFAULT_AFL: &str = "trident-tests/fuzzing/afl/afl_target";
-
     // Workspace
     pub(crate) const GIT_IGNORE: &str = ".gitignore";
 

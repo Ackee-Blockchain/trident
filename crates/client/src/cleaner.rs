@@ -5,7 +5,7 @@ use std::{
     path::{Path, PathBuf},
 };
 use thiserror::Error;
-use tokio::{fs, process::Command};
+use tokio::process::Command;
 
 use crate::constants::*;
 
@@ -37,40 +37,30 @@ impl Cleaner {
             Ok(root) => root,
             Err(_) => throw!(Error::BadWorkspace),
         };
-        self.clean_anchor_target().await?;
-        self.clean_hfuzz_target(&root).await?;
-        self.clean_afl_target(&root).await?;
+        self.clean_anchor_target(&root).await?;
+        self.clean_fuzz_target(&root).await?;
     }
 
     #[throws]
-    async fn clean_anchor_target(&self) {
-        Command::new("anchor").arg("clean").spawn()?.wait().await?;
-    }
-    #[throws]
-    async fn clean_hfuzz_target(&self, root: &PathBuf) {
-        let hfuzz_target_path = Path::new(root).join(CARGO_TARGET_DIR_DEFAULT_HFUZZ);
-        if hfuzz_target_path.exists() {
-            fs::remove_dir_all(hfuzz_target_path).await?;
-        } else {
-            println!(
-                "{SKIP} [{}] directory not found",
-                CARGO_TARGET_DIR_DEFAULT_HFUZZ
-            )
-        }
+    async fn clean_anchor_target(&self, root: &Path) {
+        Command::new("anchor")
+            .arg("clean")
+            .current_dir(root)
+            .spawn()?
+            .wait()
+            .await?;
     }
 
     #[throws]
     #[allow(dead_code)]
-    async fn clean_afl_target(&self, root: &PathBuf) {
-        let afl_target_path = Path::new(root).join(CARGO_TARGET_DIR_DEFAULT_AFL);
-        if afl_target_path.exists() {
-            fs::remove_dir_all(afl_target_path).await?;
-        } else {
-            println!(
-                "{SKIP} [{}] directory not found",
-                CARGO_TARGET_DIR_DEFAULT_AFL
-            )
-        }
+    async fn clean_fuzz_target(&self, root: &Path) {
+        let trident_tests_dir = root.join("trident-tests");
+        Command::new("cargo")
+            .arg("clean")
+            .current_dir(trident_tests_dir)
+            .spawn()?
+            .wait()
+            .await?;
     }
 }
 

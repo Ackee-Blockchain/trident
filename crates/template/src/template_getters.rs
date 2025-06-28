@@ -55,7 +55,6 @@ impl Template {
         mod_file.into_token_stream().to_string()
     }
     pub fn get_fuzz_transactions(&self) -> String {
-        let transaction_variants = self.fuzz_transactions.clone();
         let account_storages: Vec<syn::Field> = self
             .account_storages
             .iter()
@@ -66,15 +65,6 @@ impl Template {
             use trident_fuzz::fuzzing::*;
             use crate::transactions::*;
 
-            /// FuzzTransactions contains all available transactions
-            ///
-            /// You can create your own transactions by adding new variants to the enum.
-            ///
-            /// Docs: https://ackee.xyz/trident/docs/latest/trident-api-macro/trident-types/fuzz-transactions/
-            #[derive(Arbitrary, TransactionSelector)]
-            pub enum FuzzTransactions {
-                #(#transaction_variants),*
-            }
 
             /// FuzzAccounts contains all available accounts
             ///
@@ -105,7 +95,7 @@ impl Template {
             0 => parse_quote! {
                 #common_header
 
-                #[derive(Arbitrary, Debug, BorshDeserialize, BorshSerialize, Clone)]
+                #[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
                 pub struct ExampleType {
                     example_data: u8,
                 }

@@ -1,5 +1,4 @@
 use crate::commander::{Commander, Error as CommanderError};
-use crate::constants::*;
 use crate::{construct_path, utils::*};
 use cargo_metadata::Package;
 use fehler::throws;
@@ -60,9 +59,6 @@ impl TestGenerator {
         self.create_template().await?;
         self.add_new_fuzz_test(test_name).await?;
         self.create_trident_toml().await?;
-
-        self.update_gitignore(CARGO_TARGET_DIR_DEFAULT_HFUZZ)?;
-        self.update_gitignore(CARGO_TARGET_DIR_DEFAULT_AFL)?;
     }
 
     #[throws]
@@ -73,11 +69,6 @@ impl TestGenerator {
         self.load_programs_idl(program_name.clone())?;
         self.create_template().await?;
         self.add_new_fuzz_test(test_name).await?;
-
-        self.update_gitignore(CARGO_TARGET_DIR_DEFAULT_HFUZZ)?;
-        self.update_gitignore(CARGO_TARGET_DIR_DEFAULT_AFL)?;
-
-        // update_package_metadata(&self.program_packages, &self.versions_config).await?;
     }
 
     #[throws]
