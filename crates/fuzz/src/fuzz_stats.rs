@@ -11,24 +11,33 @@ use crate::types::Seed;
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
 pub struct IterationStats {
     pub invoked: u64,
-    pub successful: u64,
-    pub failed: u64,
-    pub failed_invariant: u64,
-    pub transaction_panicked: u64,
+    pub transactions_successful: u64,
+    pub transactions_failed: u64,
+    pub transactions_failed_invariant: u64,
+    pub transactions_panicked: u64,
 
     // error | number of occurances
-    pub errors: BTreeMap<String, TransactionFailedMetric>,
-    pub crashes: BTreeMap<String, Crash>,
+    pub transactions_errors: BTreeMap<String, TransactionErrorMetrics>,
+    pub transactions_panics: BTreeMap<String, TransactionPanicMetrics>,
+    pub transactions_invariant_fails: BTreeMap<String, TransactionInvariantMetrics>,
 }
 
 #[derive(Debug, serde::Serialize, serde::Deserialize, Clone)]
-pub struct TransactionFailedMetric {
+pub struct TransactionErrorMetrics {
     pub occurrences: u64,
     pub logs: Option<Vec<String>>,
 }
 
-#[derive(Debug, serde::Serialize, serde::Deserialize, Clone, Copy)]
-pub struct Crash {
+#[derive(Debug, serde::Serialize, serde::Deserialize, Clone)]
+pub struct TransactionPanicMetrics {
+    pub occurrences: u64,
+    pub seed: Seed,
+    pub logs: Option<Vec<String>>,
+}
+
+#[derive(Debug, serde::Serialize, serde::Deserialize, Clone)]
+pub struct TransactionInvariantMetrics {
+    pub occurrences: u64,
     pub seed: Seed,
 }
 
@@ -56,12 +65,13 @@ impl FuzzingStatistics {
             .and_modify(|iterations_stats| iterations_stats.invoked += 1)
             .or_insert(IterationStats {
                 invoked: 1,
-                successful: 0,
-                failed: 0,
-                failed_invariant: 0,
-                transaction_panicked: 0,
-                errors: BTreeMap::new(),
-                crashes: BTreeMap::new(),
+                transactions_successful: 0,
+                transactions_failed: 0,
+                transactions_failed_invariant: 0,
+                transactions_panicked: 0,
+                transactions_errors: BTreeMap::new(),
+                transactions_panics: BTreeMap::new(),
+                transactions_invariant_fails: BTreeMap::new(),
             });
     }
 
@@ -71,18 +81,18 @@ impl FuzzingStatistics {
     pub fn increase_successful(&mut self, instruction: &str) {
         self.instructions
             .entry(instruction.to_string())
-            .and_modify(|iterations_stats| iterations_stats.successful += 1);
+            .and_modify(|iterations_stats| iterations_stats.transactions_successful += 1);
     }
     pub fn increase_failed(&mut self, instruction: &str, error: String, logs: Option<Vec<String>>) {
         self.instructions
             .entry(instruction.to_string())
             .and_modify(|iterations_stats| {
-                iterations_stats.failed += 1;
+                iterations_stats.transactions_failed += 1;
                 iterations_stats
-                    .errors
+                    .transactions_errors
                     .entry(error)
                     .and_modify(|fail| fail.occurrences += 1)
-                    .or_insert(TransactionFailedMetric {
+                    .or_insert(TransactionErrorMetrics {
                         occurrences: 1,
                         logs,
                     });
@@ -92,25 +102,44 @@ impl FuzzingStatistics {
         self.instructions
             .entry(instruction.to_string())
             .and_modify(|iterations_stats| {
-                iterations_stats.failed_invariant += 1;
+                iterations_stats.transactions_failed_invariant += 1;
                 iterations_stats
-                    .crashes
+                    .transactions_invariant_fails
                     .entry(error)
-                    .and_modify(|crash| crash.seed = seed)
-                    .or_insert(Crash { seed });
+                    .and_modify(|invariant| {
+                        invariant.seed = seed;
+                        invariant.occurrences += 1;
+                    })
+                    .or_insert(TransactionInvariantMetrics {
+                        occurrences: 1,
+                        seed,
+                    });
             });
     }
 
-    pub fn increase_transaction_panicked(&mut self, instruction: &str, seed: Seed, error: String) {
+    pub fn increase_transaction_panicked(
+        &mut self,
+        instruction: &str,
+        seed: Seed,
+        panic: String,
+        logs: Option<Vec<String>>,
+    ) {
         self.instructions
             .entry(instruction.to_string())
             .and_modify(|iterations_stats| {
-                iterations_stats.transaction_panicked += 1;
+                iterations_stats.transactions_panicked += 1;
                 iterations_stats
-                    .crashes
-                    .entry(error)
-                    .and_modify(|crash| crash.seed = seed)
-                    .or_insert(Crash { seed });
+                    .transactions_panics
+                    .entry(panic)
+                    .and_modify(|panic| {
+                        panic.seed = seed;
+                        panic.occurrences += 1;
+                    })
+                    .or_insert(TransactionPanicMetrics {
+                        occurrences: 1,
+                        seed,
+                        logs,
+                    });
             });
     }
 
@@ -129,10 +158,10 @@ impl FuzzingStatistics {
             table.add_row(row![
                 instruction,
                 stats.invoked,
-                stats.successful,
-                stats.failed,
-                stats.failed_invariant,
-                stats.transaction_panicked,
+                stats.transactions_successful,
+                stats.transactions_failed,
+                stats.transactions_failed_invariant,
+                stats.transactions_panicked,
             ]);
         }
         table.printstd();
@@ -154,26 +183,31 @@ impl FuzzingStatistics {
                 .entry(instruction.to_string())
                 .and_modify(|existing_stats| {
                     existing_stats.invoked += stats.invoked;
-                    existing_stats.successful += stats.successful;
-                    existing_stats.failed += stats.failed;
-                    existing_stats.failed_invariant += stats.failed_invariant;
-                    existing_stats.transaction_panicked += stats.transaction_panicked;
-                    for (error, failed_metric) in &stats.errors {
+                    existing_stats.transactions_successful += stats.transactions_successful;
+                    existing_stats.transactions_failed += stats.transactions_failed;
+                    existing_stats.transactions_failed_invariant +=
+                        stats.transactions_failed_invariant;
+                    existing_stats.transactions_panicked += stats.transactions_panicked;
+                    for (error, failed_metric) in &stats.transactions_errors {
                         existing_stats
-                            .errors
+                            .transactions_errors
                             .entry(error.to_string())
                             .and_modify(|fail| fail.occurrences += failed_metric.occurrences)
-                            .or_insert(TransactionFailedMetric {
+                            .or_insert(TransactionErrorMetrics {
                                 occurrences: failed_metric.occurrences,
                                 logs: failed_metric.logs.clone(),
                             });
                     }
-                    for (error, crash) in &stats.crashes {
+                    for (error, panic) in &stats.transactions_panics {
                         existing_stats
-                            .crashes
+                            .transactions_panics
                             .entry(error.to_string())
-                            .and_modify(|existing_crash| *existing_crash = *crash)
-                            .or_insert(*crash);
+                            .and_modify(|existing_panic| {
+                                existing_panic.occurrences += panic.occurrences;
+                                existing_panic.seed = panic.seed;
+                                existing_panic.logs = panic.logs.clone();
+                            })
+                            .or_insert(panic.clone());
                     }
                 })
                 .or_insert(stats);

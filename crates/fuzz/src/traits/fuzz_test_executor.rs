@@ -103,6 +103,7 @@ pub trait FuzzTestExecutor: FuzzTestGetters {
                                         &transaction_name,
                                         rng,
                                         instruction_error.to_string(),
+                                        details.log_messages.clone(),
                                     );
                                 }
                             }
