@@ -1,3 +1,4 @@
+use crate::constants::DEFAULT_LOOP_COUNT;
 use crate::utils::resolve_path;
 use base64::{prelude::BASE64_STANDARD, Engine};
 use serde::{Deserialize, Serialize};
@@ -6,7 +7,6 @@ use solana_sdk::{
     pubkey::Pubkey,
 };
 use std::{fs, str::FromStr};
-use crate::constants::DEFAULT_LOOP_COUNT;
 
 #[derive(Debug, Deserialize, Clone, Default)]
 pub struct Fuzz {

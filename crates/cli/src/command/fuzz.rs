@@ -101,7 +101,7 @@ pub async fn fuzz(subcmd: FuzzCommand) {
                 Some(format_str) => (true, format_str.clone()),
                 None => (false, "json".to_string()), // Default format when not generating coverage
             };
-            
+
             if !should_generate_coverage && attach_extension {
                 bail!("Cannot attach extension without generating coverage!");
             }
@@ -111,7 +111,13 @@ pub async fn fuzz(subcmd: FuzzCommand) {
             }
 
             commander
-                .run(target, with_exit_code, should_generate_coverage, attach_extension, format)
+                .run(
+                    target,
+                    with_exit_code,
+                    should_generate_coverage,
+                    attach_extension,
+                    format,
+                )
                 .await?;
         }
         FuzzCommand::Debug { target, seed } => {

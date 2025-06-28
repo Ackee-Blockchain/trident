@@ -4,11 +4,9 @@ pub mod coverage_format;
 use coverage_format::*;
 
 use thiserror::Error;
-use tokio::io::AsyncRead;
-use tokio::io::{AsyncBufReadExt, BufReader};
+use tokio::io::{AsyncBufReadExt, AsyncRead, BufReader};
 use tokio::process::Child;
 
-/// Errors that can occur during coverage operations.
 #[derive(Error, Debug, Clone)]
 pub enum CoverageError {
     #[error("Cleaning of coverage directory failed")]
@@ -46,12 +44,19 @@ impl Coverage {
         format: String,
         loop_count: u64,
     ) -> Self {
-        let report_format = CoverageFormat::from_str(&format)
-            .expect(&format!("Invalid coverage format '{}'. Supported formats: json, html", format));
+        let report_format = CoverageFormat::from_str(&format).expect(&format!(
+            "Invalid coverage format '{}'. Supported formats: json, html",
+            format
+        ));
 
         Self {
             profraw_file: format!("{}/{}", cargo_target_dir, PROFRAW_FILENAME),
-            report_path: format!("{}/../{}-{}", cargo_target_dir, target, report_format.get_report_filename()),
+            report_path: format!(
+                "{}/../{}-{}",
+                cargo_target_dir,
+                target,
+                report_format.get_report_filename()
+            ),
             target_dir: cargo_target_dir.to_string(),
             ignore_regex: COVERAGE_IGNORE_REGEX.to_string(),
             rustflags: COVERAGE_RUSTFLAGS.to_string(),
@@ -96,7 +101,7 @@ impl Coverage {
             Err(_) => self.try_generate_report(true).await,
         }
     }
-    
+
     async fn try_generate_report(&self, is_retry: bool) -> Result<(), CoverageError> {
         let mut child = self
             .build_generate_report_command()
@@ -107,7 +112,7 @@ impl Coverage {
         let result = self
             .handle_child(&mut child, CoverageError::GeneratingReportFailed)
             .await;
-        
+
         if is_retry && result.is_err() {
             return result;
         }
@@ -131,8 +136,9 @@ impl Coverage {
         }
 
         let target_dir = self.get_target_dir();
-        let notification_file = format!("{}/{}", target_dir, constants::EXTENSION_NOTIFICATION_FILE);
-        
+        let notification_file =
+            format!("{}/{}", target_dir, constants::EXTENSION_NOTIFICATION_FILE);
+
         //TODO: Add metadata
         let json_content = format!("{{\"metadata\":\"{}\"}}", "TODO");
 
@@ -256,7 +262,7 @@ impl Coverage {
             .arg("report")
             .arg(self.format.get_cargo_arg())
             .args(["--ignore-filename-regex", &self.get_ignore_regex()]);
-        
+
         match self.format {
             CoverageFormat::Json => {
                 cmd.args(["--output-path", &self.get_report_path()]);
@@ -287,206 +293,13 @@ impl Coverage {
 
     async fn remove_notification_file(&self) -> Result<(), CoverageError> {
         let target_dir = self.get_target_dir();
-        let notification_file = format!("{}/{}", target_dir, constants::EXTENSION_NOTIFICATION_FILE);
-        self.remove_files(&[notification_file])
-            .await;
+        let notification_file =
+            format!("{}/{}", target_dir, constants::EXTENSION_NOTIFICATION_FILE);
+        self.remove_files(&[notification_file]).await;
 
         Ok(())
     }
 }
 
-// mod tests {
-//     #![allow(unused_imports)]
-//     #![allow(dead_code)]
-//     use super::*;
-//     use std::path::PathBuf;
-//     use std::pin::Pin;
-//     use std::task::{Context, Poll};
-//     use tokio::fs;
-//     use tokio::io::{AsyncRead, ReadBuf};
-
-//     struct MockStderr {
-//         data: Vec<u8>,
-//         position: usize,
-//     }
-
-//     impl MockStderr {
-//         fn new(data: &str) -> Self {
-//             Self {
-//                 data: data.as_bytes().to_vec(),
-//                 position: 0,
-//             }
-//         }
-//     }
-
-//     impl AsyncRead for MockStderr {
-//         fn poll_read(
-//             mut self: Pin<&mut Self>,
-//             _: &mut Context<'_>,
-//             buf: &mut ReadBuf<'_>,
-//         ) -> Poll<std::io::Result<()>> {
-//             let remaining = &self.data[self.position..];
-//             let amount = std::cmp::min(remaining.len(), buf.remaining());
-//             buf.put_slice(&remaining[..amount]);
-//             self.position += amount;
-//             Poll::Ready(Ok(()))
-//         }
-//     }
-
-//     struct MockCoverage {
-//         profraw_file: String,
-//         coverage_file: String,
-//         coverage_target_dir: String,
-//         fuzzer_loopcount: String,
-//         ignore_regex: String,
-//         rustflags: String,
-//         dynamic_coverage: bool,
-//     }
-
-//     impl MockCoverage {
-//         fn new(
-//             cargo_target_dir: &str,
-//             fuzzer_loopcount: u64,
-//             _target: &str,
-//             _dynamic_coverage: bool,
-//         ) -> Self {
-//             Self {
-//                 profraw_file: format!("{}/mock.profraw", cargo_target_dir),
-//                 coverage_file: format!("{}/mock-coverage.json", cargo_target_dir),
-//                 coverage_target_dir: cargo_target_dir.to_string(),
-//                 fuzzer_loopcount: fuzzer_loopcount.to_string(),
-//                 ignore_regex: "test-ignore".to_string(),
-//                 rustflags: "-test-flags".to_string(),
-//                 dynamic_coverage: false,
-//             }
-//         }
-
-//         fn get_profraw_file(&self) -> String {
-//             self.profraw_file.clone()
-//         }
-
-//         fn get_coverage_file(&self) -> String {
-//             self.coverage_file.clone()
-//         }
-
-//         fn get_target_dir(&self) -> String {
-//             self.coverage_target_dir.clone()
-//         }
-
-//         fn get_fuzzer_loopcount(&self) -> String {
-//             self.fuzzer_loopcount.clone()
-//         }
-
-//         fn get_ignore_regex(&self) -> String {
-//             self.ignore_regex.clone()
-//         }
-
-//         fn get_rustflags(&self) -> String {
-//             self.rustflags.clone()
-//         }
-
-//         fn get_dynamic_coverage(&self) -> bool {
-//             self.dynamic_coverage
-//         }
-
-//         fn get_fuzzing_folder(&self) -> PathBuf {
-//             PathBuf::from("/dummy/path") // Dummy function to satisfy the trait
-//         }
-//     }
-
-//     #[tokio::test]
-//     async fn test_clean_removes_profraw_list() {
-//         let temp_dir = std::env::temp_dir();
-//         let target_dir = format!("{}/test", temp_dir.to_str().unwrap());
-//         let coverage = MockCoverage::new(&target_dir, 100, "test", false);
-
-//         let _ = fs::create_dir_all(&target_dir).await;
-
-//         let profraw_list = PathBuf::from(&coverage.get_target_dir()).join("profraw-list");
-//         fs::write(&profraw_list, "test").await.unwrap();
-
-//         assert!(coverage.clean().await.is_ok());
-//         assert!(!profraw_list.exists());
-
-//         let _ = fs::remove_dir_all(&target_dir).await;
-//     }
-
-//     #[tokio::test]
-//     async fn test_clean_succeeds_with_non_existent_file() {
-//         let temp_dir = std::env::temp_dir();
-//         let coverage = MockCoverage::new(temp_dir.to_str().unwrap(), 100, "test", false);
-
-//         let profraw_list = PathBuf::from(&coverage.get_target_dir()).join("profraw-list");
-
-//         assert!(!profraw_list.exists());
-//         assert!(coverage.clean().await.is_ok());
-//     }
-
-//     #[test]
-//     fn test_mock_coverage_new() {
-//         let coverage = MockCoverage::new("/tmp/test", 100, "test", false);
-//         assert_eq!(coverage.get_profraw_file(), "/tmp/test/mock.profraw");
-//         assert_eq!(coverage.get_coverage_file(), "/tmp/test/mock-coverage.json");
-//         assert_eq!(coverage.get_target_dir(), "/tmp/test");
-//         assert_eq!(coverage.get_fuzzer_loopcount(), "100");
-//         assert_eq!(coverage.get_ignore_regex(), "test-ignore");
-//         assert_eq!(coverage.get_rustflags(), "-test-flags");
-//     }
-
-//     #[tokio::test]
-//     async fn test_extract_corrupted_files_from_stderr() {
-//         let coverage = MockCoverage::new("/tmp/test", 100, "test", false);
-
-//         let test_data = "warning: /path/to/file1.profraw: invalid instrumentation profile data\n\
-//                         some other warning\n\
-//                         warning: /path/to/file2.profraw: invalid instrumentation profile data\n";
-
-//         let stderr = MockStderr::new(test_data);
-//         let mut reader = BufReader::new(stderr);
-
-//         let corrupted_files = coverage.extract_corrupted_files(&mut reader).await.unwrap();
-
-//         assert_eq!(corrupted_files.len(), 2);
-//         assert_eq!(corrupted_files[0], "/path/to/file1.profraw");
-//         assert_eq!(corrupted_files[1], "/path/to/file2.profraw");
-//     }
-
-//     #[tokio::test]
-//     async fn test_remove_corrupted_files() {
-//         let temp_dir = std::env::temp_dir();
-//         let target_dir = temp_dir.to_str().unwrap().to_string();
-//         let coverage = MockCoverage::new(&target_dir, 100, "test", false);
-
-//         let _ = fs::create_dir_all(&target_dir).await;
-
-//         let file1 = PathBuf::from(&coverage.get_target_dir()).join("test1.profraw");
-//         let file2 = PathBuf::from(&coverage.get_target_dir()).join("test2.profraw");
-
-//         fs::write(&file1, "test data 1").await.unwrap();
-//         fs::write(&file2, "test data 2").await.unwrap();
-
-//         let files_to_remove = vec![
-//             file1.to_str().unwrap().to_string(),
-//             file2.to_str().unwrap().to_string(),
-//         ];
-
-//         coverage.remove_files(&files_to_remove).await;
-
-//         assert!(!file1.exists());
-//         assert!(!file2.exists());
-
-//         let _ = fs::remove_dir_all(&target_dir).await;
-//     }
-
-//     #[tokio::test]
-//     async fn test_extract_corrupted_files_empty_stderr() {
-//         let coverage = MockCoverage::new("/tmp/test", 100, "test", false);
-
-//         let test_data = "some other warning\nsome other message\n";
-//         let stderr = MockStderr::new(test_data);
-//         let mut reader = BufReader::new(stderr);
-
-//         let corrupted_files = coverage.extract_corrupted_files(&mut reader).await.unwrap();
-//         assert!(corrupted_files.is_empty());
-//     }
-// }
+#[cfg(test)]
+mod tests;

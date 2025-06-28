@@ -1,5 +1,5 @@
-use crate::coverage::CoverageError;
 use crate::coverage::constants::*;
+use crate::coverage::CoverageError;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum CoverageFormat {
@@ -15,14 +15,14 @@ impl CoverageFormat {
             _ => Err(CoverageError::InvalidReportFormat),
         }
     }
-    
+
     pub fn get_report_filename(&self) -> &str {
         match self {
             CoverageFormat::Json => JSON_REPORT_FILENAME,
             CoverageFormat::Html => HTML_REPORT_DIRNAME,
         }
     }
-    
+
     pub fn get_cargo_arg(&self) -> &str {
         match self {
             CoverageFormat::Json => "--json",

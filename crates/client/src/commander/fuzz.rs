@@ -39,7 +39,13 @@ impl Commander {
     }
 
     #[throws]
-    pub async fn run_with_coverage(&self, target: &str, notify_extension: bool, format: String, loop_count: u64) {
+    pub async fn run_with_coverage(
+        &self,
+        target: &str,
+        notify_extension: bool,
+        format: String,
+        loop_count: u64,
+    ) {
         let coverage = Coverage::new(
             &get_target_dir(),
             target,
@@ -65,10 +71,7 @@ impl Commander {
         let mut env_vars: HashMap<&str, String> = HashMap::new();
         env_vars.insert("RUSTFLAGS", rustflags);
         env_vars.insert("LLVM_PROFILE_FILE", coverage.get_profraw_file());
-        env_vars.insert(
-            "CARGO_LLVM_COV_TARGET_DIR",
-            coverage.get_target_dir(),
-        );
+        env_vars.insert("CARGO_LLVM_COV_TARGET_DIR", coverage.get_target_dir());
         env_vars.insert("FUZZER_LOOPCOUNT", coverage.get_loop_count().to_string());
 
         env_vars
@@ -105,7 +108,11 @@ impl Commander {
 
 fn get_target_dir() -> String {
     let root = discover_root().expect("failed to find the root folder");
-    let target_dir = root.join("trident-tests/target").to_str().unwrap().to_string();
+    let target_dir = root
+        .join("trident-tests/target")
+        .to_str()
+        .unwrap()
+        .to_string();
 
     target_dir
 }
