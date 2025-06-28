@@ -3,6 +3,7 @@ use syn::{Generics, Ident, ImplItem};
 #[derive(Default)]
 pub struct FlowConstraints {
     pub ignore: bool,
+    pub weight: Option<u32>,
     // Future fields can be added here (e.g., weight: Option<u32>)
 }
 

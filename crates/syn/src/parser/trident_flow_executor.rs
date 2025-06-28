@@ -66,6 +66,39 @@ pub fn parse_trident_flow_executor(input: &ItemImpl) -> ParseResult<TridentFlowE
         }
     }
 
+    // Validate weight consistency
+    let flows_with_weights: Vec<_> = flow_methods
+        .iter()
+        .filter(|f| f.constraints.weight.is_some())
+        .collect();
+    let flows_without_weights: Vec<_> = flow_methods
+        .iter()
+        .filter(|f| f.constraints.weight.is_none())
+        .collect();
+
+    if !flows_with_weights.is_empty() && !flows_without_weights.is_empty() {
+        return Err(ParseError::new(
+            proc_macro2::Span::call_site(),
+            format!("Weight consistency error: If any flow has a weight specified, all flows must have weights. Flows without weights: {}",
+                flows_without_weights.iter().map(|f| f.ident.to_string()).collect::<Vec<_>>().join(", "))
+        ));
+    }
+
+    // Validate that total weight equals exactly 100
+    if !flows_with_weights.is_empty() {
+        let total_weight: u32 = flows_with_weights
+            .iter()
+            .map(|f| f.constraints.weight.unwrap())
+            .sum();
+
+        if total_weight != 100 {
+            return Err(ParseError::new(
+                proc_macro2::Span::call_site(),
+                format!("Total weight must equal exactly 100: The sum of all flow weights is {} but must be exactly 100 to represent clear percentages.", total_weight)
+            ));
+        }
+    }
+
     Ok(TridentFlowExecutorImpl {
         type_name,
         impl_block: input.items.clone(),
@@ -92,6 +125,20 @@ fn parse_flow_constraints(attr: &Attribute) -> ParseResult<FlowConstraints> {
                     match ident.to_string().as_str() {
                         "ignore" => {
                             constraints.ignore = true;
+                            Ok(())
+                        }
+                        "weight" => {
+                            if meta.input.peek(syn::Token![=]) {
+                                meta.input.parse::<syn::Token![=]>()?;
+                                let weight_lit: syn::LitInt = meta.input.parse()?;
+                                let weight_val = weight_lit.base10_parse::<u32>()?;
+
+                                if weight_val > 100 {
+                                    return Err(meta.error("Weight must be between 0 and 100"));
+                                }
+
+                                constraints.weight = Some(weight_val);
+                            }
                             Ok(())
                         }
                         _ => Err(meta.error("unsupported flow constraint")),

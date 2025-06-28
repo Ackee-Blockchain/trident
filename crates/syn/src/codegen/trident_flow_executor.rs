@@ -114,6 +114,25 @@ impl TridentFlowExecutorImpl {
         &self,
         active_methods: &[&crate::types::trident_flow_executor::FlowMethod],
     ) -> TokenStream {
+        // Check if any flow has weights
+        let has_weights = active_methods
+            .iter()
+            .any(|method| method.constraints.weight.is_some());
+
+        if has_weights {
+            // Generate weighted selection logic
+            self.generate_weighted_flow_selection(active_methods)
+        } else {
+            // Generate uniform random selection logic (original behavior)
+            self.generate_uniform_flow_selection(active_methods)
+        }
+    }
+
+    /// Generate uniform random flow selection (original behavior)
+    fn generate_uniform_flow_selection(
+        &self,
+        active_methods: &[&crate::types::trident_flow_executor::FlowMethod],
+    ) -> TokenStream {
         let flow_match_arms = active_methods.iter().enumerate().map(|(index, method)| {
             let method_ident = &method.ident;
             quote! {
@@ -130,6 +149,58 @@ impl TridentFlowExecutorImpl {
                     #(#flow_match_arms)*
                     _ => unreachable!("Invalid flow index"),
                 }
+            }
+        }
+    }
+
+    /// Generate weighted flow selection logic
+    fn generate_weighted_flow_selection(
+        &self,
+        active_methods: &[&crate::types::trident_flow_executor::FlowMethod],
+    ) -> TokenStream {
+        // Filter out flows with weight 0 (they should be skipped)
+        let weighted_methods: Vec<_> = active_methods
+            .iter()
+            .filter(|method| method.constraints.weight.unwrap_or(0) > 0)
+            .collect();
+
+        if weighted_methods.is_empty() {
+            return quote! {
+                // All flows have weight 0, nothing to execute
+            };
+        }
+
+        // Calculate total weight
+        let total_weight: u32 = weighted_methods
+            .iter()
+            .map(|method| method.constraints.weight.unwrap())
+            .sum();
+
+        // Generate weight ranges and method calls
+        let mut cumulative_weight = 0u32;
+        let weight_ranges: Vec<_> = weighted_methods
+            .iter()
+            .map(|method| {
+                let weight = method.constraints.weight.unwrap();
+                let _start = cumulative_weight;
+                cumulative_weight += weight;
+                let end = cumulative_weight;
+                let method_ident = &method.ident;
+
+                quote! {
+                    if random_weight < #end {
+                        self.#method_ident()?;
+                        continue;
+                    }
+                }
+            })
+            .collect();
+
+        quote! {
+            // Weighted flow selection based on specified weights
+            for _ in 0..flow_calls_per_iteration {
+                let random_weight = self.rng.gen_range(0..#total_weight);
+                #(#weight_ranges)*
             }
         }
     }

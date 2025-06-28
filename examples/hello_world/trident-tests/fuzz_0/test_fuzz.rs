@@ -36,19 +36,48 @@ impl FuzzTest {
             &mut self.rng,
         );
 
-        self.execute_transaction(&mut ix, None)?;
+        self.execute_transaction(&mut ix, Some("Init"))?;
         Ok(())
     }
 
-    #[flow]
+    #[flow(weight = 5)]
     fn flow1(&mut self) -> Result<(), FuzzingError> {
+        // This flow will be executed 60% of the time
+        let mut ix = InitializeFnTransaction::build(
+            &mut self.client,
+            &mut self.fuzz_accounts,
+            &mut self.rng,
+        );
+        self.execute_transaction(&mut ix, Some("Flow1"))?;
+        Ok(())
+    }
+
+    #[flow(weight = 5)]
+    fn flow2(&mut self) -> Result<(), FuzzingError> {
+        // This flow will be executed 40% of the time
+        let mut ix = InitializeFnTransaction::build(
+            &mut self.client,
+            &mut self.fuzz_accounts,
+            &mut self.rng,
+        );
+        self.execute_transaction(&mut ix, Some("Flow2"))?;
+        Ok(())
+    }
+    #[flow(weight = 90)]
+    fn flow3(&mut self) -> Result<(), FuzzingError> {
+        // This flow will be executed 40% of the time
+        let mut ix = InitializeFnTransaction::build(
+            &mut self.client,
+            &mut self.fuzz_accounts,
+            &mut self.rng,
+        );
+        self.execute_transaction(&mut ix, Some("Flow3"))?;
         Ok(())
     }
 
     #[end]
     fn cleanup(&mut self) -> Result<(), FuzzingError> {
         // This method will be called after all flows have been executed
-        println!("Cleaning up after fuzzing session");
         Ok(())
     }
 }
