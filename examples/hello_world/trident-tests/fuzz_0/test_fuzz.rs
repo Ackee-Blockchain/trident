@@ -6,6 +6,7 @@ mod transactions;
 mod types;
 pub use transactions::*;
 
+#[derive(FuzzTestMethods)]
 struct FuzzTest {
     /// for transaction executions
     client: TridentSVM,
@@ -13,6 +14,8 @@ struct FuzzTest {
     metrics: FuzzingStatistics,
     /// for storing seed
     rng: TridentRng,
+    /// for storing fuzzing accounts
+    fuzz_accounts: FuzzAccounts,
 }
 
 #[flow_executor]
@@ -22,15 +25,18 @@ impl FuzzTest {
             client: TridentSVM::new_client(&TridentConfig::new()),
             metrics: FuzzingStatistics::default(),
             rng: TridentRng::random(),
+            fuzz_accounts: FuzzAccounts::default(),
         }
     }
     #[init]
-    fn start(&mut self, accounts: &mut FuzzAccounts) -> Result<(), FuzzingError> {
-        InitializeFnTransaction::build(&mut self.client, accounts, &mut self.rng).execute(
+    fn start(&mut self) -> Result<(), FuzzingError> {
+        let mut ix = InitializeFnTransaction::build(
             &mut self.client,
-            &mut self.metrics,
-            &self.rng,
-        )?;
+            &mut self.fuzz_accounts,
+            &mut self.rng,
+        );
+
+        self.execute_transaction(&mut ix, None)?;
         Ok(())
     }
 }

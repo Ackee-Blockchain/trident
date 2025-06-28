@@ -3,6 +3,15 @@ use crate::{fuzzing::TridentRng, traits::FuzzClient};
 
 #[doc(hidden)]
 pub trait TransactionSetters: TransactionHooks {
+    /// Builds a transaction instance from fuzzer data
+    ///
+    /// Creates a new transaction with the necessary data from the fuzzer
+    /// and prepares any accounts needed for execution.
+    fn build(
+        client: &mut impl FuzzClient,
+        fuzz_accounts: &mut Self::IxAccounts,
+        rng: &mut TridentRng,
+    ) -> Self;
     #[doc(hidden)]
     /// Set accounts before transaction
     fn set_snapshot_before(&mut self, client: &mut impl FuzzClient);

@@ -50,9 +50,9 @@ impl FuzzingStatistics {
     /// Increments the invocation count for a given instruction.
     /// # Arguments
     /// * `instruction` - The instruction to increment the count for.
-    pub fn increase_invoked(&mut self, instruction: String) {
+    pub fn increase_invoked(&mut self, instruction: &str) {
         self.instructions
-            .entry(instruction)
+            .entry(instruction.to_string())
             .and_modify(|iterations_stats| iterations_stats.invoked += 1)
             .or_insert(IterationStats {
                 invoked: 1,
@@ -68,19 +68,14 @@ impl FuzzingStatistics {
     /// Increments the successful invocation count for a given instruction.
     /// # Arguments
     /// * `instruction` - The instruction to increment the successful count for.
-    pub fn increase_successful(&mut self, instruction: String) {
+    pub fn increase_successful(&mut self, instruction: &str) {
         self.instructions
-            .entry(instruction)
+            .entry(instruction.to_string())
             .and_modify(|iterations_stats| iterations_stats.successful += 1);
     }
-    pub fn increase_failed(
-        &mut self,
-        instruction: String,
-        error: String,
-        logs: Option<Vec<String>>,
-    ) {
+    pub fn increase_failed(&mut self, instruction: &str, error: String, logs: Option<Vec<String>>) {
         self.instructions
-            .entry(instruction)
+            .entry(instruction.to_string())
             .and_modify(|iterations_stats| {
                 iterations_stats.failed += 1;
                 iterations_stats
@@ -93,9 +88,9 @@ impl FuzzingStatistics {
                     });
             });
     }
-    pub fn increase_failed_invariant(&mut self, instruction: String, seed: Seed, error: String) {
+    pub fn increase_failed_invariant(&mut self, instruction: &str, seed: Seed, error: String) {
         self.instructions
-            .entry(instruction)
+            .entry(instruction.to_string())
             .and_modify(|iterations_stats| {
                 iterations_stats.failed_invariant += 1;
                 iterations_stats
@@ -106,14 +101,9 @@ impl FuzzingStatistics {
             });
     }
 
-    pub fn increase_transaction_panicked(
-        &mut self,
-        instruction: String,
-        seed: Seed,
-        error: String,
-    ) {
+    pub fn increase_transaction_panicked(&mut self, instruction: &str, seed: Seed, error: String) {
         self.instructions
-            .entry(instruction)
+            .entry(instruction.to_string())
             .and_modify(|iterations_stats| {
                 iterations_stats.transaction_panicked += 1;
                 iterations_stats

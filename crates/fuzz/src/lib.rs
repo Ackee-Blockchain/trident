@@ -40,23 +40,25 @@ pub mod fuzzing {
     pub use super::traits::InstructionHooks;
     pub use super::traits::InstructionSetters;
 
+    pub use super::traits::FuzzTestExecutor;
+    pub use super::traits::FuzzTestGetters;
     pub use super::traits::RemainingAccountsMethods;
     pub use super::traits::TransactionGetters;
     pub use super::traits::TransactionHooks;
-    pub use super::traits::TransactionMethods;
+    pub use super::traits::TransactionPrivateMethods;
     pub use super::traits::TransactionSelector;
     pub use super::traits::TransactionSetters;
+
     /// trident derive
     pub use trident_derive_accounts::TridentAccounts;
     pub use trident_derive_flow_executor::flow;
     pub use trident_derive_flow_executor::flow_executor;
-    pub use trident_derive_flow_executor::flow_ignore;
     pub use trident_derive_flow_executor::init;
+    pub use trident_derive_fuzz_test_methods::FuzzTestMethods;
 
     pub use trident_derive_instruction::TridentInstruction;
     pub use trident_derive_remaining_accounts::TridentRemainingAccounts;
     pub use trident_derive_transaction::TridentTransaction;
-    pub use trident_derive_transaction_selector::TransactionSelector;
     /// trident svm
     pub use trident_svm::processor;
 
@@ -93,4 +95,6 @@ pub mod fuzzing {
 
     /// RNG
     pub use rand;
+
+    pub use trident_svm::prelude;
 }

@@ -17,7 +17,6 @@ impl TridentFlowExecutorImpl {
         let impl_items = &self.impl_block;
         let (impl_generics, ty_generics, where_clause) = self.generics.split_for_impl();
 
-        let user_impl = self.generate_user_impl_block();
         let generated_impl = self.generate_generated_impl_block();
 
         quote! {
@@ -29,26 +28,18 @@ impl TridentFlowExecutorImpl {
         }
     }
 
-    /// Generate the user's implementation block (placeholder for future use)
-    fn generate_user_impl_block(&self) -> TokenStream {
-        // This could be used for user-defined methods in the future
-        quote! {}
-    }
-
     /// Generate the main implementation block with flow execution methods
     fn generate_generated_impl_block(&self) -> TokenStream {
         let type_name = &self.type_name;
         let (impl_generics, ty_generics, where_clause) = self.generics.split_for_impl();
 
         let execute_flows_method = self.generate_execute_flows_method();
-        let default_random_transactions_method = self.generate_default_random_transactions_method();
         let fuzz_method = self.generate_fuzz_method();
         let fuzz_parallel_method = self.generate_fuzz_parallel_method();
 
         quote! {
             impl #impl_generics #type_name #ty_generics #where_clause {
                 #execute_flows_method
-                #default_random_transactions_method
                 #fuzz_method
                 #fuzz_parallel_method
             }
@@ -65,8 +56,6 @@ impl TridentFlowExecutorImpl {
                 &mut self,
                 flow_calls_per_iteration: u64,
             ) -> std::result::Result<(), FuzzingError> {
-                let mut accounts = FuzzAccounts::default();
-
                 #init_call
                 #flow_execution_logic
                 Ok(())
@@ -78,42 +67,47 @@ impl TridentFlowExecutorImpl {
     fn generate_init_call(&self) -> TokenStream {
         if let Some(init_method) = &self.init_method {
             quote! {
-                self.#init_method(&mut accounts)?;
+                self.#init_method()?;
             }
         } else {
             quote! {}
         }
     }
 
-    /// Generate the flow execution logic (random selection or default)
+    /// Generate the flow execution logic
     fn generate_flow_execution_logic(&self) -> TokenStream {
-        let methods = &self.flow_methods;
+        // Filter out ignored flows
+        let active_methods: Vec<_> = self
+            .flow_methods
+            .iter()
+            .filter(|method| !method.constraints.ignore)
+            .collect();
 
-        if methods.is_empty() {
+        if active_methods.is_empty() {
             quote! {
-                // No flow methods or all are ignored, use default implementation
-                self.default_random_transactions(&mut accounts)?;
+                // No flow methods defined or all are ignored, nothing to execute
             }
         } else {
-            let flow_selection_logic = self.generate_flow_selection_logic();
-            let random_tail = self.generate_random_tail_logic();
+            let flow_selection_logic = self.generate_flow_selection_logic(&active_methods);
 
             quote! {
                 #flow_selection_logic
-                #random_tail
             }
         }
     }
 
     /// Generate the random flow selection logic
-    fn generate_flow_selection_logic(&self) -> TokenStream {
-        let methods = &self.flow_methods;
-        let flow_match_arms = methods.iter().enumerate().map(|(index, method)| {
+    fn generate_flow_selection_logic(
+        &self,
+        active_methods: &[&crate::types::trident_flow_executor::FlowMethod],
+    ) -> TokenStream {
+        let flow_match_arms = active_methods.iter().enumerate().map(|(index, method)| {
+            let method_ident = &method.ident;
             quote! {
-                #index => self.#method(&mut accounts)?,
+                #index => self.#method_ident()?,
             }
         });
-        let num_flows = methods.len();
+        let num_flows = active_methods.len();
 
         quote! {
             // Randomly select and execute flows for the specified number of calls
@@ -123,33 +117,6 @@ impl TridentFlowExecutorImpl {
                     #(#flow_match_arms)*
                     _ => unreachable!("Invalid flow index"),
                 }
-            }
-        }
-    }
-
-    /// Generate the random tail logic if enabled
-    fn generate_random_tail_logic(&self) -> TokenStream {
-        if self.args.random_tail {
-            quote! {
-                self.default_random_transactions(&mut accounts)?;
-            }
-        } else {
-            quote! {}
-        }
-    }
-
-    /// Generate the default random transactions method
-    fn generate_default_random_transactions_method(&self) -> TokenStream {
-        quote! {
-            fn default_random_transactions(
-                &mut self,
-                accounts: &mut FuzzAccounts,
-            ) -> std::result::Result<(), FuzzingError> {
-                // let mut transactions = <Vec<FuzzTransactions>>::arbitrary(fuzzer_data)?;
-                // for transaction in transactions.iter_mut() {
-                //     transaction.transaction_selector(&mut self.metrics, &mut self.client, accounts, &mut self.rng)?
-                // }
-                Ok(())
             }
         }
     }
@@ -229,6 +196,9 @@ impl TridentFlowExecutorImpl {
 
                 fuzzer.client._clear_accounts();
                 fuzzer.rng.rotate_seed();
+                // this will ensure the fuzz accounts will reset without
+                // specifiyng the type of the fuzz accounts
+                let _ = std::mem::take(&mut fuzzer.fuzz_accounts);
 
                 pb.inc(flow_calls_per_iteration);
                 pb.set_message(format!("Iteration {}/{} completed", i + 1, iterations));
@@ -240,7 +210,6 @@ impl TridentFlowExecutorImpl {
 
     /// Generate thread management logic for parallel execution
     fn generate_thread_management_logic(&self) -> TokenStream {
-        let type_name = &self.type_name;
         let parallel_progress_setup = self.generate_parallel_progress_setup();
         let thread_spawn_logic = self.generate_thread_spawn_logic();
         let metrics_collection = self.generate_metrics_collection_logic();
@@ -310,6 +279,9 @@ impl TridentFlowExecutorImpl {
                     let _ = fuzzer.execute_flows(flow_calls_per_iteration);
                     fuzzer.client._clear_accounts();
                     fuzzer.rng.rotate_seed();
+                    // this will ensure the fuzz accounts will reset without
+                    // specifiyng the type of the fuzz accounts
+                    let _ = std::mem::take(&mut fuzzer.fuzz_accounts);
 
                     local_counter += flow_calls_per_iteration;
 

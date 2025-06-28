@@ -34,8 +34,9 @@ version = "0.10.0"
 path = "../fuzz/derive/remaining_accounts"
 version = "0.10.0"
 
-[dependencies.trident-derive-transaction-selector]
-path = "../fuzz/derive/transaction_selector"
+
+[dependencies.trident-derive-fuzz-test-methods]
+path = "../fuzz/derive/fuzz_test_methods"
 version = "0.10.0"
 
 [dependencies.trident-derive-flow-executor]

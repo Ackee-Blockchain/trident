@@ -9,10 +9,7 @@ impl ToTokens for TridentTransactionStruct {
         let field_idents = self.fields.iter().map(|f| &f.ident).collect::<Vec<_>>();
 
         // Generate the name implementation
-        let name_impl = match &self.custom_name {
-            Some(custom) => quote! { #custom.to_string() },
-            None => quote! { stringify!(#name).to_string() },
-        };
+        let name_impl = quote! { stringify!(#name).to_string() };
 
         // Generate instruction blocks for each field
         let instruction_blocks = self.fields.iter().map(|f| {
@@ -67,6 +64,15 @@ impl ToTokens for TridentTransactionStruct {
 
             // Implement the setters trait
             impl TransactionSetters for #name {
+                fn build(
+                    client: &mut impl FuzzClient,
+                    fuzz_accounts: &mut Self::IxAccounts,
+                    rng: &mut TridentRng,
+                ) -> Self {
+                    let mut tx = Self::default();
+                    tx.set_instructions(client, fuzz_accounts, rng);
+                    tx
+                }
                 fn set_snapshot_before(
                     &mut self,
                     client: &mut impl FuzzClient,
@@ -91,17 +97,6 @@ impl ToTokens for TridentTransactionStruct {
                 }
             }
 
-            impl TransactionMethods for #name {
-                fn build(
-                    client: &mut impl FuzzClient,
-                    fuzz_accounts: &mut Self::IxAccounts,
-                    rng: &mut TridentRng,
-                ) -> Self {
-                    let mut tx = Self::default();
-                    tx.set_instructions(client, fuzz_accounts, rng);
-                    tx
-                }
-            }
         };
 
         tokens.extend(expanded);

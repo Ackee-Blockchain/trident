@@ -1,80 +1,11 @@
-use proc_macro2::TokenStream;
 use syn::parse::Error as ParseError;
 use syn::parse::Result as ParseResult;
-use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
-use syn::ItemImpl;
-use syn::Meta;
+use syn::{Attribute, ItemImpl, Meta};
 
-use crate::types::trident_flow_executor::FlowExecutorArgs;
-use crate::types::trident_flow_executor::TridentFlowExecutorImpl;
+use crate::types::trident_flow_executor::{FlowConstraints, FlowMethod, TridentFlowExecutorImpl};
 
-impl Parse for FlowExecutorArgs {
-    fn parse(input: ParseStream) -> ParseResult<Self> {
-        let mut args = FlowExecutorArgs::default();
-
-        while !input.is_empty() {
-            let meta: Meta = input.parse()?;
-
-            match meta {
-                Meta::NameValue(nv) => {
-                    if nv.path.is_ident("random_tail") {
-                        if let syn::Expr::Lit(expr_lit) = nv.value {
-                            if let syn::Lit::Bool(lit_bool) = expr_lit.lit {
-                                args.random_tail = lit_bool.value();
-                            } else {
-                                return Err(ParseError::new(
-                                    expr_lit.lit.span(),
-                                    "random_tail must be a boolean value",
-                                ));
-                            }
-                        }
-                    } else {
-                        return Err(ParseError::new(
-                            nv.path.span(),
-                            format!("unknown attribute: {}", nv.path.get_ident().unwrap()).as_str(),
-                        ));
-                    }
-                }
-                Meta::Path(path) => {
-                    return Err(ParseError::new(
-                        path.span(),
-                        format!("unknown flag attribute: {}", path.get_ident().unwrap()).as_str(),
-                    ));
-                    // if path.is_ident("shuffle") {
-                    //     args.shuffle = true;
-                    // } else {
-                    //     return Err(ParseError::new(
-                    //         path.span(),
-                    //         format!("unknown flag attribute: {}", path.get_ident().unwrap())
-                    //             .as_str(),
-                    //     ));
-                    // }
-                }
-                _ => {
-                    return Err(ParseError::new(
-                        meta.span(),
-                        "expected either a name-value pair or a flag attribute",
-                    ));
-                }
-            }
-
-            // Parse comma if there are more attributes
-            if !input.is_empty() {
-                input.parse::<syn::Token![,]>()?;
-            }
-        }
-
-        Ok(args)
-    }
-}
-
-pub fn parse_trident_flow_executor(
-    attr: TokenStream,
-    input: &ItemImpl,
-) -> ParseResult<TridentFlowExecutorImpl> {
-    let args: FlowExecutorArgs = syn::parse2(attr)?;
-
+pub fn parse_trident_flow_executor(input: &ItemImpl) -> ParseResult<TridentFlowExecutorImpl> {
     // Extract just the path without any generics
     let type_name = if let syn::Type::Path(type_path) = &*input.self_ty {
         let mut cleaned_path = type_path.clone();
@@ -107,15 +38,17 @@ pub fn parse_trident_flow_executor(
             }
 
             // Then check for flow methods
-            if method.attrs.iter().any(|attr| attr.path().is_ident("flow")) {
-                // Only check for ignore if it's a flow method
-                let is_ignored = method
-                    .attrs
-                    .iter()
-                    .any(|attr| attr.path().is_ident("flow_ignore"));
-                if !is_ignored {
-                    flow_methods.push(method.sig.ident.clone());
-                }
+            if let Some(flow_attr) = method
+                .attrs
+                .iter()
+                .find(|attr| attr.path().is_ident("flow"))
+            {
+                let constraints = parse_flow_constraints(flow_attr)?;
+                let flow_method = FlowMethod {
+                    ident: method.sig.ident.clone(),
+                    constraints,
+                };
+                flow_methods.push(flow_method);
             }
         }
     }
@@ -126,6 +59,35 @@ pub fn parse_trident_flow_executor(
         flow_methods,
         init_method,
         generics,
-        args,
     })
+}
+
+fn parse_flow_constraints(attr: &Attribute) -> ParseResult<FlowConstraints> {
+    let mut constraints = FlowConstraints::default();
+
+    // Handle both #[flow] (no args) and #[flow(ignore)] (with args)
+    match &attr.meta {
+        Meta::Path(_) => {
+            // #[flow] with no arguments - use defaults
+            Ok(constraints)
+        }
+        Meta::List(_) => {
+            // #[flow(...)] with arguments
+            attr.parse_nested_meta(|meta| {
+                if let Some(ident) = meta.path.get_ident() {
+                    match ident.to_string().as_str() {
+                        "ignore" => {
+                            constraints.ignore = true;
+                            Ok(())
+                        }
+                        _ => Err(meta.error("unsupported flow constraint")),
+                    }
+                } else {
+                    Err(meta.error("unsupported flow constraint"))
+                }
+            })?;
+            Ok(constraints)
+        }
+        _ => Err(ParseError::new_spanned(attr, "Invalid flow attribute")),
+    }
 }
