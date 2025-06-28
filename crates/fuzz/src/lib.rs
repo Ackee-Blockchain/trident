@@ -51,6 +51,7 @@ pub mod fuzzing {
 
     /// trident derive
     pub use trident_derive_accounts::TridentAccounts;
+    pub use trident_derive_flow_executor::end;
     pub use trident_derive_flow_executor::flow;
     pub use trident_derive_flow_executor::flow_executor;
     pub use trident_derive_flow_executor::init;

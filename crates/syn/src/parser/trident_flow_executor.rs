@@ -20,9 +20,10 @@ pub fn parse_trident_flow_executor(input: &ItemImpl) -> ParseResult<TridentFlowE
     let generics = input.generics.clone();
 
     let mut init_method = None;
+    let mut end_method = None;
     let mut flow_methods = Vec::new();
 
-    // Collect init and flow methods
+    // Collect init, end, and flow methods
     for item in &input.items {
         if let syn::ImplItem::Fn(method) = item {
             // First check for init methods
@@ -34,6 +35,18 @@ pub fn parse_trident_flow_executor(input: &ItemImpl) -> ParseResult<TridentFlowE
                     ));
                 }
                 init_method = Some(method.sig.ident.clone());
+                continue;
+            }
+
+            // Then check for end methods
+            if method.attrs.iter().any(|attr| attr.path().is_ident("end")) {
+                if end_method.is_some() {
+                    return Err(ParseError::new(
+                        method.span(),
+                        "Multiple #[end] methods found. Only one is allowed.",
+                    ));
+                }
+                end_method = Some(method.sig.ident.clone());
                 continue;
             }
 
@@ -58,6 +71,7 @@ pub fn parse_trident_flow_executor(input: &ItemImpl) -> ParseResult<TridentFlowE
         impl_block: input.items.clone(),
         flow_methods,
         init_method,
+        end_method,
         generics,
     })
 }

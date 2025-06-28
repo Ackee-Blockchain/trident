@@ -39,6 +39,18 @@ impl FuzzTest {
         self.execute_transaction(&mut ix, None)?;
         Ok(())
     }
+
+    #[flow]
+    fn flow1(&mut self) -> Result<(), FuzzingError> {
+        Ok(())
+    }
+
+    #[end]
+    fn cleanup(&mut self) -> Result<(), FuzzingError> {
+        // This method will be called after all flows have been executed
+        println!("Cleaning up after fuzzing session");
+        Ok(())
+    }
 }
 fn main() {
     FuzzTest::fuzz_parallel(1000, 50);

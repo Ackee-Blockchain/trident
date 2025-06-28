@@ -50,6 +50,7 @@ impl TridentFlowExecutorImpl {
     fn generate_execute_flows_method(&self) -> TokenStream {
         let init_call = self.generate_init_call();
         let flow_execution_logic = self.generate_flow_execution_logic();
+        let end_call = self.generate_end_call();
 
         quote! {
             pub fn execute_flows(
@@ -58,6 +59,7 @@ impl TridentFlowExecutorImpl {
             ) -> std::result::Result<(), FuzzingError> {
                 #init_call
                 #flow_execution_logic
+                #end_call
                 Ok(())
             }
         }
@@ -68,6 +70,17 @@ impl TridentFlowExecutorImpl {
         if let Some(init_method) = &self.init_method {
             quote! {
                 self.#init_method()?;
+            }
+        } else {
+            quote! {}
+        }
+    }
+
+    /// Generate the end call if an end method exists
+    fn generate_end_call(&self) -> TokenStream {
+        if let Some(end_method) = &self.end_method {
+            quote! {
+                self.#end_method()?;
             }
         } else {
             quote! {}

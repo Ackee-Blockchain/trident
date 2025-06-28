@@ -17,6 +17,13 @@ pub fn init(_attr: TokenStream, item: TokenStream) -> TokenStream {
     quote::quote!(#input_fn).into()
 }
 
+/// Marks a method to run once after all flow methods
+#[proc_macro_attribute]
+pub fn end(_attr: TokenStream, item: TokenStream) -> TokenStream {
+    let input_fn = parse_macro_input!(item as ItemFn);
+    quote::quote!(#input_fn).into()
+}
+
 /// Implements the flow executor for a struct
 #[proc_macro_attribute]
 pub fn flow_executor(_attr: TokenStream, item: TokenStream) -> TokenStream {

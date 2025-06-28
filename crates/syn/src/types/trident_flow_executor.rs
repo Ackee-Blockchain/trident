@@ -16,5 +16,6 @@ pub struct TridentFlowExecutorImpl {
     pub impl_block: Vec<ImplItem>,
     pub flow_methods: Vec<FlowMethod>,
     pub init_method: Option<Ident>,
+    pub end_method: Option<Ident>,
     pub generics: Generics,
 }
