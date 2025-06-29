@@ -54,13 +54,17 @@ impl FuzzClient for TridentSVM {
                     permanent_accounts
                 });
 
-        let svm = TridentSVM::builder()
-            .with_syscalls_v1()
-            .with_syscalls_v2()
-            .with_sbf_programs(program_binaries)
-            .with_permanent_accounts(permanent_accounts);
+        let mut svm_builder = TridentSVM::builder();
+        svm_builder.with_syscalls_v1();
+        svm_builder.with_syscalls_v2();
+        svm_builder.with_sbf_programs(program_binaries);
+        svm_builder.with_permanent_accounts(permanent_accounts);
 
-        svm.build()
+        if std::env::var("TRIDENT_LOG").is_ok() {
+            svm_builder.with_cli_logs();
+        }
+
+        svm_builder.build()
     }
     fn warp_to_epoch(&mut self, warp_epoch: u64) {
         let mut clock = self.get_sysvar::<Clock>();
