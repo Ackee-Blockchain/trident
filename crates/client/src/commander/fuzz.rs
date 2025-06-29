@@ -53,6 +53,9 @@ impl Commander {
             format,
             loop_count,
         );
+
+        coverage.clean().await?;
+
         let env_vars = self.setup_coverage_env_vars(&coverage).await?;
         let mut child = self.spawn_fuzzer(target, env_vars)?;
 
@@ -60,7 +63,6 @@ impl Commander {
         Self::handle_child(&mut child).await?;
 
         coverage.generate_report().await?;
-        coverage.clean().await?;
     }
 
     #[throws]

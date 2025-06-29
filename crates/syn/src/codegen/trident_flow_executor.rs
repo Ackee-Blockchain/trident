@@ -375,10 +375,11 @@ impl TridentFlowExecutorImpl {
     fn generate_thread_spawn_logic(&self) -> TokenStream {
         let type_name = &self.type_name;
         let generate_loopcount_retrieval = self.generate_loopcount_retrieval();
-        let generate_write_profile_logic = self.generate_write_profile_logic();
+        let generate_write_profile_logic = self.generate_multi_threaded_coverage();
 
         quote! {
             let main_pb_clone = main_pb.clone();
+            let thread_id_capture = thread_id; // Capture thread_id for the closure
             let handle = thread::spawn(move || -> FuzzingStatistics {
                 // Each thread creates its own client and fuzzer instance
                 let mut fuzzer = #type_name::new();
@@ -389,6 +390,7 @@ impl TridentFlowExecutorImpl {
                 let update_duration = Duration::from_millis(50);
 
                 let mut local_counter = 0u64;
+                let thread_id = thread_id_capture; // Make thread_id available inside the closure
 
                 #generate_loopcount_retrieval
 
@@ -470,10 +472,55 @@ impl TridentFlowExecutorImpl {
         }
     }
 
+    #[allow(unused_doc_comments)]
     fn generate_write_profile_logic(&self) -> TokenStream {
+        /// This part is a bit tricky and requires a thorough explanation:
+        ///
+        /// LLVM automatically creates a profraw file when the process ends, but since
+        /// we run fuzz tests in a single process with multiple threads, we only get
+        /// one file with combined data from all threads. To enable real-time coverage
+        /// display, we manually create profraw files at intervals.
+        ///
+        /// set_filename: sets the filename for the profraw file
+        /// write_file: creates a profraw file with collected data
+        /// reset_counters: resets the counters to 0
+        ///
+        /// Only thread 0 writes files to avoid duplicates. We use unique filenames
+        /// for each iteration and reset counters after writing. Since the final
+        /// profraw file is created automatically at process end, we preemptively
+        /// set the filename to avoid overwriting the last intermediate file.
+        ///
+        /// Coverage won't be 100% accurate because while the first thread creates
+        /// the profraw file, the other threads are still running and generating data,
+        /// which we reset after writing.
+
         quote! {
-            if loop_count > 0 && i % loop_count == 0 {
-                unsafe { let _ = __llvm_profile_write_file(); }
+            if loop_count > 0 &&
+                i > 0 &&
+                i % loop_count == 0 {
+
+                unsafe {
+                    let filename = format!("target/fuzz-cov-{}.profraw", i);
+                    let filename_cstr = std::ffi::CString::new(filename).unwrap();
+                    __llvm_profile_set_filename(filename_cstr.as_ptr());
+
+                    let _ = __llvm_profile_write_file();
+                    __llvm_profile_reset_counters();
+
+                    let final_filename = std::ffi::CString::new("target/fuzz-cov-final.profraw").unwrap();
+                    __llvm_profile_set_filename(final_filename.as_ptr());
+                }
+
+            }
+        }
+    }
+
+    fn generate_multi_threaded_coverage(&self) -> TokenStream {
+        let generate_write_profile_logic = self.generate_write_profile_logic();
+
+        quote! {
+            if thread_id == 0 {
+                #generate_write_profile_logic
             }
         }
     }

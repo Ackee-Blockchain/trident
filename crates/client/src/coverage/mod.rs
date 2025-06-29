@@ -97,7 +97,7 @@ impl Coverage {
     pub async fn generate_report(&self) -> Result<(), CoverageError> {
         let result = self.try_generate_report(false).await;
         match result {
-            Ok(_) => Ok(()),
+            Ok(_) => self.clean().await,
             Err(_) => self.try_generate_report(true).await,
         }
     }
@@ -114,6 +114,7 @@ impl Coverage {
             .await;
 
         if is_retry && result.is_err() {
+            self.clean().await?;
             return result;
         }
 
@@ -256,8 +257,7 @@ impl Coverage {
 
     fn build_generate_report_command(&self) -> tokio::process::Command {
         let mut cmd = tokio::process::Command::new("cargo");
-        cmd.env("LLVM_PROFILE_FILE", self.get_profraw_file())
-            .env("CARGO_LLVM_COV_TARGET_DIR", self.get_target_dir())
+        cmd.env("CARGO_LLVM_COV_TARGET_DIR", self.get_target_dir())
             .arg("llvm-cov")
             .arg("report")
             .arg(self.format.get_cargo_arg())
