@@ -26,8 +26,6 @@ pub enum Error {
     CrashFileNotFound,
     #[error("The Solana project does not contain any programs")]
     NoProgramsFound,
-    #[error("Incorrect AFL workspace provided")]
-    BadAFLWorkspace,
     // #[error("Coverage error: {0}")]
     // Coverage(#[from] crate::coverage::CoverageError),
 }

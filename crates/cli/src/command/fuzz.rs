@@ -45,7 +45,7 @@ pub enum FuzzCommand {
             short,
             long,
             required = false,
-            help = "Run the Honggfuzz with exit code, i.e. if it discovers crash the Trident will exit with exit code 1."
+            help = "Run the fuzzing with exit code, i.e. if it discovers crash the Trident will exit with exit code 1."
         )]
         with_exit_code: bool,
         #[arg(
@@ -62,6 +62,18 @@ pub enum FuzzCommand {
             help = "Enables real-time coverage visualization in VS Code during fuzzing. The VS Code extension must be actively running to utilize this feature."
         )]
         attach_extension: bool,
+    },
+    Debug {
+        #[arg(
+            required = true,
+            help = "Name of the desired fuzz template to execute (for example fuzz_0)."
+        )]
+        target: String,
+        #[arg(
+            required = true,
+            help = "Seed of the desired fuzz template to execute (for example fuzz_0)."
+        )]
+        seed: String,
     },
 }
 
@@ -89,6 +101,9 @@ pub async fn fuzz(subcmd: FuzzCommand) {
             commander
                 .run(target, with_exit_code, generate_coverage, attach_extension)
                 .await?;
+        }
+        FuzzCommand::Debug { target, seed } => {
+            commander.run_debug(target, seed).await?;
         }
 
         FuzzCommand::Add {

@@ -98,4 +98,6 @@ pub mod fuzzing {
     pub use rand;
 
     pub use trident_svm::prelude;
+
+    pub use hex;
 }

@@ -4,6 +4,6 @@
 fuzzing_with_stats = true
 
 
-[[fuzz.programs]]
-address = "FtevoQoDMv6ZB3N9Lix5Tbjs8EVuNL8vDSqG9kzaZPit"
-program = "target/deploy/hello_world.so"
+# [[fuzz.programs]]
+# address = "FtevoQoDMv6ZB3N9Lix5Tbjs8EVuNL8vDSqG9kzaZPit"
+# program = "target/deploy/hello_world.so"

@@ -35,13 +35,11 @@ impl TridentFlowExecutorImpl {
 
         let execute_flows_method = self.generate_execute_flows_method();
         let fuzz_method = self.generate_fuzz_method();
-        let fuzz_parallel_method = self.generate_fuzz_parallel_method();
 
         quote! {
             impl #impl_generics #type_name #ty_generics #where_clause {
                 #execute_flows_method
                 #fuzz_method
-                #fuzz_parallel_method
             }
         }
     }
@@ -205,32 +203,21 @@ impl TridentFlowExecutorImpl {
         }
     }
 
-    /// Generate the single-threaded fuzz method
+    /// Generate the unified fuzz method that runs in parallel by default
     fn generate_fuzz_method(&self) -> TokenStream {
-        let type_name = &self.type_name;
-        let progress_bar_setup = self.generate_progress_bar_setup(false);
-        let fuzzing_loop = self.generate_single_threaded_fuzzing_loop();
-        let metrics_output = self.generate_metrics_output();
+        let thread_management = self.generate_thread_management_logic();
+        let single_threaded_fallback = self.generate_single_threaded_fallback();
 
         quote! {
             fn fuzz(iterations: u64, flow_calls_per_iteration: u64) {
-                let mut fuzzer = #type_name::new();
-                let total_flow_calls = iterations * flow_calls_per_iteration;
+                // Check for debug mode first - if present, run single iteration immediately
+                if std::env::var("TRIDENT_FUZZ_DEBUG").is_ok() {
+                    println!("Debug mode detected: Running single iteration with provided seed");
+                    let iterations = 1u64;
+                    #single_threaded_fallback
+                    return;
+                }
 
-                #progress_bar_setup
-                #fuzzing_loop
-                #metrics_output
-            }
-        }
-    }
-
-    /// Generate the multi-threaded fuzz method
-    fn generate_fuzz_parallel_method(&self) -> TokenStream {
-        let type_name = &self.type_name;
-        let thread_management = self.generate_thread_management_logic();
-
-        quote! {
-            fn fuzz_parallel(iterations: u64, flow_calls_per_iteration: u64){
                 use std::thread;
                 use std::time::{Duration, Instant};
 
@@ -241,12 +228,47 @@ impl TridentFlowExecutorImpl {
 
                 if num_threads <= 1 || iterations <= 1 {
                     // Single-threaded fallback
-                    #type_name::fuzz(iterations, flow_calls_per_iteration);
+                    #single_threaded_fallback
                     return;
                 }
 
                 #thread_management
             }
+        }
+    }
+
+    /// Generate single-threaded fallback logic
+    fn generate_single_threaded_fallback(&self) -> TokenStream {
+        let type_name = &self.type_name;
+        let progress_bar_setup = self.generate_progress_bar_setup(false);
+        let fuzzing_loop = self.generate_single_threaded_fuzzing_loop();
+        let metrics_output = self.generate_metrics_output();
+
+        quote! {
+            let mut fuzzer = #type_name::new();
+
+            // Set debug seed if in debug mode
+            if let Ok(debug_seed_hex) = std::env::var("TRIDENT_FUZZ_DEBUG") {
+                // Parse hex string to [u8; 32] using hex crate
+                let seed_bytes = hex::decode(&debug_seed_hex)
+                    .unwrap_or_else(|_| panic!("Invalid hex string in debug seed: {}", debug_seed_hex));
+
+                if seed_bytes.len() != 32 {
+                    panic!("Debug seed must be exactly 32 bytes (64 hex characters), got: {}", seed_bytes.len());
+                }
+
+                let mut seed = [0u8; 32];
+                seed.copy_from_slice(&seed_bytes);
+
+                println!("Using debug seed: {}", debug_seed_hex);
+                fuzzer.rng = TridentRng::new(seed);
+            }
+
+            let total_flow_calls = iterations * flow_calls_per_iteration;
+
+            #progress_bar_setup
+            #fuzzing_loop
+            #metrics_output
         }
     }
 

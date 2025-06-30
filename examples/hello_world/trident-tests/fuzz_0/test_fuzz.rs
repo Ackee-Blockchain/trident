@@ -4,6 +4,7 @@ mod fuzz_transactions;
 mod instructions;
 mod transactions;
 mod types;
+use hello_world::entry as entry_hello_world;
 pub use transactions::*;
 
 #[derive(FuzzTestMethods)]
@@ -21,8 +22,15 @@ struct FuzzTest {
 #[flow_executor]
 impl FuzzTest {
     fn new() -> Self {
+        let mut client = TridentSVM::new_client(&TridentConfig::new());
+
+        client.deploy_entrypoint(TridentEntrypoint::new(
+            pubkey!("FtevoQoDMv6ZB3N9Lix5Tbjs8EVuNL8vDSqG9kzaZPit"),
+            None,
+            processor!(entry_hello_world),
+        ));
         Self {
-            client: TridentSVM::new_client(&TridentConfig::new()),
+            client,
             metrics: FuzzingStatistics::default(),
             rng: TridentRng::random(),
             fuzz_accounts: FuzzAccounts::default(),
@@ -82,5 +90,5 @@ impl FuzzTest {
     }
 }
 fn main() {
-    FuzzTest::fuzz_parallel(1000, 50);
+    FuzzTest::fuzz(1000, 50);
 }

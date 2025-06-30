@@ -31,14 +31,14 @@ pub struct TransactionErrorMetrics {
 #[derive(Debug, serde::Serialize, serde::Deserialize, Clone)]
 pub struct TransactionPanicMetrics {
     pub occurrences: u64,
-    pub seed: Seed,
+    pub seed: String,
     pub logs: Option<Vec<String>>,
 }
 
 #[derive(Debug, serde::Serialize, serde::Deserialize, Clone)]
 pub struct TransactionInvariantMetrics {
     pub occurrences: u64,
-    pub seed: Seed,
+    pub seed: String,
 }
 
 /// Manages and aggregates statistics for fuzzing instructions.
@@ -107,12 +107,12 @@ impl FuzzingStatistics {
                     .transactions_invariant_fails
                     .entry(error)
                     .and_modify(|invariant| {
-                        invariant.seed = seed;
+                        invariant.seed = hex::encode(seed);
                         invariant.occurrences += 1;
                     })
                     .or_insert(TransactionInvariantMetrics {
                         occurrences: 1,
-                        seed,
+                        seed: hex::encode(seed),
                     });
             });
     }
@@ -132,12 +132,12 @@ impl FuzzingStatistics {
                     .transactions_panics
                     .entry(panic)
                     .and_modify(|panic| {
-                        panic.seed = seed;
+                        panic.seed = hex::encode(seed);
                         panic.occurrences += 1;
                     })
                     .or_insert(TransactionPanicMetrics {
                         occurrences: 1,
-                        seed,
+                        seed: hex::encode(seed),
                         logs,
                     });
             });
@@ -204,7 +204,7 @@ impl FuzzingStatistics {
                             .entry(error.to_string())
                             .and_modify(|existing_panic| {
                                 existing_panic.occurrences += panic.occurrences;
-                                existing_panic.seed = panic.seed;
+                                existing_panic.seed = panic.seed.clone();
                                 existing_panic.logs = panic.logs.clone();
                             })
                             .or_insert(panic.clone());

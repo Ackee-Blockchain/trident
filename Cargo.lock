@@ -1513,6 +1513,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fc0fef456e4baa96da950455cd02c081ca953b141298e41db3fc7e36b1da849c"
 
 [[package]]
+name = "hex"
+version = "0.4.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7f24254aa9a54b5c858eaee2f5bccdb46aaf0e486a595ed5fd8f86ba55232a70"
+
+[[package]]
 name = "hmac"
 version = "0.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3985,6 +3991,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "trident-derive-fuzz-test-methods"
+version = "0.10.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.104",
+ "trident-syn",
+]
+
+[[package]]
 name = "trident-derive-instruction"
 version = "0.10.0"
 dependencies = [
@@ -4015,16 +4031,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "trident-derive-transaction-selector"
-version = "0.10.0"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.104",
- "trident-syn",
-]
-
-[[package]]
 name = "trident-fuzz"
 version = "0.10.0"
 dependencies = [
@@ -4035,6 +4041,7 @@ dependencies = [
  "byteorder",
  "fehler",
  "getrandom 0.3.3",
+ "hex",
  "indicatif",
  "itertools 0.14.0",
  "prettytable",
@@ -4051,10 +4058,10 @@ dependencies = [
  "trident-config",
  "trident-derive-accounts",
  "trident-derive-flow-executor",
+ "trident-derive-fuzz-test-methods",
  "trident-derive-instruction",
  "trident-derive-remaining-accounts",
  "trident-derive-transaction",
- "trident-derive-transaction-selector",
  "trident-svm",
 ]
 
@@ -4072,7 +4079,7 @@ dependencies = [
 [[package]]
 name = "trident-svm"
 version = "0.0.3"
-source = "git+https://github.com/Ackee-Blockchain/trident-svm?branch=update-tx-result#d4c8183e8f4b406905a833babb9276adf0961bc2"
+source = "git+https://github.com/Ackee-Blockchain/trident-svm?branch=master#8efa0edb68c63188e1965bd96f2a2014a323e60d"
 dependencies = [
  "bincode",
  "serde",

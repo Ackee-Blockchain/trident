@@ -66,13 +66,13 @@ enum Command {
         \n\n\x1b[1m\x1b[4mEXAMPLE:\x1b[0m\
         \n    trident add\
         \n    trident fuzz run fuzz_0\
-        \n    trident fuzz debug-hfuzz \x1b[92m<FUZZ_TARGET>\x1b[0m \x1b[92m<PATH_TO_CRASHFILE>\x1b[0m"
+        \n    trident fuzz debug \x1b[92m<FUZZ_TARGET>\x1b[0m \x1b[92m<SEED>\x1b[0m"
     )]
     Fuzz {
         #[clap(subcommand)]
         subcmd: FuzzCommand,
     },
-    #[command(about = "Clean Honggfuzz build targets ,additionally perform `anchor clean`")]
+    #[command(about = "Clean build target, additionally perform `anchor clean`")]
     Clean,
 }
 
