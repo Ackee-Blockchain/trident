@@ -47,4 +47,22 @@ impl Commander {
 
         Self::handle_child(&mut child).await?;
     }
+
+    #[throws]
+    pub async fn run_debug(&self, target: String, seed: String) {
+        let config = TridentConfig::new();
+
+        if config.get_fuzzing_with_stats() {
+            std::env::set_var("FUZZING_METRICS", "1");
+        }
+
+        let mut child = Command::new("cargo")
+            .env("TRIDENT_FUZZ_DEBUG", seed)
+            .arg("run")
+            .arg("--bin")
+            .arg(target)
+            .spawn()?;
+
+        Self::handle_child(&mut child).await?;
+    }
 }
