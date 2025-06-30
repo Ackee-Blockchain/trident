@@ -24,7 +24,6 @@ mod vote_account;
 #[cfg(feature = "token2022")]
 pub use extensions::*;
 
-
 use solana_sdk::pubkey::Pubkey;
 
 #[cfg(feature = "token2022")]

@@ -1,14 +1,14 @@
 use std::collections::HashMap;
 
+#[cfg(feature = "token2022")]
+use crate::accounts_storage::ParamValue;
+use crate::traits::FuzzClient;
+use crate::types::AccountId;
 use solana_sdk::account::AccountSharedData;
 use solana_sdk::native_token::LAMPORTS_PER_SOL;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
-#[cfg(feature = "token2022")]
-use crate::accounts_storage::ParamValue;
-use crate::traits::FuzzClient;
-use crate::types::AccountId;
 
 use super::derive_pda;
 use super::AccountMetadata;
@@ -143,7 +143,7 @@ impl AccountsStorage {
         }
     }
 
-        #[cfg(feature = "token2022")]
+    #[cfg(feature = "token2022")]
     #[allow(clippy::too_many_arguments)]
     pub fn get_or_create_token_2022_mint(
         &mut self,
@@ -153,7 +153,7 @@ impl AccountsStorage {
         decimals: u8,
         mint_authority: &Pubkey,
         freeze_authority: Option<Pubkey>,
-        extensions: Option<Vec<ParamValue>>,  
+        extensions: Option<Vec<ParamValue>>,
     ) -> Pubkey {
         match self.accounts.get(&account_id) {
             Some(address) => *address,
@@ -177,8 +177,6 @@ impl AccountsStorage {
             }
         }
     }
-
-
 
     #[cfg(feature = "token2022")]
     #[allow(clippy::too_many_arguments)]

@@ -1,9 +1,7 @@
-
 #[cfg(feature = "token2022")]
 use solana_zk_sdk::encryption::pod::{
     auth_encryption::PodAeCiphertext,
     elgamal::{PodElGamalCiphertext, PodElGamalPubkey},
-    
 };
 #[cfg(feature = "token2022")]
 use spl_token_2022::extension::confidential_transfer_fee::EncryptedWithheldAmount;
@@ -90,7 +88,6 @@ pub struct ConfidentialMintBurn {
 #[cfg(feature = "token2022")]
 pub struct NonTransferable {}
 
-
 // Token 2022 Account Extensions
 #[cfg(feature = "token2022")]
 pub struct ImmutableOwner {}
@@ -98,7 +95,7 @@ pub struct ImmutableOwner {}
 #[cfg(feature = "token2022")]
 pub struct ConfidentialTransferAccount {
     pub approved: bool,
-    pub elgamal_pubkey: PodElGamalPubkey, 
+    pub elgamal_pubkey: PodElGamalPubkey,
     pub pending_balance_lo: PodElGamalCiphertext,
     pub pending_balance_hi: PodElGamalCiphertext,
     pub available_balance: PodElGamalCiphertext,
@@ -117,16 +114,16 @@ pub struct TransferHookAccount {
 
 #[cfg(feature = "token2022")]
 pub struct CpiGuard {
-    pub lock_cpi: bool, 
+    pub lock_cpi: bool,
 }
 
 #[cfg(feature = "token2022")]
 pub struct MemoTransfer {
-    pub require_incoming_transfer_memos: bool, 
+    pub require_incoming_transfer_memos: bool,
 }
 #[cfg(feature = "token2022")]
 pub struct TransferFeeAmount {
-    pub withheld_amount: u64, 
+    pub withheld_amount: u64,
 }
 #[cfg(feature = "token2022")]
 pub struct ConfidentialTransferFeeAmount {
