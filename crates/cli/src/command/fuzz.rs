@@ -52,6 +52,7 @@ pub enum FuzzCommand {
             short,
             long,
             required = false,
+            num_args(0..=1),
             default_missing_value = "json",
             value_name = "FORMAT",
             help = "Tracks code coverage during fuzzing and generates a report upon completion. Specify format: 'json' (default) or 'html'. The json report can be visualized in your source code using our VS Code extension."

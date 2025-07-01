@@ -26,8 +26,8 @@ pub enum Error {
     CrashFileNotFound,
     #[error("The Solana project does not contain any programs")]
     NoProgramsFound,
-    // #[error("Coverage error: {0}")]
-    // Coverage(#[from] crate::coverage::CoverageError),
+    #[error("Coverage error: {0}")]
+    Coverage(#[from] crate::coverage::CoverageError),
 }
 
 /// `Commander` allows you to start localnet, build programs,

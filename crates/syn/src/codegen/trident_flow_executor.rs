@@ -207,7 +207,6 @@ impl TridentFlowExecutorImpl {
     fn generate_fuzz_method(&self) -> TokenStream {
         let thread_management = self.generate_thread_management_logic();
         let single_threaded_fallback = self.generate_single_threaded_fallback();
-        let loopcount_retrieval = self.generate_loopcount_retrieval();
 
         quote! {
             fn fuzz(iterations: u64, flow_calls_per_iteration: u64) {
@@ -228,8 +227,6 @@ impl TridentFlowExecutorImpl {
                     .min(iterations as usize);
 
                 if num_threads <= 1 || iterations <= 1 {
-                    #loopcount_retrieval
-
                     // Single-threaded fallback
                     #single_threaded_fallback
                     return;
@@ -300,8 +297,10 @@ impl TridentFlowExecutorImpl {
     /// Generate the single-threaded fuzzing loop
     fn generate_single_threaded_fuzzing_loop(&self) -> TokenStream {
         let generate_write_profile_logic = self.generate_write_profile_logic();
+        let loopcount_retrieval = self.generate_loopcount_retrieval();
 
         quote! {
+            #loopcount_retrieval
             for i in 0..iterations {
                 let result = fuzzer.execute_flows(flow_calls_per_iteration);
 
