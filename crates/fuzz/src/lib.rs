@@ -100,4 +100,10 @@ pub mod fuzzing {
     pub use trident_svm::prelude;
 
     pub use hex;
+
+    extern "C" {
+        pub fn __llvm_profile_set_filename(filename: *const i8);
+        pub fn __llvm_profile_write_file() -> i32;
+        pub fn __llvm_profile_reset_counters();
+    }
 }
