@@ -141,13 +141,13 @@ impl TridentFlowExecutorImpl {
 
         quote! {
             // Randomly select and execute flows for the specified number of calls
-            for _ in 0..flow_calls_per_iteration {
+            let flows_results = for _ in 0..flow_calls_per_iteration {
                 let flow_index = self.rng.gen_range(0..#num_flows);
                 match flow_index {
                     #(#flow_match_arms)*
                     _ => unreachable!("Invalid flow index"),
                 }
-            }
+            };
         }
     }
 
@@ -196,10 +196,10 @@ impl TridentFlowExecutorImpl {
 
         quote! {
             // Weighted flow selection based on specified weights
-            for _ in 0..flow_calls_per_iteration {
+            let flows_results = for _ in 0..flow_calls_per_iteration {
                 let random_weight = self.rng.gen_range(0..#total_weight);
                 #(#weight_ranges)*
-            }
+            };
         }
     }
 
