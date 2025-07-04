@@ -43,7 +43,7 @@ impl Template {
             None => {
                 let type_item: syn::Item = {
                     parse_quote! {
-                        #[derive(Arbitrary, Debug, BorshDeserialize, BorshSerialize, Clone)]
+                        #[derive(Debug, BorshDeserialize, BorshSerialize, Clone, Default)]
                         pub struct #type_ident;
                     }
                 };
@@ -90,7 +90,7 @@ impl Template {
         let type_ident = format_ident!("{}", type_name);
 
         let type_item: syn::Item = parse_quote! {
-            #[derive(Arbitrary, Debug, BorshDeserialize, BorshSerialize, Clone)]
+            #[derive(Debug, BorshDeserialize, BorshSerialize, Clone, Default)]
             pub enum #type_ident {
                 #(#enum_variants),*
             }
@@ -116,7 +116,7 @@ impl Template {
 
         // if the struct corresponds to a program account we do not add arbitrary
         let struct_definition: syn::Item = parse_quote! {
-                #[derive(Arbitrary, Debug, BorshDeserialize, BorshSerialize, Clone)]
+                #[derive(Debug, BorshDeserialize, BorshSerialize, Clone, Default)]
                 pub struct #type_ident {
                     #(#fields),*
                 }
@@ -151,7 +151,7 @@ impl Template {
 
         // if the struct corresponds to a program account we do not add arbitrary
         let struct_definition: syn::Item = parse_quote! {
-            #[derive(Arbitrary, Debug, BorshDeserialize, BorshSerialize, Clone)]
+            #[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
             pub struct #type_ident(#(pub #tuple_fields),*);
         };
 

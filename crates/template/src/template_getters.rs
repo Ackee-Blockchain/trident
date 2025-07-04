@@ -63,7 +63,6 @@ impl Template {
 
         let module_definition: syn::File = parse_quote! {
             use trident_fuzz::fuzzing::*;
-            use crate::transactions::*;
 
 
             /// FuzzAccounts contains all available accounts

@@ -17,7 +17,7 @@ impl Template {
             /// Customize transaction behavior by adding more instructions.
             ///
             /// Docs: https://ackee.xyz/trident/docs/latest/trident-advanced/trident-transactions/multi-instruction-transactions/
-            #[derive(Arbitrary, Debug, TridentTransaction)]
+            #[derive(Debug, TridentTransaction, Default)]
             pub struct #transaction_struct_name {
                 pub instruction: #instruction_struct_name,
             }

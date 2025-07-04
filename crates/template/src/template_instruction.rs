@@ -3,7 +3,7 @@ use crate::{template::ModDefinition, Template};
 use convert_case::Case;
 use convert_case::Casing;
 use quote::format_ident;
-use syn::{parse_quote, parse_str, FnArg};
+use syn::{parse_quote, parse_str};
 use trident_idl_spec::{
     IdlField, IdlInstruction, IdlInstructionAccount, IdlInstructionAccountItem,
 };
@@ -74,13 +74,6 @@ impl Template {
             impl InstructionHooks for #instruction_struct_name {
                 type IxAccounts = FuzzAccounts;
 
-                fn set_data(&mut self, client: &mut impl FuzzClient, fuzz_accounts: &mut Self::IxAccounts) {
-                    todo!()
-                }
-
-                fn set_accounts(&mut self, client: &mut impl FuzzClient, fuzz_accounts: &mut Self::IxAccounts) {
-                    todo!()
-                }
             }
         };
 
@@ -142,7 +135,7 @@ fn get_instruction_accounts(instruction: &IdlInstruction) -> Vec<syn::Field> {
                         "{}Accounts",
                         idl_instruction_accounts.name.to_case(Case::UpperCamel)
                     );
-                    let account: syn::Field = parse_quote!(#composite_name: #composite_type);
+                    let account: syn::Field = parse_quote!(pub #composite_name: #composite_type);
                     account_parameters.push(account);
                 }
                 IdlInstructionAccountItem::Single(idl_instruction_account) => {
@@ -184,18 +177,18 @@ fn process_single_account(
     let account: syn::Field = if !account_attrs.is_empty() {
         parse_quote! {
             #[account(#(#account_attrs),*)]
-            #name: TridentAccount
+            pub #name: TridentAccount
         }
     } else {
         parse_quote! {
-            #name: TridentAccount
+            pub #name: TridentAccount
         }
     };
 
     account_parameters.push(account);
 }
 
-fn get_instruction_data(instruction: &IdlInstruction) -> Vec<syn::FnArg> {
+fn get_instruction_data(instruction: &IdlInstruction) -> Vec<syn::Field> {
     instruction
         .args
         .iter()
@@ -205,13 +198,13 @@ fn get_instruction_data(instruction: &IdlInstruction) -> Vec<syn::FnArg> {
         })
 }
 
-fn process_instruction_argument(argument: &IdlField, arguments: &mut Vec<FnArg>) {
+fn process_instruction_argument(argument: &IdlField, arguments: &mut Vec<syn::Field>) {
     let arg_name = format_ident!("{}", argument.name);
 
     // convert type to syn type
     let (arg_type, _is_custom) = idl_type_to_syn_type(&argument.ty);
 
-    let parameter: syn::FnArg = parse_quote!(#arg_name: #arg_type);
+    let parameter: syn::Field = parse_quote!(pub #arg_name: #arg_type);
 
     arguments.push(parameter);
 }
@@ -259,7 +252,7 @@ fn process_composite_account_item(
                         let name = format_ident!("{}", nested.name);
                         let type_name =
                             format_ident!("{}Accounts", nested.name.to_case(Case::UpperCamel));
-                        let field: syn::Field = parse_quote!(#name: #type_name);
+                        let field: syn::Field = parse_quote!(pub #name: #type_name);
                         fields.push(field);
                     }
                 }
@@ -267,7 +260,7 @@ fn process_composite_account_item(
             });
 
         let struct_def: syn::ItemStruct = parse_quote! {
-            #[derive(Arbitrary, Debug, Clone, TridentAccounts)]
+            #[derive(Debug, Clone, TridentAccounts, Default)]
             #[instruction_data(#instruction_data_name)]
             #[storage(FuzzAccounts)]
             pub struct #struct_name {
