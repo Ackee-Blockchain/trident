@@ -1,5 +1,6 @@
 use rand::distributions::uniform::SampleRange;
 use rand::distributions::uniform::SampleUniform;
+use rand::distributions::Alphanumeric;
 use rand::distributions::Distribution;
 use rand::distributions::Standard;
 
@@ -57,5 +58,13 @@ impl TridentRng {
         Standard: Distribution<T>,
     {
         self.rng.gen()
+    }
+
+    pub fn gen_string(&mut self, length: usize) -> String {
+        Alphanumeric
+            .sample_iter(&mut self.rng)
+            .take(length)
+            .map(char::from)
+            .collect()
     }
 }
