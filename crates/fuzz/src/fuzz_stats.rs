@@ -165,7 +165,6 @@ impl FuzzingStatistics {
             ]);
         }
         table.printstd();
-        println!("Note that unhandled panics are currently logged only as crashes and are not displayed in the table above.")
     }
 
     pub fn print_to_file(&self, path: &str) {
@@ -208,6 +207,16 @@ impl FuzzingStatistics {
                                 existing_panic.logs = panic.logs.clone();
                             })
                             .or_insert(panic.clone());
+                    }
+                    for (error, invariant) in &stats.transactions_invariant_fails {
+                        existing_stats
+                            .transactions_invariant_fails
+                            .entry(error.to_string())
+                            .and_modify(|existing_invariant| {
+                                existing_invariant.occurrences += invariant.occurrences;
+                                existing_invariant.seed = invariant.seed.clone();
+                            })
+                            .or_insert(invariant.clone());
                     }
                 })
                 .or_insert(stats);
