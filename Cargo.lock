@@ -4079,9 +4079,10 @@ dependencies = [
 [[package]]
 name = "trident-svm"
 version = "0.0.3"
-source = "git+https://github.com/Ackee-Blockchain/trident-svm?branch=master#8efa0edb68c63188e1965bd96f2a2014a323e60d"
+source = "git+https://github.com/Ackee-Blockchain/trident-svm?branch=master#0c9d8e632ae27c6142c1ed1e2583b073f083a54d"
 dependencies = [
  "bincode",
+ "log",
  "serde",
  "solana-address-lookup-table-program",
  "solana-bpf-loader-program",

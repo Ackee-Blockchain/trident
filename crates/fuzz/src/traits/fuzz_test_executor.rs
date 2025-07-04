@@ -30,7 +30,11 @@ pub trait FuzzTestExecutor: FuzzTestGetters {
         transaction_name_override: Option<&str>,
     ) -> Result<(), FuzzingError>
     where
-        T: TransactionHooks + TransactionGetters + TransactionSetters + TransactionPrivateMethods,
+        T: TransactionHooks
+            + TransactionGetters
+            + TransactionSetters
+            + TransactionPrivateMethods
+            + std::fmt::Debug,
     {
         let transaction_name = if let Some(transaction_name_override) = transaction_name_override {
             transaction_name_override.to_string()
@@ -41,6 +45,7 @@ pub trait FuzzTestExecutor: FuzzTestGetters {
         let instructions = transaction.create_transaction(self.get_client());
 
         let fuzzing_metrics = std::env::var("FUZZING_METRICS");
+        let fuzzing_debug = std::env::var("TRIDENT_FUZZ_DEBUG");
 
         // Take snapshot of accounts before execution
         transaction.set_snapshot_before(self.get_client());
@@ -52,6 +57,13 @@ pub trait FuzzTestExecutor: FuzzTestGetters {
         // Execute the transaction
         if fuzzing_metrics.is_ok() {
             self.get_metrics().increase_invoked(&transaction_name);
+        }
+        if fuzzing_debug.is_ok() {
+            let tx = format!("{:#?}", transaction);
+            trident_svm::prelude::trident_svm_log::log_message(
+                &tx,
+                trident_svm::prelude::Level::Debug,
+            );
         }
 
         let processing_data = self.get_client()._process_instructions(&instructions);
@@ -74,6 +86,13 @@ pub trait FuzzTestExecutor: FuzzTestGetters {
 
                     // Run invariant checks
                     if let Err(invariant_error) = transaction.transaction_invariant_check() {
+                        if fuzzing_debug.is_ok() {
+                            trident_svm::prelude::trident_svm_log::log_message(
+                                &invariant_error.to_string(),
+                                trident_svm::prelude::Level::Error,
+                            );
+                        }
+
                         // Record check failure
                         if fuzzing_metrics.is_ok() {
                             let rng = self.get_rng().get_seed();
@@ -98,6 +117,12 @@ pub trait FuzzTestExecutor: FuzzTestGetters {
                         match instruction_error {
                             InstructionError::ProgramFailedToComplete => {
                                 if fuzzing_metrics.is_ok() {
+                                    if fuzzing_debug.is_ok() {
+                                        trident_svm::prelude::trident_svm_log::log_message(
+                                            "TRANSACTION PANICKED",
+                                            trident_svm::prelude::Level::Error,
+                                        );
+                                    }
                                     let rng = self.get_rng().get_seed();
                                     self.get_metrics().increase_transaction_panicked(
                                         &transaction_name,

@@ -93,22 +93,14 @@ impl TridentAccount {
 
 impl std::fmt::Debug for TridentAccount {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "TridentAccount {{ account_id: {}, account_meta: ",
-            self.account_id
-        )?;
         match &self.account_meta {
             Some(meta) => {
-                write!(f, "{{ ")?;
-                write!(f, "address: \x1b[93m{}\x1b[0m, ", meta.pubkey)?;
-                write!(f, "is_signer: \x1b[33m{}\x1b[0m, ", meta.is_signer)?;
-                write!(f, "is_writable: \x1b[94m{}\x1b[0m", meta.is_writable)?;
-                write!(f, " }}")?;
+                write!(f, "address: {}, ", meta.pubkey)?;
+                write!(f, "is_signer: {}, ", meta.is_signer)?;
+                write!(f, "is_writable: {}", meta.is_writable)
             }
-            None => write!(f, "none")?,
+            None => write!(f, "none"),
         }
-        write!(f, " }}")
     }
 }
 
