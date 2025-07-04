@@ -4284,7 +4284,7 @@ dependencies = [
 [[package]]
 name = "trident-svm"
 version = "0.0.3"
-source = "git+https://github.com/Ackee-Blockchain/trident-svm?branch=master#0c9d8e632ae27c6142c1ed1e2583b073f083a54d"
+source = "git+https://github.com/Ackee-Blockchain/trident-svm?branch=master#a13f857d81787688d833b0326ba0c1966d4b37b9"
 dependencies = [
  "bincode",
  "log",
