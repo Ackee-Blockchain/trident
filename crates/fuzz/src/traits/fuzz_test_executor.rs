@@ -107,6 +107,15 @@ pub trait FuzzTestExecutor: FuzzTestGetters {
                                     );
                                 }
                             }
+                            InstructionError::Custom(error_code) => {
+                                if fuzzing_metrics.is_ok() {
+                                    self.get_metrics().increase_custom_instruction_error(
+                                        &transaction_name,
+                                        error_code,
+                                        details.log_messages.clone(),
+                                    );
+                                }
+                            }
                             _ => {
                                 if fuzzing_metrics.is_ok() {
                                     self.get_metrics().increase_failed(

@@ -16,8 +16,8 @@ pub struct IterationStats {
     pub transactions_failed_invariant: u64,
     pub transactions_panicked: u64,
 
-    // error | number of occurances
     pub transactions_errors: BTreeMap<String, TransactionErrorMetrics>,
+    pub custom_instruction_errors: BTreeMap<u32, TransactionErrorMetrics>,
     pub transactions_panics: BTreeMap<String, TransactionPanicMetrics>,
     pub transactions_invariant_fails: BTreeMap<String, TransactionInvariantMetrics>,
 }
@@ -70,6 +70,7 @@ impl FuzzingStatistics {
                 transactions_failed_invariant: 0,
                 transactions_panicked: 0,
                 transactions_errors: BTreeMap::new(),
+                custom_instruction_errors: BTreeMap::new(),
                 transactions_panics: BTreeMap::new(),
                 transactions_invariant_fails: BTreeMap::new(),
             });
@@ -98,6 +99,28 @@ impl FuzzingStatistics {
                     });
             });
     }
+
+    pub fn increase_custom_instruction_error(
+        &mut self,
+        instruction: &str,
+        error_code: &u32,
+        logs: Option<Vec<String>>,
+    ) {
+        self.instructions
+            .entry(instruction.to_string())
+            .and_modify(|iterations_stats| {
+                iterations_stats.transactions_failed += 1;
+                iterations_stats
+                    .custom_instruction_errors
+                    .entry(*error_code)
+                    .and_modify(|fail| fail.occurrences += 1)
+                    .or_insert(TransactionErrorMetrics {
+                        occurrences: 1,
+                        logs,
+                    });
+            });
+    }
+
     pub fn increase_failed_invariant(&mut self, instruction: &str, seed: Seed, error: String) {
         self.instructions
             .entry(instruction.to_string())
@@ -217,6 +240,16 @@ impl FuzzingStatistics {
                                 existing_invariant.seed = invariant.seed.clone();
                             })
                             .or_insert(invariant.clone());
+                    }
+                    for (error, custom_error) in &stats.custom_instruction_errors {
+                        existing_stats
+                            .custom_instruction_errors
+                            .entry(*error)
+                            .and_modify(|existing_custom_error| {
+                                existing_custom_error.occurrences += custom_error.occurrences;
+                                existing_custom_error.logs = custom_error.logs.clone();
+                            })
+                            .or_insert(custom_error.clone());
                     }
                 })
                 .or_insert(stats);
