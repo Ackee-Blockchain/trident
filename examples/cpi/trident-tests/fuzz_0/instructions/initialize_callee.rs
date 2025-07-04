@@ -1,5 +1,4 @@
 use crate::fuzz_transactions::FuzzAccounts;
-use crate::types::*;
 use borsh::{BorshDeserialize, BorshSerialize};
 use trident_fuzz::fuzzing::*;
 #[derive(TridentInstruction, Default)]
@@ -14,7 +13,11 @@ pub struct InitializeCalleeInstruction {
 #[instruction_data(InitializeCalleeInstructionData)]
 #[storage(FuzzAccounts)]
 pub struct InitializeCalleeInstructionAccounts {
-    #[account(signer)]
+    #[account(
+        signer,
+        storage::name = signer,
+        storage::account_id = (0..1)
+    )]
     signer: TridentAccount,
 }
 /// Instruction Data

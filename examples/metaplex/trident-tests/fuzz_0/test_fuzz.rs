@@ -6,39 +6,46 @@ mod transactions;
 mod types;
 use metaplex::entry as entry_metaplex;
 pub use transactions::*;
-#[derive(Default)]
-struct FuzzTest<C> {
-    client: C,
+#[derive(FuzzTestMethods)]
+struct FuzzTest {
+    /// for transaction executions
+    client: TridentSVM,
+    /// for storing fuzzing metrics
+    metrics: FuzzingStatistics,
+    /// for storing seed
+    rng: TridentRng,
+    /// for storing fuzzing accounts
+    fuzz_accounts: FuzzAccounts,
 }
-/// Use flows to specify custom sequences of behavior
-/// #[init]
-/// fn start(&mut self) {
-///     // Initialization goes here
-/// }
-/// #[flow]
-/// fn flow1(
-///     &mut self,
-///     fuzzer_data: &mut FuzzerData,
-///     accounts: &mut FuzzAccounts,
-/// ) -> Result<(), FuzzingError> {
-///     // Flow logic goes here
-///     Ok(())
-/// }
+
 #[flow_executor]
-impl<C: FuzzClient + std::panic::RefUnwindSafe> FuzzTest<C> {
-    fn new(client: C) -> Self {
-        Self { client }
-    }
-    #[init]
-    fn start(&mut self) {
-        self.client.deploy_entrypoint(TridentEntrypoint::new(
+impl FuzzTest {
+    fn new() -> Self {
+        let mut client = TridentSVM::new_client(&TridentConfig::new());
+
+        client.deploy_entrypoint(TridentEntrypoint::new(
             pubkey!("H2XPhu8mmGDZioamVp2C5bDWXSSKn6bDdhpiUqWqPmLS"),
             None,
             processor!(entry_metaplex),
         ));
+
+        Self {
+            client,
+            metrics: FuzzingStatistics::default(),
+            rng: TridentRng::random(),
+            fuzz_accounts: FuzzAccounts::default(),
+        }
+    }
+    #[init]
+    fn start(&mut self) -> Result<(), FuzzingError> {
+        let mut tx =
+            InitializeTransaction::build(&mut self.client, &mut self.fuzz_accounts, &mut self.rng);
+
+        self.execute_transaction(&mut tx, Some("initialize"))?;
+
+        Ok(())
     }
 }
 fn main() {
-    let client = TridentSVM::new_client(&TridentConfig::new());
-    FuzzTest::new(client).fuzz();
+    FuzzTest::fuzz(1000, 50);
 }

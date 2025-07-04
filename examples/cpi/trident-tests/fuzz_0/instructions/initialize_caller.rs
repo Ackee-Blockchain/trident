@@ -1,5 +1,4 @@
 use crate::fuzz_transactions::FuzzAccounts;
-use crate::types::*;
 use borsh::{BorshDeserialize, BorshSerialize};
 use trident_fuzz::fuzzing::*;
 #[derive(TridentInstruction, Default)]

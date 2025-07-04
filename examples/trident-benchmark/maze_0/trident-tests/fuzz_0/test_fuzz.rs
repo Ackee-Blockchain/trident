@@ -41,32 +41,37 @@ impl FuzzTest {
         let mut tx =
             InitializeTransaction::build(&mut self.client, &mut self.fuzz_accounts, &mut self.rng);
 
-        self.execute_transaction(&mut tx, Some("Initialize"))
+        let _res = self.execute_transaction(&mut tx, Some("Initialize"));
+        Ok(())
     }
 
     #[flow]
     fn flow1(&mut self) -> Result<(), FuzzingError> {
         let mut tx =
             MoveEastTransaction::build(&mut self.client, &mut self.fuzz_accounts, &mut self.rng);
-        self.execute_transaction(&mut tx, Some("MoveEast"))
+        let _res = self.execute_transaction(&mut tx, Some("MoveEast"));
+        Ok(())
     }
     #[flow]
     fn flow2(&mut self) -> Result<(), FuzzingError> {
         let mut tx =
             MoveSouthTransaction::build(&mut self.client, &mut self.fuzz_accounts, &mut self.rng);
-        self.execute_transaction(&mut tx, Some("MoveSouth"))
+        let _res = self.execute_transaction(&mut tx, Some("MoveSouth"));
+        Ok(())
     }
     #[flow]
     fn flow3(&mut self) -> Result<(), FuzzingError> {
         let mut tx =
             MoveNorthTransaction::build(&mut self.client, &mut self.fuzz_accounts, &mut self.rng);
-        self.execute_transaction(&mut tx, Some("MoveNorth"))
+        let _res = self.execute_transaction(&mut tx, Some("MoveNorth"));
+        Ok(())
     }
     #[flow]
     fn flow4(&mut self) -> Result<(), FuzzingError> {
         let mut tx =
             MoveWestTransaction::build(&mut self.client, &mut self.fuzz_accounts, &mut self.rng);
-        self.execute_transaction(&mut tx, Some("MoveWest"))
+        let _res = self.execute_transaction(&mut tx, Some("MoveWest"));
+        Ok(())
     }
 }
 fn main() {

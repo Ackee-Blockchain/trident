@@ -8,6 +8,7 @@ use callee::entry as entry_callee;
 use cpi::entry as entry_cpi;
 pub use transactions::*;
 
+#[derive(FuzzTestMethods)]
 struct FuzzTest {
     /// for transaction executions
     client: TridentSVM,
@@ -15,21 +16,9 @@ struct FuzzTest {
     metrics: FuzzingStatistics,
     /// for storing seed
     rng: TridentRng,
+    /// for storing fuzzing accounts
+    fuzz_accounts: FuzzAccounts,
 }
-/// Use flows to specify custom sequences of behavior
-/// #[init]
-/// fn start(&mut self) {
-///     // Initialization goes here
-/// }
-/// #[flow]
-/// fn flow1(
-///     &mut self,
-///     fuzzer_data: &mut FuzzerData,
-///     accounts: &mut FuzzAccounts,
-/// ) -> Result<(), FuzzingError> {
-///     // Flow logic goes here
-///     Ok(())
-/// }
 #[flow_executor]
 impl FuzzTest {
     fn new() -> Self {
@@ -49,19 +38,22 @@ impl FuzzTest {
             client,
             metrics: FuzzingStatistics::default(),
             rng: TridentRng::random(),
+            fuzz_accounts: FuzzAccounts::default(),
         }
     }
     #[init]
-    fn start(&mut self, accounts: &mut FuzzAccounts) -> Result<(), FuzzingError> {
-        InitializeCallerTransaction::build(&mut self.client, accounts, &mut self.rng).execute(
+    fn start(&mut self) -> Result<(), FuzzingError> {
+        let mut tx = InitializeCallerTransaction::build(
             &mut self.client,
-            &mut self.metrics,
-            &self.rng,
-        )?;
+            &mut self.fuzz_accounts,
+            &mut self.rng,
+        );
+
+        self.execute_transaction(&mut tx, Some("initialize_caller"))?;
 
         Ok(())
     }
 }
 fn main() {
-    FuzzTest::fuzz_parallel(1000, 50);
+    FuzzTest::fuzz(1000, 50);
 }
