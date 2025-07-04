@@ -216,6 +216,11 @@ impl TridentFlowExecutorImpl {
                     let iterations = 1u64;
                     #single_threaded_fallback
                     return;
+                } else {
+                    // TODO: this is a hack to suppress the panic message
+                    std::panic::set_hook(Box::new(|_info| {
+                        // Do nothing — suppress the panic message
+                    }));
                 }
 
                 use std::thread;
