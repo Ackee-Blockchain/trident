@@ -8,8 +8,12 @@ description = { workspace = true }
 license-file = { workspace = true }
 readme = { workspace = true }
 
-[dependencies]
+[dependencies.trident-fork-testing]
+path = "../fork"
+version = "0.10.0"
 
+
+[dependencies]
 # Solana
 solana-sdk = { workspace = true }
 

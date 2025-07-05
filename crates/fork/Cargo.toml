@@ -1,0 +1,13 @@
+[package]
+name = "trident-fork-testing"
+version = { workspace = true }
+edition = { workspace = true }
+repository = { workspace = true }
+description = { workspace = true }
+license-file = { workspace = true }
+readme = { workspace = true }
+
+[dependencies]
+solana-client = { workspace = true }
+solana-sdk = { workspace = true }
+thiserror = { workspace = true }

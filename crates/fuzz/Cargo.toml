@@ -46,6 +46,10 @@ version = "0.10.0"
 path = "../config"
 version = "0.10.0"
 
+# Fork testing
+[dependencies.trident-fork-testing]
+path = "../fork"
+version = "0.10.0"
 
 # Trident-SVM
 [dependencies.trident-svm]

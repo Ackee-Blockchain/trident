@@ -2,3 +2,17 @@
 
 [fuzz]
 fuzzing_with_stats = true
+
+
+[[fuzz.fork.programs]]
+cluster = "m"
+address = "KLend2g3cP87fffoy8q1mQqGKjrxjC8boSyAYavgmjD"
+
+[[fuzz.fork.programs]]
+cluster = "m"
+address = "VALaaymxQh2mNy2trH9jUqHT1mTow76wpTcGmSWSwJe"
+
+
+[[fuzz.fork.programs]]
+cluster = "m"
+address = "EhhTKczWMGQt46ynNeRX1WfeagwwJd7ufHvCDjRxjo5Q"

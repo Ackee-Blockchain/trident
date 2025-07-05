@@ -7,6 +7,9 @@ use solana_sdk::signer::Signer;
 use solana_sdk::sysvar::Sysvar;
 
 use trident_config::TridentConfig;
+use trident_fork_testing::{
+    get_forked_programs, ClusterType as ForkClusterType, ForkProgramConfig,
+};
 
 use trident_svm::trident_svm::TridentSVM;
 use trident_svm::types::trident_account::TridentAccountSharedData;
@@ -26,7 +29,53 @@ impl FuzzClient for TridentSVM {
 
     #[doc(hidden)]
     fn new_client(config: &TridentConfig) -> Self {
-        let program_binaries =
+        let forked_or_cached_programs = config.fork_or_cache_programs();
+
+        // Fork programs from clusters if specified
+        let mut program_binaries = Vec::new();
+
+        // Add forked programs
+        if !forked_or_cached_programs.is_empty() {
+            // Convert trident_config types to fork crate types
+            let fork_configs: Vec<ForkProgramConfig> = forked_or_cached_programs
+                .iter()
+                .map(|config| {
+                    let cluster = match config.cluster.to_short_string().as_str() {
+                        "m" => ForkClusterType::Mainnet,
+                        "d" => ForkClusterType::Devnet,
+                        "t" => ForkClusterType::Testnet,
+                        "l" => ForkClusterType::Localnet,
+                        _ => ForkClusterType::Mainnet, // default
+                    };
+
+                    ForkProgramConfig {
+                        cluster,
+                        address: config.address.clone(),
+                        overwrite: config.overwrite,
+                    }
+                })
+                .collect();
+
+            match get_forked_programs(&fork_configs) {
+                Ok(forked_programs) => {
+                    for forked_program in forked_programs {
+                        let target = TridentProgram::new(
+                            forked_program.address,
+                            None, // TODO add authority to the forked program
+                            forked_program.data,
+                        );
+                        program_binaries.push(target);
+                        println!("Added forked program: {}", forked_program.address);
+                    }
+                }
+                Err(e) => {
+                    eprintln!("Warning: Failed to fork programs: {}", e);
+                }
+            }
+        }
+
+        // Add regular configured programs
+        let configured_programs =
             config
                 .programs()
                 .iter()
@@ -36,10 +85,11 @@ impl FuzzClient for TridentSVM {
                         config_program.upgrade_authority,
                         config_program.data.clone(),
                     );
-
                     sbf_programs.push(target);
                     sbf_programs
                 });
+
+        program_binaries.extend(configured_programs);
 
         let permanent_accounts =
             config
