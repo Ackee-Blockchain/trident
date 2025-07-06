@@ -47,12 +47,7 @@ pub trait FuzzTestExecutor: FuzzTestGetters {
         let fuzzing_metrics = std::env::var("FUZZING_METRICS");
         let fuzzing_debug = std::env::var("TRIDENT_FUZZ_DEBUG");
 
-        // Take snapshot of accounts before execution
-        transaction.set_snapshot_before(self.get_client());
-
         // If stats are enabled, use the stats logger
-        // Run pre-transaction hook
-        transaction.pre_transaction(self.get_client());
 
         // Execute the transaction
         if fuzzing_metrics.is_ok() {
@@ -65,8 +60,20 @@ pub trait FuzzTestExecutor: FuzzTestGetters {
                 trident_svm::prelude::Level::Debug,
             );
         }
+        // 1. Take snapshot of accounts before execution
+        transaction.set_snapshot_before(self.get_client());
 
+        // 2. Run pre-transaction hook
+        transaction.pre_transaction(self.get_client());
+
+        // 3. Process instructions
         let processing_data = self.get_client()._process_instructions(&instructions);
+
+        // 4. Take snapshot of accounts after execution
+        transaction.set_snapshot_after(self.get_client());
+
+        // 5. Run post-transaction hook
+        transaction.post_transaction(self.get_client());
 
         // NOTE: for now we just expect that one transaction was executed
         let tx_result = &processing_data.execution_results[0];
@@ -81,8 +88,6 @@ pub trait FuzzTestExecutor: FuzzTestGetters {
                     if fuzzing_metrics.is_ok() {
                         self.get_metrics().increase_successful(&transaction_name);
                     }
-                    // Take snapshot of accounts after execution
-                    transaction.set_snapshot_after(self.get_client());
 
                     // Run invariant checks
                     if let Err(invariant_error) = transaction.transaction_invariant_check() {
@@ -106,8 +111,6 @@ pub trait FuzzTestExecutor: FuzzTestGetters {
                         return Err(invariant_error);
                     }
 
-                    // Run post-transaction hook
-                    transaction.post_transaction(self.get_client());
                     Ok(())
                 }
                 Err(transaction_error) => {
