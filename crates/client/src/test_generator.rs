@@ -10,7 +10,7 @@ use std::{
 };
 use thiserror::Error;
 use trident_idl_spec::Idl;
-use trident_template::Template;
+use trident_template::{GeneratedFiles, TridentTemplates};
 
 #[derive(Error, Debug)]
 pub enum Error {
@@ -32,14 +32,18 @@ pub enum Error {
     NoProgramsFound,
     #[error("parsing Cargo.toml dependencies failed")]
     ParsingCargoTomlDependenciesFailed,
+    #[error("Template engine error: {0}")]
+    TemplateEngine(String),
 }
 
 pub struct TestGenerator {
     pub root: PathBuf,
     pub program_packages: Vec<Package>,
     pub anchor_idls: Vec<Idl>,
-    pub template: Template,
+    pub template_engine: TridentTemplates,
+    pub generated_files: Option<GeneratedFiles>,
 }
+
 impl TestGenerator {
     #[throws]
     pub fn new_with_root(root: &str) -> Self {
@@ -47,9 +51,12 @@ impl TestGenerator {
             root: Path::new(&root).to_path_buf(),
             program_packages: Vec::default(),
             anchor_idls: Vec::default(),
-            template: Template::default(),
+            template_engine: TridentTemplates::new()
+                .map_err(|e| Error::TemplateEngine(e.to_string()))?,
+            generated_files: None,
         }
     }
+
     #[throws]
     pub async fn initialize(&mut self, program_name: Option<String>, test_name: Option<String>) {
         Commander::build_anchor_project(program_name.clone()).await?;
@@ -96,8 +103,16 @@ impl TestGenerator {
             })
             .collect::<Vec<String>>();
 
-        // Older anchor idls didnt't contain program names so we parse them for backwards compatibility
-        self.template.create_template(&self.anchor_idls, &lib_names);
+        // Generate templates using Tera
+        let output = self
+            .template_engine
+            .generate(&self.anchor_idls, &lib_names)
+            .map_err(|e| Error::TemplateEngine(e.to_string()))?;
+
+        // Store the generated output
+        self.generated_files = Some(output);
+
+        println!("🎨 Generated code using Tera templates");
     }
 
     #[throws]
@@ -106,5 +121,61 @@ impl TestGenerator {
 
         // TODO consider optionally excluding packages
         self.anchor_idls = crate::idl_loader::load_idls(target_path, program_name).unwrap();
+    }
+
+    pub fn get_instructions(&self) -> Vec<(String, String)> {
+        if let Some(ref output) = self.generated_files {
+            output.instructions.clone()
+        } else {
+            Vec::new()
+        }
+    }
+
+    pub fn get_transactions(&self) -> Vec<(String, String)> {
+        if let Some(ref output) = self.generated_files {
+            output.transactions.clone()
+        } else {
+            Vec::new()
+        }
+    }
+
+    pub fn get_test_fuzz(&self) -> String {
+        if let Some(ref output) = self.generated_files {
+            output.test_fuzz.clone()
+        } else {
+            String::new()
+        }
+    }
+
+    pub fn get_instructions_mod(&self) -> String {
+        if let Some(ref output) = self.generated_files {
+            output.instructions_mod.clone()
+        } else {
+            String::new()
+        }
+    }
+
+    pub fn get_transactions_mod(&self) -> String {
+        if let Some(ref output) = self.generated_files {
+            output.transactions_mod.clone()
+        } else {
+            String::new()
+        }
+    }
+
+    pub fn get_custom_types(&self) -> String {
+        if let Some(ref output) = self.generated_files {
+            output.custom_types.clone()
+        } else {
+            String::new()
+        }
+    }
+
+    pub fn get_fuzz_transactions(&self) -> String {
+        if let Some(ref output) = self.generated_files {
+            output.fuzz_transactions.clone()
+        } else {
+            String::new()
+        }
     }
 }

@@ -15,7 +15,7 @@ impl TestGenerator {
         let instructions_mod_path = construct_path!(instructions, "mod.rs");
         create_directory_all(&instructions).await?;
 
-        let instructions_source_codes = self.template.get_instructions();
+        let instructions_source_codes = self.get_instructions();
 
         for (mut name, source_code) in instructions_source_codes {
             let source_code = Commander::format_program_code_nightly(&source_code).await?;
@@ -24,7 +24,7 @@ impl TestGenerator {
             create_file(&self.root, &instruction_path, &source_code).await?;
         }
 
-        let instructions_mod = self.template.get_instructions_mod();
+        let instructions_mod = self.get_instructions_mod();
         let instructions_mod = Commander::format_program_code_nightly(&instructions_mod).await?;
         create_file(&self.root, &instructions_mod_path, &instructions_mod).await?;
     }
@@ -35,7 +35,7 @@ impl TestGenerator {
         let transactions_mod_path = construct_path!(transactions, "mod.rs");
         create_directory_all(&transactions).await?;
 
-        let transactions_source_codes = self.template.get_transactions();
+        let transactions_source_codes = self.get_transactions();
 
         for (mut name, source_code) in transactions_source_codes {
             let source_code = Commander::format_program_code_nightly(&source_code).await?;
@@ -44,14 +44,14 @@ impl TestGenerator {
             create_file(&self.root, &transaction_path, &source_code).await?;
         }
 
-        let transactions_mod = self.template.get_transactions_mod();
+        let transactions_mod = self.get_transactions_mod();
         let transactions_mod = Commander::format_program_code_nightly(&transactions_mod).await?;
         create_file(&self.root, &transactions_mod_path, &transactions_mod).await?;
     }
 
     #[throws]
     pub(crate) async fn create_test_fuzz(&self, fuzz_test_dir: &Path) {
-        let test_fuzz = self.template.get_test_fuzz();
+        let test_fuzz = self.get_test_fuzz();
         let test_fuzz = Commander::format_program_code_nightly(&test_fuzz).await?;
         let test_fuzz_path = construct_path!(fuzz_test_dir, FUZZ_TEST);
 
@@ -60,7 +60,7 @@ impl TestGenerator {
 
     #[throws]
     pub(crate) async fn create_custom_types(&self, fuzz_test_dir: &Path) {
-        let custom_types = self.template.get_custom_types();
+        let custom_types = self.get_custom_types();
         let custom_types = Commander::format_program_code_nightly(&custom_types).await?;
         let custom_types_path = construct_path!(fuzz_test_dir, TYPES_FILE_NAME);
         create_file(&self.root, &custom_types_path, &custom_types).await?;
@@ -68,7 +68,7 @@ impl TestGenerator {
 
     #[throws]
     pub(crate) async fn create_fuzz_transactions(&self, fuzz_test_dir: &Path) {
-        let fuzz_transactions = self.template.get_fuzz_transactions();
+        let fuzz_transactions = self.get_fuzz_transactions();
         let fuzz_transactions = Commander::format_program_code_nightly(&fuzz_transactions).await?;
         let fuzz_transactions_path = construct_path!(fuzz_test_dir, FUZZ_TRANSACTIONS_FILE_NAME);
 
@@ -107,6 +107,8 @@ impl TestGenerator {
             println!("{SKIP} [{}] already exists", new_fuzz_test_dir.display());
             return;
         }
+
+        println!("🎨 Generating test files using Tera templates");
 
         self.create_instructions(&new_fuzz_test_dir).await?;
         self.create_transactions(&new_fuzz_test_dir).await?;

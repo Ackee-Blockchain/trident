@@ -1,0 +1,105 @@
+use crate::fuzz_transactions::FuzzAccounts;
+use crate::types::*;
+use borsh::{BorshDeserialize, BorshSerialize};
+use trident_fuzz::fuzzing::*;
+
+#[derive(TridentInstruction, Default)]
+#[program_id("{{ instruction.program_id }}")]
+#[discriminator([{% for byte in instruction.discriminator %}{{ byte }}u8{% if not loop.last %}, {% endif %}{% endfor %}])]
+pub struct {{ instruction.camel_name }}Instruction {
+    pub accounts: {{ instruction.camel_name }}InstructionAccounts,
+    pub data: {{ instruction.camel_name }}InstructionData,
+}
+
+/// Instruction Accounts
+#[derive(Debug, Clone, TridentAccounts, Default)]
+#[instruction_data({{ instruction.camel_name }}InstructionData)]
+#[storage(FuzzAccounts)]
+pub struct {{ instruction.camel_name }}InstructionAccounts {
+    {% for account in instruction.accounts %}
+    {% if account.is_signer and account.is_writable %}
+    #[account(mut, signer{% if account.address %}, address = "{{ account.address }}"{% endif %})]
+    {% elif account.is_signer %}
+    #[account(signer{% if account.address %}, address = "{{ account.address }}"{% endif %})]
+    {% elif account.is_writable %}
+    #[account(mut{% if account.address %}, address = "{{ account.address }}"{% endif %})]
+    {% elif account.address %}
+    #[account(address = "{{ account.address }}")]
+    {% endif %}
+    {% if account.is_composite %}
+    pub {{ account.name }}: {{ account.composite_type_name }}Accounts,
+    {% else %}
+    pub {{ account.name }}: TridentAccount,
+    {% endif %}
+    {% endfor %}
+}
+
+{% for composite in instruction.composite_accounts %}
+/// Composite Account: {{ composite.name }}
+#[derive(Debug, Clone, TridentAccounts, Default)]
+#[instruction_data({{ instruction.camel_name }}InstructionData)]
+#[storage(FuzzAccounts)]
+pub struct {{ composite.camel_name }}Accounts {
+    {% for account in composite.accounts %}
+    {% if account.is_signer and account.is_writable %}
+    #[account(mut, signer{% if account.address %}, address = "{{ account.address }}"{% endif %})]
+    {% elif account.is_signer %}
+    #[account(signer{% if account.address %}, address = "{{ account.address }}"{% endif %})]
+    {% elif account.is_writable %}
+    #[account(mut{% if account.address %}, address = "{{ account.address }}"{% endif %})]
+    {% elif account.address %}
+    #[account(address = "{{ account.address }}")]
+    {% endif %}
+    {% if account.is_composite %}
+    pub {{ account.name }}: {{ account.composite_type_name }}Accounts,
+    {% else %}
+    pub {{ account.name }}: TridentAccount,
+    {% endif %}
+    {% endfor %}
+}
+
+{% for nested_composite in composite.nested_composites %}
+#[derive(Debug, Clone, TridentAccounts, Default)]
+#[instruction_data({{ instruction.camel_name }}InstructionData)]
+#[storage(FuzzAccounts)]
+pub struct {{ nested_composite.camel_name }}Accounts {
+    {% for account in nested_composite.accounts %}
+    {% if account.is_signer and account.is_writable %}
+    #[account(mut, signer{% if account.address %}, address = "{{ account.address }}"{% endif %})]
+    {% elif account.is_signer %}
+    #[account(signer{% if account.address %}, address = "{{ account.address }}"{% endif %})]
+    {% elif account.is_writable %}
+    #[account(mut{% if account.address %}, address = "{{ account.address }}"{% endif %})]
+    {% elif account.address %}
+    #[account(address = "{{ account.address }}")]
+    {% endif %}
+    {% if account.is_composite %}
+    pub {{ account.name }}: {{ account.composite_type_name }}Accounts,
+    {% else %}
+    pub {{ account.name }}: TridentAccount,
+    {% endif %}
+    {% endfor %}
+}
+
+{% endfor %}
+{% endfor %}
+
+/// Instruction Data
+#[derive(Debug, BorshDeserialize, BorshSerialize, Clone, Default)]
+pub struct {{ instruction.camel_name }}InstructionData {
+    {% for field in instruction.data_fields %}
+    pub {{ field.name }}: {{ field.rust_type }},
+    {% endfor %}
+}
+
+/// Implementation of instruction setters for fuzzing
+///
+/// Provides methods to:
+/// - Set instruction data during fuzzing
+/// - Configure instruction accounts during fuzzing
+/// - (Optional) Set remaining accounts during fuzzing
+///
+/// Docs: https://ackee.xyz/trident/docs/latest/start-fuzzing/writting-fuzz-test/
+impl InstructionHooks for {{ instruction.camel_name }}Instruction {
+    type IxAccounts = FuzzAccounts;
+}
