@@ -298,9 +298,13 @@ impl TridentFlowExecutorImpl {
     fn generate_single_threaded_fuzzing_loop(&self) -> TokenStream {
         let generate_write_profile_logic = self.generate_write_profile_logic();
         let loopcount_retrieval = self.generate_loopcount_retrieval();
+        let generate_coverage_server_port_retrieval =
+            self.generate_coverage_server_port_retrieval();
 
         quote! {
             #loopcount_retrieval
+            #generate_coverage_server_port_retrieval
+
             for i in 0..iterations {
                 let result = fuzzer.execute_flows(flow_calls_per_iteration);
 
@@ -374,6 +378,8 @@ impl TridentFlowExecutorImpl {
     fn generate_thread_spawn_logic(&self) -> TokenStream {
         let type_name = &self.type_name;
         let generate_loopcount_retrieval = self.generate_loopcount_retrieval();
+        let generate_coverage_server_port_retrieval =
+            self.generate_coverage_server_port_retrieval();
         let generate_write_profile_logic = self.generate_multi_threaded_coverage();
 
         quote! {
@@ -392,6 +398,7 @@ impl TridentFlowExecutorImpl {
                 let thread_id = thread_id_capture; // Make thread_id available inside the closure
 
                 #generate_loopcount_retrieval
+                #generate_coverage_server_port_retrieval
 
                 for i in 0..thread_iterations {
                     let _ = fuzzer.execute_flows(flow_calls_per_iteration);
@@ -471,8 +478,20 @@ impl TridentFlowExecutorImpl {
         }
     }
 
+    fn generate_coverage_server_port_retrieval(&self) -> TokenStream {
+        quote! {
+            let coverage_server_port = std::env::var("COVERAGE_SERVER_PORT").unwrap_or("58432".to_string());
+        }
+    }
+
+    fn retrieve_collect_coverage_flag(&self) -> String {
+        std::env::var("COLLECT_COVERAGE").unwrap_or("0".to_string())
+    }
+
     #[allow(unused_doc_comments)]
     fn generate_write_profile_logic(&self) -> TokenStream {
+        let generate_notify_extension_logic = self.generate_notify_extension_logic();
+
         /// This part is a bit tricky and requires a thorough explanation:
         ///
         /// LLVM automatically creates a profraw file when the process ends, but since
@@ -492,25 +511,31 @@ impl TridentFlowExecutorImpl {
         /// Coverage won't be 100% accurate because while the first thread creates
         /// the profraw file, the other threads are still running and generating data,
         /// which we reset after writing.
+        ///
+        /// We only generate this code if COLLECT_COVERAGE is set to 1 because
+        /// if -C instrument-coverage is not enabled, llvm methods will not be available
+        match self.retrieve_collect_coverage_flag().as_str() {
+            "1" => quote! {
+                if loop_count > 0 &&
+                    i > 0 &&
+                    i % loop_count == 0 {
 
-        quote! {
-            if loop_count > 0 &&
-                i > 0 &&
-                i % loop_count == 0 {
+                    unsafe {
+                        let filename = format!("target/fuzz-cov-run-{}.profraw", i);
+                        let filename_cstr = std::ffi::CString::new(filename).unwrap();
+                        __llvm_profile_set_filename(filename_cstr.as_ptr());
 
-                unsafe {
-                    let filename = format!("target/fuzz-cov-{}.profraw", i);
-                    let filename_cstr = std::ffi::CString::new(filename).unwrap();
-                    __llvm_profile_set_filename(filename_cstr.as_ptr());
+                        let _ = __llvm_profile_write_file();
+                        __llvm_profile_reset_counters();
 
-                    let _ = __llvm_profile_write_file();
-                    __llvm_profile_reset_counters();
+                        #generate_notify_extension_logic
 
-                    let final_filename = std::ffi::CString::new("target/fuzz-cov-final.profraw").unwrap();
-                    __llvm_profile_set_filename(final_filename.as_ptr());
+                        let final_filename = std::ffi::CString::new("target/fuzz-cov-run-final.profraw").unwrap();
+                        __llvm_profile_set_filename(final_filename.as_ptr());
+                    }
                 }
-
-            }
+            },
+            _ => quote! {},
         }
     }
 
@@ -521,6 +546,31 @@ impl TridentFlowExecutorImpl {
             if thread_id == 0 {
                 #generate_write_profile_logic
             }
+        }
+    }
+
+    /// Notifies the extension to update coverage
+    /// decorations if dynamic coverage is enabled
+    ///
+    /// Not very nice many things hardcoded here
+    /// TODO: improve architecture to avoid this
+    fn generate_notify_extension_logic(&self) -> TokenStream {
+        quote! {
+            let url = format!(
+                "http://localhost:{}/update-decorations",
+                coverage_server_port
+            );
+
+            // Right now requests are rapidly fired, regardless of whether extension is ready
+            // TODO: Only fire if extension responded
+            std::thread::spawn(move || {
+                let client = reqwest::blocking::Client::new();
+                let _ = client
+                    .post(&url)
+                    .header("Content-Type", "application/json")
+                    .body("")
+                    .send();
+            });
         }
     }
 }

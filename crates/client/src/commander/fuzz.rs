@@ -5,7 +5,7 @@ use trident_config::TridentConfig;
 
 use super::{Commander, Error};
 use crate::cleaner::discover_root;
-use crate::coverage::Coverage;
+use crate::coverage::{Coverage, NotificationType};
 use std::collections::HashMap;
 
 impl Commander {
@@ -25,7 +25,7 @@ impl Commander {
         }
 
         if generate_coverage {
-            self.run_with_coverage(&target, notify_extension, format, config.loop_count())
+            self.run_with_coverage(&target, notify_extension, format, &config)
                 .await?;
         } else {
             self.run_default(&target).await?;
@@ -44,29 +44,38 @@ impl Commander {
         target: &str,
         notify_extension: bool,
         format: String,
-        loop_count: u64,
+        config: &TridentConfig,
     ) {
         let coverage = Coverage::new(
             &get_target_dir(),
             target,
             notify_extension,
             format,
-            loop_count,
+            config.loop_count(),
+            config.coverage_server_port(),
         );
+
+        if coverage.check_llvm_tools_installed().await.is_err() {
+            coverage.prompt_and_install_llvm_tools().await?;
+        }
 
         coverage.clean().await?;
 
-        let env_vars = self.setup_coverage_env_vars(&coverage).await?;
+        let env_vars = self.setup_coverage_env_vars(&coverage, config).await?;
         let mut child = self.spawn_fuzzer(target, env_vars)?;
 
-        coverage.notify_extension().await?;
+        coverage.notify_extension(NotificationType::Setup).await?;
         Self::handle_child(&mut child).await?;
 
         coverage.generate_report().await?;
     }
 
     #[throws]
-    async fn setup_coverage_env_vars(&self, coverage: &Coverage) -> HashMap<&str, String> {
+    async fn setup_coverage_env_vars(
+        &self,
+        coverage: &Coverage,
+        config: &TridentConfig,
+    ) -> HashMap<&str, String> {
         let mut rustflags = std::env::var("RUSTFLAGS").unwrap_or_default();
         rustflags.push_str(&coverage.get_rustflags());
 
@@ -75,6 +84,12 @@ impl Commander {
         env_vars.insert("LLVM_PROFILE_FILE", coverage.get_profraw_file());
         env_vars.insert("CARGO_LLVM_COV_TARGET_DIR", coverage.get_target_dir());
         env_vars.insert("FUZZER_LOOPCOUNT", coverage.get_loop_count().to_string());
+        env_vars.insert(
+            "COVERAGE_SERVER_PORT",
+            config.coverage_server_port().to_string(),
+        );
+        // We need this to know whether to generate code for profraw file generation
+        env_vars.insert("COLLECT_COVERAGE", "1".to_string());
 
         env_vars
     }

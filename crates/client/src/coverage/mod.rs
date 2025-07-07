@@ -19,21 +19,38 @@ pub enum CoverageError {
     CoverageGenerationInterrupted,
     #[error("Failed to extract corrupted files")]
     ExtractingCorruptedFilesFailed,
-    #[error("Failed to notify VSCode extension")]
-    FailedToNotifyVSCodeExtension,
     #[error("Invalid report format")]
     InvalidReportFormat,
+    #[error("llvm-tools-preview is not installed. Please install it with: rustup component add llvm-tools-preview")]
+    LlvmToolsNotInstalled,
+}
+
+#[derive(PartialEq)]
+pub enum NotificationType {
+    Setup,
+    DisplayFinalReport,
+}
+
+impl NotificationType {
+    pub fn endpoint(&self) -> &str {
+        match self {
+            NotificationType::Setup => SETUP_DYNAMIC_COVERAGE,
+            NotificationType::DisplayFinalReport => DISPLAY_FINAL_REPORT,
+        }
+    }
 }
 
 pub struct Coverage {
     profraw_file: String,
     report_path: String,
     target_dir: String,
+    target: String,
     ignore_regex: String,
     rustflags: String,
     notify_extension: bool,
     format: CoverageFormat,
     loop_count: u64,
+    coverage_server_port: u16,
 }
 
 impl Coverage {
@@ -43,6 +60,7 @@ impl Coverage {
         notify_extension: bool,
         format: String,
         loop_count: u64,
+        coverage_server_port: u16,
     ) -> Self {
         let report_format = CoverageFormat::from_str(&format).expect(&format!(
             "Invalid coverage format '{}'. Supported formats: json, html",
@@ -58,11 +76,13 @@ impl Coverage {
                 report_format.get_report_filename()
             ),
             target_dir: cargo_target_dir.to_string(),
+            target: target.to_string(),
             ignore_regex: COVERAGE_IGNORE_REGEX.to_string(),
             rustflags: COVERAGE_RUSTFLAGS.to_string(),
             notify_extension,
             format: report_format,
             loop_count: loop_count,
+            coverage_server_port: coverage_server_port,
         }
     }
 
@@ -121,6 +141,8 @@ impl Coverage {
         match result {
             Ok(_) => {
                 println!("Report has been successfully generated.");
+                self.notify_extension(NotificationType::DisplayFinalReport)
+                    .await?;
                 Ok(())
             }
             Err(_) => {
@@ -131,21 +153,31 @@ impl Coverage {
         }
     }
 
-    pub async fn notify_extension(&self) -> Result<(), CoverageError> {
-        if !self.get_notify_extension() {
+    pub async fn notify_extension(
+        &self,
+        notification_type: NotificationType,
+    ) -> Result<(), CoverageError> {
+        if !self.get_notify_extension() && notification_type == NotificationType::Setup {
             return Ok(());
         }
 
-        let target_dir = self.get_target_dir();
-        let notification_file =
-            format!("{}/{}", target_dir, constants::EXTENSION_NOTIFICATION_FILE);
+        let url = format!(
+            "http://localhost:{}{}",
+            self.coverage_server_port,
+            notification_type.endpoint()
+        );
 
-        //TODO: Add metadata
-        let json_content = format!("{{\"metadata\":\"{}\"}}", "TODO");
+        let json_content = format!("{{\"target\":\"{}\"}}", self.target);
 
-        tokio::fs::write(&notification_file, json_content)
-            .await
-            .map_err(|_| CoverageError::FailedToNotifyVSCodeExtension)?;
+        let client = reqwest::Client::new();
+        tokio::spawn(async move {
+            let _ = client
+                .post(&url)
+                .header("Content-Type", "application/json")
+                .body(json_content)
+                .send()
+                .await;
+        });
 
         Ok(())
     }
@@ -182,8 +214,6 @@ impl Coverage {
 
         // Remove profraw-list file, there should only be one in the target directory
         self.remove_profraw_list().await?;
-        // Remove notification file if it exists
-        self.remove_notification_file().await?;
 
         let mut child = tokio::process::Command::new("cargo")
             .env("LLVM_PROFILE_FILE", self.get_profraw_file())
@@ -291,13 +321,52 @@ impl Coverage {
         Ok(())
     }
 
-    async fn remove_notification_file(&self) -> Result<(), CoverageError> {
-        let target_dir = self.get_target_dir();
-        let notification_file =
-            format!("{}/{}", target_dir, constants::EXTENSION_NOTIFICATION_FILE);
-        self.remove_files(&[notification_file]).await;
+    pub async fn check_llvm_tools_installed(&self) -> Result<(), CoverageError> {
+        let output = tokio::process::Command::new("rustup")
+            .args(["component", "list", "--installed"])
+            .output()
+            .await
+            .map_err(|_| CoverageError::LlvmToolsNotInstalled)?;
 
-        Ok(())
+        let installed_components = String::from_utf8_lossy(&output.stdout);
+
+        if installed_components.contains("llvm-tools") {
+            Ok(())
+        } else {
+            Err(CoverageError::LlvmToolsNotInstalled)
+        }
+    }
+
+    pub async fn prompt_and_install_llvm_tools(&self) -> Result<(), CoverageError> {
+        println!(
+            "llvm-tools-preview is required for coverage report generation but is not installed."
+        );
+
+        println!("\nWould you like to install it now? (y/n): ");
+
+        let mut input = String::new();
+        std::io::stdin()
+            .read_line(&mut input)
+            .map_err(|_| CoverageError::LlvmToolsNotInstalled)?;
+
+        let input = input.trim().to_lowercase();
+        if input == "y" || input == "yes" {
+            let status = tokio::process::Command::new("rustup")
+                .args(["component", "add", "llvm-tools-preview"])
+                .status()
+                .await
+                .map_err(|_| CoverageError::LlvmToolsNotInstalled)?;
+
+            if status.success() {
+                println!("llvm-tools-preview installed successfully!");
+                Ok(())
+            } else {
+                println!("Failed to install llvm-tools-preview");
+                Err(CoverageError::LlvmToolsNotInstalled)
+            }
+        } else {
+            Err(CoverageError::LlvmToolsNotInstalled)
+        }
     }
 }
 

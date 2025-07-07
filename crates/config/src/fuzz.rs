@@ -1,4 +1,4 @@
-use crate::constants::DEFAULT_LOOP_COUNT;
+use crate::constants::{DEFAULT_COVERAGE_SERVER_PORT, DEFAULT_LOOP_COUNT};
 use crate::utils::resolve_path;
 use base64::{prelude::BASE64_STANDARD, Engine};
 use serde::{Deserialize, Serialize};
@@ -14,6 +14,7 @@ pub struct Fuzz {
     pub programs: Option<Vec<_FuzzProgram>>,
     pub accounts: Option<Vec<_FuzzAccount>>,
     pub loop_count: Option<u64>,
+    pub coverage_server_port: Option<u16>,
 }
 
 impl Fuzz {
@@ -22,6 +23,10 @@ impl Fuzz {
     }
     pub fn get_loop_count(&self) -> u64 {
         self.loop_count.unwrap_or(DEFAULT_LOOP_COUNT)
+    }
+    pub fn get_coverage_server_port(&self) -> u16 {
+        self.coverage_server_port
+            .unwrap_or(DEFAULT_COVERAGE_SERVER_PORT)
     }
 }
 

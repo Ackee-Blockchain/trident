@@ -4,6 +4,7 @@ pub const ANCHOR_TOML: &str = "Anchor.toml";
 
 // fuzz
 pub const DEFAULT_LOOP_COUNT: u64 = 0;
+pub const DEFAULT_COVERAGE_SERVER_PORT: u16 = 58432;
 
 // honggfuzz
 pub const HONGGFUZZ_FUZZER_LOOPCOUNT_DEFAULT: u64 = 10; // less stable has to be lower than afl's default

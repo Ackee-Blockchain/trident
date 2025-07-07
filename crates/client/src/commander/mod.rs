@@ -34,14 +34,14 @@ pub enum Error {
 /// run tests and do other useful operations.
 #[derive(Default)]
 pub struct Commander {
-    root: PathBuf,
+    _root: PathBuf,
 }
 
 impl Commander {
     /// Creates a new `Commander` instance with the provided `root`.
     pub fn with_root(root: &PathBuf) -> Self {
         Self {
-            root: Path::new(&root).to_path_buf(),
+            _root: Path::new(&root).to_path_buf(),
         }
     }
 
