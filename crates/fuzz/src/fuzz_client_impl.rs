@@ -33,7 +33,7 @@ impl FuzzClient for TridentSVM {
                 .fold(Vec::new(), |mut sbf_programs, config_program| {
                     let target = TridentProgram::new(
                         config_program.address,
-                        None, // TODO add authority to the config fuzzing program
+                        config_program.upgrade_authority.clone(),
                         config_program.data.clone(),
                     );
 

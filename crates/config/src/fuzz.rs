@@ -23,6 +23,7 @@ impl Fuzz {
 #[derive(Debug, Deserialize, Clone)]
 pub struct _FuzzProgram {
     pub address: String,
+    pub upgrade_authority: Option<String>,
     pub program: String,
 }
 
@@ -35,6 +36,7 @@ pub struct _FuzzAccount {
 #[derive(Debug, Deserialize, Clone)]
 pub struct FuzzProgram {
     pub address: Pubkey,
+    pub upgrade_authority: Option<Pubkey>,
     pub data: Vec<u8>,
 }
 
@@ -42,6 +44,12 @@ impl From<&_FuzzProgram> for FuzzProgram {
     fn from(_f: &_FuzzProgram) -> Self {
         let program_path = &_f.program;
         let program_address = &_f.address;
+
+        let upgrade_authority = if let Some(upgrade_authority) = &_f.upgrade_authority {
+            Some(Pubkey::from_str(upgrade_authority).unwrap())
+        } else {
+            None
+        };
 
         let path = resolve_path(program_path);
 
@@ -53,6 +61,7 @@ impl From<&_FuzzProgram> for FuzzProgram {
 
         FuzzProgram {
             address: pubkey,
+            upgrade_authority,
             data: program_data,
         }
     }
