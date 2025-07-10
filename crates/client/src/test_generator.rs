@@ -38,6 +38,7 @@ pub enum Error {
 
 pub struct TestGenerator {
     pub root: PathBuf,
+    pub skip_build: bool,
     pub program_packages: Vec<Package>,
     pub anchor_idls: Vec<Idl>,
     pub template_engine: TridentTemplates,
@@ -46,9 +47,10 @@ pub struct TestGenerator {
 
 impl TestGenerator {
     #[throws]
-    pub fn new_with_root(root: &str) -> Self {
+    pub fn new_with_root(root: &str, skip_build: bool) -> Self {
         Self {
             root: Path::new(&root).to_path_buf(),
+            skip_build,
             program_packages: Vec::default(),
             anchor_idls: Vec::default(),
             template_engine: TridentTemplates::new()
@@ -59,7 +61,9 @@ impl TestGenerator {
 
     #[throws]
     pub async fn initialize(&mut self, program_name: Option<String>, test_name: Option<String>) {
-        Commander::build_anchor_project(program_name.clone()).await?;
+        if !self.skip_build {
+            Commander::build_anchor_project(program_name.clone()).await?;
+        }
 
         self.get_program_packages(program_name.clone()).await?;
         self.load_programs_idl(program_name.clone())?;
@@ -70,7 +74,9 @@ impl TestGenerator {
 
     #[throws]
     pub async fn add_fuzz_test(&mut self, program_name: Option<String>, test_name: Option<String>) {
-        Commander::build_anchor_project(program_name.clone()).await?;
+        if !self.skip_build {
+            Commander::build_anchor_project(program_name.clone()).await?;
+        }
 
         self.get_program_packages(program_name.clone()).await?;
         self.load_programs_idl(program_name.clone())?;
@@ -120,7 +126,7 @@ impl TestGenerator {
         let target_path = construct_path!(self.root, "target/idl/");
 
         // TODO consider optionally excluding packages
-        self.anchor_idls = crate::idl_loader::load_idls(target_path, program_name).unwrap();
+        self.anchor_idls = crate::idl_loader::load_idls(target_path, program_name)?;
     }
 
     pub fn get_instructions(&self) -> Vec<(String, String)> {

@@ -34,6 +34,13 @@ pub enum FuzzCommand {
             value_name = "NAME"
         )]
         test_name: Option<String>,
+        #[arg(
+            short,
+            long,
+            required = false,
+            help = "Skip building the program before adding new fuzz test."
+        )]
+        skip_build: bool,
     },
     Run {
         #[arg(
@@ -109,6 +116,7 @@ pub async fn fuzz(subcmd: FuzzCommand) {
         FuzzCommand::Add {
             program_name,
             test_name,
+            skip_build,
         } => {
             let test_name_snake = test_name.map(|name| name.to_snake_case());
             if let Some(name) = &test_name_snake {
@@ -118,7 +126,7 @@ pub async fn fuzz(subcmd: FuzzCommand) {
                     return;
                 }
             }
-            let mut generator = TestGenerator::new_with_root(&root)?;
+            let mut generator = TestGenerator::new_with_root(&root, skip_build)?;
             generator
                 .add_fuzz_test(program_name, test_name_snake)
                 .await?;

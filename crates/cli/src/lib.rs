@@ -46,6 +46,13 @@ enum Command {
             short,
             long,
             required = false,
+            help = "Skip building the program before initializing Trident."
+        )]
+        skip_build: bool,
+        #[arg(
+            short,
+            long,
+            required = false,
             help = "Specify the name of the program for which fuzz test will be generated.",
             value_name = "FILE"
         )]
@@ -85,9 +92,10 @@ pub async fn start() {
         Command::Fuzz { subcmd } => command::fuzz(subcmd).await?,
         Command::Init {
             force,
+            skip_build,
             program_name,
             test_name,
-        } => command::init(force, program_name, test_name).await?,
+        } => command::init(force, skip_build, program_name, test_name).await?,
         Command::Clean => command::clean().await?,
     }
 }

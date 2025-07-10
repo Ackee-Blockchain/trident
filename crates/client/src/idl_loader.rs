@@ -1,5 +1,4 @@
 use heck::ToSnakeCase;
-use std::error::Error;
 use std::fs::{self, File};
 use std::io::Read;
 use std::path::PathBuf;
@@ -9,7 +8,7 @@ use trident_idl_spec::Idl;
 pub fn load_idls(
     dir_path: PathBuf,
     program_name: Option<String>,
-) -> Result<Vec<Idl>, Box<dyn Error>> {
+) -> Result<Vec<Idl>, std::io::Error> {
     let mut idls = Vec::new();
 
     // Read the directory and iterate over each entry
