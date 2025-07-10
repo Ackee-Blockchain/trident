@@ -44,11 +44,30 @@ impl FuzzTest {
 
     #[init]
     fn start(&mut self) -> Result<(), FuzzingError> {
+        // perform any initialization here, this method will be executed
+        // at start of each iteration
         Ok(())
     }
 
     #[flow]
     fn flow1(&mut self) -> Result<(), FuzzingError> {
+        // perform logic which is meant to be fuzzed
+        // this flow is selected randomly from other flows
+        Ok(())
+    }
+
+    #[flow]
+    fn flow2(&mut self) -> Result<(), FuzzingError> {
+        // perform logic which is meant to be fuzzed
+        // this flow is selected randomly from other flows
+        Ok(())
+    }
+
+    #[end]
+    fn end(&mut self) -> Result<(), FuzzingError> {
+
+        // perform any cleaning here, this method will be executed
+        // at the end of each iteration
         Ok(())
     }
 }

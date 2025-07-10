@@ -172,6 +172,7 @@ impl TridentTemplates {
             .collect()
     }
 
+    #[allow(clippy::only_used_in_recursion)]
     /// Simplified account processing
     fn process_accounts(
         &self,
@@ -221,6 +222,7 @@ impl TridentTemplates {
         (main_accounts, composite_accounts)
     }
 
+    #[allow(clippy::only_used_in_recursion)]
     /// Simple type conversion
     fn idl_type_to_rust(&self, idl_type: &IdlType) -> String {
         match idl_type {
@@ -282,6 +284,7 @@ impl TridentTemplates {
             .collect()
     }
 
+    #[allow(clippy::only_used_in_recursion)]
     fn collect_accounts_recursive(
         &self,
         accounts: &[trident_idl_spec::IdlInstructionAccountItem],
