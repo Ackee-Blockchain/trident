@@ -1,5 +1,4 @@
 use fehler::{throw, throws};
-use std::path::{Path, PathBuf};
 use std::{io, process::Stdio, string::FromUtf8Error};
 use thiserror::Error;
 use tokio::{
@@ -33,16 +32,11 @@ pub enum Error {
 /// `Commander` allows you to start localnet, build programs,
 /// run tests and do other useful operations.
 #[derive(Default)]
-pub struct Commander {
-    root: PathBuf,
-}
+pub struct Commander;
 
 impl Commander {
-    /// Creates a new `Commander` instance with the provided `root`.
-    pub fn with_root(root: &PathBuf) -> Self {
-        Self {
-            root: Path::new(&root).to_path_buf(),
-        }
+    pub fn new() -> Self {
+        Self
     }
 
     #[throws]

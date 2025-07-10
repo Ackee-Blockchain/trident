@@ -86,7 +86,7 @@ pub async fn fuzz(subcmd: FuzzCommand) {
         }
     };
 
-    let commander = Commander::with_root(&Path::new(&root).to_path_buf());
+    let commander = Commander::new();
 
     match subcmd {
         FuzzCommand::Run {

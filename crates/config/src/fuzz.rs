@@ -45,11 +45,10 @@ impl From<&_FuzzProgram> for FuzzProgram {
         let program_path = &_f.program;
         let program_address = &_f.address;
 
-        let upgrade_authority = if let Some(upgrade_authority) = &_f.upgrade_authority {
-            Some(Pubkey::from_str(upgrade_authority).unwrap())
-        } else {
-            None
-        };
+        let upgrade_authority = _f
+            .upgrade_authority
+            .as_ref()
+            .map(|upgrade_authority| Pubkey::from_str(upgrade_authority).unwrap());
 
         let path = resolve_path(program_path);
 
