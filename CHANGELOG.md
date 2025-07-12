@@ -12,12 +12,15 @@ incremented upon a breaking change and the patch version will be incremented for
 
 **Added**
 
+- Add `--skip-build` flag to only initialize fuzz test without building the project ([325](https://github.com/Ackee-Blockchain/trident/pull/325))
 - Add support for space, lamports and  owner to TridentAccounts macro ([320](https://github.com/Ackee-Blockchain/trident/pull/320))
 - Code coverage tracking support for both AFL and Honggfuzz fuzzing via the `-g, --generate-coverage` flag. Coverage data can be visualized using the VS Code extension (ADD_PR_NUMBER)
 
 **Removed**
 
 **Changed**
+
+- Update template generation to use tera ([326](https://github.com/Ackee-Blockchain/trident/pull/326))
 
 ## [0.10.0] - 2025-03-13
 
