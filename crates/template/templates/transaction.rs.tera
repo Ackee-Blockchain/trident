@@ -1,4 +1,4 @@
-use crate::fuzz_transactions::FuzzAccounts;
+use crate::fuzz_accounts::FuzzAccounts;
 use crate::instructions::*;
 use trident_fuzz::fuzzing::*;
 

@@ -67,12 +67,12 @@ impl TestGenerator {
     }
 
     #[throws]
-    pub(crate) async fn create_fuzz_transactions(&self, fuzz_test_dir: &Path) {
-        let fuzz_transactions = self.get_fuzz_transactions();
-        let fuzz_transactions = Commander::format_program_code_nightly(&fuzz_transactions).await?;
-        let fuzz_transactions_path = construct_path!(fuzz_test_dir, FUZZ_TRANSACTIONS_FILE_NAME);
+    pub(crate) async fn create_fuzz_accounts(&self, fuzz_test_dir: &Path) {
+        let fuzz_accounts = self.get_fuzz_accounts();
+        let fuzz_accounts = Commander::format_program_code_nightly(&fuzz_accounts).await?;
+        let fuzz_accounts_path = construct_path!(fuzz_test_dir, FUZZ_ACCOUNTS_FILE_NAME);
 
-        create_file(&self.root, &fuzz_transactions_path, &fuzz_transactions).await?;
+        create_file(&self.root, &fuzz_accounts_path, &fuzz_accounts).await?;
     }
 
     #[throws]
@@ -114,7 +114,7 @@ impl TestGenerator {
         self.create_transactions(&new_fuzz_test_dir).await?;
         self.create_test_fuzz(&new_fuzz_test_dir).await?;
         self.create_custom_types(&new_fuzz_test_dir).await?;
-        self.create_fuzz_transactions(&new_fuzz_test_dir).await?;
+        self.create_fuzz_accounts(&new_fuzz_test_dir).await?;
         self.create_cargo_toml(&trident_tests).await?;
 
         self.trident_dependency(&trident_tests).await?;

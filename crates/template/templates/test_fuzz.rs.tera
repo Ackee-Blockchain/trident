@@ -1,6 +1,6 @@
-use fuzz_transactions::*;
+use fuzz_accounts::*;
 use trident_fuzz::fuzzing::*;
-mod fuzz_transactions;
+mod fuzz_accounts;
 mod instructions;
 mod transactions;
 mod types;

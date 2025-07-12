@@ -60,6 +60,7 @@ pub mod idl_test {
 #[derive(Accounts)]
 pub struct Initialize<'info> {
     pub composite_account_nested: NestedInitialize<'info>,
+    #[account(mut)]
     pub signer: Signer<'info>,
     pub data_account_1: Account<'info, DataAccount>,
     pub data_account_2: Account<'info, UnitStructAccount>,
@@ -74,12 +75,14 @@ pub struct Initialize<'info> {
 pub struct InnerInitialize<'info> {
     /// CHECK: we test here
     pub some_account: AccountInfo<'info>,
+    #[account(mut)]
     pub signer: Signer<'info>,
     pub data_account_1: Account<'info, DataAccount>,
 }
 
 #[derive(Accounts)]
 pub struct NestedInitialize<'info> {
+    #[account(mut)]
     /// CHECK: we test here
     pub some_account: AccountInfo<'info>,
     pub nested_inner: NestedInnerInitialize<'info>,
