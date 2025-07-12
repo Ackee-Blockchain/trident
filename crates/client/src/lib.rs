@@ -33,7 +33,7 @@ mod constants {
     pub(crate) const TRANSACTIONS_DIRECTORY: &str = "transactions";
 
     // Fuzzing
-    pub(crate) const FUZZ_TRANSACTIONS_FILE_NAME: &str = "fuzz_transactions.rs";
+    pub(crate) const FUZZ_ACCOUNTS_FILE_NAME: &str = "fuzz_accounts.rs";
     pub(crate) const TYPES_FILE_NAME: &str = "types.rs";
     pub(crate) const FUZZ_TEST: &str = "test_fuzz.rs";
 

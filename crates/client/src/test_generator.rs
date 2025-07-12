@@ -177,9 +177,9 @@ impl TestGenerator {
         }
     }
 
-    pub fn get_fuzz_transactions(&self) -> String {
+    pub fn get_fuzz_accounts(&self) -> String {
         if let Some(ref output) = self.generated_files {
-            output.fuzz_transactions.clone()
+            output.fuzz_accounts.clone()
         } else {
             String::new()
         }

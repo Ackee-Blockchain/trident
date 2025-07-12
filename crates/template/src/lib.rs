@@ -26,8 +26,8 @@ impl TridentTemplates {
                 include_str!("../templates/test_fuzz.rs.tera"),
             ),
             (
-                "fuzz_transactions.rs",
-                include_str!("../templates/fuzz_transactions.rs.tera"),
+                "fuzz_accounts.rs",
+                include_str!("../templates/fuzz_accounts.rs.tera"),
             ),
             ("types.rs", include_str!("../templates/types.rs.tera")),
         ])?;
@@ -74,8 +74,8 @@ impl TridentTemplates {
             "test_fuzz.rs",
             &Context::from_serialize(json!({"programs": programs}))?,
         )?;
-        let fuzz_transactions = self.tera.render(
-            "fuzz_transactions.rs",
+        let fuzz_accounts = self.tera.render(
+            "fuzz_accounts.rs",
             &Context::from_serialize(json!({"accounts": self.collect_all_accounts(idls)}))?,
         )?;
         let custom_types = self.tera.render(
@@ -104,7 +104,7 @@ impl TridentTemplates {
             instructions_mod,
             transactions_mod,
             custom_types,
-            fuzz_transactions,
+            fuzz_accounts,
         })
     }
 
@@ -270,7 +270,7 @@ impl TridentTemplates {
         hasher.finalize()[..8].to_vec()
     }
 
-    /// Collect all accounts for fuzz_transactions
+    /// Collect all accounts for fuzz_accounts
     fn collect_all_accounts(&self, idls: &[Idl]) -> Vec<serde_json::Value> {
         let mut accounts = std::collections::HashSet::new();
         for idl in idls {
@@ -377,7 +377,7 @@ pub struct GeneratedFiles {
     pub instructions_mod: String,
     pub transactions_mod: String,
     pub custom_types: String,
-    pub fuzz_transactions: String,
+    pub fuzz_accounts: String,
 }
 
 impl Default for TridentTemplates {
