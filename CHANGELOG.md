@@ -20,6 +20,7 @@ incremented upon a breaking change and the patch version will be incremented for
 
 **Changed**
 
+- Conversion from AFL and Honggfuzz into Manually Guided Fuzzing ([324](https://github.com/Ackee-Blockchain/trident/pull/324))
 - Update template generation to use tera ([326](https://github.com/Ackee-Blockchain/trident/pull/326))
 
 ## [0.10.0] - 2025-03-13
