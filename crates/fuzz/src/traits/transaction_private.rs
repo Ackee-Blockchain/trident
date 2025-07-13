@@ -1,7 +1,6 @@
 use solana_sdk::instruction::Instruction;
 
-use super::TransactionHooks;
-use super::TransactionMethods;
+use super::{TransactionGetters, TransactionHooks, TransactionSetters};
 
 use crate::traits::FuzzClient;
 
@@ -9,7 +8,7 @@ use crate::traits::FuzzClient;
 ///
 /// This trait is not meant to be implemented directly by users.
 /// It's implemented automatically for any type that implements TransactionMethods.
-pub(crate) trait TransactionPrivateMethods: TransactionHooks + std::fmt::Debug {
+pub trait TransactionPrivateMethods: TransactionHooks + std::fmt::Debug {
     /// Creates a vector of Solana instructions from the transaction data
     ///
     /// This method assembles complete Solana instructions by combining:
@@ -20,7 +19,7 @@ pub(crate) trait TransactionPrivateMethods: TransactionHooks + std::fmt::Debug {
     fn create_transaction(&mut self, client: &mut impl FuzzClient) -> Vec<Instruction>;
 }
 
-impl<T: TransactionMethods> TransactionPrivateMethods for T {
+impl<T: TransactionSetters + TransactionGetters + std::fmt::Debug> TransactionPrivateMethods for T {
     fn create_transaction(&mut self, client: &mut impl FuzzClient) -> Vec<Instruction> {
         // Retrieve instruction discriminators (identifiers for different instruction types)
         let discriminators = self.get_instruction_discriminators();

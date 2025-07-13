@@ -24,7 +24,8 @@
           "name": "composite_account_nested",
           "accounts": [
             {
-              "name": "some_account"
+              "name": "some_account",
+              "writable": true
             },
             {
               "name": "nested_inner",
@@ -42,6 +43,7 @@
         },
         {
           "name": "signer",
+          "writable": true,
           "signer": true
         },
         {
@@ -70,6 +72,7 @@
             },
             {
               "name": "signer",
+              "writable": true,
               "signer": true
             },
             {
@@ -206,7 +209,8 @@
           "name": "composite_account_nested",
           "accounts": [
             {
-              "name": "some_account"
+              "name": "some_account",
+              "writable": true
             },
             {
               "name": "nested_inner",
@@ -224,6 +228,7 @@
         },
         {
           "name": "signer",
+          "writable": true,
           "signer": true
         },
         {
@@ -252,6 +257,7 @@
             },
             {
               "name": "signer",
+              "writable": true,
               "signer": true
             },
             {

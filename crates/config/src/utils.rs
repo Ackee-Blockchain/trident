@@ -1,4 +1,6 @@
-use crate::{argument::Argument, Error, ANCHOR_TOML};
+use crate::Error;
+use crate::ANCHOR_TOML;
+
 use anyhow::Context;
 use fehler::throw;
 use std::{
@@ -14,17 +16,6 @@ pub(crate) fn resolve_path(filename: &str) -> PathBuf {
         discover_root()
             .map(|cwd| cwd.join(path))
             .unwrap_or_else(|_| panic!("Failed to resolve relative path: {}", path.display()))
-    }
-}
-
-pub(crate) fn arg_to_string(arg: &Argument) -> Vec<String> {
-    let val = arg.value.clone().unwrap_or_default();
-    if let Some(opt) = &arg.short_opt {
-        vec![opt.clone(), val]
-    } else if let Some(opt) = &arg.long_opt {
-        vec![opt.clone(), val]
-    } else {
-        vec![]
     }
 }
 

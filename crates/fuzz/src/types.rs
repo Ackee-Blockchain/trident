@@ -1,2 +1,2 @@
 pub type AccountId = u8;
-pub type FuzzerData<'a> = arbitrary::Unstructured<'a>;
+pub(crate) type Seed = [u8; 32];

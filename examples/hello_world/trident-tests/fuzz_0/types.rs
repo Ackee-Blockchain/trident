@@ -4,7 +4,7 @@ use trident_fuzz::fuzzing::*;
 /// in transactions and instructions or invariant checks.
 ///
 /// You can define your own custom types here.
-#[derive(Arbitrary, Debug, BorshDeserialize, BorshSerialize, Clone)]
+#[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
 pub struct StoreHelloWorld {
     input: u8,
 }

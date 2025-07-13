@@ -14,7 +14,6 @@ use trident_svm::types::trident_entrypoint::TridentEntrypoint;
 use trident_svm::types::trident_program::TridentProgram;
 
 use crate::traits::FuzzClient;
-use solana_sdk::transaction::TransactionError;
 
 impl FuzzClient for TridentSVM {
     fn deploy_entrypoint(&mut self, program: TridentEntrypoint) {
@@ -34,7 +33,7 @@ impl FuzzClient for TridentSVM {
                 .fold(Vec::new(), |mut sbf_programs, config_program| {
                     let target = TridentProgram::new(
                         config_program.address,
-                        None, // TODO add authority to the config fuzzing program
+                        config_program.upgrade_authority,
                         config_program.data.clone(),
                     );
 
@@ -55,13 +54,19 @@ impl FuzzClient for TridentSVM {
                     permanent_accounts
                 });
 
-        let svm = TridentSVM::builder()
-            .with_syscalls_v1()
-            .with_syscalls_v2()
-            .with_sbf_programs(program_binaries)
-            .with_permanent_accounts(permanent_accounts);
+        let mut svm_builder = TridentSVM::builder();
+        svm_builder.with_syscalls_v1();
+        svm_builder.with_syscalls_v2();
+        svm_builder.with_sbf_programs(program_binaries);
+        svm_builder.with_permanent_accounts(permanent_accounts);
 
-        svm.build()
+        if std::env::var("TRIDENT_FUZZ_DEBUG").is_ok() {
+            svm_builder.with_debug_file_logs();
+        } else if std::env::var("TRIDENT_LOG").is_ok() {
+            svm_builder.with_cli_logs();
+        }
+
+        svm_builder.build()
     }
     fn warp_to_epoch(&mut self, warp_epoch: u64) {
         let mut clock = self.get_sysvar::<Clock>();
@@ -107,10 +112,10 @@ impl FuzzClient for TridentSVM {
     }
 
     #[doc(hidden)]
-    fn process_instructions(
+    fn _process_instructions(
         &mut self,
         instructions: &[Instruction],
-    ) -> Result<(), TransactionError> {
+    ) -> trident_svm::prelude::solana_svm::transaction_processor::LoadAndExecuteSanitizedTransactionsOutput{
         // there should be at least 1 RW fee-payer account.
         // But we do not pay for TX currently so has to be manually updated
         // tx.message.header.num_required_signatures = 1;
@@ -120,8 +125,7 @@ impl FuzzClient for TridentSVM {
             Some(&self.payer().pubkey()),
         );
 
-        self.process_transaction_with_settle(tx)?;
-        Ok(())
+        self.process_transaction_with_settle(tx)
     }
 
     fn get_sysvar<T: Sysvar>(&self) -> T {
@@ -129,7 +133,7 @@ impl FuzzClient for TridentSVM {
     }
 
     #[doc(hidden)]
-    fn clear_accounts(&mut self) {
+    fn _clear_accounts(&mut self) {
         self.clear_accounts();
     }
 }

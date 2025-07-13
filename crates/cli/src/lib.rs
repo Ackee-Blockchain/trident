@@ -46,6 +46,13 @@ enum Command {
             short,
             long,
             required = false,
+            help = "Skip building the program before initializing Trident."
+        )]
+        skip_build: bool,
+        #[arg(
+            short,
+            long,
+            required = false,
             help = "Specify the name of the program for which fuzz test will be generated.",
             value_name = "FILE"
         )]
@@ -65,14 +72,14 @@ enum Command {
         template or you can run fuzz test on already initialzied one.\
         \n\n\x1b[1m\x1b[4mEXAMPLE:\x1b[0m\
         \n    trident add\
-        \n    trident fuzz run-hfuzz fuzz_0\
-        \n    trident fuzz debug-hfuzz \x1b[92m<FUZZ_TARGET>\x1b[0m \x1b[92m<PATH_TO_CRASHFILE>\x1b[0m"
+        \n    trident fuzz run fuzz_0\
+        \n    trident fuzz debug \x1b[92m<FUZZ_TARGET>\x1b[0m \x1b[92m<SEED>\x1b[0m"
     )]
     Fuzz {
         #[clap(subcommand)]
         subcmd: FuzzCommand,
     },
-    #[command(about = "Clean Honggfuzz build targets ,additionally perform `anchor clean`")]
+    #[command(about = "Clean build target, additionally perform `anchor clean`")]
     Clean,
 }
 
@@ -85,9 +92,10 @@ pub async fn start() {
         Command::Fuzz { subcmd } => command::fuzz(subcmd).await?,
         Command::Init {
             force,
+            skip_build,
             program_name,
             test_name,
-        } => command::init(force, program_name, test_name).await?,
+        } => command::init(force, skip_build, program_name, test_name).await?,
         Command::Clean => command::clean().await?,
     }
 }

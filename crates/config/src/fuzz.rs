@@ -10,7 +10,6 @@ use std::{fs, str::FromStr};
 #[derive(Debug, Deserialize, Clone, Default)]
 pub struct Fuzz {
     pub fuzzing_with_stats: Option<bool>,
-    pub allow_duplicate_txs: Option<bool>,
     pub programs: Option<Vec<_FuzzProgram>>,
     pub accounts: Option<Vec<_FuzzAccount>>,
 }
@@ -19,14 +18,12 @@ impl Fuzz {
     pub fn get_fuzzing_with_stats(&self) -> bool {
         self.fuzzing_with_stats.unwrap_or(false)
     }
-    pub fn get_allow_duplicate_txs(&self) -> bool {
-        self.allow_duplicate_txs.unwrap_or(false)
-    }
 }
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct _FuzzProgram {
     pub address: String,
+    pub upgrade_authority: Option<String>,
     pub program: String,
 }
 
@@ -39,6 +36,7 @@ pub struct _FuzzAccount {
 #[derive(Debug, Deserialize, Clone)]
 pub struct FuzzProgram {
     pub address: Pubkey,
+    pub upgrade_authority: Option<Pubkey>,
     pub data: Vec<u8>,
 }
 
@@ -46,6 +44,11 @@ impl From<&_FuzzProgram> for FuzzProgram {
     fn from(_f: &_FuzzProgram) -> Self {
         let program_path = &_f.program;
         let program_address = &_f.address;
+
+        let upgrade_authority = _f
+            .upgrade_authority
+            .as_ref()
+            .map(|upgrade_authority| Pubkey::from_str(upgrade_authority).unwrap());
 
         let path = resolve_path(program_path);
 
@@ -57,6 +60,7 @@ impl From<&_FuzzProgram> for FuzzProgram {
 
         FuzzProgram {
             address: pubkey,
+            upgrade_authority,
             data: program_data,
         }
     }

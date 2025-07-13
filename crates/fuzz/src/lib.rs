@@ -8,6 +8,8 @@ pub mod trident_accounts;
 
 pub mod trident_pubkey;
 
+pub mod trident_rng;
+
 pub mod types;
 
 pub mod fuzzing {
@@ -29,10 +31,7 @@ pub mod fuzzing {
     pub use solana_sdk::transaction::TransactionError;
 
     /// fuzzing
-    pub use afl::fuzz as fuzz_afl;
-    pub use arbitrary;
-    pub use arbitrary::Arbitrary;
-    pub use honggfuzz::fuzz as fuzz_honggfuzz;
+    pub use super::trident_rng::TridentRng;
 
     /// trident traits
     pub use super::traits::AccountsMethods;
@@ -41,23 +40,26 @@ pub mod fuzzing {
     pub use super::traits::InstructionHooks;
     pub use super::traits::InstructionSetters;
 
+    pub use super::traits::FuzzTestExecutor;
+    pub use super::traits::FuzzTestGetters;
     pub use super::traits::RemainingAccountsMethods;
     pub use super::traits::TransactionGetters;
     pub use super::traits::TransactionHooks;
-    pub use super::traits::TransactionMethods;
+    pub use super::traits::TransactionPrivateMethods;
     pub use super::traits::TransactionSelector;
     pub use super::traits::TransactionSetters;
+
     /// trident derive
     pub use trident_derive_accounts::TridentAccounts;
+    pub use trident_derive_flow_executor::end;
     pub use trident_derive_flow_executor::flow;
     pub use trident_derive_flow_executor::flow_executor;
-    pub use trident_derive_flow_executor::flow_ignore;
     pub use trident_derive_flow_executor::init;
+    pub use trident_derive_fuzz_test_methods::FuzzTestMethods;
 
     pub use trident_derive_instruction::TridentInstruction;
     pub use trident_derive_remaining_accounts::TridentRemainingAccounts;
     pub use trident_derive_transaction::TridentTransaction;
-    pub use trident_derive_transaction_selector::TransactionSelector;
     /// trident svm
     pub use trident_svm::processor;
 
@@ -82,13 +84,20 @@ pub mod fuzzing {
 
     /// types
     pub use crate::types::AccountId;
-    pub use crate::types::FuzzerData;
 
     /// trident accounts
     pub use crate::trident_accounts::TridentAccount;
     pub use crate::trident_pubkey::TridentPubkey;
 
+    pub use borsh;
     pub use borsh::{BorshDeserialize, BorshSerialize};
 
-    pub use arbitrary::Unstructured;
+    pub use indicatif;
+
+    /// RNG
+    pub use rand;
+
+    pub use trident_svm::prelude;
+
+    pub use hex;
 }

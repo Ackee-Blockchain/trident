@@ -1,12 +1,8 @@
-use arbitrary::Arbitrary;
-use arbitrary::Result;
-use arbitrary::Unstructured;
-
 use solana_sdk::pubkey::Pubkey;
 
 use crate::types::AccountId;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Default)]
 pub struct TridentPubkey {
     pub account_id: AccountId,
     pubkey: Pubkey,
@@ -18,22 +14,6 @@ impl TridentPubkey {
     }
     pub fn get_pubkey(&self) -> Pubkey {
         self.pubkey
-    }
-}
-
-impl<'a> Arbitrary<'a> for TridentPubkey {
-    fn arbitrary(u: &mut Unstructured<'a>) -> Result<Self> {
-        let mut buf = [0; std::mem::size_of::<AccountId>()];
-        u.fill_buffer(&mut buf)?;
-        Ok(Self {
-            account_id: AccountId::from_le_bytes(buf),
-            pubkey: Pubkey::default(),
-        })
-    }
-    #[inline]
-    fn size_hint(_depth: usize) -> (usize, Option<usize>) {
-        let n = std::mem::size_of::<AccountId>();
-        (n, Some(n))
     }
 }
 

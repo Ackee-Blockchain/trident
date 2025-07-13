@@ -12,17 +12,6 @@ pub fn parse_trident_transaction(
 ) -> ParseResult<TridentTransactionStruct> {
     let ident = item_struct.ident.clone();
 
-    // Parse the custom name attribute if present
-    let custom_name = item_struct
-        .attrs
-        .iter()
-        .find(|attr| attr.path().is_ident("name"))
-        .map(|attr| {
-            attr.parse_args::<syn::LitStr>()
-                .expect("Failed to parse field name")
-                .value()
-        });
-
     let fields = match &item_struct.fields {
         syn::Fields::Named(fields) => fields
             .named
@@ -37,11 +26,7 @@ pub fn parse_trident_transaction(
         }
     };
 
-    Ok(TridentTransactionStruct {
-        ident,
-        fields,
-        custom_name,
-    })
+    Ok(TridentTransactionStruct { ident, fields })
 }
 
 fn parse_transaction_field(field: &Field) -> ParseResult<TridentTransactionField> {

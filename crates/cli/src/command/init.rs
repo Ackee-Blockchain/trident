@@ -12,7 +12,12 @@ pub const TRIDENT_TOML: &str = "Trident.toml";
 pub const SKIP: &str = "\x1b[33mSkip\x1b[0m";
 
 #[throws]
-pub async fn init(force: bool, program_name: Option<String>, test_name: Option<String>) {
+pub async fn init(
+    force: bool,
+    skip_build: bool,
+    program_name: Option<String>,
+    test_name: Option<String>,
+) {
     // look for Anchor.toml
     let root = if let Some(r) = _discover(ANCHOR_TOML)? {
         r
@@ -20,7 +25,7 @@ pub async fn init(force: bool, program_name: Option<String>, test_name: Option<S
         bail!("It does not seem that Anchor is initialized because the Anchor.toml file was not found in any parent directory!");
     };
 
-    let mut generator: TestGenerator = TestGenerator::new_with_root(&root)?;
+    let mut generator: TestGenerator = TestGenerator::new_with_root(&root, skip_build)?;
 
     let test_name_snake = test_name.map(|name| name.to_snake_case());
     if force {

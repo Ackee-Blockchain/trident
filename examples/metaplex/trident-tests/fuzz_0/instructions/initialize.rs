@@ -1,8 +1,7 @@
 use crate::fuzz_transactions::FuzzAccounts;
-use crate::types::*;
 use borsh::{BorshDeserialize, BorshSerialize};
 use trident_fuzz::fuzzing::*;
-#[derive(Arbitrary, TridentInstruction)]
+#[derive(TridentInstruction, Default)]
 #[program_id("H2XPhu8mmGDZioamVp2C5bDWXSSKn6bDdhpiUqWqPmLS")]
 # [discriminator ([175u8 , 175u8 , 109u8 , 31u8 , 13u8 , 152u8 , 155u8 , 237u8 ,])]
 pub struct InitializeInstruction {
@@ -10,17 +9,28 @@ pub struct InitializeInstruction {
     pub data: InitializeInstructionData,
 }
 /// Instruction Accounts
-#[derive(Arbitrary, Debug, Clone, TridentAccounts)]
+#[derive(Debug, Clone, TridentAccounts, Default)]
 #[instruction_data(InitializeInstructionData)]
 #[storage(FuzzAccounts)]
 pub struct InitializeInstructionAccounts {
-    #[account(signer,mut,storage = signer)]
+    #[account(
+        signer,
+        mut,
+        storage::name = signer,
+        storage::account_id = (0..1),
+    )]
     pub signer: TridentAccount,
-    #[account(signer,mut,storage = mint)]
+    #[account(
+        signer,
+        mut,
+        storage::name = mint,
+        storage::account_id = (0..1),
+    )]
     mint: TridentAccount,
     #[account(
         mut,
-        storage = metadata_account,
+        storage::name = metadata_account,
+        storage::account_id = (0..1),
         seeds = [b"metadata", mpl_token_metadata.as_ref(), mint.as_ref()],
         program_id = mpl_token_metadata
     )]
@@ -33,7 +43,7 @@ pub struct InitializeInstructionAccounts {
     token_program: TridentAccount,
 }
 /// Instruction Data
-#[derive(Arbitrary, Debug, BorshDeserialize, BorshSerialize, Clone)]
+#[derive(Debug, BorshDeserialize, BorshSerialize, Clone, Default)]
 pub struct InitializeInstructionData {
     input: u8,
     name: String,
@@ -50,13 +60,22 @@ pub struct InitializeInstructionData {
 /// Docs: https://ackee.xyz/trident/docs/latest/start-fuzzing/writting-fuzz-test/
 impl InstructionHooks for InitializeInstruction {
     type IxAccounts = FuzzAccounts;
-    fn set_data(&mut self, _client: &mut impl FuzzClient, _fuzz_accounts: &mut Self::IxAccounts) {
-        // nothing required here
+    fn set_data(
+        &mut self,
+        _client: &mut impl FuzzClient,
+        _fuzz_accounts: &mut Self::IxAccounts,
+        rng: &mut TridentRng,
+    ) {
+        self.data.input = rng.gen_range(0..=u8::MAX);
+        self.data.name = rng.gen_string(10);
+        self.data.symbol = rng.gen_string(5);
+        self.data.uri = rng.gen_string(25);
     }
     fn set_accounts(
         &mut self,
         _client: &mut impl FuzzClient,
         _fuzz_accounts: &mut Self::IxAccounts,
+        _rng: &mut TridentRng,
     ) {
         // nothing required here
     }

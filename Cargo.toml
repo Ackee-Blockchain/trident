@@ -25,13 +25,4 @@ readme = "./README.md"
 # Solana
 solana-sdk = "~2.0"
 
-# ARBITRARY
-arbitrary = { version = "1.3.0", features = ["derive"] }
-
-# Honggfuzz
-honggfuzz = { version = "0.5.57" }
-
-#AFL
-afl = { version = "0.15.10" }
-
 syn = { version = "2.0", features = ["full", "parsing", "visit"] }

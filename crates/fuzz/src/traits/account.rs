@@ -1,5 +1,7 @@
 use solana_sdk::{instruction::AccountMeta, pubkey::Pubkey};
 
+use crate::fuzzing::TridentRng;
+
 use super::FuzzClient;
 
 pub trait AccountsMethods {
@@ -15,6 +17,7 @@ pub trait AccountsMethods {
         ix_accounts: &mut Self::IxAccounts,
         _program_id: Pubkey,
         instruction_data: &Self::IxData,
+        rng: &mut TridentRng,
     ) {
     }
 

@@ -34,15 +34,15 @@ pub enum FuzzCommand {
             value_name = "NAME"
         )]
         test_name: Option<String>,
+        #[arg(
+            short,
+            long,
+            required = false,
+            help = "Skip building the program before adding new fuzz test."
+        )]
+        skip_build: bool,
     },
-    #[command(
-        about = "Run the AFL on desired fuzz test.",
-        override_usage = "Specify the desired fuzz \x1b[92m<TARGET>\x1b[0m.\
-            \n      \x1b[1m\x1b[4m<TARGET>:\x1b[0m Name of the desired fuzz template to execute (for example fuzz_0).\
-            \n\n\x1b[1m\x1b[4mEXAMPLE:\x1b[0m\
-            \n      trident fuzz run-afl fuzz_0"
-    )]
-    Run_Afl {
+    Run {
         #[arg(
             required = true,
             help = "Name of the desired fuzz template to execute (for example fuzz_0)."
@@ -52,35 +52,7 @@ pub enum FuzzCommand {
             short,
             long,
             required = false,
-            help = "Tracks code coverage during fuzzing and generates a JSON report upon completion. The coverage data can be visualized in your source code using our VS Code extension."
-        )]
-        generate_coverage: bool,
-        #[arg(
-            short,
-            long = "attach-extension",
-            required = false,
-            help = "Enables real-time coverage visualization in VS Code during fuzzing. The VS Code extension must be actively running to utilize this feature."
-        )]
-        attach_extension: bool,
-    },
-    #[command(
-        about = "Run the Honggfuzz on desired fuzz test.",
-        override_usage = "Specify the desired fuzz \x1b[92m<TARGET>\x1b[0m.\
-            \n      \x1b[1m\x1b[4m<TARGET>:\x1b[0m Name of the desired fuzz template to execute (for example fuzz_0).\
-            \n\n\x1b[1m\x1b[4mEXAMPLE:\x1b[0m\
-            \n      trident fuzz run-hfuzz fuzz_0"
-    )]
-    Run_Hfuzz {
-        #[arg(
-            required = true,
-            help = "Name of the desired fuzz template to execute (for example fuzz_0)."
-        )]
-        target: String,
-        #[arg(
-            short,
-            long,
-            required = false,
-            help = "Run the Honggfuzz with exit code, i.e. if it discovers crash the Trident will exit with exit code 1."
+            help = "Run the fuzzing with exit code, i.e. if it discovers crash the Trident will exit with exit code 1."
         )]
         with_exit_code: bool,
         #[arg(
@@ -98,48 +70,17 @@ pub enum FuzzCommand {
         )]
         attach_extension: bool,
     },
-    #[command(
-        about = "Debug found crash using the AFL on desired fuzz test.",
-        override_usage = "Specify the desired fuzz \x1b[92m<TARGET>\x1b[0m and \x1b[92m<PATH_TO_CRASHFILE>\x1b[0m.\
-            \n      \x1b[1m\x1b[4m<TARGET>:\x1b[0m Name of the desired fuzz template to debug (for example fuzz_0).\
-            \n      \x1b[1m\x1b[4m<PATH_TO_CRASHFILE>:\x1b[0m Path to the crash found during fuzzing.\
-            \n\n\x1b[1m\x1b[4mHINT:\x1b[0m By default crashfiles will be stored in the following folders:\
-            \n      \x1b[1m\x1b[4mHonggfuzz:\x1b[0m trident-tests/fuzzing/honggfuzz/hfuzz_workspace/<TARGET>\
-            \n      \x1b[1m\x1b[4mAFL:\x1b[0m trident-tests/fuzzing/afl/afl_workspace/out/default/crashes\
-            \n\n\x1b[1m\x1b[4mEXAMPLE:\x1b[0m\
-            \n      trident fuzz debug-afl fuzz_0 trident-tests/fuzzing/afl/afl_workspace/out/default/crashes/id...\
-            \n\n\x1b[1m\x1b[33mWarning\x1b[0m:\
-            \n      Do not mix fuzz templates and crashfiles. If the crash was found with fuzz_0, then debug it with fuzz_0."
-    )]
-    Debug_Afl {
+    Debug {
         #[arg(
             required = true,
-            help = "Name of the desired fuzz template to execute (for example fuzz_0)"
+            help = "Name of the desired fuzz template to execute (for example fuzz_0)."
         )]
         target: String,
-        #[arg(required = true, help = "Path to the crash found during fuzzing")]
-        crash_file_path: String,
-    },
-    #[command(
-        about = "Debug found crash using the Honggfuzz on desired fuzz test.",
-        override_usage = "Specify the desired fuzz \x1b[92m<TARGET>\x1b[0m and \x1b[92m<PATH_TO_CRASHFILE>\x1b[0m.\
-            \n      \x1b[1m\x1b[4m<TARGET>:\x1b[0m Name of the desired fuzz template to debug (for example fuzz_0).\
-            \n      \x1b[1m\x1b[4m<PATH_TO_CRASHFILE>:\x1b[0m Path to the crash found during fuzzing.\
-            \n\n\x1b[1m\x1b[4mHINT:\x1b[0m By default crashfiles will be stored in the following folders:\
-            \n      \x1b[1m\x1b[4mHonggfuzz:\x1b[0m trident-tests/fuzzing/honggfuzz/hfuzz_workspace/<TARGET>\
-            \n\n\x1b[1m\x1b[4mEXAMPLE:\x1b[0m\
-            \n      trident fuzz debug-hfuzz fuzz_0 trident-tests/fuzzing/honggfuzz/hfuzz_workspace/fuzz_0/SIGAR...\
-            \n\n\x1b[1m\x1b[33mWarning\x1b[0m:\
-            \n      Do not mix fuzz templates and crashfiles. If the crash was found with fuzz_0, then debug it with fuzz_0."
-    )]
-    Debug_Hfuzz {
         #[arg(
             required = true,
-            help = "Name of the desired fuzz template to execute (for example fuzz_0)"
+            help = "Seed of the desired fuzz template to execute (for example fuzz_0)."
         )]
-        target: String,
-        #[arg(required = true, help = "Path to the crash found during fuzzing")]
-        crash_file_path: String,
+        seed: String,
     },
 }
 
@@ -152,22 +93,10 @@ pub async fn fuzz(subcmd: FuzzCommand) {
         }
     };
 
-    let commander = Commander::with_root(&Path::new(&root).to_path_buf());
+    let commander = Commander::new();
 
     match subcmd {
-        FuzzCommand::Run_Afl {
-            target,
-            generate_coverage,
-            attach_extension,
-        } => {
-            if !generate_coverage && attach_extension {
-                bail!("Cannot attach extension without generating coverage!");
-            }
-            commander
-                .run_afl(target, generate_coverage, attach_extension)
-                .await?;
-        }
-        FuzzCommand::Run_Hfuzz {
+        FuzzCommand::Run {
             target,
             with_exit_code,
             generate_coverage,
@@ -177,24 +106,17 @@ pub async fn fuzz(subcmd: FuzzCommand) {
                 bail!("Cannot attach extension without generating coverage!");
             }
             commander
-                .run_honggfuzz(target, with_exit_code, generate_coverage, attach_extension)
+                .run(target, with_exit_code, generate_coverage, attach_extension)
                 .await?;
         }
-        FuzzCommand::Debug_Afl {
-            target,
-            crash_file_path,
-        } => {
-            commander.run_afl_debug(target, crash_file_path).await?;
+        FuzzCommand::Debug { target, seed } => {
+            commander.run_debug(target, seed).await?;
         }
-        FuzzCommand::Debug_Hfuzz {
-            target,
-            crash_file_path,
-        } => {
-            commander.run_hfuzz_debug(target, crash_file_path).await?;
-        }
+
         FuzzCommand::Add {
             program_name,
             test_name,
+            skip_build,
         } => {
             let test_name_snake = test_name.map(|name| name.to_snake_case());
             if let Some(name) = &test_name_snake {
@@ -204,7 +126,7 @@ pub async fn fuzz(subcmd: FuzzCommand) {
                     return;
                 }
             }
-            let mut generator = TestGenerator::new_with_root(&root)?;
+            let mut generator = TestGenerator::new_with_root(&root, skip_build)?;
             generator
                 .add_fuzz_test(program_name, test_name_snake)
                 .await?;

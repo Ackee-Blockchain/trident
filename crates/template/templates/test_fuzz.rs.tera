@@ -1,0 +1,77 @@
+use fuzz_accounts::*;
+use trident_fuzz::fuzzing::*;
+mod fuzz_accounts;
+mod instructions;
+mod transactions;
+mod types;
+{% for program in programs %}
+use {{ program.lib_name }}::entry as entry_{{ program.name }};
+{% endfor %}
+pub use transactions::*;
+
+#[derive(FuzzTestMethods)]
+struct FuzzTest {
+    /// for transaction executions
+    client: TridentSVM,
+    /// for storing fuzzing metrics
+    metrics: FuzzingStatistics,
+    /// for storing seed
+    rng: TridentRng,
+    /// for storing fuzzing accounts
+    fuzz_accounts: FuzzAccounts,
+}
+
+#[flow_executor]
+impl FuzzTest {
+    fn new() -> Self {
+        let mut client = TridentSVM::new_client(&TridentConfig::new());
+
+        {% for program in programs %}
+        client.deploy_entrypoint(TridentEntrypoint::new(
+            pubkey!("{{ program.program_id }}"),
+            None,
+            processor!(entry_{{ program.name }}),
+        ));
+        {% endfor %}
+
+        Self {
+            client,
+            metrics: FuzzingStatistics::default(),
+            rng: TridentRng::random(),
+            fuzz_accounts: FuzzAccounts::default(),
+        }
+    }
+
+    #[init]
+    fn start(&mut self) -> Result<(), FuzzingError> {
+        // perform any initialization here, this method will be executed
+        // at start of each iteration
+        Ok(())
+    }
+
+    #[flow]
+    fn flow1(&mut self) -> Result<(), FuzzingError> {
+        // perform logic which is meant to be fuzzed
+        // this flow is selected randomly from other flows
+        Ok(())
+    }
+
+    #[flow]
+    fn flow2(&mut self) -> Result<(), FuzzingError> {
+        // perform logic which is meant to be fuzzed
+        // this flow is selected randomly from other flows
+        Ok(())
+    }
+
+    #[end]
+    fn end(&mut self) -> Result<(), FuzzingError> {
+
+        // perform any cleaning here, this method will be executed
+        // at the end of each iteration
+        Ok(())
+    }
+}
+
+fn main() {
+    FuzzTest::fuzz(1000, 100);
+}

@@ -1,10 +1,9 @@
-use crate::fuzz_transactions::FuzzAccounts;
-use crate::instructions::*;
+use crate::{instructions::*, FuzzAccounts};
 use trident_fuzz::fuzzing::*;
 /// Customize transaction behavior by adding more instructions.
 ///
 /// Docs: https://ackee.xyz/trident/docs/latest/trident-advanced/trident-transactions/multi-instruction-transactions/
-#[derive(Arbitrary, Debug, TridentTransaction)]
+#[derive(Debug, TridentTransaction, Default)]
 pub struct InitializeFnTransaction {
     pub instruction: InitializeFnInstruction,
 }

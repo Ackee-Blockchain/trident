@@ -5,7 +5,7 @@
 
 mod cleaner;
 mod commander;
-mod coverage;
+// mod coverage;
 mod idl_loader;
 mod test_generator;
 mod test_generator_gitignore;
@@ -33,16 +33,9 @@ mod constants {
     pub(crate) const TRANSACTIONS_DIRECTORY: &str = "transactions";
 
     // Fuzzing
-    pub(crate) const FUZZ_TRANSACTIONS_FILE_NAME: &str = "fuzz_transactions.rs";
+    pub(crate) const FUZZ_ACCOUNTS_FILE_NAME: &str = "fuzz_accounts.rs";
     pub(crate) const TYPES_FILE_NAME: &str = "types.rs";
     pub(crate) const FUZZ_TEST: &str = "test_fuzz.rs";
-
-    // Honggfuzz
-    pub(crate) const CARGO_TARGET_DIR_DEFAULT_HFUZZ: &str =
-        "trident-tests/fuzzing/honggfuzz/hfuzz_target";
-
-    // AFL
-    pub(crate) const CARGO_TARGET_DIR_DEFAULT_AFL: &str = "trident-tests/fuzzing/afl/afl_target";
 
     // Workspace
     pub(crate) const GIT_IGNORE: &str = ".gitignore";
@@ -50,5 +43,4 @@ mod constants {
     // Formatting
     pub(crate) const SKIP: &str = "\x1b[33mSkip\x1b[0m";
     pub(crate) const FINISH: &str = "\x1b[92mFinished\x1b[0m";
-    pub(crate) const ERROR: &str = "\x1b[31mError\x1b[0m";
 }
