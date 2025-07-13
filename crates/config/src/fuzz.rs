@@ -12,6 +12,7 @@ pub struct Fuzz {
     pub fuzzing_with_stats: Option<bool>,
     pub programs: Option<Vec<_FuzzProgram>>,
     pub accounts: Option<Vec<_FuzzAccount>>,
+    pub fork: Option<FuzzFork>,
 }
 
 impl Fuzz {
@@ -129,4 +130,65 @@ pub struct AccountRaw {
     pub executable: bool,
     #[serde(rename = "rentEpoch")]
     pub rent_epoch: u64,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct FuzzFork {
+    pub programs: Option<Vec<_FuzzForkProgram>>,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct _FuzzForkProgram {
+    #[serde(default = "default_cluster")]
+    pub cluster: ClusterType,
+    pub address: String,
+    #[serde(default = "default_overwrite")]
+    pub overwrite: bool,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+#[serde(rename_all = "lowercase")]
+pub enum ClusterType {
+    Mainnet,
+    Devnet,
+    Testnet,
+    Localnet,
+    #[serde(alias = "m")]
+    MainnetShort,
+    #[serde(alias = "d")]
+    DevnetShort,
+    #[serde(alias = "t")]
+    TestnetShort,
+    #[serde(alias = "l")]
+    LocalnetShort,
+}
+
+impl std::fmt::Display for ClusterType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ClusterType::Mainnet | ClusterType::MainnetShort => write!(f, "mainnet"),
+            ClusterType::Devnet | ClusterType::DevnetShort => write!(f, "devnet"),
+            ClusterType::Testnet | ClusterType::TestnetShort => write!(f, "testnet"),
+            ClusterType::Localnet | ClusterType::LocalnetShort => write!(f, "localnet"),
+        }
+    }
+}
+
+impl ClusterType {
+    pub fn to_short_string(&self) -> String {
+        match self {
+            ClusterType::Mainnet | ClusterType::MainnetShort => "m".to_string(),
+            ClusterType::Devnet | ClusterType::DevnetShort => "d".to_string(),
+            ClusterType::Testnet | ClusterType::TestnetShort => "t".to_string(),
+            ClusterType::Localnet | ClusterType::LocalnetShort => "l".to_string(),
+        }
+    }
+}
+
+fn default_cluster() -> ClusterType {
+    ClusterType::MainnetShort
+}
+
+fn default_overwrite() -> bool {
+    false
 }

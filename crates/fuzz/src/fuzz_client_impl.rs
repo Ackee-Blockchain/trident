@@ -26,7 +26,53 @@ impl FuzzClient for TridentSVM {
 
     #[doc(hidden)]
     fn new_client(config: &TridentConfig) -> Self {
-        let program_binaries =
+        // Fork programs from clusters if specified
+        let mut program_binaries = Vec::new();
+
+        #[cfg(feature = "fork-testing")]
+        {
+            use trident_fork_testing::get_forked_programs;
+            let forked_or_cached_programs = config.fork_or_cache_programs();
+
+            // Add forked programs
+            if !forked_or_cached_programs.is_empty() {
+                match get_forked_programs(&forked_or_cached_programs) {
+                    Ok(forked_programs) => {
+                        for forked_program in forked_programs {
+                            // TODO: For BPFLoaderUpgradeable (v3) programs, we need to handle both the program account and
+                            // the program data account. Currently we're only deploying the program binary, but for v3 loader,
+                            // the actual executable code is stored in a separate program data account.
+                            //
+                            // The proper implementation would:
+                            // 1. Check if the program uses BPFLoaderUpgradeable (by checking the owner of the program account)
+                            // 2. If it does, create both a program account and a program data account
+                            // 3. Set up the program account to point to the program data account
+                            // 4. Deploy the actual binary data to the program data account
+                            let target = TridentProgram::new(
+                                forked_program.address,
+                                None, // TODO add authority to the forked program
+                                forked_program.data,
+                            );
+                            program_binaries.push(target);
+                            println!("Added forked program: {}", forked_program.address);
+                        }
+                    }
+                    Err(e) => {
+                        eprintln!("Warning: Failed to fork programs: {}", e);
+                    }
+                }
+            }
+        }
+        #[cfg(not(feature = "fork-testing"))]
+        {
+            let forked_or_cached_programs = config.fork_or_cache_programs();
+            if !forked_or_cached_programs.is_empty() {
+                println!("Warning: Fork programs detected but fork-testing feature is not enabled");
+            }
+        }
+
+        // Add regular configured programs
+        let configured_programs =
             config
                 .programs()
                 .iter()
@@ -36,10 +82,11 @@ impl FuzzClient for TridentSVM {
                         config_program.upgrade_authority,
                         config_program.data.clone(),
                     );
-
                     sbf_programs.push(target);
                     sbf_programs
                 });
+
+        program_binaries.extend(configured_programs);
 
         let permanent_accounts =
             config

@@ -5,6 +5,7 @@ use constants::*;
 use fuzz::*;
 
 pub mod utils;
+pub use fuzz::ClusterType;
 
 use serde::Deserialize;
 use std::{fs, io};
@@ -71,6 +72,22 @@ impl TridentConfig {
             .map(|fuzz| {
                 if let Some(accounts) = &fuzz.accounts {
                     accounts.iter().map(FuzzAccount::from).collect()
+                } else {
+                    Vec::default()
+                }
+            })
+            .unwrap_or_default()
+    }
+    pub fn fork_or_cache_programs(&self) -> Vec<_FuzzForkProgram> {
+        self.fuzz
+            .as_ref()
+            .map(|fuzz| {
+                if let Some(fork) = &fuzz.fork {
+                    if let Some(programs) = &fork.programs {
+                        programs.clone()
+                    } else {
+                        Vec::default()
+                    }
                 } else {
                     Vec::default()
                 }

@@ -6,6 +6,7 @@ members = [
     "crates/fuzz",
     "crates/syn",
     "crates/template",
+    "crates/fork",
 ]
 exclude = ["examples/"]
 resolver = "1"
@@ -26,3 +27,4 @@ readme = "./README.md"
 solana-sdk = "~2.0"
 
 syn = { version = "2.0", features = ["full", "parsing", "visit"] }
+thiserror = "1"
