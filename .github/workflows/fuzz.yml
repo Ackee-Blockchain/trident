@@ -43,6 +43,13 @@ jobs:
         # Sets up the Trident
         uses: ./.github/actions/setup-trident/
 
+      # Cache the target folder
+      - name: Cache Target Folder
+        uses: actions/cache@v3
+        with:
+          path: examples/cpi/trident-tests/target  # Cache the folder where build artifacts are stored
+          key: target-${{ runner.os }}-simple-cpi 
+
       # Run the fuzzing test using Trident in the simple-cpi-6 directory
       - name: Test Fuzz
         working-directory: examples/cpi/trident-tests  # Set the working directory for the fuzzing test
@@ -73,6 +80,13 @@ jobs:
         # Sets up the Trident
         uses: ./.github/actions/setup-trident/
 
+      # Cache the target folder
+      - name: Cache Target Folder
+        uses: actions/cache@v3
+        with:
+          path: examples/trident-benchmark/maze_0/trident-tests/target  # Cache the folder where build artifacts are stored
+          key: target-${{ runner.os }}-maze-0 
+
       # Run the fuzzing test using Trident in the arbitrary-limit-inputs-5 directory
       - name: Test Fuzz
         working-directory: examples/trident-benchmark/maze_0/trident-tests  # Set the working directory for the fuzzing test
@@ -102,6 +116,13 @@ jobs:
       - name: Install Trident
         # Sets up the Trident
         uses: ./.github/actions/setup-trident/
+
+      # Cache the target folder
+      - name: Cache Target Folder
+        uses: actions/cache@v3
+        with:
+          path: examples/metaplex/trident-tests/target  # Cache the folder where build artifacts are stored
+          key: target-${{ runner.os }}-metaplex 
 
       # Run the fuzzing test using Trident in the cpi-metaplex-7 directory
       - name: Test Fuzz
