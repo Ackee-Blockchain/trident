@@ -10,6 +10,9 @@ on:
       - develop
       - master
 
+env:
+  SOLANA_VERSION: "2.2.16"
+
 
 jobs:
   Fuzz-Tests:
@@ -42,6 +45,22 @@ jobs:
       - name: Install Trident
         # Sets up the Trident
         uses: ./.github/actions/setup-trident/
+
+      - name: Setup Solana CLI
+        # Sets up the Solana CLI
+        uses: ./.github/actions/setup-solana/
+
+      # Cache the target folder
+      - name: Cache Target Folder
+        uses: actions/cache@v3
+        with:
+          path: examples/cpi/target  # Cache the folder where build artifacts are stored
+          key: target-${{ runner.os }}-simple-cpi-build 
+
+      # Build the Solana program
+      - name: Run Solana CLI
+        working-directory: examples/cpi
+        run: cargo build-sbf
 
       # Cache the target folder
       - name: Cache Target Folder
@@ -80,6 +99,22 @@ jobs:
         # Sets up the Trident
         uses: ./.github/actions/setup-trident/
 
+      - name: Setup Solana CLI
+        # Sets up the Solana CLI
+        uses: ./.github/actions/setup-solana/
+
+      # Cache the target folder
+      - name: Cache Target Folder
+        uses: actions/cache@v3
+        with:
+          path: examples/trident-benchmark/maze_0/target  # Cache the folder where build artifacts are stored
+          key: target-${{ runner.os }}-maze-0-build 
+
+      # Build the Solana program
+      - name: Run Solana CLI
+        working-directory: examples/trident-benchmark/maze_0
+        run: cargo build-sbf
+
       # Cache the target folder
       - name: Cache Target Folder
         uses: actions/cache@v3
@@ -116,6 +151,23 @@ jobs:
       - name: Install Trident
         # Sets up the Trident
         uses: ./.github/actions/setup-trident/
+
+      - name: Setup Solana CLI
+        # Sets up the Solana CLI
+        uses: ./.github/actions/setup-solana/
+
+
+      # Cache the target folder
+      - name: Cache Target Folder
+        uses: actions/cache@v3
+        with:
+          path: examples/metaplex/target  # Cache the folder where build artifacts are stored
+          key: target-${{ runner.os }}-metaplex-build 
+
+      # Build the Solana program
+      - name: Run Solana CLI
+        working-directory: examples/metaplex
+        run: cargo build-sbf
 
       # Cache the target folder
       - name: Cache Target Folder
