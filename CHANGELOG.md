@@ -20,6 +20,7 @@ incremented upon a breaking change and the patch version will be incremented for
 
 **Changed**
 
+- Move Trident.toml into trident-tests folder ([328](https://github.com/Ackee-Blockchain/trident/pull/328))
 - Conversion from AFL and Honggfuzz into Manually Guided Fuzzing ([324](https://github.com/Ackee-Blockchain/trident/pull/324))
 - Update template generation to use tera ([326](https://github.com/Ackee-Blockchain/trident/pull/326))
 
