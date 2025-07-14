@@ -1,6 +1,7 @@
 use trident_svm::trident_svm::TridentSVM;
 
-use crate::fuzzing::{FuzzingStatistics, TridentRng};
+use crate::fuzzing::FuzzingStatistics;
+use crate::fuzzing::TridentRng;
 
 pub trait FuzzTestGetters {
     #[doc(hidden)]

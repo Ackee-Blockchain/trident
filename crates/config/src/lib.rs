@@ -7,7 +7,8 @@ use fuzz::*;
 pub mod utils;
 
 use serde::Deserialize;
-use std::{fs, io};
+use std::fs;
+use std::io;
 use thiserror::Error;
 use utils::discover_root;
 

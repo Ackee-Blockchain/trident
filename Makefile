@@ -1,0 +1,18 @@
+
+format:
+	cargo +nightly fmt
+
+install:
+	cargo install --path crates/cli
+
+clippy:
+	cargo clippy -- -D warnings
+
+clippy-strict:
+	cargo clippy --all-targets --all-features -- -D warnings -D clippy::all -D clippy::pedantic -D clippy::nursery
+
+test:
+	cargo test
+
+refresh-crates:
+	cargo update

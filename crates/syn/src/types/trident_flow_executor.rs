@@ -1,4 +1,6 @@
-use syn::{Generics, Ident, ImplItem};
+use syn::Generics;
+use syn::Ident;
+use syn::ImplItem;
 
 #[derive(Default)]
 pub struct FlowConstraints {

@@ -2,7 +2,8 @@ use quote::ToTokens;
 use syn::parse::Error as ParseError;
 use syn::parse::Result as ParseResult;
 use syn::spanned::Spanned;
-use syn::{Field, ItemStruct};
+use syn::Field;
+use syn::ItemStruct;
 
 use crate::types::trident_transaction::TridentTransactionField;
 use crate::types::trident_transaction::TridentTransactionStruct;

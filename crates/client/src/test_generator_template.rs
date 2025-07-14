@@ -1,12 +1,13 @@
 use crate::___private::TestGenerator;
 use crate::commander::Commander;
 use crate::constants::*;
-use crate::{construct_path, utils::*};
+use crate::construct_path;
+use crate::utils::*;
 use fehler::throws;
 
 use std::path::Path;
 
-use crate::test_generator::Error;
+use crate::error::Error;
 
 impl TestGenerator {
     #[throws]

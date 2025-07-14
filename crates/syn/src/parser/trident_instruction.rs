@@ -1,7 +1,11 @@
 use syn::parse::Error as ParseError;
 use syn::parse::Result as ParseResult;
 use syn::spanned::Spanned;
-use syn::{Attribute, Data, DeriveInput, Fields, Lit};
+use syn::Attribute;
+use syn::Data;
+use syn::DeriveInput;
+use syn::Fields;
+use syn::Lit;
 
 use crate::types::trident_instruction::TridentInstructionStruct;
 

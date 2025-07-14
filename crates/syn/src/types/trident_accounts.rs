@@ -1,5 +1,6 @@
 use std::collections::HashMap;
-use syn::visit::{self, Visit};
+use syn::visit::Visit;
+use syn::visit::{self};
 use syn::Ident;
 use syn::TypePath;
 

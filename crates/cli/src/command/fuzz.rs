@@ -1,23 +1,19 @@
-use std::path::Path;
-
-use anyhow::{bail, Error};
+use anyhow::bail;
+use anyhow::Error;
 
 use clap::Subcommand;
 use fehler::throws;
 use heck::ToSnakeCase;
-use trident_client::___private::{Commander, TestGenerator};
+use trident_client::___private::Commander;
+use trident_client::___private::TestGenerator;
 
-use crate::_discover;
-
-pub const ANCHOR_TOML: &str = "Anchor.toml";
-pub const TRIDENT_TOML: &str = "Trident.toml";
-pub const TRIDENT_TESTS: &str = "trident-tests";
-pub const SKIP: &str = "\x1b[33mSkip\x1b[0m";
-pub const TESTS_WORKSPACE_DIRECTORY: &str = "trident-tests";
+use crate::command::check_anchor_initialized;
+use crate::command::check_fuzz_test_exists;
+use crate::command::check_trident_uninitialized;
 
 #[derive(Subcommand)]
 #[allow(non_camel_case_types)]
-pub enum FuzzCommand {
+pub(crate) enum FuzzCommand {
     #[command(about = "Generate new Fuzz Test template.")]
     Add {
         #[arg(
@@ -87,25 +83,10 @@ pub enum FuzzCommand {
 }
 
 #[throws]
-pub async fn fuzz(subcmd: FuzzCommand) {
-    // First, look for Anchor.toml to find the project root
-    let anchor_root = match _discover(ANCHOR_TOML)? {
-        Some(root) => root,
-        None => {
-            bail!("It does not seem that Anchor is initialized because the Anchor.toml file was not found in any parent directory!");
-        }
-    };
+pub(crate) async fn fuzz(subcmd: FuzzCommand) {
+    let root = check_anchor_initialized()?;
 
-    // Then check if Trident.toml exists in the trident-tests directory
-    let trident_toml_path = Path::new(&anchor_root)
-        .join(TESTS_WORKSPACE_DIRECTORY)
-        .join(TRIDENT_TOML);
-
-    if !trident_toml_path.exists() {
-        bail!("It does not seem that Trident is initialized because the Trident.toml file was not found in the trident-tests directory. Please run 'trident init' first.");
-    }
-
-    let commander = Commander::new();
+    check_trident_uninitialized(&root)?;
 
     match subcmd {
         FuzzCommand::Run {
@@ -114,6 +95,8 @@ pub async fn fuzz(subcmd: FuzzCommand) {
             generate_coverage,
             attach_extension,
         } => {
+            let commander = Commander::new(&root);
+
             if !generate_coverage && attach_extension {
                 bail!("Cannot attach extension without generating coverage!");
             }
@@ -122,6 +105,8 @@ pub async fn fuzz(subcmd: FuzzCommand) {
                 .await?;
         }
         FuzzCommand::Debug { target, seed } => {
+            let commander = Commander::new(&root);
+
             commander.run_debug(target, seed).await?;
         }
 
@@ -131,14 +116,13 @@ pub async fn fuzz(subcmd: FuzzCommand) {
             skip_build,
         } => {
             let test_name_snake = test_name.map(|name| name.to_snake_case());
-            if let Some(name) = &test_name_snake {
-                let fuzz_test_dir = Path::new(&anchor_root).join(TRIDENT_TESTS).join(name);
-                if fuzz_test_dir.exists() {
-                    println!("{SKIP} [{}/{}] already exists", TRIDENT_TESTS, name);
-                    return;
-                }
+
+            let mut generator = TestGenerator::new_with_root(&root, skip_build)?;
+
+            if let Some(test_name) = &test_name_snake {
+                check_fuzz_test_exists(&root, test_name)?;
             }
-            let mut generator = TestGenerator::new_with_root(&anchor_root, skip_build)?;
+
             generator
                 .add_fuzz_test(program_name, test_name_snake)
                 .await?;

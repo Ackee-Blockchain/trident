@@ -1,8 +1,19 @@
-use convert_case::{Case, Casing};
+use convert_case::Case;
+use convert_case::Casing;
 use serde_json::json;
-use sha2::{Digest, Sha256};
-use tera::{Context, Tera};
-use trident_idl_spec::{Idl, IdlInstruction, IdlType, IdlTypeDef, IdlTypeDefTy};
+use sha2::Digest;
+use sha2::Sha256;
+use tera::Context;
+use tera::Tera;
+use trident_idl_spec::Idl;
+use trident_idl_spec::IdlInstruction;
+use trident_idl_spec::IdlType;
+use trident_idl_spec::IdlTypeDef;
+use trident_idl_spec::IdlTypeDefTy;
+
+use crate::error::TemplateError;
+
+pub mod error;
 
 /// Simple template engine for Trident code generation
 pub struct TridentTemplates {
@@ -10,7 +21,7 @@ pub struct TridentTemplates {
 }
 
 impl TridentTemplates {
-    pub fn new() -> Result<Self, Box<dyn std::error::Error>> {
+    pub fn new() -> Result<Self, TemplateError> {
         let mut tera = Tera::default();
         tera.add_raw_templates(vec![
             (
@@ -48,7 +59,7 @@ impl TridentTemplates {
         idls: &[Idl],
         lib_names: &[String],
         trident_version: &str,
-    ) -> Result<GeneratedFiles, Box<dyn std::error::Error>> {
+    ) -> Result<GeneratedFiles, TemplateError> {
         let mut instructions = Vec::new();
         let mut transactions = Vec::new();
         let programs = self.build_programs_data(idls, lib_names);
@@ -154,7 +165,7 @@ impl TridentTemplates {
         &self,
         instruction: &IdlInstruction,
         program_id: &str,
-    ) -> Result<serde_json::Value, Box<dyn std::error::Error>> {
+    ) -> Result<serde_json::Value, TemplateError> {
         let name = &instruction.name;
         let camel_name = name.to_case(Case::UpperCamel);
         let snake_name = name.to_case(Case::Snake);
@@ -387,84 +398,6 @@ impl TridentTemplates {
         }
         content
     }
-
-    // Generate Cargo_fuzz.toml with specified bin targets
-    // pub fn generate_cargo_fuzz_toml(
-    //     &self,
-    //     bin_targets: &[(&str, &str)],
-    // ) -> Result<String, Box<dyn std::error::Error>> {
-    //     // Get the trident-fuzz version from Cargo.toml
-    //     let trident_version = env!("CARGO_PKG_VERSION");
-
-    //     // Convert bin targets to JSON
-    //     let bins = bin_targets
-    //         .iter()
-    //         .map(|(name, path)| {
-    //             json!({
-    //                 "name": name,
-    //                 "path": path
-    //             })
-    //         })
-    //         .collect::<Vec<_>>();
-
-    //     // Render the template
-    //     let context = Context::from_serialize(json!({
-    //         "trident_version": trident_version,
-    //         "bins": bins
-    //     }))?;
-
-    //     Ok(self.tera.render("Cargo_fuzz.toml", &context)?)
-    // }
-
-    // /// Add a bin target to existing Cargo.toml content
-    // pub fn add_bin_target_to_cargo_toml(
-    //     &self,
-    //     cargo_content: &str,
-    //     test_name: &str,
-    //     test_path: &str,
-    // ) -> Result<String, Box<dyn std::error::Error>> {
-    //     // Parse the existing Cargo.toml
-    //     let mut cargo_toml: toml::Value = toml::from_str(cargo_content)?;
-
-    //     // Create a new bin entry
-    //     let mut bin_table = toml::Table::new();
-    //     bin_table.insert(
-    //         "name".to_string(),
-    //         toml::Value::String(test_name.to_string()),
-    //     );
-    //     bin_table.insert(
-    //         "path".to_string(),
-    //         toml::Value::String(test_path.to_string()),
-    //     );
-
-    //     // Add the new bin entry to the existing bin array
-    //     if let Some(bin_array) = cargo_toml.get_mut("bin") {
-    //         if let toml::Value::Array(bin_array) = bin_array {
-    //             // Check if this bin entry already exists
-    //             let already_exists = bin_array.iter().any(|bin| {
-    //                 if let Some(name) = bin.get("name").and_then(|n| n.as_str()) {
-    //                     name == test_name
-    //                 } else {
-    //                     false
-    //                 }
-    //             });
-
-    //             if !already_exists {
-    //                 bin_array.push(toml::Value::Table(bin_table));
-    //             }
-    //         }
-    //     } else {
-    //         // If there is no existing bin array, create one
-    //         let bin_array = vec![toml::Value::Table(bin_table)];
-    //         cargo_toml
-    //             .as_table_mut()
-    //             .unwrap()
-    //             .insert("bin".to_string(), toml::Value::Array(bin_array));
-    //     }
-
-    //     // Convert back to string
-    //     Ok(toml::to_string(&cargo_toml)?)
-    // }
 }
 
 #[derive(Debug, Clone)]

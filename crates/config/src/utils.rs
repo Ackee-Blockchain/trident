@@ -3,10 +3,9 @@ use crate::Error;
 
 use anyhow::Context;
 use fehler::throw;
-use std::{
-    env,
-    path::{Path, PathBuf},
-};
+use std::env;
+use std::path::Path;
+use std::path::PathBuf;
 
 pub(crate) fn resolve_path(filename: &str) -> PathBuf {
     let path = Path::new(filename);

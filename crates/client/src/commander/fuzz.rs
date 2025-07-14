@@ -3,7 +3,8 @@ use tokio::process::Command;
 
 use trident_config::TridentConfig;
 
-use super::{Commander, Error};
+use super::Commander;
+use super::Error;
 
 impl Commander {
     #[throws]

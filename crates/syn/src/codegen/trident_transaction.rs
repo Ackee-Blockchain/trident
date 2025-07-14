@@ -1,5 +1,6 @@
 use proc_macro2::TokenStream;
-use quote::{quote, ToTokens};
+use quote::quote;
+use quote::ToTokens;
 
 use crate::types::trident_transaction::TridentTransactionStruct;
 

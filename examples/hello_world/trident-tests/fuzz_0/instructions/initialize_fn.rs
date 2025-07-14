@@ -1,14 +1,17 @@
-use borsh::{BorshDeserialize, BorshSerialize};
+use crate::fuzz_accounts::FuzzAccounts;
+use crate::types::*;
+use borsh::BorshDeserialize;
+use borsh::BorshSerialize;
 use trident_fuzz::fuzzing::*;
 
-use crate::fuzz_transactions::FuzzAccounts;
 #[derive(TridentInstruction, Default)]
 #[program_id("FtevoQoDMv6ZB3N9Lix5Tbjs8EVuNL8vDSqG9kzaZPit")]
-# [discriminator ([18u8 , 187u8 , 169u8 , 213u8 , 94u8 , 180u8 , 86u8 , 152u8 ,])]
+#[discriminator([18u8, 187u8, 169u8, 213u8, 94u8, 180u8, 86u8, 152u8])]
 pub struct InitializeFnInstruction {
     pub accounts: InitializeFnInstructionAccounts,
     pub data: InitializeFnInstructionData,
 }
+
 /// Instruction Accounts
 #[derive(Debug, Clone, TridentAccounts, Default)]
 #[instruction_data(InitializeFnInstructionData)]
@@ -21,6 +24,7 @@ pub struct InitializeFnInstructionAccounts {
         storage::account_id = (0..3)
     )]
     pub author: TridentAccount,
+
     #[account(
         mut,
         storage::name = hello_world_account,
@@ -29,14 +33,17 @@ pub struct InitializeFnInstructionAccounts {
         seeds = [b"hello_world_seed"],
     )]
     pub hello_world_account: TridentAccount,
-    #[account(address = "11111111111111111111111111111111", skip_snapshot)]
+
+    #[account(address = "11111111111111111111111111111111")]
     pub system_program: TridentAccount,
 }
+
 /// Instruction Data
 #[derive(Debug, BorshDeserialize, BorshSerialize, Clone, Default)]
 pub struct InitializeFnInstructionData {
     pub input: u8,
 }
+
 /// Implementation of instruction setters for fuzzing
 ///
 /// Provides methods to:
