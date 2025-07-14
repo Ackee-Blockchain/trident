@@ -1,5 +1,5 @@
 use fehler::{throw, throws};
-use std::{io, process::Stdio, string::FromUtf8Error};
+use std::{io, path::Path, process::Stdio, string::FromUtf8Error};
 use thiserror::Error;
 use tokio::{
     io::AsyncWriteExt,
@@ -40,9 +40,10 @@ impl Commander {
     }
 
     #[throws]
-    pub async fn build_anchor_project(program_name: Option<String>) {
+    pub async fn build_anchor_project(root: &Path, program_name: Option<String>) {
         let mut cmd = Command::new("anchor");
         cmd.arg("build");
+        cmd.current_dir(root);
 
         if let Some(name) = program_name {
             cmd.args(["-p", name.as_str()]);

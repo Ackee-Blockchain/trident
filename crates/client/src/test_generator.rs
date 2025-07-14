@@ -62,32 +62,32 @@ impl TestGenerator {
     #[throws]
     pub async fn initialize(&mut self, program_name: Option<String>, test_name: Option<String>) {
         if !self.skip_build {
-            Commander::build_anchor_project(program_name.clone()).await?;
+            Commander::build_anchor_project(&self.root, program_name.clone()).await?;
         }
 
         self.get_program_packages(program_name.clone()).await?;
         self.load_programs_idl(program_name.clone())?;
         self.create_template().await?;
-        self.add_new_fuzz_test(test_name).await?;
+        self.add_new_fuzz_test(&test_name).await?;
         self.create_trident_toml().await?;
     }
 
     #[throws]
     pub async fn add_fuzz_test(&mut self, program_name: Option<String>, test_name: Option<String>) {
         if !self.skip_build {
-            Commander::build_anchor_project(program_name.clone()).await?;
+            Commander::build_anchor_project(&self.root, program_name.clone()).await?;
         }
 
         self.get_program_packages(program_name.clone()).await?;
         self.load_programs_idl(program_name.clone())?;
         self.create_template().await?;
-        self.add_new_fuzz_test(test_name).await?;
+        self.add_new_fuzz_test(&test_name).await?;
     }
 
     #[throws]
     async fn get_program_packages(&mut self, program_name: Option<String>) {
         // TODO consider optionally excluding packages
-        self.program_packages = collect_program_packages(program_name).await?;
+        self.program_packages = collect_program_packages(&self.root, program_name).await?;
     }
 
     #[throws]
@@ -109,16 +109,16 @@ impl TestGenerator {
             })
             .collect::<Vec<String>>();
 
+        let current_package_version = env!("CARGO_PKG_VERSION");
+
         // Generate templates using Tera
         let output = self
             .template_engine
-            .generate(&self.anchor_idls, &lib_names)
+            .generate(&self.anchor_idls, &lib_names, current_package_version)
             .map_err(|e| Error::TemplateEngine(e.to_string()))?;
 
         // Store the generated output
         self.generated_files = Some(output);
-
-        println!("🎨 Generated code using Tera templates");
     }
 
     #[throws]
@@ -180,6 +180,22 @@ impl TestGenerator {
     pub fn get_fuzz_accounts(&self) -> String {
         if let Some(ref output) = self.generated_files {
             output.fuzz_accounts.clone()
+        } else {
+            String::new()
+        }
+    }
+
+    pub fn get_trident_toml(&self) -> String {
+        if let Some(ref output) = self.generated_files {
+            output.trident_toml.clone()
+        } else {
+            String::new()
+        }
+    }
+
+    pub fn get_cargo_fuzz_toml(&self) -> String {
+        if let Some(ref output) = self.generated_files {
+            output.cargo_fuzz_toml.clone()
         } else {
             String::new()
         }

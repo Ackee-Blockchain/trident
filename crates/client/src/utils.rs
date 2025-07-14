@@ -73,9 +73,10 @@ pub fn get_fuzz_id(fuzz_dir_path: &Path) -> i32 {
 }
 #[throws]
 pub async fn collect_program_packages(
+    root: &Path,
     program_name: Option<String>,
 ) -> Vec<cargo_metadata::Package> {
-    let packages: Vec<cargo_metadata::Package> = program_packages(program_name).collect();
+    let packages: Vec<cargo_metadata::Package> = program_packages(root, program_name).collect();
     if packages.is_empty() {
         throw!(Error::NoProgramsFound)
     } else {
@@ -83,9 +84,11 @@ pub async fn collect_program_packages(
     }
 }
 pub fn program_packages(
+    path: &Path,
     program_name: Option<String>,
 ) -> Box<dyn Iterator<Item = cargo_metadata::Package>> {
     let cargo_toml_data = cargo_metadata::MetadataCommand::new()
+        .manifest_path(path.join(CARGO_TOML))
         .no_deps()
         .exec()
         .expect("Cargo.toml reading failed");

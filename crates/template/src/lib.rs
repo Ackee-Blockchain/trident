@@ -30,6 +30,14 @@ impl TridentTemplates {
                 include_str!("../templates/fuzz_accounts.rs.tera"),
             ),
             ("types.rs", include_str!("../templates/types.rs.tera")),
+            (
+                "Trident.toml",
+                include_str!("../templates/Trident.toml.tera"),
+            ),
+            (
+                "Cargo_fuzz.toml",
+                include_str!("../templates/Cargo_fuzz.toml.tera"),
+            ),
         ])?;
         Ok(Self { tera })
     }
@@ -39,6 +47,7 @@ impl TridentTemplates {
         &self,
         idls: &[Idl],
         lib_names: &[String],
+        trident_version: &str,
     ) -> Result<GeneratedFiles, Box<dyn std::error::Error>> {
         let mut instructions = Vec::new();
         let mut transactions = Vec::new();
@@ -70,10 +79,9 @@ impl TridentTemplates {
         }
 
         // Generate other files
-        let test_fuzz = self.tera.render(
-            "test_fuzz.rs",
-            &Context::from_serialize(json!({"programs": programs}))?,
-        )?;
+        let test_fuzz = self
+            .tera
+            .render("test_fuzz.rs", &Context::from_serialize(json!({}))?)?;
         let fuzz_accounts = self.tera.render(
             "fuzz_accounts.rs",
             &Context::from_serialize(json!({"accounts": self.collect_all_accounts(idls)}))?,
@@ -81,6 +89,16 @@ impl TridentTemplates {
         let custom_types = self.tera.render(
             "types.rs",
             &Context::from_serialize(json!({"custom_types": self.collect_custom_types(idls)}))?,
+        )?;
+        let trident_toml = self.tera.render(
+            "Trident.toml",
+            &Context::from_serialize(json!({"programs": programs}))?,
+        )?;
+        let cargo_fuzz_toml = self.tera.render(
+            "Cargo_fuzz.toml",
+            &Context::from_serialize(json!({
+                "trident_version": trident_version,
+            }))?,
         )?;
 
         // Generate mod files (clone to avoid borrowing issues)
@@ -105,6 +123,8 @@ impl TridentTemplates {
             transactions_mod,
             custom_types,
             fuzz_accounts,
+            trident_toml,
+            cargo_fuzz_toml,
         })
     }
 
@@ -367,6 +387,84 @@ impl TridentTemplates {
         }
         content
     }
+
+    // Generate Cargo_fuzz.toml with specified bin targets
+    // pub fn generate_cargo_fuzz_toml(
+    //     &self,
+    //     bin_targets: &[(&str, &str)],
+    // ) -> Result<String, Box<dyn std::error::Error>> {
+    //     // Get the trident-fuzz version from Cargo.toml
+    //     let trident_version = env!("CARGO_PKG_VERSION");
+
+    //     // Convert bin targets to JSON
+    //     let bins = bin_targets
+    //         .iter()
+    //         .map(|(name, path)| {
+    //             json!({
+    //                 "name": name,
+    //                 "path": path
+    //             })
+    //         })
+    //         .collect::<Vec<_>>();
+
+    //     // Render the template
+    //     let context = Context::from_serialize(json!({
+    //         "trident_version": trident_version,
+    //         "bins": bins
+    //     }))?;
+
+    //     Ok(self.tera.render("Cargo_fuzz.toml", &context)?)
+    // }
+
+    // /// Add a bin target to existing Cargo.toml content
+    // pub fn add_bin_target_to_cargo_toml(
+    //     &self,
+    //     cargo_content: &str,
+    //     test_name: &str,
+    //     test_path: &str,
+    // ) -> Result<String, Box<dyn std::error::Error>> {
+    //     // Parse the existing Cargo.toml
+    //     let mut cargo_toml: toml::Value = toml::from_str(cargo_content)?;
+
+    //     // Create a new bin entry
+    //     let mut bin_table = toml::Table::new();
+    //     bin_table.insert(
+    //         "name".to_string(),
+    //         toml::Value::String(test_name.to_string()),
+    //     );
+    //     bin_table.insert(
+    //         "path".to_string(),
+    //         toml::Value::String(test_path.to_string()),
+    //     );
+
+    //     // Add the new bin entry to the existing bin array
+    //     if let Some(bin_array) = cargo_toml.get_mut("bin") {
+    //         if let toml::Value::Array(bin_array) = bin_array {
+    //             // Check if this bin entry already exists
+    //             let already_exists = bin_array.iter().any(|bin| {
+    //                 if let Some(name) = bin.get("name").and_then(|n| n.as_str()) {
+    //                     name == test_name
+    //                 } else {
+    //                     false
+    //                 }
+    //             });
+
+    //             if !already_exists {
+    //                 bin_array.push(toml::Value::Table(bin_table));
+    //             }
+    //         }
+    //     } else {
+    //         // If there is no existing bin array, create one
+    //         let bin_array = vec![toml::Value::Table(bin_table)];
+    //         cargo_toml
+    //             .as_table_mut()
+    //             .unwrap()
+    //             .insert("bin".to_string(), toml::Value::Array(bin_array));
+    //     }
+
+    //     // Convert back to string
+    //     Ok(toml::to_string(&cargo_toml)?)
+    // }
 }
 
 #[derive(Debug, Clone)]
@@ -378,6 +476,8 @@ pub struct GeneratedFiles {
     pub transactions_mod: String,
     pub custom_types: String,
     pub fuzz_accounts: String,
+    pub trident_toml: String,
+    pub cargo_fuzz_toml: String,
 }
 
 impl Default for TridentTemplates {

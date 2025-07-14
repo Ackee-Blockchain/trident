@@ -8,7 +8,6 @@ mod commander;
 // mod coverage;
 mod idl_loader;
 mod test_generator;
-mod test_generator_gitignore;
 mod test_generator_manifest;
 mod test_generator_template;
 mod utils;
@@ -36,9 +35,6 @@ mod constants {
     pub(crate) const FUZZ_ACCOUNTS_FILE_NAME: &str = "fuzz_accounts.rs";
     pub(crate) const TYPES_FILE_NAME: &str = "types.rs";
     pub(crate) const FUZZ_TEST: &str = "test_fuzz.rs";
-
-    // Workspace
-    pub(crate) const GIT_IGNORE: &str = ".gitignore";
 
     // Formatting
     pub(crate) const SKIP: &str = "\x1b[33mSkip\x1b[0m";

@@ -1,5 +1,5 @@
+use crate::constants::TRIDENT_TOML;
 use crate::Error;
-use crate::ANCHOR_TOML;
 
 use anyhow::Context;
 use fehler::throw;
@@ -34,7 +34,7 @@ pub fn discover_root() -> Result<PathBuf, Error> {
                 })?
                 .path();
             if let Some(filename) = path.file_name() {
-                if filename.to_str() == Some(ANCHOR_TOML) {
+                if filename.to_str() == Some(TRIDENT_TOML) {
                     return Ok(PathBuf::from(cwd));
                 }
             }

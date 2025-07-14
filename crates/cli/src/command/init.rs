@@ -10,6 +10,7 @@ use crate::{_discover, show_howto};
 pub const ANCHOR_TOML: &str = "Anchor.toml";
 pub const TRIDENT_TOML: &str = "Trident.toml";
 pub const SKIP: &str = "\x1b[33mSkip\x1b[0m";
+pub const TESTS_WORKSPACE_DIRECTORY: &str = "trident-tests";
 
 #[throws]
 pub async fn init(
@@ -28,17 +29,21 @@ pub async fn init(
     let mut generator: TestGenerator = TestGenerator::new_with_root(&root, skip_build)?;
 
     let test_name_snake = test_name.map(|name| name.to_snake_case());
+
     if force {
         generator.initialize(program_name, test_name_snake).await?;
         show_howto();
     } else {
-        let root_path = Path::new(&root).join(TRIDENT_TOML);
-        if root_path.exists() {
+        // Check if Trident.toml exists in the trident-tests directory
+        let trident_tests_dir = Path::new(&root).join(TESTS_WORKSPACE_DIRECTORY);
+        let trident_toml_path = trident_tests_dir.join(TRIDENT_TOML);
+
+        if trident_tests_dir.exists() && trident_toml_path.exists() {
             println!(
                 "{SKIP}: It looks like Trident is already initialized.\n\
-            Trident.toml was found in {} directory.\n\
+            Trident.toml was found in {}/{} directory.\n\
             In case you want to reinitialize the workspace use --force/-f flag.",
-                root
+                root, TESTS_WORKSPACE_DIRECTORY
             );
         } else {
             generator.initialize(program_name, test_name_snake).await?;

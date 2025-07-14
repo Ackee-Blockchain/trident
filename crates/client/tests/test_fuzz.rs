@@ -50,8 +50,9 @@ fn generate_templates(
     idls: Vec<Idl>,
     lib_names: Vec<String>,
 ) -> anyhow::Result<trident_template::GeneratedFiles> {
+    let current_package_version = env!("CARGO_PKG_VERSION");
     templates
-        .generate(&idls, &lib_names)
+        .generate(&idls, &lib_names, current_package_version)
         .map_err(|e| anyhow::anyhow!("Template generation failed: {}", e))
 }
 

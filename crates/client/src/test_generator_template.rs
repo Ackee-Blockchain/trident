@@ -1,7 +1,7 @@
 use crate::___private::TestGenerator;
 use crate::commander::Commander;
 use crate::constants::*;
-use crate::{construct_path, load_template, utils::*};
+use crate::{construct_path, utils::*};
 use fehler::throws;
 
 use std::path::Path;
@@ -76,28 +76,34 @@ impl TestGenerator {
     }
 
     #[throws]
-    pub(crate) async fn create_cargo_toml(&self, trident_tests: &Path) {
-        let cargo_toml_content = load_template!("/src/template/Cargo_fuzz.toml.tmpl");
-
+    pub(crate) async fn create_cargo_toml(&self, trident_tests: &Path, test_name: &str) {
+        // Check if Cargo.toml already exists
         let cargo_toml_path = construct_path!(trident_tests, CARGO_TOML);
 
-        create_file(&self.root, &cargo_toml_path, cargo_toml_content).await?;
+        if cargo_toml_path.exists() {
+            self.add_fuzz_target(trident_tests, test_name).await?;
+        } else {
+            // If it doesn't exist, let the template crate generate it
+            let cargo_toml_content = self.get_cargo_fuzz_toml();
+            create_file(&self.root, &cargo_toml_path, &cargo_toml_content).await?;
+            self.add_fuzz_target(trident_tests, test_name).await?;
+        }
     }
 
     #[throws]
     pub(crate) async fn create_trident_toml(&self) {
-        let trident_toml_content = load_template!("/src/template/Trident.toml.tmpl");
-        let trident_toml_path = construct_path!(self.root, TRIDENT_TOML);
+        let trident_toml_content = self.get_trident_toml();
+        let trident_toml_path = construct_path!(self.root, TESTS_WORKSPACE_DIRECTORY, TRIDENT_TOML);
 
-        create_file(&self.root, &trident_toml_path, trident_toml_content).await?;
+        create_file(&self.root, &trident_toml_path, &trident_toml_content).await?;
     }
 
     #[throws]
-    pub(crate) async fn add_new_fuzz_test(&self, test_name: Option<String>) {
+    pub(crate) async fn add_new_fuzz_test(&self, test_name: &Option<String>) {
         let trident_tests = construct_path!(self.root, TESTS_WORKSPACE_DIRECTORY);
 
         let new_fuzz_test = match test_name {
-            Some(name) => name,
+            Some(name) => name.to_owned(),
             None => format!("fuzz_{}", get_fuzz_id(&trident_tests)?),
         };
 
@@ -108,19 +114,12 @@ impl TestGenerator {
             return;
         }
 
-        println!("🎨 Generating test files using Tera templates");
-
         self.create_instructions(&new_fuzz_test_dir).await?;
         self.create_transactions(&new_fuzz_test_dir).await?;
         self.create_test_fuzz(&new_fuzz_test_dir).await?;
         self.create_custom_types(&new_fuzz_test_dir).await?;
         self.create_fuzz_accounts(&new_fuzz_test_dir).await?;
-        self.create_cargo_toml(&trident_tests).await?;
-
-        self.trident_dependency(&trident_tests).await?;
-        self.program_dependency(&trident_tests).await?;
-        self.fuzz_target(&trident_tests, &new_fuzz_test).await?
-
-        // add_workspace_member(&self.root, &format!("{TESTS_WORKSPACE_DIRECTORY}",)).await?;
+        self.create_cargo_toml(&trident_tests, &new_fuzz_test)
+            .await?;
     }
 }

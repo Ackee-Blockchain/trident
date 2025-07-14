@@ -1,13 +1,16 @@
-use crate::fuzz_transactions::FuzzAccounts;
+use crate::fuzz_accounts::FuzzAccounts;
+use crate::types::*;
 use borsh::{BorshDeserialize, BorshSerialize};
 use trident_fuzz::fuzzing::*;
+
 #[derive(TridentInstruction, Default)]
 #[program_id("CWjKHxkHU7kqRKqNutPAbxogKg3K1crH61gwwzsHjpC4")]
-# [discriminator ([164u8 , 75u8 , 79u8 , 32u8 , 57u8 , 23u8 , 116u8 , 175u8 ,])]
+#[discriminator([164u8, 75u8, 79u8, 32u8, 57u8, 23u8, 116u8, 175u8])]
 pub struct InitializeCalleeInstruction {
     pub accounts: InitializeCalleeInstructionAccounts,
     pub data: InitializeCalleeInstructionData,
 }
+
 /// Instruction Accounts
 #[derive(Debug, Clone, TridentAccounts, Default)]
 #[instruction_data(InitializeCalleeInstructionData)]
@@ -18,13 +21,15 @@ pub struct InitializeCalleeInstructionAccounts {
         storage::name = signer,
         storage::account_id = (0..1)
     )]
-    signer: TridentAccount,
+    pub signer: TridentAccount,
 }
+
 /// Instruction Data
 #[derive(Debug, BorshDeserialize, BorshSerialize, Clone, Default)]
 pub struct InitializeCalleeInstructionData {
-    input: u16,
+    pub input: u16,
 }
+
 /// Implementation of instruction setters for fuzzing
 ///
 /// Provides methods to:
