@@ -9,11 +9,6 @@ license-file = { workspace = true }
 readme = { workspace = true }
 
 
-# Trident
-[dependencies.trident-fuzz]
-path = "../fuzz"
-version = "0.10.0"
-
 [dependencies.trident-config]
 path = "../config"
 version = "0.10.0"
@@ -36,7 +31,6 @@ thiserror = "1"
 anyhow = "1"
 cargo_metadata = "0.18"
 toml = { version = "0.8", features = ["preserve_order"] }
-pathdiff = "0.2"
 rand = "0.8"
 heck = "0.4.0"
 

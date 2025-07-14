@@ -4,9 +4,6 @@ mod fuzz_accounts;
 mod instructions;
 mod transactions;
 mod types;
-{% for program in programs %}
-use {{ program.lib_name }}::entry as entry_{{ program.name }};
-{% endfor %}
 pub use transactions::*;
 
 #[derive(FuzzTestMethods)]
@@ -24,15 +21,7 @@ struct FuzzTest {
 #[flow_executor]
 impl FuzzTest {
     fn new() -> Self {
-        let mut client = TridentSVM::new_client(&TridentConfig::new());
-
-        {% for program in programs %}
-        client.deploy_entrypoint(TridentEntrypoint::new(
-            pubkey!("{{ program.program_id }}"),
-            None,
-            processor!(entry_{{ program.name }}),
-        ));
-        {% endfor %}
+        let client = TridentSVM::new_client(&TridentConfig::new());
 
         Self {
             client,

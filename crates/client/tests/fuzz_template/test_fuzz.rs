@@ -4,11 +4,6 @@ mod fuzz_accounts;
 mod instructions;
 mod transactions;
 mod types;
-
-use additional_program::entry as entry_additional_program;
-
-use idl_test::entry as entry_idl_test;
-
 pub use transactions::*;
 
 #[derive(FuzzTestMethods)]
@@ -26,19 +21,7 @@ struct FuzzTest {
 #[flow_executor]
 impl FuzzTest {
     fn new() -> Self {
-        let mut client = TridentSVM::new_client(&TridentConfig::new());
-
-        client.deploy_entrypoint(TridentEntrypoint::new(
-            pubkey!("8bPSKGoWCdAW8Hu3S1hLHPpBv8BNwse4jDyaXNrj3jWB"),
-            None,
-            processor!(entry_additional_program),
-        ));
-
-        client.deploy_entrypoint(TridentEntrypoint::new(
-            pubkey!("HtD1eaPZ1JqtxcirNtYt3aAhUMoJWZ2Ddtzu4NDZCrhN"),
-            None,
-            processor!(entry_idl_test),
-        ));
+        let client = TridentSVM::new_client(&TridentConfig::new());
 
         Self {
             client,

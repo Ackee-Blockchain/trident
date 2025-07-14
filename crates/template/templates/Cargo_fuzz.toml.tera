@@ -9,3 +9,7 @@ edition = "2021"
 [dependencies]
 borsh = "1.5.3"
 solana-sdk = "~2.0"
+
+[dependencies.trident-fuzz]
+version = "{{ trident_version }}"
+
