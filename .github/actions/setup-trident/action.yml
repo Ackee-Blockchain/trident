@@ -6,5 +6,5 @@ runs:
   steps:
     # Install Trident from the local crates/cli directory
     - name: Install Trident
-      run: cargo install --path crates/cli
+      run: make install
       shell: bash

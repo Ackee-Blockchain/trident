@@ -7,6 +7,9 @@ use trident_fuzz::fuzzing::*;
 /// Docs: https://ackee.xyz/trident/docs/latest/trident-api-macro/trident-types/fuzz-accounts/
 #[derive(Default)]
 pub struct FuzzAccounts {
-    pub state_author: AccountsStorage,
+    pub system_program: AccountsStorage,
+
     pub state: AccountsStorage,
+
+    pub state_author: AccountsStorage,
 }

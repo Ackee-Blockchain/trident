@@ -1,10 +1,9 @@
-use fuzz_transactions::*;
+use fuzz_accounts::*;
 use trident_fuzz::fuzzing::*;
-mod fuzz_transactions;
+mod fuzz_accounts;
 mod instructions;
 mod transactions;
 mod types;
-use maze0::entry as entry_maze0;
 pub use transactions::*;
 
 #[derive(FuzzTestMethods)]
@@ -18,16 +17,11 @@ struct FuzzTest {
     /// for storing fuzzing accounts
     fuzz_accounts: FuzzAccounts,
 }
+
 #[flow_executor]
 impl FuzzTest {
     fn new() -> Self {
-        let mut client = TridentSVM::new_client(&TridentConfig::new());
-
-        client.deploy_entrypoint(TridentEntrypoint::new(
-            pubkey!("5e554BrmQN7a2nbKrSUUxP8PMbq55rMntnkoCPmwr3Aq"),
-            None,
-            processor!(entry_maze0),
-        ));
+        let client = TridentSVM::new_client(&TridentConfig::new());
 
         Self {
             client,
@@ -36,6 +30,7 @@ impl FuzzTest {
             fuzz_accounts: FuzzAccounts::default(),
         }
     }
+
     #[init]
     fn start(&mut self) -> Result<(), FuzzingError> {
         let mut tx =
@@ -74,6 +69,7 @@ impl FuzzTest {
         Ok(())
     }
 }
+
 fn main() {
-    FuzzTest::fuzz(100, 1000);
+    FuzzTest::fuzz(1000, 100);
 }

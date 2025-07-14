@@ -2,6 +2,9 @@
 format:
 	cargo +nightly fmt
 
+format-checks:
+	cargo +nightly fmt --check
+
 install:
 	cargo install --path crates/cli
 
