@@ -1,13 +1,17 @@
-use crate::fuzz_transactions::FuzzAccounts;
-use borsh::{BorshDeserialize, BorshSerialize};
+use crate::fuzz_accounts::FuzzAccounts;
+use crate::types::*;
+use borsh::BorshDeserialize;
+use borsh::BorshSerialize;
 use trident_fuzz::fuzzing::*;
+
 #[derive(TridentInstruction, Default)]
 #[program_id("5e554BrmQN7a2nbKrSUUxP8PMbq55rMntnkoCPmwr3Aq")]
-# [discriminator ([65u8 , 4u8 , 235u8 , 142u8 , 120u8 , 215u8 , 181u8 , 131u8 ,])]
+#[discriminator([65u8, 4u8, 235u8, 142u8, 120u8, 215u8, 181u8, 131u8])]
 pub struct MoveNorthInstruction {
     pub accounts: MoveNorthInstructionAccounts,
     pub data: MoveNorthInstructionData,
 }
+
 /// Instruction Accounts
 #[derive(Debug, Clone, TridentAccounts, Default)]
 #[instruction_data(MoveNorthInstructionData)]
@@ -20,18 +24,27 @@ pub struct MoveNorthInstructionAccounts {
     )]
     pub state: TridentAccount,
 }
+
 /// Instruction Data
 #[derive(Debug, BorshDeserialize, BorshSerialize, Clone, Default)]
 pub struct MoveNorthInstructionData {
     pub p0: u64,
+
     pub p1: u64,
+
     pub p2: u64,
+
     pub p3: u64,
+
     pub p4: u64,
+
     pub p5: u64,
+
     pub p6: u64,
+
     pub p7: u64,
 }
+
 /// Implementation of instruction setters for fuzzing
 ///
 /// Provides methods to:
@@ -42,6 +55,7 @@ pub struct MoveNorthInstructionData {
 /// Docs: https://ackee.xyz/trident/docs/latest/start-fuzzing/writting-fuzz-test/
 impl InstructionHooks for MoveNorthInstruction {
     type IxAccounts = FuzzAccounts;
+
     fn set_data(
         &mut self,
         _client: &mut impl FuzzClient,
