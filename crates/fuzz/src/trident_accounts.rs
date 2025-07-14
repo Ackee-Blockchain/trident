@@ -4,7 +4,8 @@ use solana_sdk::clock::Epoch;
 use solana_sdk::instruction::AccountMeta;
 use solana_sdk::pubkey::Pubkey;
 
-use crate::{fuzzing::FuzzClient, types::AccountId};
+use crate::fuzzing::FuzzClient;
+use crate::types::AccountId;
 
 #[derive(Clone, Default)]
 pub struct TridentAccount {

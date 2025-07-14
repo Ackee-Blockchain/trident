@@ -1,6 +1,7 @@
 use petgraph::algo::toposort;
 use petgraph::Graph;
-use quote::{quote, ToTokens};
+use quote::quote;
+use quote::ToTokens;
 use std::collections::HashMap;
 
 use crate::types::trident_accounts::AccountIdSpec;

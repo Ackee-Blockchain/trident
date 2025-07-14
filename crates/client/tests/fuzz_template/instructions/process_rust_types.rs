@@ -1,6 +1,7 @@
 use crate::fuzz_accounts::FuzzAccounts;
 use crate::types::*;
-use borsh::{BorshDeserialize, BorshSerialize};
+use borsh::BorshDeserialize;
+use borsh::BorshSerialize;
 use trident_fuzz::fuzzing::*;
 
 #[derive(TridentInstruction, Default)]

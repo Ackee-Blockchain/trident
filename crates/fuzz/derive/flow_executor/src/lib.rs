@@ -1,6 +1,8 @@
 use proc_macro::TokenStream;
 use quote::ToTokens;
-use syn::{parse_macro_input, ItemFn, ItemImpl};
+use syn::parse_macro_input;
+use syn::ItemFn;
+use syn::ItemImpl;
 use trident_syn::parser::trident_flow_executor::parse_trident_flow_executor;
 
 /// Marks a method to be executed as part of the fuzzing flow

@@ -1,9 +1,13 @@
 use syn::parse::Error as ParseError;
 use syn::parse::Result as ParseResult;
 use syn::spanned::Spanned;
-use syn::{Attribute, ItemImpl, Meta};
+use syn::Attribute;
+use syn::ItemImpl;
+use syn::Meta;
 
-use crate::types::trident_flow_executor::{FlowConstraints, FlowMethod, TridentFlowExecutorImpl};
+use crate::types::trident_flow_executor::FlowConstraints;
+use crate::types::trident_flow_executor::FlowMethod;
+use crate::types::trident_flow_executor::TridentFlowExecutorImpl;
 
 pub fn parse_trident_flow_executor(input: &ItemImpl) -> ParseResult<TridentFlowExecutorImpl> {
     // Extract just the path without any generics

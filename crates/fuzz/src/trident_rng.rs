@@ -5,7 +5,9 @@ use rand::distributions::Distribution;
 use rand::distributions::Standard;
 
 use rand::rngs::SmallRng;
-use rand::{Rng, RngCore, SeedableRng};
+use rand::Rng;
+use rand::RngCore;
+use rand::SeedableRng;
 
 pub struct TridentRng {
     seed: [u8; 32],

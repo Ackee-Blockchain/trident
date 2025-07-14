@@ -1,7 +1,8 @@
-use crate::test_generator::Error;
+use crate::error::Error;
 
 use crate::constants::*;
-use fehler::{throw, throws};
+use fehler::throw;
+use fehler::throws;
 use std::path::Path;
 use std::path::PathBuf;
 use tokio::fs;
@@ -109,36 +110,3 @@ pub fn program_packages(
         })),
     }
 }
-
-// #[throws]
-// pub async fn add_workspace_member(root: &Path, member: &str) {
-//     // Construct the path to the Cargo.toml file
-//     let cargo = root.join("Cargo.toml");
-
-//     // Read and parse the Cargo.toml file
-//     let cargo_toml_content = fs::read_to_string(&cargo).await?;
-//     let mut cargo_toml: Value = toml::from_str(&cargo_toml_content)?;
-
-//     // Ensure that the 'workspace' table exists
-//     let workspace_table = ensure_table(&mut cargo_toml, "workspace")?;
-
-//     // Ensure that the 'members' array exists within the 'workspace' table
-//     let members = workspace_table
-//         .entry("members")
-//         .or_insert(Value::Array(Vec::new()))
-//         .as_array_mut()
-//         .ok_or(Error::CannotParseCargoToml)?;
-
-//     // Check if the new member already exists in the 'members' array
-//     if !members.iter().any(|x| x.as_str() == Some(member)) {
-//         // Add the new member to the 'members' array
-//         members.push(Value::String(member.to_string()));
-//         println!("{FINISH} [{CARGO_TOML}] updated with [{member}]");
-
-//         // Write the updated Cargo.toml back to the file
-//         let updated_toml = toml::to_string(&cargo_toml).unwrap();
-//         fs::write(cargo, updated_toml).await?;
-//     } else {
-//         println!("{SKIP} [{CARGO_TOML}], already contains [{member}]");
-//     }
-// }
