@@ -429,9 +429,20 @@ impl TridentFlowExecutorImpl {
             let mut merged_metrics = FuzzingStatistics::new();
 
             for handle in handles {
-                if let Ok(thread_metrics) = handle.join() {
-                    // Merge the thread metrics directly
-                    merged_metrics.merge_from(thread_metrics);
+                match handle.join() {
+                    Ok(thread_metrics) => {
+                        merged_metrics.merge_from(thread_metrics);
+                    }
+                    Err(err) => {
+                        if let Some(s) = err.downcast_ref::<&str>() {
+                            eprintln!("Thread panicked with message: {}", s);
+                        } else if let Some(s) = err.downcast_ref::<String>() {
+                            eprintln!("Thread panicked with message: {}", s);
+                        } else {
+                            eprintln!("Thread panicked with unknown error type");
+                        }
+                        panic!("Error joining thread: {:?}", err);
+                    }
                 }
             }
 
