@@ -1,4 +1,5 @@
-use borsh::{BorshDeserialize, BorshSerialize};
+use borsh::BorshDeserialize;
+use borsh::BorshSerialize;
 use trident_fuzz::fuzzing::*;
 
 /// File containing all custom types which can be used

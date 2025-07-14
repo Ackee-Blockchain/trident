@@ -2,3 +2,9 @@
 
 [fuzz]
 fuzzing_with_stats = true
+
+
+[[fuzz.programs]]
+address = "H2XPhu8mmGDZioamVp2C5bDWXSSKn6bDdhpiUqWqPmLS"
+program = "../target/deploy/metaplex.so"
+ 

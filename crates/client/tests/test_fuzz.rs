@@ -49,11 +49,10 @@ async fn test_test_fuzz_generation() {
 fn generate_templates(
     templates: &TridentTemplates,
     idls: Vec<Idl>,
-    lib_names: Vec<String>,
 ) -> anyhow::Result<trident_template::GeneratedFiles> {
     let current_package_version = env!("CARGO_PKG_VERSION");
     templates
-        .generate(&idls, &lib_names, current_package_version)
+        .generate(&idls, current_package_version)
         .map_err(|e| anyhow::anyhow!("Template generation failed: {}", e))
 }
 
@@ -64,9 +63,8 @@ async fn verify_instructions(templates: &TridentTemplates) {
         read_idl("additional_program.json")?,
         read_idl("idl_test.json")?,
     ];
-    let lib_names = vec!["additional_program".to_string(), "idl_test".to_string()];
 
-    let generated_files = generate_templates(templates, idls, lib_names)?;
+    let generated_files = generate_templates(templates, idls)?;
 
     for (name, generated_content) in &generated_files.instructions {
         let expected_path = construct_path(&format!("fuzz_template/instructions/{}.rs", name));
@@ -101,9 +99,8 @@ async fn verify_transactions(templates: &TridentTemplates) {
         read_idl("additional_program.json")?,
         read_idl("idl_test.json")?,
     ];
-    let lib_names = vec!["additional_program".to_string(), "idl_test".to_string()];
 
-    let generated_files = generate_templates(templates, idls, lib_names)?;
+    let generated_files = generate_templates(templates, idls)?;
 
     for (name, generated_content) in &generated_files.transactions {
         let expected_path = construct_path(&format!("fuzz_template/transactions/{}.rs", name));
@@ -137,9 +134,8 @@ async fn verify_types(templates: &TridentTemplates) {
         read_idl("additional_program.json")?,
         read_idl("idl_test.json")?,
     ];
-    let lib_names = vec!["additional_program".to_string(), "idl_test".to_string()];
 
-    let generated_files = generate_templates(templates, idls, lib_names)?;
+    let generated_files = generate_templates(templates, idls)?;
 
     let generated_types = &generated_files.custom_types;
     let expected_types_path = construct_path("fuzz_template/types.rs");
@@ -155,9 +151,8 @@ async fn verify_fuzz_accounts(templates: &TridentTemplates) {
         read_idl("additional_program.json")?,
         read_idl("idl_test.json")?,
     ];
-    let lib_names = vec!["additional_program".to_string(), "idl_test".to_string()];
 
-    let generated_files = generate_templates(templates, idls, lib_names)?;
+    let generated_files = generate_templates(templates, idls)?;
 
     let generated_fuzz = &generated_files.fuzz_accounts;
     let expected_fuzz_path = construct_path("fuzz_template/fuzz_accounts.rs");
@@ -177,9 +172,8 @@ async fn verify_test_fuzz(templates: &TridentTemplates) {
         read_idl("additional_program.json")?,
         read_idl("idl_test.json")?,
     ];
-    let lib_names = vec!["additional_program".to_string(), "idl_test".to_string()];
 
-    let generated_files = generate_templates(templates, idls, lib_names)?;
+    let generated_files = generate_templates(templates, idls)?;
 
     let generated_test_fuzz = &generated_files.test_fuzz;
     let expected_test_fuzz_path = construct_path("fuzz_template/test_fuzz.rs");

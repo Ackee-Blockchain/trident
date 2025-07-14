@@ -57,12 +57,11 @@ impl TridentTemplates {
     pub fn generate(
         &self,
         idls: &[Idl],
-        lib_names: &[String],
         trident_version: &str,
     ) -> Result<GeneratedFiles, TemplateError> {
         let mut instructions = Vec::new();
         let mut transactions = Vec::new();
-        let programs = self.build_programs_data(idls, lib_names);
+        let programs = self.build_programs_data(idls);
 
         // Process instructions for each IDL
         for idl in idls.iter() {
@@ -140,21 +139,24 @@ impl TridentTemplates {
     }
 
     // Helper function to build program data
-    fn build_programs_data(&self, idls: &[Idl], lib_names: &[String]) -> Vec<serde_json::Value> {
+    fn build_programs_data(&self, idls: &[Idl]) -> Vec<serde_json::Value> {
         idls.iter()
-            .enumerate()
-            .map(|(idx, idl)| {
+            .map(|idl| {
                 let program_id = if idl.address.is_empty() {
                     "fill corresponding program ID here"
                 } else {
                     &idl.address
                 };
-                let lib_name = lib_names.get(idx).unwrap_or(&idl.metadata.name);
+
+                let program_name = if idl.metadata.name.is_empty() {
+                    "fill corresponding program name here"
+                } else {
+                    &idl.metadata.name
+                };
 
                 json!({
-                    "name": idl.metadata.name,
+                    "name": program_name,
                     "program_id": program_id,
-                    "lib_name": lib_name
                 })
             })
             .collect()

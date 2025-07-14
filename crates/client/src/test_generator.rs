@@ -1,8 +1,6 @@
 use crate::commander::Commander;
 use crate::construct_path;
 use crate::error::Error;
-use crate::utils::*;
-use cargo_metadata::Package;
 use fehler::throws;
 use std::path::Path;
 use std::path::PathBuf;
@@ -13,7 +11,6 @@ use trident_template::TridentTemplates;
 pub struct TestGenerator {
     pub(crate) root: PathBuf,
     pub(crate) skip_build: bool,
-    pub(crate) program_packages: Vec<Package>,
     pub(crate) anchor_idls: Vec<Idl>,
     pub(crate) template_engine: TridentTemplates,
     pub(crate) generated_files: Option<GeneratedFiles>,
@@ -25,7 +22,6 @@ impl TestGenerator {
         Self {
             root: Path::new(&root).to_path_buf(),
             skip_build,
-            program_packages: Vec::default(),
             anchor_idls: Vec::default(),
             template_engine: TridentTemplates::new()?,
             generated_files: None,
@@ -38,7 +34,6 @@ impl TestGenerator {
             Commander::build_anchor_project(&self.root, program_name.clone()).await?;
         }
 
-        self.get_program_packages(program_name.clone()).await?;
         self.load_programs_idl(program_name.clone())?;
         self.create_template().await?;
         self.add_new_fuzz_test(&test_name).await?;
@@ -51,45 +46,19 @@ impl TestGenerator {
             Commander::build_anchor_project(&self.root, program_name.clone()).await?;
         }
 
-        self.get_program_packages(program_name.clone()).await?;
         self.load_programs_idl(program_name.clone())?;
         self.create_template().await?;
         self.add_new_fuzz_test(&test_name).await?;
     }
 
     #[throws]
-    async fn get_program_packages(&mut self, program_name: Option<String>) {
-        // TODO consider optionally excluding packages
-        self.program_packages = collect_program_packages(&self.root, program_name).await?;
-    }
-
-    #[throws]
     async fn create_template(&mut self) {
-        // Obtain lib names so we can generate entries in the test_fuzz.rs file
-        let lib_names = self
-            .program_packages
-            .iter()
-            .map(|p| {
-                // This is little dirty
-                // We check if there is any target, if so we check only the first one and check if it is lib
-                // if so we take its name.
-                // Otherwise we take the package name.
-                if !p.targets.is_empty() && p.targets[0].kind.iter().any(|k| k == "lib") {
-                    p.targets[0].name.clone()
-                } else {
-                    p.name.clone()
-                }
-            })
-            .collect::<Vec<String>>();
-
         let current_package_version = env!("CARGO_PKG_VERSION");
 
         // Generate templates using Tera
-        let output = self.template_engine.generate(
-            &self.anchor_idls,
-            &lib_names,
-            current_package_version,
-        )?;
+        let output = self
+            .template_engine
+            .generate(&self.anchor_idls, current_package_version)?;
 
         // Store the generated output
         self.generated_files = Some(output);

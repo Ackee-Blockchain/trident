@@ -5,10 +5,10 @@ fuzzing_with_stats = true
 
 
 [[fuzz.programs]]
-address = "CWjKHxkHU7kqRKqNutPAbxogKg3K1crH61gwwzsHjpC4"
-program = "../target/deploy/callee.so"
-
-[[fuzz.programs]]
 address = "77skervubsozZaRdojomG7FK8T2QQppxtSqG8ag9D4qV"
 program = "../target/deploy/cpi.so"
+
+[[fuzz.programs]]
+address = "CWjKHxkHU7kqRKqNutPAbxogKg3K1crH61gwwzsHjpC4"
+program = "../target/deploy/callee.so"
  
