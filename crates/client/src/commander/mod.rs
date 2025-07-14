@@ -115,7 +115,7 @@ impl Commander {
                     Ok(status) => if !status.success() {
                         throw!(Error::FuzzingFailed);
                     },
-                    Err(_) => throw!(Error::FuzzingFailed),
+                    Err(e) => throw!(e),
             },
             _ = signal::ctrl_c() => {
                 let _res = child.wait().await?;
