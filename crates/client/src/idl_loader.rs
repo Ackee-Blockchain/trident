@@ -19,6 +19,9 @@ pub enum IdlError {
         source: serde_json::Error,
         path: PathBuf,
     },
+    NoIdlsFound {
+        path: String,
+    },
 }
 
 impl fmt::Display for IdlError {
@@ -45,6 +48,9 @@ impl fmt::Display for IdlError {
                     source
                 )
             }
+            IdlError::NoIdlsFound { path } => {
+                write!(f, "No IDL files found in {}", path)
+            }
         }
     }
 }
@@ -54,6 +60,7 @@ impl std::error::Error for IdlError {
         match self {
             IdlError::IoError { source, .. } => Some(source),
             IdlError::ParseError { source, .. } => Some(source),
+            IdlError::NoIdlsFound { .. } => None,
         }
     }
 }
@@ -132,6 +139,12 @@ pub fn load_idls(dir_path: PathBuf, program_name: Option<String>) -> Result<Vec<
                 }
             }
         }
+    }
+
+    if idls.is_empty() {
+        return Err(IdlError::NoIdlsFound {
+            path: dir_path.to_string_lossy().to_string(),
+        });
     }
 
     Ok(idls)

@@ -8,7 +8,14 @@ use trident_fuzz::fuzzing::*;
 #[derive(Default)]
 pub struct FuzzAccounts {
     pub mpl_token_metadata: AccountsStorage,
-    pub mint: AccountsStorage,
-    pub signer: AccountsStorage,
+
     pub metadata_account: AccountsStorage,
+
+    pub token_program: AccountsStorage,
+
+    pub signer: AccountsStorage,
+
+    pub system_program: AccountsStorage,
+
+    pub mint: AccountsStorage,
 }

@@ -1,11 +1,11 @@
-use fuzz_transactions::*;
+use fuzz_accounts::*;
 use trident_fuzz::fuzzing::*;
-mod fuzz_transactions;
+mod fuzz_accounts;
 mod instructions;
 mod transactions;
 mod types;
-use metaplex::entry as entry_metaplex;
 pub use transactions::*;
+
 #[derive(FuzzTestMethods)]
 struct FuzzTest {
     /// for transaction executions
@@ -21,13 +21,7 @@ struct FuzzTest {
 #[flow_executor]
 impl FuzzTest {
     fn new() -> Self {
-        let mut client = TridentSVM::new_client(&TridentConfig::new());
-
-        client.deploy_entrypoint(TridentEntrypoint::new(
-            pubkey!("H2XPhu8mmGDZioamVp2C5bDWXSSKn6bDdhpiUqWqPmLS"),
-            None,
-            processor!(entry_metaplex),
-        ));
+        let client = TridentSVM::new_client(&TridentConfig::new());
 
         Self {
             client,
@@ -36,6 +30,7 @@ impl FuzzTest {
             fuzz_accounts: FuzzAccounts::default(),
         }
     }
+
     #[init]
     fn start(&mut self) -> Result<(), FuzzingError> {
         let mut tx =
@@ -46,6 +41,7 @@ impl FuzzTest {
         Ok(())
     }
 }
+
 fn main() {
-    FuzzTest::fuzz(1000, 50);
+    FuzzTest::fuzz(1000, 100);
 }
