@@ -1,4 +1,5 @@
-use crate::{fuzzing::TridentRng, traits::FuzzClient};
+use crate::fuzzing::TridentRng;
+use crate::traits::FuzzClient;
 
 /// Trait implementing methods for the fuzzed instructions
 pub trait InstructionHooks {

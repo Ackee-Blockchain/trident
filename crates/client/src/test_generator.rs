@@ -1,48 +1,22 @@
-use crate::commander::{Commander, Error as CommanderError};
-use crate::{construct_path, utils::*};
+use crate::commander::Commander;
+use crate::construct_path;
+use crate::error::Error;
+use crate::utils::*;
 use cargo_metadata::Package;
 use fehler::throws;
-use std::num::ParseIntError;
-use std::path::StripPrefixError;
-use std::{
-    io,
-    path::{Path, PathBuf},
-};
-use thiserror::Error;
+use std::path::Path;
+use std::path::PathBuf;
 use trident_idl_spec::Idl;
-use trident_template::{GeneratedFiles, TridentTemplates};
-
-#[derive(Error, Debug)]
-pub enum Error {
-    #[error("cannot parse Cargo.toml")]
-    CannotParseCargoToml,
-    #[error("{0:?}")]
-    Io(#[from] io::Error),
-    #[error("{0:?}")]
-    StripPrefix(#[from] StripPrefixError),
-    #[error("{0:?}")]
-    TridentVersionsConfig(#[from] serde_json::Error),
-    #[error("{0:?}")]
-    ParseInt(#[from] ParseIntError),
-    #[error("{0:?}")]
-    Toml(#[from] toml::de::Error),
-    #[error("{0:?}")]
-    Commander(#[from] CommanderError),
-    #[error("The Anchor project does not contain any programs")]
-    NoProgramsFound,
-    #[error("parsing Cargo.toml dependencies failed")]
-    ParsingCargoTomlDependenciesFailed,
-    #[error("Template engine error: {0}")]
-    TemplateEngine(String),
-}
+use trident_template::GeneratedFiles;
+use trident_template::TridentTemplates;
 
 pub struct TestGenerator {
-    pub root: PathBuf,
-    pub skip_build: bool,
-    pub program_packages: Vec<Package>,
-    pub anchor_idls: Vec<Idl>,
-    pub template_engine: TridentTemplates,
-    pub generated_files: Option<GeneratedFiles>,
+    pub(crate) root: PathBuf,
+    pub(crate) skip_build: bool,
+    pub(crate) program_packages: Vec<Package>,
+    pub(crate) anchor_idls: Vec<Idl>,
+    pub(crate) template_engine: TridentTemplates,
+    pub(crate) generated_files: Option<GeneratedFiles>,
 }
 
 impl TestGenerator {
@@ -53,8 +27,7 @@ impl TestGenerator {
             skip_build,
             program_packages: Vec::default(),
             anchor_idls: Vec::default(),
-            template_engine: TridentTemplates::new()
-                .map_err(|e| Error::TemplateEngine(e.to_string()))?,
+            template_engine: TridentTemplates::new()?,
             generated_files: None,
         }
     }
@@ -112,10 +85,11 @@ impl TestGenerator {
         let current_package_version = env!("CARGO_PKG_VERSION");
 
         // Generate templates using Tera
-        let output = self
-            .template_engine
-            .generate(&self.anchor_idls, &lib_names, current_package_version)
-            .map_err(|e| Error::TemplateEngine(e.to_string()))?;
+        let output = self.template_engine.generate(
+            &self.anchor_idls,
+            &lib_names,
+            current_package_version,
+        )?;
 
         // Store the generated output
         self.generated_files = Some(output);
@@ -129,7 +103,7 @@ impl TestGenerator {
         self.anchor_idls = crate::idl_loader::load_idls(target_path, program_name)?;
     }
 
-    pub fn get_instructions(&self) -> Vec<(String, String)> {
+    pub(crate) fn get_instructions(&self) -> Vec<(String, String)> {
         if let Some(ref output) = self.generated_files {
             output.instructions.clone()
         } else {
@@ -137,7 +111,7 @@ impl TestGenerator {
         }
     }
 
-    pub fn get_transactions(&self) -> Vec<(String, String)> {
+    pub(crate) fn get_transactions(&self) -> Vec<(String, String)> {
         if let Some(ref output) = self.generated_files {
             output.transactions.clone()
         } else {
@@ -145,7 +119,7 @@ impl TestGenerator {
         }
     }
 
-    pub fn get_test_fuzz(&self) -> String {
+    pub(crate) fn get_test_fuzz(&self) -> String {
         if let Some(ref output) = self.generated_files {
             output.test_fuzz.clone()
         } else {
@@ -153,7 +127,7 @@ impl TestGenerator {
         }
     }
 
-    pub fn get_instructions_mod(&self) -> String {
+    pub(crate) fn get_instructions_mod(&self) -> String {
         if let Some(ref output) = self.generated_files {
             output.instructions_mod.clone()
         } else {
@@ -161,7 +135,7 @@ impl TestGenerator {
         }
     }
 
-    pub fn get_transactions_mod(&self) -> String {
+    pub(crate) fn get_transactions_mod(&self) -> String {
         if let Some(ref output) = self.generated_files {
             output.transactions_mod.clone()
         } else {
@@ -169,7 +143,7 @@ impl TestGenerator {
         }
     }
 
-    pub fn get_custom_types(&self) -> String {
+    pub(crate) fn get_custom_types(&self) -> String {
         if let Some(ref output) = self.generated_files {
             output.custom_types.clone()
         } else {
@@ -177,7 +151,7 @@ impl TestGenerator {
         }
     }
 
-    pub fn get_fuzz_accounts(&self) -> String {
+    pub(crate) fn get_fuzz_accounts(&self) -> String {
         if let Some(ref output) = self.generated_files {
             output.fuzz_accounts.clone()
         } else {
@@ -185,7 +159,7 @@ impl TestGenerator {
         }
     }
 
-    pub fn get_trident_toml(&self) -> String {
+    pub(crate) fn get_trident_toml(&self) -> String {
         if let Some(ref output) = self.generated_files {
             output.trident_toml.clone()
         } else {
@@ -193,7 +167,7 @@ impl TestGenerator {
         }
     }
 
-    pub fn get_cargo_fuzz_toml(&self) -> String {
+    pub(crate) fn get_cargo_fuzz_toml(&self) -> String {
         if let Some(ref output) = self.generated_files {
             output.cargo_fuzz_toml.clone()
         } else {

@@ -1,6 +1,8 @@
 use solana_sdk::instruction::Instruction;
 
-use super::{TransactionGetters, TransactionHooks, TransactionSetters};
+use super::TransactionGetters;
+use super::TransactionHooks;
+use super::TransactionSetters;
 
 use crate::traits::FuzzClient;
 

@@ -1,4 +1,5 @@
-use solana_sdk::{instruction::AccountMeta, pubkey::Pubkey};
+use solana_sdk::instruction::AccountMeta;
+use solana_sdk::pubkey::Pubkey;
 
 use crate::fuzzing::TridentRng;
 

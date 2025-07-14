@@ -1,8 +1,10 @@
 #![allow(dead_code)]
 
-use prettytable::{row, Table};
+use prettytable::row;
+use prettytable::Table;
 use std::collections::BTreeMap;
-use std::{fs::File, io::Write};
+use std::fs::File;
+use std::io::Write;
 
 use crate::types::Seed;
 

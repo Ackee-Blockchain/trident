@@ -1,7 +1,8 @@
 #![allow(dead_code)]
 
 use crate::error::FuzzingError;
-use crate::fuzzing::{FuzzingStatistics, TridentRng};
+use crate::fuzzing::FuzzingStatistics;
+use crate::fuzzing::TridentRng;
 
 use super::FuzzClient;
 

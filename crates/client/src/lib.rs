@@ -3,9 +3,9 @@
 //!
 //! Trident could be useful for writing Rust dApps, too.
 
-mod cleaner;
 mod commander;
 // mod coverage;
+mod error;
 mod idl_loader;
 mod test_generator;
 mod test_generator_manifest;
@@ -13,10 +13,10 @@ mod test_generator_template;
 mod utils;
 
 pub mod ___private {
-    pub use super::cleaner::*;
     pub use super::commander::Commander;
     pub use super::commander::Error;
-    pub use super::idl_loader::*;
+    pub use super::idl_loader::load_idls;
+    pub use super::idl_loader::IdlError;
     pub use super::test_generator::TestGenerator;
 }
 
@@ -24,7 +24,6 @@ mod constants {
     // Tomls
     pub(crate) const CARGO_TOML: &str = "Cargo.toml";
     pub(crate) const TRIDENT_TOML: &str = "Trident.toml";
-    pub(crate) const ANCHOR_TOML: &str = "Anchor.toml";
 
     // Tests
     pub(crate) const TESTS_WORKSPACE_DIRECTORY: &str = "trident-tests";

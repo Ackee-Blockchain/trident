@@ -1,21 +1,13 @@
 use anyhow::Error;
-use anyhow::{Context, Result};
-use clap::{Parser, Subcommand};
+use clap::Parser;
+use clap::Subcommand;
+
 use fehler::throws;
 
-// subcommand functions to call and nested subcommands
 mod command;
-// bring nested subcommand enums into scope
-use command::FuzzCommand;
-use termimad::MadSkin;
 
-macro_rules! load_template {
-    ($file:expr) => {
-        include_str!(concat!(env!("CARGO_MANIFEST_DIR"), $file))
-    };
-}
+use crate::command::FuzzCommand;
 
-/// Simple program to greet a person
 #[derive(Parser)]
 #[command(
     name = "Trident",
@@ -98,41 +90,4 @@ pub async fn start() {
         } => command::init(force, skip_build, program_name, test_name).await?,
         Command::Clean => command::clean().await?,
     }
-}
-
-// Climbs each parent directory until we find target.
-fn _discover(target: &str) -> Result<Option<String>> {
-    let _cwd = std::env::current_dir()?;
-    let mut cwd_opt = Some(_cwd.as_path());
-
-    while let Some(cwd) = cwd_opt {
-        for f in std::fs::read_dir(cwd)
-            .with_context(|| format!("Error reading the directory with path: {}", cwd.display()))?
-        {
-            let p = f
-                .with_context(|| {
-                    format!("Error reading the directory with path: {}", cwd.display())
-                })?
-                .path();
-            if let Some(filename) = p.file_name() {
-                if filename.to_str() == Some(target) {
-                    return Ok(Some(cwd.to_string_lossy().to_string()));
-                }
-            }
-        }
-
-        cwd_opt = cwd.parent();
-    }
-
-    Ok(None)
-}
-
-fn show_howto() {
-    let markdown_input = load_template!("/src/howto.md");
-
-    // Create a MadSkin for styling the Markdown.
-    let skin = MadSkin::default();
-
-    // Print the markdown content to the terminal.
-    skin.print_text(markdown_input);
 }

@@ -1,30 +1,20 @@
-use std::path::Path;
-
-use anyhow::{bail, Error};
+use anyhow::Error;
 use fehler::throws;
 use heck::ToSnakeCase;
 use trident_client::___private::TestGenerator;
 
-use crate::{_discover, show_howto};
-
-pub const ANCHOR_TOML: &str = "Anchor.toml";
-pub const TRIDENT_TOML: &str = "Trident.toml";
-pub const SKIP: &str = "\x1b[33mSkip\x1b[0m";
-pub const TESTS_WORKSPACE_DIRECTORY: &str = "trident-tests";
+use crate::command::check_anchor_initialized;
+use crate::command::check_trident_initialized;
+use crate::command::howto::show_howto;
 
 #[throws]
-pub async fn init(
+pub(crate) async fn init(
     force: bool,
     skip_build: bool,
     program_name: Option<String>,
     test_name: Option<String>,
 ) {
-    // look for Anchor.toml
-    let root = if let Some(r) = _discover(ANCHOR_TOML)? {
-        r
-    } else {
-        bail!("It does not seem that Anchor is initialized because the Anchor.toml file was not found in any parent directory!");
-    };
+    let root = check_anchor_initialized()?;
 
     let mut generator: TestGenerator = TestGenerator::new_with_root(&root, skip_build)?;
 
@@ -34,20 +24,8 @@ pub async fn init(
         generator.initialize(program_name, test_name_snake).await?;
         show_howto();
     } else {
-        // Check if Trident.toml exists in the trident-tests directory
-        let trident_tests_dir = Path::new(&root).join(TESTS_WORKSPACE_DIRECTORY);
-        let trident_toml_path = trident_tests_dir.join(TRIDENT_TOML);
-
-        if trident_tests_dir.exists() && trident_toml_path.exists() {
-            println!(
-                "{SKIP}: It looks like Trident is already initialized.\n\
-            Trident.toml was found in {}/{} directory.\n\
-            In case you want to reinitialize the workspace use --force/-f flag.",
-                root, TESTS_WORKSPACE_DIRECTORY
-            );
-        } else {
-            generator.initialize(program_name, test_name_snake).await?;
-            show_howto();
-        }
+        check_trident_initialized(&root)?;
+        generator.initialize(program_name, test_name_snake).await?;
+        show_howto();
     }
 }

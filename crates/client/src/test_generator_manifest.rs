@@ -6,9 +6,10 @@ use fehler::throws;
 use std::path::Path;
 
 use std::fs;
-use toml::{Table, Value};
+use toml::Table;
+use toml::Value;
 
-use crate::test_generator::Error;
+use crate::error::Error;
 
 impl TestGenerator {
     #[throws]

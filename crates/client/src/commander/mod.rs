@@ -1,11 +1,17 @@
-use fehler::{throw, throws};
-use std::{io, path::Path, process::Stdio, string::FromUtf8Error};
+use fehler::throw;
+use fehler::throws;
+use std::io;
+use std::path::Path;
+use std::path::PathBuf;
+use std::process::Stdio;
+use std::string::FromUtf8Error;
 use thiserror::Error;
-use tokio::{
-    io::AsyncWriteExt,
-    process::{Child, Command},
-    signal,
-};
+use tokio::io::AsyncWriteExt;
+use tokio::process::Child;
+use tokio::process::Command;
+use tokio::signal;
+
+use crate::constants::TESTS_WORKSPACE_DIRECTORY;
 
 mod fuzz;
 
@@ -19,12 +25,6 @@ pub enum Error {
     BuildProgramsFailed,
     #[error("fuzzing failed")]
     FuzzingFailed,
-    #[error("Trident it not correctly initialized! The trident-tests folder in the root of your project does not exist")]
-    NotInitialized,
-    #[error("the crash file does not exist")]
-    CrashFileNotFound,
-    #[error("The Solana project does not contain any programs")]
-    NoProgramsFound,
     // #[error("Coverage error: {0}")]
     // Coverage(#[from] crate::coverage::CoverageError),
 }
@@ -32,11 +32,15 @@ pub enum Error {
 /// `Commander` allows you to start localnet, build programs,
 /// run tests and do other useful operations.
 #[derive(Default)]
-pub struct Commander;
+pub struct Commander {
+    root: PathBuf,
+}
 
 impl Commander {
-    pub fn new() -> Self {
-        Self
+    pub fn new(root: &str) -> Self {
+        Self {
+            root: Path::new(&root).to_path_buf(),
+        }
     }
 
     #[throws]
@@ -119,5 +123,27 @@ impl Commander {
                 tokio::time::sleep(tokio::time::Duration::from_millis(1000)).await;
             },
         }
+    }
+    #[throws]
+    pub async fn clean_target(&self) {
+        self.clean_anchor_target().await?;
+        self.clean_fuzz_target().await?;
+    }
+
+    #[throws]
+    async fn clean_anchor_target(&self) {
+        Command::new("anchor").arg("clean").spawn()?.wait().await?;
+    }
+
+    #[throws]
+    #[allow(dead_code)]
+    async fn clean_fuzz_target(&self) {
+        let trident_tests_dir = self.root.join(TESTS_WORKSPACE_DIRECTORY);
+        Command::new("cargo")
+            .arg("clean")
+            .current_dir(trident_tests_dir)
+            .spawn()?
+            .wait()
+            .await?;
     }
 }
