@@ -73,6 +73,7 @@ pub mod fuzzing {
 
     /// trident svm
     pub use trident_svm::trident_svm::TridentSVM;
+    #[cfg(any(feature = "syscall-v1", feature = "syscall-v2"))]
     pub use trident_svm::types::trident_entrypoint::TridentEntrypoint;
     pub use trident_svm::types::trident_program::TridentProgram;
 

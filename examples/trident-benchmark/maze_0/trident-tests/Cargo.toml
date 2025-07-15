@@ -12,7 +12,10 @@ solana-sdk = "~2.0"
 
 [dependencies.trident-fuzz]
 path = "../../../../crates/fuzz"
+features = ["syscalls"]
 
+[dependencies.maze0]
+path = "../programs/maze0"
 
 [[bin]]
 name = "fuzz_0"

@@ -8,11 +8,13 @@ use solana_sdk::signature::Keypair;
 use solana_sdk::sysvar::Sysvar;
 
 use trident_config::TridentConfig;
+#[cfg(any(feature = "syscall-v1", feature = "syscall-v2"))]
 use trident_svm::types::trident_entrypoint::TridentEntrypoint;
 use trident_svm::types::trident_program::TridentProgram;
 
 /// A trait providing methods to read and write (manipulate) accounts
 pub trait FuzzClient {
+    #[cfg(any(feature = "syscall-v1", feature = "syscall-v2"))]
     /// Deploy program through its entrypoint
     fn deploy_entrypoint(&mut self, program: TridentEntrypoint);
 

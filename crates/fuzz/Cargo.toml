@@ -14,6 +14,9 @@ all = ["vote", "stake", "token"]
 vote = ["dep:solana-vote-program"]
 stake = ["dep:solana-stake-program"]
 token = ["dep:spl-token"]
+syscalls = ["syscall-v1", "syscall-v2"]
+syscall-v1 = ["trident-svm/syscall-v1"]
+syscall-v2 = ["trident-svm/syscall-v2"]
 
 # Derive macros
 [dependencies.trident-derive-transaction]
