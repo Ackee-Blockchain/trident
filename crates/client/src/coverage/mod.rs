@@ -64,7 +64,8 @@ impl Coverage {
         loop_count: u64,
         coverage_server_port: u16,
     ) -> Self {
-        let report_format = CoverageFormat::from_str(&format).expect("Invalid coverage format. Supported formats: json, html");
+        let report_format = CoverageFormat::from_str(&format)
+            .expect("Invalid coverage format. Supported formats: json, html");
 
         Self {
             profraw_file: format!("{}/{}", cargo_target_dir, PROFRAW_FILENAME),
