@@ -34,7 +34,7 @@ impl Commander {
 
     #[throws]
     pub async fn run_default(&self, target: &str) {
-        let mut child = self.spawn_fuzzer(&target, HashMap::new())?;
+        let mut child = self.spawn_fuzzer(target, HashMap::new())?;
         Self::handle_child(&mut child).await?;
     }
 

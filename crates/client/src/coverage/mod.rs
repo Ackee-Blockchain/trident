@@ -64,10 +64,7 @@ impl Coverage {
         loop_count: u64,
         coverage_server_port: u16,
     ) -> Self {
-        let report_format = CoverageFormat::from_str(&format).expect(&format!(
-            "Invalid coverage format '{}'. Supported formats: json, html",
-            format
-        ));
+        let report_format = CoverageFormat::from_str(&format).expect("Invalid coverage format. Supported formats: json, html");
 
         Self {
             profraw_file: format!("{}/{}", cargo_target_dir, PROFRAW_FILENAME),
@@ -83,8 +80,8 @@ impl Coverage {
             rustflags: COVERAGE_RUSTFLAGS.to_string(),
             notify_extension,
             format: report_format,
-            loop_count: loop_count,
-            coverage_server_port: coverage_server_port,
+            loop_count,
+            coverage_server_port,
         }
     }
 
