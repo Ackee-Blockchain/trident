@@ -310,7 +310,7 @@ impl TridentFlowExecutorImpl {
         quote! {
             #loopcount_retrieval
             #generate_coverage_server_port_retrieval
-            
+
             for i in 0..iterations {
                 let result = fuzzer.execute_flows(flow_calls_per_iteration);
 
@@ -492,7 +492,7 @@ impl TridentFlowExecutorImpl {
             };
         }
     }
-    
+
     fn generate_coverage_server_port_retrieval(&self) -> TokenStream {
         quote! {
             let coverage_server_port = std::env::var("COVERAGE_SERVER_PORT").unwrap_or("58432".to_string());

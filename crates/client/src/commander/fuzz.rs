@@ -1,13 +1,12 @@
-use fehler::throws;
-use tokio::process::Command;
-use std::collections::HashMap;
-use trident_config::TridentConfig;
 use crate::coverage::{Coverage, NotificationType};
+use fehler::throws;
+use std::collections::HashMap;
+use tokio::process::Command;
+use trident_config::TridentConfig;
 
 use super::{Commander, Error};
 
 impl Commander {
-
     #[throws]
     pub async fn run(
         &self,

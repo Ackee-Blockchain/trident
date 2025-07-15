@@ -157,9 +157,9 @@ impl Commander {
         let current_dir = env::current_dir()?;
         let mut dir = Some(current_dir.as_path());
         while let Some(cwd) = dir {
-            for file in std::fs::read_dir(cwd)
-                .with_context(|| format!("Error reading the directory with path: {}", cwd.display()))?
-            {
+            for file in std::fs::read_dir(cwd).with_context(|| {
+                format!("Error reading the directory with path: {}", cwd.display())
+            })? {
                 let path = file
                     .with_context(|| {
                         format!("Error reading the directory with path: {}", cwd.display())

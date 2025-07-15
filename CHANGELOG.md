@@ -12,10 +12,10 @@ incremented upon a breaking change and the patch version will be incremented for
 
 **Added**
 
+- Code coverage tracking support via the `-g, --generate-coverage` flag. Coverage data can be visualized using the VS Code extension [330](https://github.com/Ackee-Blockchain/trident/pull/330)
 - Added features to enable syscalls in fuzzing ([329](https://github.com/Ackee-Blockchain/trident/pull/329))
 - Add `--skip-build` flag to only initialize fuzz test without building the project ([325](https://github.com/Ackee-Blockchain/trident/pull/325))
 - Add support for space, lamports and  owner to TridentAccounts macro ([320](https://github.com/Ackee-Blockchain/trident/pull/320))
-- Code coverage tracking support for both AFL and Honggfuzz fuzzing via the `-g, --generate-coverage` flag. Coverage data can be visualized using the VS Code extension (ADD_PR_NUMBER)
 
 **Removed**
 

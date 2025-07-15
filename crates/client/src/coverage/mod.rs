@@ -290,6 +290,7 @@ impl Coverage {
         cmd.env("CARGO_LLVM_COV_TARGET_DIR", self.get_target_dir())
             .arg("llvm-cov")
             .arg("report")
+            .arg("--release")
             .arg(self.format.get_cargo_arg())
             .args(["--ignore-filename-regex", &self.get_ignore_regex()]);
 
