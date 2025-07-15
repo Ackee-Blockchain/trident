@@ -1,5 +1,7 @@
+use anyhow::Context;
 use fehler::throw;
 use fehler::throws;
+use std::env;
 use std::io;
 use std::path::Path;
 use std::path::PathBuf;
@@ -25,8 +27,12 @@ pub enum Error {
     BuildProgramsFailed,
     #[error("fuzzing failed")]
     FuzzingFailed,
-    // #[error("Coverage error: {0}")]
-    // Coverage(#[from] crate::coverage::CoverageError),
+    #[error("Coverage error: {0}")]
+    Coverage(#[from] crate::coverage::CoverageError),
+    #[error("Cannot find the trident-tests directory in the current workspace")]
+    BadWorkspace,
+    #[error("{0:?}")]
+    Anyhow(#[from] anyhow::Error),
 }
 
 /// `Commander` allows you to start localnet, build programs,
@@ -145,5 +151,28 @@ impl Commander {
             .spawn()?
             .wait()
             .await?;
+    }
+
+    pub fn get_target_dir(&self) -> Result<String, Error> {
+        let current_dir = env::current_dir()?;
+        let mut dir = Some(current_dir.as_path());
+        while let Some(cwd) = dir {
+            for file in std::fs::read_dir(cwd)
+                .with_context(|| format!("Error reading the directory with path: {}", cwd.display()))?
+            {
+                let path = file
+                    .with_context(|| {
+                        format!("Error reading the directory with path: {}", cwd.display())
+                    })?
+                    .path();
+                if let Some(filename) = path.file_name() {
+                    if filename.to_str() == Some("trident-tests") {
+                        return Ok(path.join("target").to_str().unwrap().to_string());
+                    }
+                }
+            }
+            dir = cwd.parent();
+        }
+        throw!(Error::BadWorkspace);
     }
 }

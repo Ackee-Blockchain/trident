@@ -57,9 +57,12 @@ pub(crate) enum FuzzCommand {
             short,
             long,
             required = false,
-            help = "Tracks code coverage during fuzzing and generates a JSON report upon completion. The coverage data can be visualized in your source code using our VS Code extension."
+            num_args(0..=1),
+            default_missing_value = "json",
+            value_name = "FORMAT",
+            help = "Tracks code coverage during fuzzing and generates a report upon completion. Specify format: 'json' (default) or 'html'. The json report can be visualized in your source code using our VS Code extension."
         )]
-        generate_coverage: bool,
+        generate_coverage: Option<String>,
         #[arg(
             short,
             long = "attach-extension",
@@ -97,11 +100,27 @@ pub(crate) async fn fuzz(subcmd: FuzzCommand) {
         } => {
             let commander = Commander::new(&root);
 
-            if !generate_coverage && attach_extension {
+            let (should_generate_coverage, format) = match &generate_coverage {
+                Some(format_str) => (true, format_str.clone()),
+                None => (false, "json".to_string()), // Default format when not generating coverage
+            };
+
+            if !should_generate_coverage && attach_extension {
                 bail!("Cannot attach extension without generating coverage!");
             }
+
+            if attach_extension && format != "json" {
+                bail!("Cannot attach extension with format other than json!");
+            }
+
             commander
-                .run(target, with_exit_code, generate_coverage, attach_extension)
+                .run(
+                    target,
+                    with_exit_code,
+                    should_generate_coverage,
+                    attach_extension,
+                    format,
+                )
                 .await?;
         }
         FuzzCommand::Debug { target, seed } => {

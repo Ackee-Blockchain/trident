@@ -1,19 +1,12 @@
-//! Coverage trait and error handling for fuzzing operations.
-//!
-//! This module provides the core functionality for managing code coverage during fuzzing sessions.
-//! It defines the common interface and error types used by specific fuzzer implementations
-//! like AFL and Honggfuzz.
-
-pub mod afl;
 pub mod constants;
-pub mod honggfuzz;
-use std::path::PathBuf;
+use constants::*;
+pub mod coverage_format;
+use coverage_format::*;
+
 use thiserror::Error;
-use tokio::io::AsyncRead;
-use tokio::io::{AsyncBufReadExt, BufReader};
+use tokio::io::{AsyncBufReadExt, AsyncRead, BufReader};
 use tokio::process::Child;
 
-/// Errors that can occur during coverage operations.
 #[derive(Error, Debug, Clone)]
 pub enum CoverageError {
     #[error("Cleaning of coverage directory failed")]
@@ -26,53 +19,169 @@ pub enum CoverageError {
     CoverageGenerationInterrupted,
     #[error("Failed to extract corrupted files")]
     ExtractingCorruptedFilesFailed,
-    #[error("Failed to notify VSCode extension")]
-    FailedToNotifyVSCodeExtension,
+    #[error("Invalid report format")]
+    InvalidReportFormat,
+    #[error("llvm-tools-preview is not installed. Please install it with: rustup component add llvm-tools-preview")]
+    LlvmToolsNotInstalled,
 }
 
-/// Common interface for coverage collection and reporting across different fuzzers.
-///
-/// This trait defines the core functionality needed to manage code coverage during fuzzing sessions.
-/// It provides methods for initializing coverage collection, managing profraw files, and generating
-/// coverage reports.
-pub trait Coverage {
-    /// Creates a new coverage instance for a specific fuzzing target.
-    ///
-    /// # Arguments
-    /// * `cargo_target_dir` - Base directory for build artifacts
-    /// * `fuzzer_loopcount` - Number of iterations each process must execute before finishing and writing gathered profraw data
-    /// * `target` - Name of the target being fuzzed
-    /// * `dynamic_coverage` - Whether to use dynamic coverage collection
-    ///
-    /// # Returns
-    /// A new instance of the coverage implementation
-    fn new(
+#[derive(PartialEq)]
+pub enum NotificationType {
+    Setup,
+    DisplayFinalReport,
+}
+
+impl NotificationType {
+    pub fn endpoint(&self) -> &str {
+        match self {
+            NotificationType::Setup => SETUP_DYNAMIC_COVERAGE,
+            NotificationType::DisplayFinalReport => DISPLAY_FINAL_REPORT,
+        }
+    }
+}
+
+pub struct Coverage {
+    profraw_file: String,
+    report_path: String,
+    target_dir: String,
+    target: String,
+    ignore_regex: String,
+    rustflags: String,
+    notify_extension: bool,
+    format: CoverageFormat,
+    loop_count: u64,
+    coverage_server_port: u16,
+}
+
+impl Coverage {
+    pub fn new(
         cargo_target_dir: &str,
-        fuzzer_loopcount: u64,
         target: &str,
-        dynamic_coverage: bool,
-    ) -> Self
-    where
-        Self: Sized;
+        notify_extension: bool,
+        format: String,
+        loop_count: u64,
+        coverage_server_port: u16,
+    ) -> Self {
+        let report_format = CoverageFormat::from_str(&format).expect(&format!(
+            "Invalid coverage format '{}'. Supported formats: json, html",
+            format
+        ));
 
-    fn get_profraw_file(&self) -> String;
-    fn get_coverage_file(&self) -> String;
-    fn get_coverage_target_dir(&self) -> String;
-    fn get_ignore_regex(&self) -> String;
-    fn get_rustflags(&self) -> String;
-    fn get_fuzzer_loopcount(&self) -> String;
-    fn get_dynamic_coverage(&self) -> bool;
-    fn get_fuzzing_folder(&self) -> PathBuf;
+        Self {
+            profraw_file: format!("{}/{}", cargo_target_dir, PROFRAW_FILENAME),
+            report_path: format!(
+                "{}/../{}-{}",
+                cargo_target_dir,
+                target,
+                report_format.get_report_filename()
+            ),
+            target_dir: cargo_target_dir.to_string(),
+            target: target.to_string(),
+            ignore_regex: COVERAGE_IGNORE_REGEX.to_string(),
+            rustflags: COVERAGE_RUSTFLAGS.to_string(),
+            notify_extension,
+            format: report_format,
+            loop_count: loop_count,
+            coverage_server_port: coverage_server_port,
+        }
+    }
 
-    /// Handles a child process and its potential errors during coverage operations.
-    ///
-    /// # Arguments
-    /// * `child` - The child process to monitor
-    /// * `error` - The error to return if the process fails
-    ///
-    /// # Returns
-    /// * `Ok(())` if the process completes successfully
-    /// * `Err(CoverageError)` if the process fails or is interrupted
+    pub fn get_profraw_file(&self) -> String {
+        self.profraw_file.clone()
+    }
+
+    pub fn get_report_path(&self) -> String {
+        self.report_path.clone()
+    }
+
+    pub fn get_target_dir(&self) -> String {
+        self.target_dir.clone()
+    }
+
+    pub fn get_ignore_regex(&self) -> String {
+        self.ignore_regex.clone()
+    }
+
+    pub fn get_rustflags(&self) -> String {
+        self.rustflags.clone()
+    }
+
+    pub fn get_notify_extension(&self) -> bool {
+        self.notify_extension
+    }
+
+    pub fn get_loop_count(&self) -> u64 {
+        self.loop_count
+    }
+
+    pub async fn generate_report(&self) -> Result<(), CoverageError> {
+        let result = self.try_generate_report(false).await;
+        match result {
+            Ok(_) => self.clean().await,
+            Err(_) => self.try_generate_report(true).await,
+        }
+    }
+
+    async fn try_generate_report(&self, is_retry: bool) -> Result<(), CoverageError> {
+        let mut child = self
+            .build_generate_report_command()
+            .stderr(std::process::Stdio::piped())
+            .spawn()
+            .map_err(|_| CoverageError::GeneratingReportFailed)?;
+
+        let result = self
+            .handle_child(&mut child, CoverageError::GeneratingReportFailed)
+            .await;
+
+        if is_retry && result.is_err() {
+            self.clean().await?;
+            return result;
+        }
+
+        match result {
+            Ok(_) => {
+                println!("Report has been successfully generated.");
+                self.notify_extension(NotificationType::DisplayFinalReport)
+                    .await?;
+                Ok(())
+            }
+            Err(_) => {
+                println!("Report generation failed, attempting to remove corrupted files.");
+                self.remove_corrupted_files(&mut child).await?;
+                Err(CoverageError::GeneratingReportFailed)
+            }
+        }
+    }
+
+    pub async fn notify_extension(
+        &self,
+        notification_type: NotificationType,
+    ) -> Result<(), CoverageError> {
+        if !self.get_notify_extension() && notification_type == NotificationType::Setup {
+            return Ok(());
+        }
+
+        let url = format!(
+            "http://localhost:{}{}",
+            self.coverage_server_port,
+            notification_type.endpoint()
+        );
+
+        let json_content = format!("{{\"target\":\"{}\"}}", self.target);
+
+        let client = reqwest::Client::new();
+        tokio::spawn(async move {
+            let _ = client
+                .post(&url)
+                .header("Content-Type", "application/json")
+                .body(json_content)
+                .send()
+                .await;
+        });
+
+        Ok(())
+    }
+
     async fn handle_child(
         &self,
         child: &mut Child,
@@ -95,15 +204,8 @@ pub trait Coverage {
         Ok(())
     }
 
-    /// Cleans up coverage-related files and directories.
-    ///
-    /// Removes profraw list files and cleans the coverage workspace.
-    ///
-    /// # Returns
-    /// * `Ok(())` if cleaning succeeds
-    /// * `Err(CoverageError)` if cleaning fails
-    async fn clean(&self) -> Result<(), CoverageError> {
-        if !tokio::fs::try_exists(self.get_coverage_target_dir())
+    pub async fn clean(&self) -> Result<(), CoverageError> {
+        if !tokio::fs::try_exists(self.get_target_dir())
             .await
             .unwrap_or(false)
         {
@@ -112,12 +214,10 @@ pub trait Coverage {
 
         // Remove profraw-list file, there should only be one in the target directory
         self.remove_profraw_list().await?;
-        // Remove notification file if it exists
-        self.remove_notification_file().await?;
 
         let mut child = tokio::process::Command::new("cargo")
             .env("LLVM_PROFILE_FILE", self.get_profraw_file())
-            .env("CARGO_LLVM_COV_TARGET_DIR", self.get_coverage_target_dir())
+            .env("CARGO_LLVM_COV_TARGET_DIR", self.get_target_dir())
             .arg("llvm-cov")
             .arg("clean")
             .arg("--workspace")
@@ -128,13 +228,8 @@ pub trait Coverage {
             .await
     }
 
-    /// Removes profraw list files from the target directory.
-    ///
-    /// # Returns
-    /// * `Ok(())` if removal succeeds
-    /// * `Err(CoverageError)` if removal fails
     async fn remove_profraw_list(&self) -> Result<(), CoverageError> {
-        let target_dir_str = self.get_coverage_target_dir();
+        let target_dir_str = self.get_target_dir();
         let target_dir = std::path::Path::new(&target_dir_str);
         let mut entries = tokio::fs::read_dir(target_dir)
             .await
@@ -157,14 +252,6 @@ pub trait Coverage {
         Ok(())
     }
 
-    /// Extracts paths of corrupted profraw files from process output.
-    ///
-    /// # Arguments
-    /// * `reader` - BufReader containing process output to analyze
-    ///
-    /// # Returns
-    /// * `Ok(Vec<String>)` containing paths to corrupted files
-    /// * `Err(CoverageError)` if extraction fails
     async fn extract_corrupted_files<R>(
         &self,
         reader: &mut BufReader<R>,
@@ -192,80 +279,33 @@ pub trait Coverage {
         Ok(corrupted_files)
     }
 
-    /// Removes specified files from the filesystem.
-    ///
-    /// # Arguments
-    /// * `files` - List of file paths to remove
     async fn remove_files(&self, files: &[String]) {
         for file in files {
             let _ = tokio::fs::remove_file(file).await;
         }
     }
 
-    /// Builds the command for generating coverage reports.
-    ///
-    /// # Arguments
-    /// * `release` - Whether to build in release mode
-    ///
-    /// # Returns
-    /// Command configured for coverage report generation
-    fn build_coverage_command(&self, release: bool) -> tokio::process::Command {
+    fn build_generate_report_command(&self) -> tokio::process::Command {
         let mut cmd = tokio::process::Command::new("cargo");
-        cmd.env("LLVM_PROFILE_FILE", self.get_profraw_file())
-            .env("CARGO_LLVM_COV_TARGET_DIR", self.get_coverage_target_dir())
+        cmd.env("CARGO_LLVM_COV_TARGET_DIR", self.get_target_dir())
             .arg("llvm-cov")
             .arg("report")
-            .arg("--json")
-            .arg("--skip-functions")
-            .args(["--output-path", &self.get_coverage_file()])
+            .arg(self.format.get_cargo_arg())
             .args(["--ignore-filename-regex", &self.get_ignore_regex()]);
 
-        if release {
-            cmd.arg("--release");
+        match self.format {
+            CoverageFormat::Json => {
+                cmd.args(["--output-path", &self.get_report_path()]);
+                cmd.arg("--skip-functions");
+            }
+            CoverageFormat::Html => {
+                cmd.args(["--output-dir", &self.get_report_path()]);
+            }
         }
 
         cmd
     }
 
-    /// Attempts to generate a coverage report.
-    ///
-    /// # Arguments
-    /// * `release` - Whether to build in release mode
-    ///
-    /// # Returns
-    /// * `Ok(())` if report generation succeeds
-    /// * `Err(CoverageError)` if generation fails or files are corrupted
-    async fn try_generate_report(&self, release: bool) -> Result<(), CoverageError> {
-        let mut child = self
-            .build_coverage_command(release)
-            .stderr(std::process::Stdio::piped())
-            .spawn()
-            .map_err(|_| CoverageError::GeneratingReportFailed)?;
-
-        match self
-            .handle_child(&mut child, CoverageError::GeneratingReportFailed)
-            .await
-        {
-            Ok(_) => {
-                println!("Report has been successfully generated.");
-                Ok(())
-            }
-            Err(_) => {
-                println!("Report generation failed, attempting to remove corrupted files.");
-                self.remove_corrupted_files(&mut child).await?;
-                Err(CoverageError::CorruptedProfrawFiles)
-            }
-        }
-    }
-
-    /// Removes corrupted profraw files identified during report generation.
-    ///
-    /// # Arguments
-    /// * `child` - Child process containing error output identifying corrupted files
-    ///
-    /// # Returns
-    /// * `Ok(())` if removal succeeds
-    /// * `Err(CoverageError)` if removal fails
     async fn remove_corrupted_files(&self, child: &mut Child) -> Result<(), CoverageError> {
         let stderr = child
             .stderr
@@ -281,243 +321,54 @@ pub trait Coverage {
         Ok(())
     }
 
-    /// Sets up dynamic coverage collection by creating a notification file for the VS Code extension.
-    ///
-    /// This function creates a JSON notification file in the fuzzing folder that informs
-    /// the VS Code extension about which fuzzer is running. This enables real-time
-    /// coverage visualization during fuzzing.
-    ///
-    /// # Arguments
-    /// * `fuzzer` - The name of the fuzzer being used (e.g., "afl", "honggfuzz")
-    ///
-    /// # Returns
-    /// * `Ok(())` if the notification file was created successfully
-    /// * `Err(CoverageError)` if file creation fails
-    async fn setup_dynamic_coverage(&self, fuzzer: &str) -> Result<(), CoverageError> {
-        if !self.get_dynamic_coverage() {
-            return Ok(());
-        }
-
-        let fuzzing_folder_path = self.get_fuzzing_folder();
-        let notification_file = fuzzing_folder_path.join(constants::EXTENSION_NOTIFICATION_FILE);
-        let json_content = format!("{{\"fuzzer\":\"{}\"}}", fuzzer);
-
-        tokio::fs::write(&notification_file, json_content)
+    pub async fn check_llvm_tools_installed(&self) -> Result<(), CoverageError> {
+        let output = tokio::process::Command::new("rustup")
+            .args(["component", "list", "--installed"])
+            .output()
             .await
-            .map_err(|_| CoverageError::FailedToNotifyVSCodeExtension)?;
+            .map_err(|_| CoverageError::LlvmToolsNotInstalled)?;
 
-        Ok(())
+        let installed_components = String::from_utf8_lossy(&output.stdout);
+
+        if installed_components.contains("llvm-tools") {
+            Ok(())
+        } else {
+            Err(CoverageError::LlvmToolsNotInstalled)
+        }
     }
 
-    /// Removes the VS Code extension notification file from the fuzzing folder.
-    ///
-    /// This function cleans up the notification file created by setup_dynamic_coverage
-    /// when it's no longer needed, typically after fuzzing has completed or been stopped.
-    ///
-    /// # Returns
-    /// * `Ok(())` after attempting to remove the file (success is not guaranteed)
-    async fn remove_notification_file(&self) -> Result<(), CoverageError> {
-        let fuzzing_folder_path = self.get_fuzzing_folder();
-        let notification_file = fuzzing_folder_path.join(constants::EXTENSION_NOTIFICATION_FILE);
-        self.remove_files(&[notification_file.to_str().unwrap().to_string()])
-            .await;
+    pub async fn prompt_and_install_llvm_tools(&self) -> Result<(), CoverageError> {
+        println!(
+            "llvm-tools-preview is required for coverage report generation but is not installed."
+        );
 
-        Ok(())
+        println!("\nWould you like to install it now? (y/n): ");
+
+        let mut input = String::new();
+        std::io::stdin()
+            .read_line(&mut input)
+            .map_err(|_| CoverageError::LlvmToolsNotInstalled)?;
+
+        let input = input.trim().to_lowercase();
+        if input == "y" || input == "yes" {
+            let status = tokio::process::Command::new("rustup")
+                .args(["component", "add", "llvm-tools-preview"])
+                .status()
+                .await
+                .map_err(|_| CoverageError::LlvmToolsNotInstalled)?;
+
+            if status.success() {
+                println!("llvm-tools-preview installed successfully!");
+                Ok(())
+            } else {
+                println!("Failed to install llvm-tools-preview");
+                Err(CoverageError::LlvmToolsNotInstalled)
+            }
+        } else {
+            Err(CoverageError::LlvmToolsNotInstalled)
+        }
     }
 }
 
-mod tests {
-    #![allow(unused_imports)]
-    #![allow(dead_code)]
-    use super::*;
-    use std::path::PathBuf;
-    use std::pin::Pin;
-    use std::task::{Context, Poll};
-    use tokio::fs;
-    use tokio::io::{AsyncRead, ReadBuf};
-
-    struct MockStderr {
-        data: Vec<u8>,
-        position: usize,
-    }
-
-    impl MockStderr {
-        fn new(data: &str) -> Self {
-            Self {
-                data: data.as_bytes().to_vec(),
-                position: 0,
-            }
-        }
-    }
-
-    impl AsyncRead for MockStderr {
-        fn poll_read(
-            mut self: Pin<&mut Self>,
-            _: &mut Context<'_>,
-            buf: &mut ReadBuf<'_>,
-        ) -> Poll<std::io::Result<()>> {
-            let remaining = &self.data[self.position..];
-            let amount = std::cmp::min(remaining.len(), buf.remaining());
-            buf.put_slice(&remaining[..amount]);
-            self.position += amount;
-            Poll::Ready(Ok(()))
-        }
-    }
-
-    struct MockCoverage {
-        profraw_file: String,
-        coverage_file: String,
-        coverage_target_dir: String,
-        fuzzer_loopcount: String,
-        ignore_regex: String,
-        rustflags: String,
-        dynamic_coverage: bool,
-    }
-
-    impl Coverage for MockCoverage {
-        fn new(
-            cargo_target_dir: &str,
-            fuzzer_loopcount: u64,
-            _target: &str,
-            _dynamic_coverage: bool,
-        ) -> Self {
-            Self {
-                profraw_file: format!("{}/mock.profraw", cargo_target_dir),
-                coverage_file: format!("{}/mock-coverage.json", cargo_target_dir),
-                coverage_target_dir: cargo_target_dir.to_string(),
-                fuzzer_loopcount: fuzzer_loopcount.to_string(),
-                ignore_regex: "test-ignore".to_string(),
-                rustflags: "-test-flags".to_string(),
-                dynamic_coverage: false,
-            }
-        }
-
-        fn get_profraw_file(&self) -> String {
-            self.profraw_file.clone()
-        }
-
-        fn get_coverage_file(&self) -> String {
-            self.coverage_file.clone()
-        }
-
-        fn get_coverage_target_dir(&self) -> String {
-            self.coverage_target_dir.clone()
-        }
-
-        fn get_fuzzer_loopcount(&self) -> String {
-            self.fuzzer_loopcount.clone()
-        }
-
-        fn get_ignore_regex(&self) -> String {
-            self.ignore_regex.clone()
-        }
-
-        fn get_rustflags(&self) -> String {
-            self.rustflags.clone()
-        }
-
-        fn get_dynamic_coverage(&self) -> bool {
-            self.dynamic_coverage
-        }
-
-        fn get_fuzzing_folder(&self) -> PathBuf {
-            PathBuf::from("/dummy/path") // Dummy function to satisfy the trait
-        }
-    }
-
-    #[tokio::test]
-    async fn test_clean_removes_profraw_list() {
-        let temp_dir = std::env::temp_dir();
-        let target_dir = format!("{}/test", temp_dir.to_str().unwrap());
-        let coverage = MockCoverage::new(&target_dir, 100, "test", false);
-
-        let _ = fs::create_dir_all(&target_dir).await;
-
-        let profraw_list = PathBuf::from(&coverage.get_coverage_target_dir()).join("profraw-list");
-        fs::write(&profraw_list, "test").await.unwrap();
-
-        assert!(coverage.clean().await.is_ok());
-        assert!(!profraw_list.exists());
-
-        let _ = fs::remove_dir_all(&target_dir).await;
-    }
-
-    #[tokio::test]
-    async fn test_clean_succeeds_with_non_existent_file() {
-        let temp_dir = std::env::temp_dir();
-        let coverage = MockCoverage::new(temp_dir.to_str().unwrap(), 100, "test", false);
-
-        let profraw_list = PathBuf::from(&coverage.get_coverage_target_dir()).join("profraw-list");
-
-        assert!(!profraw_list.exists());
-        assert!(coverage.clean().await.is_ok());
-    }
-
-    #[test]
-    fn test_mock_coverage_new() {
-        let coverage = MockCoverage::new("/tmp/test", 100, "test", false);
-        assert_eq!(coverage.get_profraw_file(), "/tmp/test/mock.profraw");
-        assert_eq!(coverage.get_coverage_file(), "/tmp/test/mock-coverage.json");
-        assert_eq!(coverage.get_coverage_target_dir(), "/tmp/test");
-        assert_eq!(coverage.get_fuzzer_loopcount(), "100");
-        assert_eq!(coverage.get_ignore_regex(), "test-ignore");
-        assert_eq!(coverage.get_rustflags(), "-test-flags");
-    }
-
-    #[tokio::test]
-    async fn test_extract_corrupted_files_from_stderr() {
-        let coverage = MockCoverage::new("/tmp/test", 100, "test", false);
-
-        let test_data = "warning: /path/to/file1.profraw: invalid instrumentation profile data\n\
-                        some other warning\n\
-                        warning: /path/to/file2.profraw: invalid instrumentation profile data\n";
-
-        let stderr = MockStderr::new(test_data);
-        let mut reader = BufReader::new(stderr);
-
-        let corrupted_files = coverage.extract_corrupted_files(&mut reader).await.unwrap();
-
-        assert_eq!(corrupted_files.len(), 2);
-        assert_eq!(corrupted_files[0], "/path/to/file1.profraw");
-        assert_eq!(corrupted_files[1], "/path/to/file2.profraw");
-    }
-
-    #[tokio::test]
-    async fn test_remove_corrupted_files() {
-        let temp_dir = std::env::temp_dir();
-        let target_dir = temp_dir.to_str().unwrap().to_string();
-        let coverage = MockCoverage::new(&target_dir, 100, "test", false);
-
-        let _ = fs::create_dir_all(&target_dir).await;
-
-        let file1 = PathBuf::from(&coverage.get_coverage_target_dir()).join("test1.profraw");
-        let file2 = PathBuf::from(&coverage.get_coverage_target_dir()).join("test2.profraw");
-
-        fs::write(&file1, "test data 1").await.unwrap();
-        fs::write(&file2, "test data 2").await.unwrap();
-
-        let files_to_remove = vec![
-            file1.to_str().unwrap().to_string(),
-            file2.to_str().unwrap().to_string(),
-        ];
-
-        coverage.remove_files(&files_to_remove).await;
-
-        assert!(!file1.exists());
-        assert!(!file2.exists());
-
-        let _ = fs::remove_dir_all(&target_dir).await;
-    }
-
-    #[tokio::test]
-    async fn test_extract_corrupted_files_empty_stderr() {
-        let coverage = MockCoverage::new("/tmp/test", 100, "test", false);
-
-        let test_data = "some other warning\nsome other message\n";
-        let stderr = MockStderr::new(test_data);
-        let mut reader = BufReader::new(stderr);
-
-        let corrupted_files = coverage.extract_corrupted_files(&mut reader).await.unwrap();
-        assert!(corrupted_files.is_empty());
-    }
-}
+#[cfg(test)]
+mod tests;

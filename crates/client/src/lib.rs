@@ -4,7 +4,7 @@
 //! Trident could be useful for writing Rust dApps, too.
 
 mod commander;
-// mod coverage;
+mod coverage;
 mod error;
 mod idl_loader;
 mod test_generator;

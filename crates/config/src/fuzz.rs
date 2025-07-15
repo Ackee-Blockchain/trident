@@ -9,16 +9,27 @@ use solana_sdk::pubkey::Pubkey;
 use std::fs;
 use std::str::FromStr;
 
+use crate::constants::{DEFAULT_COVERAGE_SERVER_PORT, DEFAULT_LOOP_COUNT};
+
 #[derive(Debug, Deserialize, Clone, Default)]
 pub struct Fuzz {
     pub fuzzing_with_stats: Option<bool>,
     pub programs: Option<Vec<_FuzzProgram>>,
     pub accounts: Option<Vec<_FuzzAccount>>,
+    pub coverage_server_port: Option<u16>,
+    pub loop_count: Option<u64>,
 }
 
 impl Fuzz {
     pub fn get_fuzzing_with_stats(&self) -> bool {
         self.fuzzing_with_stats.unwrap_or(false)
+    }
+    pub fn get_loop_count(&self) -> u64 {
+        self.loop_count.unwrap_or(DEFAULT_LOOP_COUNT)
+    }
+    pub fn get_coverage_server_port(&self) -> u16 {
+        self.coverage_server_port
+            .unwrap_or(DEFAULT_COVERAGE_SERVER_PORT)
     }
 }
 

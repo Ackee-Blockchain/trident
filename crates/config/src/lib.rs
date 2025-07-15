@@ -78,4 +78,16 @@ impl TridentConfig {
             })
             .unwrap_or_default()
     }
+    pub fn loop_count(&self) -> u64 {
+        self.fuzz
+            .as_ref()
+            .map(|fuzz| fuzz.get_loop_count())
+            .unwrap_or_default()
+    }
+    pub fn coverage_server_port(&self) -> u16 {
+        self.fuzz
+            .as_ref()
+            .map(|fuzz| fuzz.get_coverage_server_port())
+            .unwrap_or_default()
+    }
 }
