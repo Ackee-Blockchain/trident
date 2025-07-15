@@ -3,8 +3,4 @@
 [fuzz]
 fuzzing_with_stats = true
 
-
-[[fuzz.programs]]
-address = "5e554BrmQN7a2nbKrSUUxP8PMbq55rMntnkoCPmwr3Aq"
-program = "../target/deploy/maze0.so"
  
