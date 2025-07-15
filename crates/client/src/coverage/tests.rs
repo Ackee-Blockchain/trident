@@ -3,9 +3,11 @@
 use super::*;
 use std::path::PathBuf;
 use std::pin::Pin;
-use std::task::{Context, Poll};
+use std::task::Context;
+use std::task::Poll;
 use tokio::fs;
-use tokio::io::{AsyncRead, ReadBuf};
+use tokio::io::AsyncRead;
+use tokio::io::ReadBuf;
 
 struct MockStderr {
     data: Vec<u8>,

@@ -9,7 +9,8 @@ use solana_sdk::pubkey::Pubkey;
 use std::fs;
 use std::str::FromStr;
 
-use crate::constants::{DEFAULT_COVERAGE_SERVER_PORT, DEFAULT_LOOP_COUNT};
+use crate::constants::DEFAULT_COVERAGE_SERVER_PORT;
+use crate::constants::DEFAULT_LOOP_COUNT;
 
 #[derive(Debug, Deserialize, Clone, Default)]
 pub struct Fuzz {

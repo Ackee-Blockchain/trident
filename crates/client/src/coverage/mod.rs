@@ -4,7 +4,9 @@ pub mod coverage_format;
 use coverage_format::*;
 
 use thiserror::Error;
-use tokio::io::{AsyncBufReadExt, AsyncRead, BufReader};
+use tokio::io::AsyncBufReadExt;
+use tokio::io::AsyncRead;
+use tokio::io::BufReader;
 use tokio::process::Child;
 
 #[derive(Error, Debug, Clone)]

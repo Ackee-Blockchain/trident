@@ -1,10 +1,12 @@
-use crate::coverage::{Coverage, NotificationType};
+use crate::coverage::Coverage;
+use crate::coverage::NotificationType;
 use fehler::throws;
 use std::collections::HashMap;
 use tokio::process::Command;
 use trident_config::TridentConfig;
 
-use super::{Commander, Error};
+use super::Commander;
+use super::Error;
 
 impl Commander {
     #[throws]
