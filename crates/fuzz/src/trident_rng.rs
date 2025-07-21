@@ -8,10 +8,13 @@ use rand::rngs::SmallRng;
 use rand::Rng;
 use rand::RngCore;
 use rand::SeedableRng;
+use sha2::Digest;
+use sha2::Sha256;
 
 pub struct TridentRng {
     seed: [u8; 32],
     rng: SmallRng,
+    thread_id: Option<usize>,
 }
 
 impl TridentRng {
@@ -19,13 +22,27 @@ impl TridentRng {
         Self {
             seed,
             rng: SmallRng::from_seed(seed),
+            thread_id: None,
         }
     }
     pub fn rotate_seed(&mut self) {
+        let mut temp_rng = SmallRng::from_seed(self.seed);
         let mut new_seed = [0; 32];
-        if let Err(err) = getrandom::fill(&mut new_seed) {
-            panic!("from_entropy failed: {}", err);
+        temp_rng.fill_bytes(&mut new_seed);
+
+        if let Some(thread_id) = self.thread_id {
+            let mut thread_hasher = Sha256::new();
+            thread_hasher.update(thread_id.to_le_bytes());
+            let thread_hash = thread_hasher.finalize();
+
+            let mut combined_hasher = Sha256::new();
+            combined_hasher.update(new_seed);
+            combined_hasher.update(thread_hash);
+            let final_hash = combined_hasher.finalize();
+
+            new_seed.copy_from_slice(&final_hash);
         }
+
         self.seed = new_seed;
         self.rng = SmallRng::from_seed(self.seed);
     }
@@ -38,10 +55,15 @@ impl TridentRng {
         Self {
             seed,
             rng: SmallRng::from_seed(seed),
+            thread_id: None,
         }
     }
     pub fn get_seed(&self) -> [u8; 32] {
         self.seed
+    }
+
+    pub fn set_thread_id(&mut self, thread_id: usize) {
+        self.thread_id = Some(thread_id);
     }
     pub fn gen_range<T, R>(&mut self, range: R) -> T
     where

@@ -394,6 +394,9 @@ impl TridentFlowExecutorImpl {
                 // Each thread creates its own client and fuzzer instance
                 let mut fuzzer = #type_name::new();
 
+                // Set deterministic thread ID for reproducible fuzzing
+                fuzzer.rng.set_thread_id(thread_id);
+
                 // Update progress every 100 flow calls or every 50ms, whichever comes first
                 const UPDATE_INTERVAL: u64 = 100;
                 let mut last_update = Instant::now();
