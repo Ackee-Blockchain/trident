@@ -1,4 +1,3 @@
-use anyhow::bail;
 use anyhow::Error;
 
 use clap::Subcommand;
@@ -53,23 +52,6 @@ pub(crate) enum FuzzCommand {
             help = "Run the fuzzing with exit code, i.e. if it discovers crash the Trident will exit with exit code 1."
         )]
         with_exit_code: bool,
-        #[arg(
-            short,
-            long,
-            required = false,
-            num_args(0..=1),
-            default_missing_value = "json",
-            value_name = "FORMAT",
-            help = "Tracks code coverage during fuzzing and generates a report upon completion. Specify format: 'json' (default) or 'html'. The json report can be visualized in your source code using our VS Code extension."
-        )]
-        generate_coverage: Option<String>,
-        #[arg(
-            short,
-            long = "attach-extension",
-            required = false,
-            help = "Enables real-time coverage visualization in VS Code during fuzzing. The VS Code extension must be actively running to utilize this feature."
-        )]
-        attach_extension: bool,
     },
     Debug {
         #[arg(
@@ -95,33 +77,10 @@ pub(crate) async fn fuzz(subcmd: FuzzCommand) {
         FuzzCommand::Run {
             target,
             with_exit_code,
-            generate_coverage,
-            attach_extension,
         } => {
             let commander = Commander::new(&root);
 
-            let (should_generate_coverage, format) = match &generate_coverage {
-                Some(format_str) => (true, format_str.clone()),
-                None => (false, "json".to_string()), // Default format when not generating coverage
-            };
-
-            if !should_generate_coverage && attach_extension {
-                bail!("Cannot attach extension without generating coverage!");
-            }
-
-            if attach_extension && format != "json" {
-                bail!("Cannot attach extension with format other than json!");
-            }
-
-            commander
-                .run(
-                    target,
-                    with_exit_code,
-                    should_generate_coverage,
-                    attach_extension,
-                    format,
-                )
-                .await?;
+            commander.run(target, with_exit_code).await?;
         }
         FuzzCommand::Debug { target, seed } => {
             let commander = Commander::new(&root);

@@ -51,7 +51,7 @@ pub struct Coverage {
     rustflags: String,
     notify_extension: bool,
     format: CoverageFormat,
-    loop_count: u64,
+    loopcount: u64,
     coverage_server_port: u16,
 }
 
@@ -61,7 +61,7 @@ impl Coverage {
         target: &str,
         notify_extension: bool,
         format: String,
-        loop_count: u64,
+        loopcount: u64,
         coverage_server_port: u16,
     ) -> Self {
         let report_format = CoverageFormat::from_str(&format)
@@ -81,7 +81,7 @@ impl Coverage {
             rustflags: COVERAGE_RUSTFLAGS.to_string(),
             notify_extension,
             format: report_format,
-            loop_count,
+            loopcount,
             coverage_server_port,
         }
     }
@@ -110,8 +110,8 @@ impl Coverage {
         self.notify_extension
     }
 
-    pub fn get_loop_count(&self) -> u64 {
-        self.loop_count
+    pub fn get_loopcount(&self) -> u64 {
+        self.loopcount
     }
 
     pub async fn generate_report(&self) -> Result<(), CoverageError> {

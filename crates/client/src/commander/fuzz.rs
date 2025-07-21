@@ -1,8 +1,10 @@
 use crate::coverage::Coverage;
 use crate::coverage::NotificationType;
+use fehler::throw;
 use fehler::throws;
 use std::collections::HashMap;
 use tokio::process::Command;
+use trident_config::coverage::Coverage as CoverageConfig;
 use trident_config::TridentConfig;
 
 use super::Commander;
@@ -10,22 +12,16 @@ use super::Error;
 
 impl Commander {
     #[throws]
-    pub async fn run(
-        &self,
-        target: String,
-        _exit_code: bool,
-        generate_coverage: bool,
-        notify_extension: bool,
-        format: String,
-    ) {
+    pub async fn run(&self, target: String, _exit_code: bool) {
         let config = TridentConfig::new();
 
         if config.get_fuzzing_with_stats() {
             std::env::set_var("FUZZING_METRICS", "1");
         }
 
-        if generate_coverage {
-            self.run_with_coverage(&target, notify_extension, format, &config)
+        let coverage_config = config.get_coverage();
+        if coverage_config.get_enable() {
+            self.run_with_coverage(&target, &config, coverage_config)
                 .await?;
         } else {
             self.run_default(&target).await?;
@@ -42,16 +38,19 @@ impl Commander {
     pub async fn run_with_coverage(
         &self,
         target: &str,
-        notify_extension: bool,
-        format: String,
         config: &TridentConfig,
+        coverage_config: CoverageConfig,
     ) {
+        if let Err(err) = coverage_config.validate() {
+            throw!(Error::Anyhow(anyhow::anyhow!(err)));
+        }
+
         let coverage = Coverage::new(
             &self.get_target_dir()?,
             target,
-            notify_extension,
-            format,
-            config.loop_count(),
+            coverage_config.get_attach_extension(),
+            coverage_config.get_format(),
+            coverage_config.get_loopcount(),
             config.coverage_server_port(),
         );
 
@@ -83,7 +82,7 @@ impl Commander {
         env_vars.insert("RUSTFLAGS", rustflags);
         env_vars.insert("LLVM_PROFILE_FILE", coverage.get_profraw_file());
         env_vars.insert("CARGO_LLVM_COV_TARGET_DIR", coverage.get_target_dir());
-        env_vars.insert("FUZZER_LOOPCOUNT", coverage.get_loop_count().to_string());
+        env_vars.insert("FUZZER_LOOPCOUNT", coverage.get_loopcount().to_string());
         env_vars.insert(
             "COVERAGE_SERVER_PORT",
             config.coverage_server_port().to_string(),

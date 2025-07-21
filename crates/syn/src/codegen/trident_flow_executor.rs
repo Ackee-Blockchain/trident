@@ -486,7 +486,7 @@ impl TridentFlowExecutorImpl {
 
     fn generate_loopcount_retrieval(&self) -> TokenStream {
         quote! {
-            let loop_count = match std::env::var("FUZZER_LOOPCOUNT") {
+            let loopcount = match std::env::var("FUZZER_LOOPCOUNT") {
                 Ok(val) => val.parse().unwrap_or(0),
                 Err(_) => 0,
             };
@@ -531,9 +531,9 @@ impl TridentFlowExecutorImpl {
         /// if -C instrument-coverage is not enabled, llvm methods will not be available
         match self.retrieve_collect_coverage_flag().as_str() {
             "1" => quote! {
-                if loop_count > 0 &&
+                if loopcount > 0 &&
                     i > 0 &&
-                    i % loop_count == 0 {
+                    i % loopcount == 0 {
 
                     unsafe {
                         let filename = format!("target/fuzz-cov-run-{}.profraw", i);
