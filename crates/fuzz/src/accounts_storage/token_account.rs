@@ -44,7 +44,7 @@ impl AccountsStorage {
             let token_account_ = spl_token::state::Account {
                 mint,
                 owner,
-                amount: lamports,
+                amount,
                 delegate,
                 state: spl_token::state::AccountState::Initialized,
                 is_native: COption::Some(rent_exempt_lamports),
