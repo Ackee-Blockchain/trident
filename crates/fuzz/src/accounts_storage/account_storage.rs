@@ -82,7 +82,6 @@ impl AccountsStorage {
         owner: Pubkey,
         amount: u64,
         delegate: Option<Pubkey>,
-        is_native: bool,
         delegated_amount: u64,
         close_authority: Option<Pubkey>,
     ) -> Pubkey {
@@ -100,7 +99,6 @@ impl AccountsStorage {
                         owner,
                         amount,
                         delegate,
-                        is_native,
                         delegated_amount,
                         close_authority,
                     );

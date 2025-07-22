@@ -18,10 +18,11 @@ impl AccountsStorage {
         owner: Pubkey,
         amount: u64,
         delegate: Option<Pubkey>,
-        is_native: bool,
         delegated_amount: u64,
         close_authority: Option<Pubkey>,
     ) {
+        let is_native = mint.eq(&spl_token::native_mint::id());
+
         let delegate = match delegate {
             Some(a) => COption::Some(a),
             _ => COption::None,
