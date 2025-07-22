@@ -1,7 +1,9 @@
 pub mod constants;
+pub mod coverage;
 pub mod fuzz;
 
 use constants::*;
+use coverage::*;
 use fuzz::*;
 
 pub mod utils;
@@ -54,6 +56,21 @@ impl TridentConfig {
             .unwrap_or_default()
     }
 
+    pub fn get_coverage(&self) -> Coverage {
+        self.fuzz
+            .as_ref()
+            .map(|fuzz| fuzz.get_coverage())
+            .unwrap_or_default()
+    }
+
+    pub fn loopcount(&self) -> u64 {
+        self.get_coverage().get_loopcount()
+    }
+
+    pub fn coverage_server_port(&self) -> u16 {
+        self.get_coverage().get_server_port()
+    }
+
     pub fn programs(&self) -> Vec<FuzzProgram> {
         self.fuzz
             .as_ref()
@@ -66,6 +83,7 @@ impl TridentConfig {
             })
             .unwrap_or_default()
     }
+
     pub fn accounts(&self) -> Vec<FuzzAccount> {
         self.fuzz
             .as_ref()

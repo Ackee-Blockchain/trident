@@ -302,7 +302,15 @@ impl TridentFlowExecutorImpl {
 
     /// Generate the single-threaded fuzzing loop
     fn generate_single_threaded_fuzzing_loop(&self) -> TokenStream {
+        let generate_write_profile_logic = self.generate_write_profile_logic();
+        let loopcount_retrieval = self.generate_loopcount_retrieval();
+        let generate_coverage_server_port_retrieval =
+            self.generate_coverage_server_port_retrieval();
+
         quote! {
+            #loopcount_retrieval
+            #generate_coverage_server_port_retrieval
+
             for i in 0..iterations {
                 let result = fuzzer.execute_flows(flow_calls_per_iteration);
 
@@ -314,6 +322,8 @@ impl TridentFlowExecutorImpl {
 
                 pb.inc(flow_calls_per_iteration);
                 pb.set_message(format!("Iteration {}/{} completed", i + 1, iterations));
+
+                #generate_write_profile_logic
             }
 
             pb.finish_with_message("Fuzzing completed!");
@@ -373,6 +383,10 @@ impl TridentFlowExecutorImpl {
     /// Generate thread spawning logic
     fn generate_thread_spawn_logic(&self) -> TokenStream {
         let type_name = &self.type_name;
+        let generate_loopcount_retrieval = self.generate_loopcount_retrieval();
+        let generate_coverage_server_port_retrieval =
+            self.generate_coverage_server_port_retrieval();
+        let generate_write_profile_logic = self.generate_multi_threaded_coverage();
 
         quote! {
             let main_pb_clone = main_pb.clone();
@@ -389,6 +403,9 @@ impl TridentFlowExecutorImpl {
                 let update_duration = Duration::from_millis(50);
 
                 let mut local_counter = 0u64;
+
+                #generate_loopcount_retrieval
+                #generate_coverage_server_port_retrieval
 
                 for i in 0..thread_iterations {
                     let _ = fuzzer.execute_flows(flow_calls_per_iteration);
@@ -410,6 +427,8 @@ impl TridentFlowExecutorImpl {
                         local_counter = 0;
                         last_update = Instant::now();
                     }
+
+                    #generate_write_profile_logic
                 }
 
                 // Ensure final update
@@ -465,6 +484,111 @@ impl TridentFlowExecutorImpl {
                 fuzzer.metrics.show_table();
                 fuzzer.metrics.print_to_file("fuzzing_metrics.json");
             }
+        }
+    }
+
+    fn generate_loopcount_retrieval(&self) -> TokenStream {
+        quote! {
+            let loopcount = match std::env::var("FUZZER_LOOPCOUNT") {
+                Ok(val) => val.parse().unwrap_or(0),
+                Err(_) => 0,
+            };
+        }
+    }
+
+    fn generate_coverage_server_port_retrieval(&self) -> TokenStream {
+        quote! {
+            let coverage_server_port = std::env::var("COVERAGE_SERVER_PORT").unwrap_or("58432".to_string());
+        }
+    }
+
+    fn retrieve_collect_coverage_flag(&self) -> String {
+        std::env::var("COLLECT_COVERAGE").unwrap_or("0".to_string())
+    }
+
+    #[allow(unused_doc_comments)]
+    fn generate_write_profile_logic(&self) -> TokenStream {
+        let generate_notify_extension_logic = self.generate_notify_extension_logic();
+
+        /// This part is a bit tricky and requires a thorough explanation:
+        ///
+        /// LLVM automatically creates a profraw file when the process ends, but since
+        /// we run fuzz tests in a single process with multiple threads, we only get
+        /// one file with combined data from all threads. To enable real-time coverage
+        /// display, we manually create profraw files at intervals.
+        ///
+        /// set_filename: sets the filename for the profraw file
+        /// write_file: creates a profraw file with collected data
+        /// reset_counters: resets the counters to 0
+        ///
+        /// Only thread 0 writes files to avoid duplicates. We use unique filenames
+        /// for each iteration and reset counters after writing. Since the final
+        /// profraw file is created automatically at process end, we preemptively
+        /// set the filename to avoid overwriting the last intermediate file.
+        ///
+        /// Coverage won't be 100% accurate because while the first thread creates
+        /// the profraw file, the other threads are still running and generating data,
+        /// which we reset after writing.
+        ///
+        /// We only generate this code if COLLECT_COVERAGE is set to 1 because
+        /// if -C instrument-coverage is not enabled, llvm methods will not be available
+        match self.retrieve_collect_coverage_flag().as_str() {
+            "1" => quote! {
+                if loopcount > 0 &&
+                    i > 0 &&
+                    i % loopcount == 0 {
+
+                    unsafe {
+                        let filename = format!("target/fuzz-cov-run-{}.profraw", i);
+                        let filename_cstr = std::ffi::CString::new(filename).unwrap();
+                        __llvm_profile_set_filename(filename_cstr.as_ptr());
+
+                        let _ = __llvm_profile_write_file();
+                        __llvm_profile_reset_counters();
+
+                        #generate_notify_extension_logic
+
+                        let final_filename = std::ffi::CString::new("target/fuzz-cov-run-final.profraw").unwrap();
+                        __llvm_profile_set_filename(final_filename.as_ptr());
+                    }
+                }
+            },
+            _ => quote! {},
+        }
+    }
+
+    fn generate_multi_threaded_coverage(&self) -> TokenStream {
+        let generate_write_profile_logic = self.generate_write_profile_logic();
+
+        quote! {
+            if thread_id == 0 {
+                #generate_write_profile_logic
+            }
+        }
+    }
+
+    /// Notifies the extension to update coverage
+    /// decorations if dynamic coverage is enabled
+    ///
+    /// Not very nice many things hardcoded here
+    /// TODO: improve architecture to avoid this
+    fn generate_notify_extension_logic(&self) -> TokenStream {
+        quote! {
+            let url = format!(
+                "http://localhost:{}/update-decorations",
+                coverage_server_port
+            );
+
+            // Right now requests are rapidly fired, regardless of whether extension is ready
+            // TODO: Only fire if extension responded
+            std::thread::spawn(move || {
+                let client = reqwest::blocking::Client::new();
+                let _ = client
+                    .post(&url)
+                    .header("Content-Type", "application/json")
+                    .body("")
+                    .send();
+            });
         }
     }
 }

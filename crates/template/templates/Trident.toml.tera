@@ -3,6 +3,13 @@
 [fuzz]
 fuzzing_with_stats = true
 
+[fuzz.coverage]
+enable = false
+server_port = 58432
+loopcount = 0
+format = "json"
+attach_extension = false
+
 {% for program in programs %}
 [[fuzz.programs]]
 address = "{{ program.program_id }}"

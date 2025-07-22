@@ -1,4 +1,3 @@
-use anyhow::bail;
 use anyhow::Error;
 
 use clap::Subcommand;
@@ -53,20 +52,6 @@ pub(crate) enum FuzzCommand {
             help = "Run the fuzzing with exit code, i.e. if it discovers crash the Trident will exit with exit code 1."
         )]
         with_exit_code: bool,
-        #[arg(
-            short,
-            long,
-            required = false,
-            help = "Tracks code coverage during fuzzing and generates a JSON report upon completion. The coverage data can be visualized in your source code using our VS Code extension."
-        )]
-        generate_coverage: bool,
-        #[arg(
-            short,
-            long = "attach-extension",
-            required = false,
-            help = "Enables real-time coverage visualization in VS Code during fuzzing. The VS Code extension must be actively running to utilize this feature."
-        )]
-        attach_extension: bool,
     },
     Debug {
         #[arg(
@@ -92,17 +77,10 @@ pub(crate) async fn fuzz(subcmd: FuzzCommand) {
         FuzzCommand::Run {
             target,
             with_exit_code,
-            generate_coverage,
-            attach_extension,
         } => {
             let commander = Commander::new(&root);
 
-            if !generate_coverage && attach_extension {
-                bail!("Cannot attach extension without generating coverage!");
-            }
-            commander
-                .run(target, with_exit_code, generate_coverage, attach_extension)
-                .await?;
+            commander.run(target, with_exit_code).await?;
         }
         FuzzCommand::Debug { target, seed } => {
             let commander = Commander::new(&root);

@@ -33,6 +33,7 @@ cargo_metadata = "0.18"
 toml = { version = "0.8", features = ["preserve_order"] }
 rand = "0.8"
 heck = "0.4.0"
+reqwest = { version = "0.11", features = ["json"] }
 
 [dev-dependencies]
 pretty_assertions = "1.1.0"

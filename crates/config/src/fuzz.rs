@@ -1,3 +1,4 @@
+use crate::coverage::Coverage;
 use crate::utils::resolve_path;
 use base64::prelude::BASE64_STANDARD;
 use base64::Engine;
@@ -14,11 +15,16 @@ pub struct Fuzz {
     pub fuzzing_with_stats: Option<bool>,
     pub programs: Option<Vec<_FuzzProgram>>,
     pub accounts: Option<Vec<_FuzzAccount>>,
+    pub coverage: Option<Coverage>,
 }
 
 impl Fuzz {
     pub fn get_fuzzing_with_stats(&self) -> bool {
         self.fuzzing_with_stats.unwrap_or(false)
+    }
+
+    pub fn get_coverage(&self) -> Coverage {
+        self.coverage.clone().unwrap_or_default()
     }
 }
 
