@@ -27,7 +27,8 @@ impl FuzzClient for TridentSVM {
     }
 
     #[doc(hidden)]
-    fn new_client(config: &TridentConfig) -> Self {
+    fn new_client() -> Self {
+        let config = TridentConfig::new();
         let program_binaries =
             config
                 .programs()

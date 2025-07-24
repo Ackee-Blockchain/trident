@@ -21,7 +21,7 @@ struct FuzzTest {
 #[flow_executor]
 impl FuzzTest {
     fn new() -> Self {
-        let client = TridentSVM::new_client(&TridentConfig::new());
+        let client = TridentSVM::new_client();
 
         Self {
             client,
