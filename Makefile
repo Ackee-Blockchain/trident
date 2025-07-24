@@ -19,3 +19,6 @@ test:
 
 refresh-crates:
 	cargo update
+
+release-workspace:
+	cargo workspaces publish --token $(TOKEN) --publish-as-is

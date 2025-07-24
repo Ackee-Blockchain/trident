@@ -20,5 +20,4 @@ proc-macro2 = "1.0"
 quote = "1.0"
 
 [dependencies.trident-syn]
-path = "../../../syn"
-version = "0.10.0"
+workspace = true
