@@ -20,40 +20,32 @@ syscall-v2 = ["trident-svm/syscall-v2"]
 
 # Derive macros
 [dependencies.trident-derive-transaction]
-path = "../fuzz/derive/transaction"
-version = "0.10.0"
+workspace = true
 
 [dependencies.trident-derive-instruction]
-path = "../fuzz/derive/instruction"
-version = "0.10.0"
+workspace = true
 
 [dependencies.trident-derive-accounts]
-path = "../fuzz/derive/accounts"
-version = "0.10.0"
+workspace = true
 
 [dependencies.trident-derive-remaining-accounts]
-path = "../fuzz/derive/remaining_accounts"
-version = "0.10.0"
+workspace = true
 
 
 [dependencies.trident-derive-fuzz-test-methods]
-path = "../fuzz/derive/fuzz_test_methods"
-version = "0.10.0"
+workspace = true
 
 [dependencies.trident-derive-flow-executor]
-path = "../fuzz/derive/flow_executor"
-version = "0.10.0"
+workspace = true
 
 # Config (Trident.toml)
 [dependencies.trident-config]
-path = "../config"
-version = "0.10.0"
+workspace = true
 
 
 # Trident-SVM
 [dependencies.trident-svm]
-git = "https://github.com/Ackee-Blockchain/trident-svm"
-branch = "master"
+version = "0.0.4-rc.3"
 
 [dependencies]
 

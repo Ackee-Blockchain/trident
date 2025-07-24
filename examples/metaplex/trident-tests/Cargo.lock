@@ -2082,7 +2082,7 @@ dependencies = [
 
 [[package]]
 name = "prettytable"
-version = "0.10.0"
+version = "0.11.0-rc.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "46480520d1b77c9a3482d39939fcf96831537a250ec62d4fd8fbdf8e0302e781"
 dependencies = [
@@ -3521,7 +3521,7 @@ dependencies = [
 
 [[package]]
 name = "trident-config"
-version = "0.10.0"
+version = "0.11.0-rc.1"
 dependencies = [
  "anyhow",
  "base64 0.22.1",
@@ -3536,7 +3536,7 @@ dependencies = [
 
 [[package]]
 name = "trident-derive-accounts"
-version = "0.10.0"
+version = "0.11.0-rc.1"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -3546,7 +3546,7 @@ dependencies = [
 
 [[package]]
 name = "trident-derive-flow-executor"
-version = "0.10.0"
+version = "0.11.0-rc.1"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -3556,7 +3556,7 @@ dependencies = [
 
 [[package]]
 name = "trident-derive-fuzz-test-methods"
-version = "0.10.0"
+version = "0.11.0-rc.1"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -3566,7 +3566,7 @@ dependencies = [
 
 [[package]]
 name = "trident-derive-instruction"
-version = "0.10.0"
+version = "0.11.0-rc.1"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -3576,7 +3576,7 @@ dependencies = [
 
 [[package]]
 name = "trident-derive-remaining-accounts"
-version = "0.10.0"
+version = "0.11.0-rc.1"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -3586,7 +3586,7 @@ dependencies = [
 
 [[package]]
 name = "trident-derive-transaction"
-version = "0.10.0"
+version = "0.11.0-rc.1"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -3596,7 +3596,7 @@ dependencies = [
 
 [[package]]
 name = "trident-fuzz"
-version = "0.10.0"
+version = "0.11.0-rc.1"
 dependencies = [
  "anyhow",
  "base64 0.22.1",
@@ -3654,7 +3654,7 @@ dependencies = [
 
 [[package]]
 name = "trident-syn"
-version = "0.10.0"
+version = "0.11.0-rc.1"
 dependencies = [
  "petgraph",
  "proc-macro2",

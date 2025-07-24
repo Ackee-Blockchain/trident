@@ -1928,9 +1928,9 @@ dependencies = [
 
 [[package]]
 name = "io-uring"
-version = "0.7.8"
+version = "0.7.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b86e202f00093dcba4275d4636b93ef9dd75d025ae560d2521b45ea28ab49013"
+checksum = "d93587f37623a1a17d94ef2bc9ada592f5465fe7732084ab7beefabe5c77c0c4"
 dependencies = [
  "bitflags 2.9.1",
  "cfg-if",
@@ -2915,9 +2915,9 @@ dependencies = [
 
 [[package]]
 name = "redox_syscall"
-version = "0.5.14"
+version = "0.5.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "de3a5d9f0aba1dbcec1cc47f0ff94a4b778fe55bca98a6dfa92e4e094e57b1c4"
+checksum = "7e8af0dde094006011e6a740d4879319439489813bd0bcdc7d821beaeeff48ec"
 dependencies = [
  "bitflags 2.9.1",
 ]
@@ -4320,7 +4320,7 @@ dependencies = [
 
 [[package]]
 name = "trident-cli"
-version = "0.10.0"
+version = "0.11.0-rc.1"
 dependencies = [
  "anyhow",
  "clap",
@@ -4333,7 +4333,7 @@ dependencies = [
 
 [[package]]
 name = "trident-client"
-version = "0.10.0"
+version = "0.11.0-rc.1"
 dependencies = [
  "anyhow",
  "cargo_metadata",
@@ -4355,7 +4355,7 @@ dependencies = [
 
 [[package]]
 name = "trident-config"
-version = "0.10.0"
+version = "0.11.0-rc.1"
 dependencies = [
  "anyhow",
  "base64 0.22.1",
@@ -4370,7 +4370,7 @@ dependencies = [
 
 [[package]]
 name = "trident-derive-accounts"
-version = "0.10.0"
+version = "0.11.0-rc.1"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -4380,7 +4380,7 @@ dependencies = [
 
 [[package]]
 name = "trident-derive-flow-executor"
-version = "0.10.0"
+version = "0.11.0-rc.1"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -4390,7 +4390,7 @@ dependencies = [
 
 [[package]]
 name = "trident-derive-fuzz-test-methods"
-version = "0.10.0"
+version = "0.11.0-rc.1"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -4400,7 +4400,7 @@ dependencies = [
 
 [[package]]
 name = "trident-derive-instruction"
-version = "0.10.0"
+version = "0.11.0-rc.1"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -4410,7 +4410,7 @@ dependencies = [
 
 [[package]]
 name = "trident-derive-remaining-accounts"
-version = "0.10.0"
+version = "0.11.0-rc.1"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -4420,7 +4420,7 @@ dependencies = [
 
 [[package]]
 name = "trident-derive-transaction"
-version = "0.10.0"
+version = "0.11.0-rc.1"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -4430,7 +4430,7 @@ dependencies = [
 
 [[package]]
 name = "trident-fuzz"
-version = "0.10.0"
+version = "0.11.0-rc.1"
 dependencies = [
  "anyhow",
  "base64 0.22.1",
@@ -4478,8 +4478,9 @@ dependencies = [
 
 [[package]]
 name = "trident-svm"
-version = "0.0.3"
-source = "git+https://github.com/Ackee-Blockchain/trident-svm?branch=master#43c6d6dfd2c71d227bfae19c0199200a4503eb8d"
+version = "0.0.4-rc.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a6c05967c51c2417b3f434c20792046f23b3ae0bb57f61efcc1ff380e554fcef"
 dependencies = [
  "bincode",
  "log",
@@ -4504,7 +4505,7 @@ dependencies = [
 
 [[package]]
 name = "trident-syn"
-version = "0.10.0"
+version = "0.11.0-rc.1"
 dependencies = [
  "petgraph",
  "proc-macro2",
@@ -4537,7 +4538,7 @@ dependencies = [
 
 [[package]]
 name = "trident-template"
-version = "0.10.0"
+version = "0.11.0-rc.1"
 dependencies = [
  "convert_case 0.6.0",
  "serde",
