@@ -7,7 +7,6 @@ use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
 use solana_sdk::sysvar::Sysvar;
 
-use trident_config::TridentConfig;
 #[cfg(any(feature = "syscall-v1", feature = "syscall-v2"))]
 use trident_svm::types::trident_entrypoint::TridentEntrypoint;
 use trident_svm::types::trident_program::TridentProgram;
@@ -23,7 +22,7 @@ pub trait FuzzClient {
 
     #[doc(hidden)]
     /// Create a new client
-    fn new_client(config: &TridentConfig) -> Self;
+    fn new_client() -> Self;
 
     /// Get sysvar
     fn get_sysvar<T: Sysvar>(&self) -> T;

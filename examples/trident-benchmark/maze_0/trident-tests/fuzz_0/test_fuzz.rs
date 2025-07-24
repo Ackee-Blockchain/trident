@@ -23,7 +23,7 @@ struct FuzzTest {
 #[flow_executor]
 impl FuzzTest {
     fn new() -> Self {
-        let mut client = TridentSVM::new_client(&TridentConfig::new());
+        let mut client = TridentSVM::new_client();
 
         // Deploy through the entrypoint
         let program = TridentEntrypoint::new(maze0::ID, None, processor!(maze0));
