@@ -176,6 +176,275 @@
             padding: 20px 0;
             border-top: 1px solid #334155;
         }
+        
+        /* Tooltip styles */
+        .info-icon {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            background: #64748b;
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            font-size: 12px;
+            line-height: 16px;
+            margin-left: 8px;
+            cursor: help;
+            position: relative;
+            font-weight: bold;
+        }
+        
+        .info-icon:hover {
+            background: #38bdf8;
+        }
+        
+        .tooltip {
+            visibility: hidden;
+            opacity: 0;
+            position: absolute;
+            z-index: 1000;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #334155;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.4);
+            width: 280px;
+            font-size: 13px;
+            line-height: 1.4;
+            transition: opacity 0.3s, visibility 0.3s;
+            max-width: 90vw;
+        }
+        
+        @media (max-width: 768px) {
+            .tooltip {
+                width: 240px;
+                left: -120px;
+                transform: none;
+            }
+        }
+        
+        .tooltip::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #1e293b transparent transparent transparent;
+        }
+        
+        .info-icon:hover .tooltip {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        .metric-with-info {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #334155;
+        }
+        
+        .metric-with-info:last-child {
+            border-bottom: none;
+        }
+        
+        .metric-label-container {
+            display: flex;
+            align-items: center;
+        }
+        
+        /* Custom Metrics Professional Layout */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .metric-card {
+            background: #334155;
+            border: 1px solid #475569;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        
+        .metric-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #475569;
+        }
+        
+        .metric-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #e2e8f0;
+            margin: 0;
+        }
+        
+        .metric-type-badge {
+            background: #38bdf8;
+            color: #0c4a6e;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .histogram-badge {
+            background: #22c55e;
+            color: #052e16;
+        }
+        
+        .accumulator-badge {
+            background: #f59e0b;
+            color: #451a03;
+        }
+        
+        .key-metrics {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        
+        .key-metric {
+            text-align: center;
+            padding: 16px;
+            background: #1e293b;
+            border-radius: 8px;
+            border: 1px solid #334155;
+        }
+        
+        .key-metric-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #38bdf8;
+            margin-bottom: 4px;
+            word-break: break-all;
+            overflow-wrap: break-word;
+            line-height: 1.1;
+        }
+        
+        .key-metric-label {
+            font-size: 0.85rem;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .detailed-metrics {
+            background: #1e293b;
+            border-radius: 8px;
+            padding: 16px;
+            border: 1px solid #334155;
+        }
+        
+        .detailed-metrics h4 {
+            margin: 0 0 12px 0;
+            color: #cbd5e1;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+        
+        .detail-metric {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #334155;
+        }
+        
+        .detail-metric:last-child {
+            border-bottom: none;
+        }
+        
+        .detail-metric-label {
+            display: flex;
+            align-items: center;
+            font-size: 0.9rem;
+            color: #cbd5e1;
+        }
+        
+        .detail-metric-value {
+            font-weight: 600;
+            color: #e2e8f0;
+            font-size: 0.9rem;
+        }
+        
+        .entropy-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-left: 8px;
+        }
+        
+        .entropy-low { background: #ef4444; }
+        .entropy-medium { background: #f59e0b; }
+        .entropy-good { background: #22c55e; }
+        .entropy-excellent { background: #06b6d4; }
+        
+        .accumulator-value {
+            text-align: center;
+            padding: 32px 16px;
+        }
+        
+        .accumulator-number {
+            font-size: 3rem;
+            font-weight: 700;
+            color: #38bdf8;
+            line-height: 1;
+            word-break: break-all;
+            overflow-wrap: break-word;
+        }
+        
+        .accumulator-label {
+            font-size: 0.9rem;
+            color: #94a3b8;
+            margin-top: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .no-metrics-placeholder {
+            text-align: center;
+            padding: 60px 20px;
+            color: #64748b;
+            background: #334155;
+            border-radius: 12px;
+            border: 2px dashed #475569;
+        }
+        
+        .no-metrics-icon {
+            font-size: 3rem;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+        
+        @media (max-width: 768px) {
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .key-metrics {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
@@ -267,6 +536,43 @@
         
         // Set timestamp
         document.getElementById('timestamp').textContent = new Date().toLocaleString();
+        
+        // Format large numbers for better display
+        function formatLargeNumber(num) {
+            if (num === undefined || num === null) return '0';
+            
+            const absNum = Math.abs(num);
+            
+            if (absNum >= 1e12) {
+                return (num / 1e12).toFixed(1) + 'T';
+            } else if (absNum >= 1e9) {
+                return (num / 1e9).toFixed(1) + 'B';
+            } else if (absNum >= 1e6) {
+                return (num / 1e6).toFixed(1) + 'M';
+            } else if (absNum >= 1e3) {
+                return (num / 1e3).toFixed(1) + 'K';
+            }
+            
+            return num.toLocaleString();
+        }
+        
+        // Format numbers with responsive sizing
+        function formatNumberWithSize(num, element) {
+            const formatted = formatLargeNumber(num);
+            
+            // Adjust font size based on number length
+            if (element) {
+                if (formatted.length > 8) {
+                    element.style.fontSize = '1.2rem';
+                } else if (formatted.length > 6) {
+                    element.style.fontSize = '1.5rem';
+                } else {
+                    element.style.fontSize = '1.8rem';
+                }
+            }
+            
+            return formatted;
+        }
         
         // Display raw data
         document.getElementById('raw-data').textContent = JSON.stringify(data, null, 2);
@@ -398,16 +704,21 @@
             const errorCounts = {};
             const customErrorCounts = {};
             
-            // Collect regular transaction errors
+            // Collect error types but track max count per instruction to avoid over-counting
             for (const [instruction, stats] of Object.entries(data.instructions)) {
+                // For regular transaction errors, take the max count per error type
                 for (const [error, errorData] of Object.entries(stats.transactions_errors || {})) {
-                    errorCounts[error] = (errorCounts[error] || 0) + errorData.occurrences;
+                    if (!errorCounts[error] || errorData.occurrences > errorCounts[error]) {
+                        errorCounts[error] = errorData.occurrences;
+                    }
                 }
                 
-                // Collect custom instruction errors
+                // For custom instruction errors, take the max count per error code
                 for (const [errorCode, errorData] of Object.entries(stats.custom_instruction_errors || {})) {
                     const errorLabel = `Custom Error ${errorCode}`;
-                    customErrorCounts[errorLabel] = (customErrorCounts[errorLabel] || 0) + errorData.occurrences;
+                    if (!customErrorCounts[errorLabel] || errorData.occurrences > customErrorCounts[errorLabel]) {
+                        customErrorCounts[errorLabel] = errorData.occurrences;
+                    }
                 }
             }
             
@@ -611,20 +922,26 @@
             container.innerHTML = html;
         }
 
-        // Generate custom metrics
+        // Generate custom metrics with professional layout
         function generateCustomMetrics() {
             const container = document.getElementById('custom-metrics');
-            let html = '';
             
             if (!data.custom_metrics || Object.keys(data.custom_metrics).length === 0) {
-                html = '<p style="text-align: center; color: #94a3b8;">No custom protocol metrics available.</p>';
-            } else {
-                for (const [metricName, metricData] of Object.entries(data.custom_metrics)) {
-                    html += generateMetricCard(metricName, metricData);
-                }
+                container.innerHTML = `
+                    <div class="no-metrics-placeholder">
+                        <div class="no-metrics-icon">📊</div>
+                        <h3 style="margin: 0 0 8px 0; color: #64748b;">No Custom Metrics Available</h3>
+                        <p style="margin: 0; font-size: 0.9rem;">Add custom metrics to your fuzzing tests to see detailed analytics here.</p>
+                    </div>
+                `;
+                return;
             }
             
-            container.innerHTML = html;
+            const metricsHtml = Object.entries(data.custom_metrics)
+                .map(([metricName, metricData]) => generateMetricCard(metricName, metricData))
+                .join('');
+            
+            container.innerHTML = `<div class="metrics-grid">${metricsHtml}</div>`;
         }
         
         function generateMetricCard(name, data) {
@@ -632,31 +949,96 @@
             
             if (data.Accumulator !== undefined) {
                 return `
-                    <div class="metric">
-                        <span>${displayName}</span>
-                        <span class="metric-value">${data.Accumulator.toLocaleString()}</span>
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <h3 class="metric-title">${displayName}</h3>
+                            <span class="metric-type-badge accumulator-badge">Accumulator</span>
+                        </div>
+                        <div class="metric-with-info">
+                            <span>Total Value</span>
+                            <span class="metric-value">${data.Accumulator.toLocaleString()}</span>
+                        </div>
                     </div>
                 `;
             } else if (data.Histogram !== undefined) {
                 const hist = data.Histogram;
+                
+                // Determine entropy quality indicator
+                const entropyClass = hist.entropy < 5 ? 'entropy-low' : 
+                                   hist.entropy < 10 ? 'entropy-medium' : 
+                                   hist.entropy < 15 ? 'entropy-good' : 'entropy-excellent';
+                
                 return `
-                    <div class="error-section">
-                        <div class="error-title">${displayName} Distribution</div>
-                        <div class="metric">
-                            <span>Count</span>
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <h3 class="metric-title">${displayName}</h3>
+                            <span class="metric-type-badge histogram-badge">Distribution</span>
+                        </div>
+                        
+                        <div class="metric-with-info">
+                            <div class="metric-label-container">
+                                <span>Count</span>
+                                <span class="info-icon">i
+                                    <div class="tooltip">
+                                        <strong>Sample Count</strong><br>
+                                        The total number of data points collected for this metric during fuzzing.
+                                    </div>
+                                </span>
+                            </div>
                             <span class="metric-value">${hist.count.toLocaleString()}</span>
                         </div>
-                        <div class="metric">
-                            <span>Range</span>
+                        
+                        <div class="metric-with-info">
+                            <div class="metric-label-container">
+                                <span>Range</span>
+                                <span class="info-icon">i
+                                    <div class="tooltip">
+                                        <strong>Min - Max Range</strong><br>
+                                        The smallest and largest values observed. Shows the spread of your data.
+                                    </div>
+                                </span>
+                            </div>
                             <span class="metric-value">${hist.min.toFixed(2)} - ${hist.max.toFixed(2)}</span>
                         </div>
-                        <div class="metric">
-                            <span>Average</span>
+                        
+                        <div class="metric-with-info">
+                            <div class="metric-label-container">
+                                <span>Average</span>
+                                <span class="info-icon">i
+                                    <div class="tooltip">
+                                        <strong>Arithmetic Mean</strong><br>
+                                        The sum of all values divided by the count. Represents the typical/expected value but can be skewed by outliers.
+                                    </div>
+                                </span>
+                            </div>
                             <span class="metric-value">${hist.avg.toFixed(2)}</span>
                         </div>
-                        <div class="metric">
-                            <span>Median</span>
+                        
+                        <div class="metric-with-info">
+                            <div class="metric-label-container">
+                                <span>Median</span>
+                                <span class="info-icon">i
+                                    <div class="tooltip">
+                                        <strong>Middle Value</strong><br>
+                                        The value that separates the higher half from the lower half. Less affected by outliers than the average.
+                                    </div>
+                                </span>
+                            </div>
                             <span class="metric-value">${hist.median.toFixed(2)}</span>
+                        </div>
+                        
+                        <div class="metric-with-info">
+                            <div class="metric-label-container">
+                                <span>Shannon Entropy</span>
+                                <span class="entropy-indicator ${entropyClass}"></span>
+                                <span class="info-icon">i
+                                    <div class="tooltip">
+                                        <strong>Shannon Entropy</strong><br>
+                                        Measures data diversity. Higher values indicate better test coverage, but quality depends on sample count - same entropy with more samples suggests less diversity.
+                                    </div>
+                                </span>
+                            </div>
+                            <span class="metric-value">${hist.entropy.toFixed(4)}</span>
                         </div>
                     </div>
                 `;

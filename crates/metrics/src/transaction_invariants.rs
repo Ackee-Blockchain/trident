@@ -25,11 +25,11 @@ impl TransactionInvariantMetrics {
     }
 
     pub(crate) fn concat(&mut self, other: &TransactionInvariantMetrics) {
-        for (invariant, metadata) in other.invariants.iter() {
+        for (other_invariant, other_metadata) in other.invariants.iter() {
             self.invariants
-                .entry(invariant.to_string())
-                .and_modify(|metadata| metadata.occurrences += metadata.occurrences)
-                .or_insert(metadata.clone());
+                .entry(other_invariant.to_string())
+                .and_modify(|metadata| metadata.occurrences += other_metadata.occurrences)
+                .or_insert(other_metadata.clone());
         }
     }
 

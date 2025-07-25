@@ -23,11 +23,11 @@ impl TransactionCustomErrorMetrics {
     }
 
     pub(crate) fn concat(&mut self, other: &TransactionCustomErrorMetrics) {
-        for (error, metadata) in other.errors.iter() {
+        for (other_error, other_metadata) in other.errors.iter() {
             self.errors
-                .entry(*error)
-                .and_modify(|metadata| metadata.occurrences += metadata.occurrences)
-                .or_insert(metadata.clone());
+                .entry(*other_error)
+                .and_modify(|metadata| metadata.occurrences += other_metadata.occurrences)
+                .or_insert(other_metadata.clone());
         }
     }
 
