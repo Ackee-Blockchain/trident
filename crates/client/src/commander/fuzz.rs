@@ -19,6 +19,10 @@ impl Commander {
             std::env::set_var("FUZZING_METRICS", "1");
         }
 
+        if config.get_dashboard() {
+            std::env::set_var("FUZZING_DASHBOARD", "1");
+        }
+
         let coverage_config = config.get_coverage();
         if coverage_config.get_enable() {
             self.run_with_coverage(&target, &config, coverage_config)

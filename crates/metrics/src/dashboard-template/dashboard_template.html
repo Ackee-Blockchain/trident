@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trident Fuzzing Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .header {
+            background: #1e293b;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.4);
+            margin-bottom: 20px;
+            border: 1px solid #334155;
+        }
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .full-width {
+            grid-column: 1 / -1;
+        }
+        .card {
+            background: #1e293b;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.4);
+            border: 1px solid #334155;
+        }
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #334155;
+        }
+        .metric:last-child {
+            border-bottom: none;
+        }
+        .metric-value {
+            font-weight: bold;
+            color: #38bdf8;
+        }
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+        h1, h2 {
+            color: #e2e8f0;
+            margin-bottom: 16px;
+        }
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 8px;
+        }
+        h2 {
+            font-size: 1.5rem;
+            margin-bottom: 16px;
+        }
+        .success { color: #22c55e; }
+        .error { color: #ef4444; }
+        .warning { color: #f59e0b; }
+        .error-section {
+            margin: 15px 0;
+            padding: 15px;
+            background: #334155;
+            border-left: 4px solid #ef4444;
+            border-radius: 6px;
+        }
+        .error-title {
+            font-weight: bold;
+            color: #fca5a5;
+            margin-bottom: 8px;
+        }
+        .error-logs {
+            background: #0f172a;
+            color: #cbd5e1;
+            padding: 12px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 8px;
+            border: 1px solid #475569;
+            line-height: 1.5;
+            white-space: pre-wrap;
+        }
+        .log-line {
+            margin: 2px 0;
+        }
+        .log-program {
+            color: #38bdf8;
+        }
+        .log-invoke {
+            color: #22c55e;
+        }
+        .log-error {
+            color: #f87171;
+        }
+        .log-success {
+            color: #22c55e;
+        }
+        .log-failed {
+            color: #f87171;
+        }
+        .log-message {
+            color: #fbbf24;
+        }
+        .log-compute {
+            color: #a78bfa;
+        }
+        .error-count {
+            font-size: 0.9em;
+            color: #94a3b8;
+        }
+        .collapsible {
+            cursor: pointer;
+            padding: 10px 12px;
+            background: #475569;
+            border: 1px solid #64748b;
+            border-radius: 6px;
+            margin: 8px 0;
+            color: #e2e8f0;
+            transition: background-color 0.2s;
+        }
+        .collapsible:hover {
+            background: #64748b;
+        }
+        .collapsible-content {
+            display: none;
+            padding: 15px;
+            border-top: 1px solid #64748b;
+            background: #334155;
+            border-radius: 0 0 6px 6px;
+        }
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background: #334155;
+            padding: 16px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #475569;
+        }
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #38bdf8;
+        }
+        .stat-label {
+            color: #94a3b8;
+            margin-top: 4px;
+        }
+        .footer {
+            margin-top: 40px;
+            text-align: center;
+            color: #64748b;
+            padding: 20px 0;
+            border-top: 1px solid #334155;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Trident Fuzzing Dashboard</h1>
+            <p>Fuzzing session completed. Results generated on: <span id="timestamp"></span></p>
+        </div>
+
+        <div class="summary-stats">
+            <div class="stat-card">
+                <div class="stat-value" id="total-transactions">0</div>
+                <div class="stat-label">Total Transactions</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value success" id="total-successful">0</div>
+                <div class="stat-label">Successful</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value error" id="total-failed">0</div>
+                <div class="stat-label">Failed</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value warning" id="total-invariant-failed">0</div>
+                <div class="stat-label">Invariant Failed</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value warning" id="total-panicked">0</div>
+                <div class="stat-label">Panicked</div>
+            </div>
+        </div>
+
+        <div class="card full-width">
+            <h2>Transaction Statistics</h2>
+            <div id="instruction-stats"></div>
+        </div>
+
+        <div class="charts-grid">
+            <div class="card">
+                <h2>Success Rate Overview</h2>
+                <div class="chart-container">
+                    <canvas id="successChart"></canvas>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Error Breakdown</h2>
+                <div class="chart-container">
+                    <canvas id="errorChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="card full-width">
+            <h2>Error Details</h2>
+            <div id="error-details"></div>
+        </div>
+
+        <div class="card full-width">
+            <h2>Panic Analysis</h2>
+            <div id="panic-analysis"></div>
+        </div>
+
+        <div class="card full-width">
+            <h2>Invariant Check Failures</h2>
+            <div id="invariant-failures"></div>
+        </div>
+
+        <div class="card full-width">
+            <h2>Custom Metrics</h2>
+            <div id="custom-metrics"></div>
+        </div>
+
+        <div class="card full-width" style="margin-top: 20px;">
+            <h2>Raw Data</h2>
+            <details>
+                <summary style="cursor: pointer; color: #38bdf8; padding: 8px;">View raw JSON data</summary>
+                <pre id="raw-data" style="background: #0f172a; color: #cbd5e1; padding: 15px; border-radius: 6px; overflow: auto; max-height: 400px; border: 1px solid #475569; margin-top: 10px;"></pre>
+            </details>
+        </div>
+
+        <div class="footer">
+            <p>Generated by Trident Fuzzing Framework</p>
+        </div>
+    </div>
+
+    <script>
+        const data = {{JSON_DATA}};
+        
+        // Set timestamp
+        document.getElementById('timestamp').textContent = new Date().toLocaleString();
+        
+        // Display raw data
+        document.getElementById('raw-data').textContent = JSON.stringify(data, null, 2);
+        
+        // Calculate summary statistics
+        function calculateSummaryStats() {
+            let totalTransactions = 0;
+            let totalSuccessful = 0;
+            let totalFailed = 0;
+            let totalInvariantFailed = 0;
+            let totalPanicked = 0;
+            
+            for (const [instruction, stats] of Object.entries(data.instructions)) {
+                totalTransactions += stats.invoked || 0;
+                totalSuccessful += stats.transactions_successful || 0;
+                totalFailed += stats.transactions_failed || 0;
+                totalInvariantFailed += stats.transactions_failed_invariant || 0;
+                totalPanicked += stats.transactions_panicked || 0;
+            }
+            
+            document.getElementById('total-transactions').textContent = totalTransactions.toLocaleString();
+            document.getElementById('total-successful').textContent = totalSuccessful.toLocaleString();
+            document.getElementById('total-failed').textContent = totalFailed.toLocaleString();
+            document.getElementById('total-invariant-failed').textContent = totalInvariantFailed.toLocaleString();
+            document.getElementById('total-panicked').textContent = totalPanicked.toLocaleString();
+        }
+        
+        // Generate instruction statistics table
+        function generateInstructionStats() {
+            const container = document.getElementById('instruction-stats');
+            let html = '';
+            
+            for (const [instruction, stats] of Object.entries(data.instructions)) {
+                const successRate = stats.invoked > 0 ? ((stats.transactions_successful / stats.invoked) * 100).toFixed(1) : 0;
+                
+                html += `
+                    <div style="background: #334155; border-radius: 8px; padding: 16px; margin-bottom: 12px; border: 1px solid #475569;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                            <h3 style="margin: 0; color: #e2e8f0; font-size: 1.1rem;">${instruction}</h3>
+                            <div style="background: ${successRate >= 90 ? '#22c55e' : successRate >= 70 ? '#f59e0b' : '#ef4444'}; color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.9rem; font-weight: bold;">
+                                ${successRate}% Success
+                            </div>
+                        </div>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px;">
+                            <div style="text-align: center;">
+                                <div style="font-size: 1.5rem; font-weight: bold; color: #38bdf8;">${stats.invoked.toLocaleString()}</div>
+                                <div style="color: #94a3b8; font-size: 0.9rem;">Total Invoked</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="font-size: 1.5rem; font-weight: bold; color: #22c55e;">${stats.transactions_successful.toLocaleString()}</div>
+                                <div style="color: #94a3b8; font-size: 0.9rem;">Successful</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="font-size: 1.5rem; font-weight: bold; color: #ef4444;">${stats.transactions_failed.toLocaleString()}</div>
+                                <div style="color: #94a3b8; font-size: 0.9rem;">Failed</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="font-size: 1.5rem; font-weight: bold; color: #f59e0b;">${stats.transactions_failed_invariant.toLocaleString()}</div>
+                                <div style="color: #94a3b8; font-size: 0.9rem;">Invariant Failed</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="font-size: 1.5rem; font-weight: bold; color: #a855f7;">${stats.transactions_panicked.toLocaleString()}</div>
+                                <div style="color: #94a3b8; font-size: 0.9rem;">Panicked</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            container.innerHTML = html;
+        }
+        
+        // Generate success rate chart
+        function generateSuccessChart() {
+            const ctx = document.getElementById('successChart').getContext('2d');
+            const labels = Object.keys(data.instructions);
+            const successData = labels.map(key => data.instructions[key].transactions_successful);
+            const failedData = labels.map(key => data.instructions[key].transactions_failed);
+            
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Successful',
+                        data: successData,
+                        backgroundColor: '#22c55e'
+                    }, {
+                        label: 'Failed',
+                        data: failedData,
+                        backgroundColor: '#ef4444'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#e2e8f0'
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { 
+                            stacked: true,
+                            ticks: {
+                                color: '#94a3b8'
+                            },
+                            grid: {
+                                color: '#334155'
+                            }
+                        },
+                        y: { 
+                            stacked: true,
+                            ticks: {
+                                color: '#94a3b8'
+                            },
+                            grid: {
+                                color: '#334155'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Generate error breakdown chart with better colors for dark theme
+        function generateErrorChart() {
+            const errorCounts = {};
+            const customErrorCounts = {};
+            
+            // Collect regular transaction errors
+            for (const [instruction, stats] of Object.entries(data.instructions)) {
+                for (const [error, errorData] of Object.entries(stats.transactions_errors || {})) {
+                    errorCounts[error] = (errorCounts[error] || 0) + errorData.occurrences;
+                }
+                
+                // Collect custom instruction errors
+                for (const [errorCode, errorData] of Object.entries(stats.custom_instruction_errors || {})) {
+                    const errorLabel = `Custom Error ${errorCode}`;
+                    customErrorCounts[errorLabel] = (customErrorCounts[errorLabel] || 0) + errorData.occurrences;
+                }
+            }
+            
+            // Combine all errors
+            const allErrors = {...errorCounts, ...customErrorCounts};
+            const ctx = document.getElementById('errorChart').getContext('2d');
+            const labels = Object.keys(allErrors);
+            const counts = Object.values(allErrors);
+            
+            if (labels.length > 0) {
+                new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            data: counts,
+                            backgroundColor: [
+                                '#ef4444', '#f59e0b', '#8b5cf6', '#06b6d4', 
+                                '#10b981', '#ec4899', '#6366f1', '#84cc16',
+                                '#f97316', '#14b8a6', '#a855f7', '#eab308'
+                            ],
+                            borderColor: '#1e293b',
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    color: '#e2e8f0',
+                                    padding: 15,
+                                    font: {
+                                        size: 12
+                                    }
+                                }
+                            },
+                            tooltip: {
+                                backgroundColor: '#1e293b',
+                                titleColor: '#e2e8f0',
+                                bodyColor: '#e2e8f0',
+                                borderColor: '#334155',
+                                borderWidth: 1
+                            }
+                        }
+                    }
+                });
+            } else {
+                document.getElementById('errorChart').parentElement.innerHTML = '<h2>Error Breakdown</h2><p style="text-align: center; color: #22c55e; font-size: 1.2em;">No errors detected!</p>';
+            }
+        }
+        
+        // Format Solana logs with syntax highlighting
+        function formatSolanaLogs(logs) {
+            if (!logs || logs.length === 0) return 'No logs available';
+            
+            return logs.map(log => {
+                let formattedLog = log.replace(/\\n/g, '\n'); // Handle escaped newlines
+                
+                // Color different types of log lines
+                if (formattedLog.includes('Program') && formattedLog.includes('invoke')) {
+                    formattedLog = `<span class="log-invoke">${formattedLog}</span>`;
+                } else if (formattedLog.includes('Program') && formattedLog.includes('success')) {
+                    formattedLog = `<span class="log-success">${formattedLog}</span>`;
+                } else if (formattedLog.includes('Program') && formattedLog.includes('failed')) {
+                    formattedLog = `<span class="log-failed">${formattedLog}</span>`;
+                } else if (formattedLog.includes('Program log:')) {
+                    formattedLog = `<span class="log-message">${formattedLog}</span>`;
+                } else if (formattedLog.includes('consumed') && formattedLog.includes('compute units')) {
+                    formattedLog = `<span class="log-compute">${formattedLog}</span>`;
+                } else if (formattedLog.includes('Program') && formattedLog.includes('error')) {
+                    formattedLog = `<span class="log-error">${formattedLog}</span>`;
+                } else if (formattedLog.startsWith('Program ')) {
+                    formattedLog = `<span class="log-program">${formattedLog}</span>`;
+                }
+                
+                return `<div class="log-line">${formattedLog}</div>`;
+            }).join('');
+        }
+
+        // Generate panic analysis
+        function generatePanicAnalysis() {
+            const container = document.getElementById('panic-analysis');
+            let html = '';
+            let panicCount = 0;
+            
+            for (const [instruction, stats] of Object.entries(data.instructions)) {
+                for (const [panic, panicData] of Object.entries(stats.transactions_panics || {})) {
+                    panicCount++;
+                    const panicId = `panic-${panicCount}`;
+                    html += `
+                        <div class="error-section">
+                            <div class="error-title">${instruction}: ${panic}</div>
+                            <div class="error-count">Occurred ${panicData.occurrences} times | Seed: ${panicData.seed}</div>
+                            <div class="collapsible" onclick="toggleCollapsible('${panicId}')">
+                                View Panic Logs ▼
+                            </div>
+                            <div id="${panicId}" class="collapsible-content">
+                                <div class="error-logs">${formatSolanaLogs(panicData.logs)}</div>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+            
+            if (panicCount === 0) {
+                html = '<p style="text-align: center; color: #22c55e; font-size: 1.2em;">No panics detected!</p>';
+            }
+            
+            container.innerHTML = html;
+        }
+        
+        // Generate detailed error analysis
+        function generateErrorDetails() {
+            const container = document.getElementById('error-details');
+            let html = '';
+            let totalErrors = 0;
+            
+            for (const [instruction, stats] of Object.entries(data.instructions)) {
+                // Regular transaction errors
+                for (const [error, errorData] of Object.entries(stats.transactions_errors || {})) {
+                    totalErrors++;
+                    const errorId = `error-${totalErrors}`;
+                    html += `
+                        <div class="error-section">
+                            <div class="error-title">${instruction}: ${error}</div>
+                            <div class="error-count">Occurred ${errorData.occurrences} times</div>
+                            <div class="collapsible" onclick="toggleCollapsible('${errorId}')">
+                                View Error Logs ▼
+                            </div>
+                            <div id="${errorId}" class="collapsible-content">
+                                <div class="error-logs">${formatSolanaLogs(errorData.logs)}</div>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                // Custom instruction errors
+                for (const [errorCode, errorData] of Object.entries(stats.custom_instruction_errors || {})) {
+                    totalErrors++;
+                    const errorId = `error-${totalErrors}`;
+                    html += `
+                        <div class="error-section">
+                            <div class="error-title">${instruction}: Custom Error Code ${errorCode}</div>
+                            <div class="error-count">Occurred ${errorData.occurrences} times</div>
+                            <div class="collapsible" onclick="toggleCollapsible('${errorId}')">
+                                View Error Logs ▼
+                            </div>
+                            <div id="${errorId}" class="collapsible-content">
+                                <div class="error-logs">${formatSolanaLogs(errorData.logs)}</div>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+            
+            if (totalErrors === 0) {
+                html = '<p style="text-align: center; color: #22c55e; font-size: 1.2em;">No detailed error information available!</p>';
+            }
+            
+            container.innerHTML = html;
+        }
+        
+        // Toggle collapsible sections
+        function toggleCollapsible(id) {
+            const element = document.getElementById(id);
+            const button = element.previousElementSibling;
+            if (element.style.display === 'block') {
+                element.style.display = 'none';
+                button.innerHTML = 'View Error Logs ▼';
+            } else {
+                element.style.display = 'block';
+                button.innerHTML = 'Hide Error Logs ▲';
+            }
+        }
+
+        // Generate invariant check failures
+        function generateInvariantFailures() {
+            const container = document.getElementById('invariant-failures');
+            let html = '';
+            let failureCount = 0;
+            
+            for (const [instruction, stats] of Object.entries(data.instructions)) {
+                for (const [failure, failureData] of Object.entries(stats.transactions_invariant_fails || {})) {
+                    failureCount++;
+                    html += `
+                        <div class="error-section">
+                            <div class="error-title">${instruction}: ${failure}</div>
+                            <div class="error-count">Occurred ${failureData.occurrences} times | Seed: ${failureData.seed}</div>
+                        </div>
+                    `;
+                }
+            }
+            
+            if (failureCount === 0) {
+                html = '<p style="text-align: center; color: #22c55e; font-size: 1.2em;">No invariant check failures detected!</p>';
+            }
+            
+            container.innerHTML = html;
+        }
+
+        // Generate custom metrics
+        function generateCustomMetrics() {
+            const container = document.getElementById('custom-metrics');
+            let html = '';
+            
+            if (!data.custom_metrics || Object.keys(data.custom_metrics).length === 0) {
+                html = '<p style="text-align: center; color: #94a3b8;">No custom protocol metrics available.</p>';
+            } else {
+                for (const [metricName, metricData] of Object.entries(data.custom_metrics)) {
+                    html += generateMetricCard(metricName, metricData);
+                }
+            }
+            
+            container.innerHTML = html;
+        }
+        
+        function generateMetricCard(name, data) {
+            const displayName = name.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+            
+            if (data.Accumulator !== undefined) {
+                return `
+                    <div class="metric">
+                        <span>${displayName}</span>
+                        <span class="metric-value">${data.Accumulator.toLocaleString()}</span>
+                    </div>
+                `;
+            } else if (data.Histogram !== undefined) {
+                const hist = data.Histogram;
+                return `
+                    <div class="error-section">
+                        <div class="error-title">${displayName} Distribution</div>
+                        <div class="metric">
+                            <span>Count</span>
+                            <span class="metric-value">${hist.count.toLocaleString()}</span>
+                        </div>
+                        <div class="metric">
+                            <span>Range</span>
+                            <span class="metric-value">${hist.min.toFixed(2)} - ${hist.max.toFixed(2)}</span>
+                        </div>
+                        <div class="metric">
+                            <span>Average</span>
+                            <span class="metric-value">${hist.avg.toFixed(2)}</span>
+                        </div>
+                        <div class="metric">
+                            <span>Median</span>
+                            <span class="metric-value">${hist.median.toFixed(2)}</span>
+                        </div>
+                    </div>
+                `;
+            }
+            return '';
+        }
+
+        // Initialize dashboard
+        calculateSummaryStats();
+        generateInstructionStats();
+        generateSuccessChart();
+        generateErrorChart();
+        generatePanicAnalysis();
+        generateErrorDetails();
+        generateInvariantFailures();
+        generateCustomMetrics();
+    </script>
+</body>
+</html> 

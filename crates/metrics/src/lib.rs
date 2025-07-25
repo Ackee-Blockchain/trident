@@ -6,6 +6,8 @@ use std::collections::BTreeMap;
 use std::fs::File;
 use std::io::Write;
 
+mod custom_metrics;
+mod dashboard;
 mod transaction_custom_error;
 mod transaction_error;
 mod transaction_invariants;
@@ -13,6 +15,8 @@ mod transaction_panics;
 pub mod types;
 use types::Seed;
 
+use crate::custom_metrics::CustomMetricValue;
+use crate::dashboard::DashboardConfig;
 use crate::transaction_custom_error::TransactionCustomErrorMetrics;
 use crate::transaction_error::TransactionErrorMetrics;
 use crate::transaction_invariants::TransactionInvariantMetrics;
@@ -35,6 +39,9 @@ pub(crate) struct TransactionStats {
 #[derive(Debug, Default, serde::Serialize, serde::Deserialize)]
 pub struct FuzzingStatistics {
     transactions: BTreeMap<String, TransactionStats>,
+    // New field for custom metrics without breaking existing API
+    #[serde(default)]
+    custom_metrics: BTreeMap<String, CustomMetricValue>,
 }
 
 impl FuzzingStatistics {
@@ -42,8 +49,10 @@ impl FuzzingStatistics {
         let empty_transactions = BTreeMap::<String, TransactionStats>::default();
         Self {
             transactions: empty_transactions,
+            custom_metrics: BTreeMap::default(),
         }
     }
+
     pub fn add_executed_transaction(&mut self, transaction: &str) {
         self.transactions
             .entry(transaction.to_string())
@@ -158,6 +167,68 @@ impl FuzzingStatistics {
     /// # Arguments
     /// * `other` - The other FuzzingStatistics instance to merge from.
     pub fn merge_from(&mut self, other: FuzzingStatistics) {
+        // Merge custom metrics
+        for (metric_name, metric_value) in other.custom_metrics {
+            match self.custom_metrics.get_mut(&metric_name) {
+                Some(existing_metric) => {
+                    match (existing_metric, metric_value) {
+                        (
+                            CustomMetricValue::Accumulator(existing),
+                            CustomMetricValue::Accumulator(new),
+                        ) => {
+                            *existing += new;
+                        }
+                        (
+                            CustomMetricValue::Histogram {
+                                min: existing_min,
+                                max: existing_max,
+                                avg: existing_avg,
+                                median: existing_median,
+                                count: existing_count,
+                                values: existing_values,
+                            },
+                            CustomMetricValue::Histogram {
+                                min: new_min,
+                                max: new_max,
+                                avg: new_avg,
+                                median: _,
+                                count: new_count,
+                                values: new_values,
+                            },
+                        ) => {
+                            // Update min/max
+                            *existing_min = existing_min.min(new_min);
+                            *existing_max = existing_max.max(new_max);
+                            // Calculate new weighted average
+                            let total_count = *existing_count + new_count;
+                            if total_count > 0 {
+                                *existing_avg = (*existing_avg * (*existing_count as f64)
+                                    + new_avg * (new_count as f64))
+                                    / (total_count as f64);
+                            }
+                            *existing_count = total_count;
+
+                            // Merge values and recalculate median
+                            existing_values.extend(new_values);
+                            existing_values.sort_by(|a, b| a.partial_cmp(b).unwrap());
+                            let len = existing_values.len();
+                            *existing_median = if len % 2 == 0 {
+                                (existing_values[len / 2 - 1] + existing_values[len / 2]) / 2.0
+                            } else {
+                                existing_values[len / 2]
+                            };
+                        }
+                        _ => {
+                            // Mismatched types, keep the existing one
+                        }
+                    }
+                }
+                None => {
+                    self.custom_metrics.insert(metric_name, metric_value);
+                }
+            }
+        }
+
         for (transaction, stats) in other.transactions {
             self.transactions
                 .entry(transaction.to_string())
@@ -183,5 +254,155 @@ impl FuzzingStatistics {
                 })
                 .or_insert(stats);
         }
+    }
+
+    // Dashboard-related methods
+
+    /// Add to accumulator metric
+    pub fn add_to_accumulator(&mut self, metric_name: &str, value: f64) {
+        self.custom_metrics
+            .entry(metric_name.to_string())
+            .and_modify(|metric| {
+                if let CustomMetricValue::Accumulator(ref mut total) = metric {
+                    *total += value;
+                }
+            })
+            .or_insert(CustomMetricValue::Accumulator(value));
+    }
+
+    /// Add value to histogram for distribution tracking
+    pub fn add_to_histogram(&mut self, metric_name: &str, value: f64) {
+        self.custom_metrics
+            .entry(metric_name.to_string())
+            .and_modify(|metric| {
+                if let CustomMetricValue::Histogram {
+                    min,
+                    max,
+                    avg,
+                    median,
+                    count,
+                    values,
+                } = metric
+                {
+                    *min = min.min(value);
+                    *max = max.max(value);
+                    *avg = (*avg * (*count as f64) + value) / (*count as f64 + 1.0);
+                    values.push(value);
+                    values.sort_by(|a, b| a.partial_cmp(b).unwrap());
+
+                    // Calculate median
+                    let len = values.len();
+                    *median = if len % 2 == 0 {
+                        (values[len / 2 - 1] + values[len / 2]) / 2.0
+                    } else {
+                        values[len / 2]
+                    };
+
+                    *count += 1;
+                }
+            })
+            .or_insert(CustomMetricValue::Histogram {
+                min: value,
+                max: value,
+                avg: value,
+                median: value,
+                count: 1,
+                values: vec![value],
+            });
+    }
+
+    /// Generate an HTML dashboard with the collected statistics
+    pub fn generate_dashboard_html(&self, path: &str) -> std::io::Result<()> {
+        self.generate_dashboard_html_with_config(path, &DashboardConfig::with_default_title())
+    }
+
+    /// Generate an HTML dashboard with custom configuration
+    pub fn generate_dashboard_html_with_config(
+        &self,
+        path: &str,
+        config: &DashboardConfig,
+    ) -> std::io::Result<()> {
+        let html_content = self.create_dashboard_html(config);
+        let mut file = File::create(path)?;
+        file.write_all(html_content.as_bytes())?;
+        Ok(())
+    }
+
+    /// Create the HTML content for the dashboard
+    fn create_dashboard_html(&self, _config: &DashboardConfig) -> String {
+        let template = include_str!("dashboard-template/dashboard_template.html");
+
+        // Transform the internal data structure to match the expected dashboard format
+        let dashboard_data = self.create_dashboard_data_structure();
+        let json_data = serde_json::to_string_pretty(&dashboard_data).unwrap();
+
+        template.replace("{{JSON_DATA}}", &json_data)
+    }
+
+    /// Transform internal transaction stats to dashboard-friendly format
+    fn create_dashboard_data_structure(&self) -> serde_json::Value {
+        let mut instructions = serde_json::Map::new();
+
+        for (transaction_name, stats) in &self.transactions {
+            let mut instruction_data = serde_json::Map::new();
+            instruction_data.insert("invoked".to_string(), stats.transaction_invoked.into());
+            instruction_data.insert(
+                "transactions_successful".to_string(),
+                stats.transaction_successful.into(),
+            );
+            instruction_data.insert(
+                "transactions_failed".to_string(),
+                stats.transaction_failed.into(),
+            );
+            instruction_data.insert(
+                "transactions_failed_invariant".to_string(),
+                stats.transaction_failed_invariant.into(),
+            );
+            instruction_data.insert(
+                "transactions_panicked".to_string(),
+                stats.transaction_panicked.into(),
+            );
+
+            // Convert internal error structures to dashboard format
+            let transactions_errors = stats.transactions_errors.to_dashboard_format();
+            let custom_instruction_errors = stats.custom_instruction_errors.to_dashboard_format();
+            let transactions_panics = stats.transactions_panics.to_dashboard_format();
+            let transactions_invariant_fails =
+                stats.transactions_invariant_fails.to_dashboard_format();
+
+            instruction_data.insert("transactions_errors".to_string(), transactions_errors);
+            instruction_data.insert(
+                "custom_instruction_errors".to_string(),
+                custom_instruction_errors,
+            );
+            instruction_data.insert("transactions_panics".to_string(), transactions_panics);
+            instruction_data.insert(
+                "transactions_invariant_fails".to_string(),
+                transactions_invariant_fails,
+            );
+
+            instructions.insert(transaction_name.clone(), instruction_data.into());
+        }
+
+        let mut result = serde_json::Map::new();
+        result.insert("instructions".to_string(), instructions.into());
+        result.insert(
+            "custom_metrics".to_string(),
+            serde_json::to_value(&self.custom_metrics).unwrap_or_default(),
+        );
+
+        result.into()
+    }
+
+    pub fn generate(&self) -> std::io::Result<()> {
+        if std::env::var("FUZZING_METRICS").is_ok() {
+            self.show_table();
+            self.print_to_file("fuzzing_metrics.json");
+
+            if std::env::var("FUZZING_DASHBOARD").is_ok() {
+                self.generate_dashboard_html("fuzzing_dashboard.html")?;
+            }
+        }
+        Ok(())
     }
 }
