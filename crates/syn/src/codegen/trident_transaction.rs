@@ -17,10 +17,10 @@ impl ToTokens for TridentTransactionStruct {
             let field_ident = &f.ident;
             quote! {
                 {
-                    self.#field_ident.set_data(client, fuzz_accounts, rng);
-                    self.#field_ident.resolve_accounts(client, fuzz_accounts, rng);
-                    self.#field_ident.set_accounts(client, fuzz_accounts, rng);
-                    self.#field_ident.set_remaining_accounts(client, fuzz_accounts, rng);
+                    self.#field_ident.set_data(trident, fuzz_accounts);
+                    self.#field_ident.resolve_accounts(trident, fuzz_accounts);
+                    self.#field_ident.set_accounts(trident, fuzz_accounts);
+                    self.#field_ident.set_remaining_accounts(trident, fuzz_accounts);
                 }
             }
         });
@@ -65,15 +65,6 @@ impl ToTokens for TridentTransactionStruct {
 
             // Implement the setters trait
             impl TransactionSetters for #name {
-                fn build(
-                    client: &mut impl FuzzClient,
-                    fuzz_accounts: &mut Self::IxAccounts,
-                    rng: &mut TridentRng,
-                ) -> Self {
-                    let mut tx = Self::default();
-                    tx.set_instructions(client, fuzz_accounts, rng);
-                    tx
-                }
                 fn set_snapshot_before(
                     &mut self,
                     client: &mut impl FuzzClient,
@@ -90,9 +81,8 @@ impl ToTokens for TridentTransactionStruct {
 
                 fn set_instructions(
                     &mut self,
-                    client: &mut impl FuzzClient,
+                    trident: &mut Trident,
                     fuzz_accounts: &mut Self::IxAccounts,
-                    rng: &mut TridentRng,
                 ) {
                     #(#instruction_blocks)*
                 }

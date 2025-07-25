@@ -75,7 +75,7 @@ impl ToTokens for TridentAccountsStruct {
                         let account_id_generation = match &f.constraints.account_id {
                             AccountIdSpec::Default => quote! {
                                 // Default range (0..3)
-                                let account_id = rng.gen_range(0..3);
+                                let account_id = trident.gen_range(0..3);
                             },
                             AccountIdSpec::Static(val) => quote! {
                                 // Static account ID
@@ -83,7 +83,7 @@ impl ToTokens for TridentAccountsStruct {
                             },
                             AccountIdSpec::Range(start, end) => quote! {
                                 // Range-based account ID
-                                let account_id = rng.gen_range(#start..#end);
+                                let account_id = trident.gen_range(#start..#end);
                             },
                         };
 
@@ -109,7 +109,7 @@ impl ToTokens for TridentAccountsStruct {
                             quote! {
                                 storage_accounts
                                     .#storage_ident
-                                    .get_or_create(account_id, client, Some(PdaSeeds::new(&[#(#seeds),*], #program_id_to_use)), #account_metadata)
+                                    .get_or_create(account_id, trident.get_client(), Some(PdaSeeds::new(&[#(#seeds),*], #program_id_to_use)), #account_metadata)
                             }
                         } else {
                             // Create AccountMetadata if space, owner, or lamports are specified
@@ -126,7 +126,7 @@ impl ToTokens for TridentAccountsStruct {
                             quote! {
                                 storage_accounts
                                     .#storage_ident
-                                    .get_or_create(account_id, client, None, #account_metadata)
+                                    .get_or_create(account_id, trident.get_client(), None, #account_metadata)
                             }
                         };
 
@@ -165,7 +165,7 @@ impl ToTokens for TridentAccountsStruct {
                     let field_name = &f.ident;
                     quote! {
                         let #field_name = {
-                            self.#field_name.resolve_accounts(client, storage_accounts, program_id, instruction_data, rng);
+                            self.#field_name.resolve_accounts(trident, storage_accounts, program_id, instruction_data);
                             &self.#field_name
                         };
                     }
@@ -215,11 +215,10 @@ impl ToTokens for TridentAccountsStruct {
                 #[allow(unused_variables)]
                 fn resolve_accounts(
                     &mut self,
-                    client: &mut impl FuzzClient,
+                    trident: &mut Trident,
                     storage_accounts: &mut Self::IxAccounts,
                     program_id: Pubkey,
                     instruction_data: &Self::IxData,
-                    rng: &mut TridentRng,
                 ) {
                     #(#resolve_storage)*
                 }

@@ -25,6 +25,10 @@ impl TridentRng {
             thread_id: None,
         }
     }
+    pub fn override_seed(&mut self, seed: [u8; 32]) {
+        self.seed = seed;
+        self.rng = SmallRng::from_seed(seed);
+    }
     pub fn rotate_seed(&mut self) {
         let mut temp_rng = SmallRng::from_seed(self.seed);
         let mut new_seed = [0; 32];

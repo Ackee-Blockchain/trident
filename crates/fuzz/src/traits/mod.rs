@@ -1,7 +1,5 @@
 pub mod account;
 pub mod fuzz_client;
-pub mod fuzz_test_executor;
-pub mod fuzz_test_getters;
 pub mod instruction_getters;
 pub mod instruction_hooks;
 pub mod instruction_setters;
@@ -9,13 +7,10 @@ pub mod remaining_accounts;
 pub mod transaction_getters;
 pub mod transaction_hooks;
 pub mod transaction_private;
-pub mod transaction_selector;
 pub mod transaction_setters;
 
 pub use account::*;
 pub use fuzz_client::*;
-pub use fuzz_test_executor::*;
-pub use fuzz_test_getters::*;
 pub use instruction_getters::*;
 pub use instruction_hooks::*;
 pub use instruction_setters::*;
@@ -23,5 +18,4 @@ pub use remaining_accounts::*;
 pub use transaction_getters::*;
 pub use transaction_hooks::*;
 pub use transaction_private::*;
-pub use transaction_selector::*;
 pub use transaction_setters::*;

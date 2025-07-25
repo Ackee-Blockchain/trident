@@ -54,12 +54,7 @@ pub struct InitializeFnInstructionData {
 /// Docs: https://ackee.xyz/trident/docs/latest/start-fuzzing/writting-fuzz-test/
 impl InstructionHooks for InitializeFnInstruction {
     type IxAccounts = FuzzAccounts;
-    fn set_data(
-        &mut self,
-        _client: &mut impl FuzzClient,
-        _fuzz_accounts: &mut Self::IxAccounts,
-        rng: &mut TridentRng,
-    ) {
-        self.data.input = rng.gen_range(0..u8::MAX);
+    fn set_data(&mut self, trident: &mut Trident, _fuzz_accounts: &mut Self::IxAccounts) {
+        self.data.input = trident.gen_range(0..u8::MAX);
     }
 }

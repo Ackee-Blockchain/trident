@@ -56,19 +56,14 @@ pub struct MoveNorthInstructionData {
 impl InstructionHooks for MoveNorthInstruction {
     type IxAccounts = FuzzAccounts;
 
-    fn set_data(
-        &mut self,
-        _client: &mut impl FuzzClient,
-        _fuzz_accounts: &mut Self::IxAccounts,
-        rng: &mut TridentRng,
-    ) {
-        self.data.p0 = rng.gen_range(0..u64::MAX);
-        self.data.p1 = rng.gen_range(0..u64::MAX);
-        self.data.p2 = rng.gen_range(0..u64::MAX);
-        self.data.p3 = rng.gen_range(0..u64::MAX);
-        self.data.p4 = rng.gen_range(0..u64::MAX);
-        self.data.p5 = rng.gen_range(0..u64::MAX);
-        self.data.p6 = rng.gen_range(0..u64::MAX);
-        self.data.p7 = rng.gen_range(0..u64::MAX);
+    fn set_data(&mut self, trident: &mut Trident, _fuzz_accounts: &mut Self::IxAccounts) {
+        self.data.p0 = trident.gen_range(0..u64::MAX);
+        self.data.p1 = trident.gen_range(0..u64::MAX);
+        self.data.p2 = trident.gen_range(0..u64::MAX);
+        self.data.p3 = trident.gen_range(0..u64::MAX);
+        self.data.p4 = trident.gen_range(0..u64::MAX);
+        self.data.p5 = trident.gen_range(0..u64::MAX);
+        self.data.p6 = trident.gen_range(0..u64::MAX);
+        self.data.p7 = trident.gen_range(0..u64::MAX);
     }
 }

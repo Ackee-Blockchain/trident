@@ -21,6 +21,7 @@ incremented upon a breaking change and the patch version will be incremented for
 
 **Changed**
 
+- FuzzTest fields are now aggregated into Trident struct ([339](https://github.com/Ackee-Blockchain/trident/pull/339))
 - Add support for reproducible fuzzing with thread-specific seeds ([332](https://github.com/Ackee-Blockchain/trident/pull/332))
 - Move Trident.toml into trident-tests folder ([328](https://github.com/Ackee-Blockchain/trident/pull/328))
 - Conversion from AFL and Honggfuzz into Manually Guided Fuzzing ([324](https://github.com/Ackee-Blockchain/trident/pull/324))

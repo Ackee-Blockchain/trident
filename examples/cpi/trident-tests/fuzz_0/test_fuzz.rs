@@ -8,12 +8,8 @@ pub use transactions::*;
 
 #[derive(FuzzTestMethods)]
 struct FuzzTest {
-    /// for transaction executions
-    client: TridentSVM,
-    /// for storing fuzzing metrics
-    metrics: FuzzingStatistics,
-    /// for storing seed
-    rng: TridentRng,
+    // for fuzzing
+    trident: Trident,
     /// for storing fuzzing accounts
     fuzz_accounts: FuzzAccounts,
 }
@@ -21,27 +17,18 @@ struct FuzzTest {
 #[flow_executor]
 impl FuzzTest {
     fn new() -> Self {
-        let client = TridentSVM::new_client();
-
         Self {
-            client,
-            metrics: FuzzingStatistics::default(),
-            rng: TridentRng::random(),
+            trident: Trident::new_with_random_seed(),
             fuzz_accounts: FuzzAccounts::default(),
         }
     }
 
     #[init]
-    fn start(&mut self) -> Result<(), FuzzingError> {
-        let mut tx = InitializeCallerTransaction::build(
-            &mut self.client,
-            &mut self.fuzz_accounts,
-            &mut self.rng,
-        );
+    fn start(&mut self) {
+        let mut tx = InitializeCallerTransaction::build(&mut self.trident, &mut self.fuzz_accounts);
 
-        self.execute_transaction(&mut tx, Some("initialize_caller"))?;
-
-        Ok(())
+        self.trident
+            .execute_transaction(&mut tx, Some("initialize_caller"));
     }
 }
 

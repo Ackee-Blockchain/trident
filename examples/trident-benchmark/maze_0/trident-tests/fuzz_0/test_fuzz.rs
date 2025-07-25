@@ -11,11 +11,7 @@ use maze0::entry as maze0;
 #[derive(FuzzTestMethods)]
 struct FuzzTest {
     /// for transaction executions
-    client: TridentSVM,
-    /// for storing fuzzing metrics
-    metrics: FuzzingStatistics,
-    /// for storing seed
-    rng: TridentRng,
+    trident: Trident,
     /// for storing fuzzing accounts
     fuzz_accounts: FuzzAccounts,
 }
@@ -23,56 +19,45 @@ struct FuzzTest {
 #[flow_executor]
 impl FuzzTest {
     fn new() -> Self {
-        let mut client = TridentSVM::new_client();
+        let mut trident = Trident::new_with_random_seed();
 
         // Deploy through the entrypoint
         let program = TridentEntrypoint::new(maze0::ID, None, processor!(maze0));
-        client.deploy_entrypoint(program);
+        trident.get_client().deploy_entrypoint(program);
 
         Self {
-            client,
-            metrics: FuzzingStatistics::default(),
-            rng: TridentRng::random(),
+            trident,
             fuzz_accounts: FuzzAccounts::default(),
         }
     }
 
     #[init]
-    fn start(&mut self) -> Result<(), FuzzingError> {
-        let mut tx =
-            InitializeTransaction::build(&mut self.client, &mut self.fuzz_accounts, &mut self.rng);
+    fn start(&mut self) {
+        let mut tx = InitializeTransaction::build(&mut self.trident, &mut self.fuzz_accounts);
 
-        let _res = self.execute_transaction(&mut tx, Some("Initialize"));
-        Ok(())
+        self.trident
+            .execute_transaction(&mut tx, Some("Initialize"));
     }
 
     #[flow]
-    fn flow1(&mut self) -> Result<(), FuzzingError> {
-        let mut tx =
-            MoveEastTransaction::build(&mut self.client, &mut self.fuzz_accounts, &mut self.rng);
-        let _res = self.execute_transaction(&mut tx, Some("MoveEast"));
-        Ok(())
+    fn flow1(&mut self) {
+        let mut tx = MoveEastTransaction::build(&mut self.trident, &mut self.fuzz_accounts);
+        self.trident.execute_transaction(&mut tx, Some("MoveEast"));
     }
     #[flow]
-    fn flow2(&mut self) -> Result<(), FuzzingError> {
-        let mut tx =
-            MoveSouthTransaction::build(&mut self.client, &mut self.fuzz_accounts, &mut self.rng);
-        let _res = self.execute_transaction(&mut tx, Some("MoveSouth"));
-        Ok(())
+    fn flow2(&mut self) {
+        let mut tx = MoveSouthTransaction::build(&mut self.trident, &mut self.fuzz_accounts);
+        self.trident.execute_transaction(&mut tx, Some("MoveSouth"));
     }
     #[flow]
-    fn flow3(&mut self) -> Result<(), FuzzingError> {
-        let mut tx =
-            MoveNorthTransaction::build(&mut self.client, &mut self.fuzz_accounts, &mut self.rng);
-        let _res = self.execute_transaction(&mut tx, Some("MoveNorth"));
-        Ok(())
+    fn flow3(&mut self) {
+        let mut tx = MoveNorthTransaction::build(&mut self.trident, &mut self.fuzz_accounts);
+        self.trident.execute_transaction(&mut tx, Some("MoveNorth"));
     }
     #[flow]
-    fn flow4(&mut self) -> Result<(), FuzzingError> {
-        let mut tx =
-            MoveWestTransaction::build(&mut self.client, &mut self.fuzz_accounts, &mut self.rng);
-        let _res = self.execute_transaction(&mut tx, Some("MoveWest"));
-        Ok(())
+    fn flow4(&mut self) {
+        let mut tx = MoveWestTransaction::build(&mut self.trident, &mut self.fuzz_accounts);
+        self.trident.execute_transaction(&mut tx, Some("MoveWest"));
     }
 }
 

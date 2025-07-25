@@ -32,28 +32,10 @@ pub fn parse_trident_fuzz_test_methods(
     };
 
     // Find required fields
-    let client_field = fields
+    let trident_field = fields
         .iter()
-        .find(|f| f.ident.as_ref().is_some_and(|id| id == "client"))
-        .ok_or_else(|| ParseError::new(input.span(), "Struct must contain a 'client' field"))?
-        .ident
-        .as_ref()
-        .unwrap()
-        .clone();
-
-    let metrics_field = fields
-        .iter()
-        .find(|f| f.ident.as_ref().is_some_and(|id| id == "metrics"))
-        .ok_or_else(|| ParseError::new(input.span(), "Struct must contain a 'metrics' field"))?
-        .ident
-        .as_ref()
-        .unwrap()
-        .clone();
-
-    let rng_field = fields
-        .iter()
-        .find(|f| f.ident.as_ref().is_some_and(|id| id == "rng"))
-        .ok_or_else(|| ParseError::new(input.span(), "Struct must contain an 'rng' field"))?
+        .find(|f| f.ident.as_ref().is_some_and(|id| id == "trident"))
+        .ok_or_else(|| ParseError::new(input.span(), "Struct must contain a 'trident' field"))?
         .ident
         .as_ref()
         .unwrap()
@@ -61,8 +43,6 @@ pub fn parse_trident_fuzz_test_methods(
 
     Ok(TridentFuzzTestMethodsStruct {
         ident,
-        client_field,
-        metrics_field,
-        rng_field,
+        trident_field,
     })
 }

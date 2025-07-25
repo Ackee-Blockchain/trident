@@ -1,1 +1,1 @@
-pub(crate) type Seed = [u8; 32];
+pub type Seed = [u8; 32];

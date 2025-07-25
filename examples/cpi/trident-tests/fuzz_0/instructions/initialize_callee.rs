@@ -41,12 +41,7 @@ pub struct InitializeCalleeInstructionData {
 /// Docs: https://ackee.xyz/trident/docs/latest/start-fuzzing/writting-fuzz-test/
 impl InstructionHooks for InitializeCalleeInstruction {
     type IxAccounts = FuzzAccounts;
-    fn set_accounts(
-        &mut self,
-        _client: &mut impl FuzzClient,
-        _fuzz_accounts: &mut Self::IxAccounts,
-        rng: &mut TridentRng,
-    ) {
-        self.data.input = rng.gen_range(0..u16::MAX);
+    fn set_accounts(&mut self, trident: &mut Trident, _fuzz_accounts: &mut Self::IxAccounts) {
+        self.data.input = trident.gen_range(0..u16::MAX);
     }
 }
