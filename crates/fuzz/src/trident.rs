@@ -64,6 +64,14 @@ impl Trident {
         &mut self.client
     }
 
+    pub fn add_histogram_metric(&mut self, metric_name: &str, value: f64) {
+        self.metrics.add_to_histogram(metric_name, value);
+    }
+
+    pub fn add_accumulator_metric(&mut self, metric_name: &str, value: f64) {
+        self.metrics.add_to_accumulator(metric_name, value);
+    }
+
     pub fn execute_transaction<T>(
         &mut self,
         transaction: &mut T,
@@ -225,5 +233,9 @@ impl Trident {
     #[doc(hidden)]
     pub fn _get_metrics(self) -> FuzzingStatistics {
         self.metrics
+    }
+    #[doc(hidden)]
+    pub fn generate_dashboard_html(&self, path: &str) -> std::io::Result<()> {
+        self.metrics.generate_dashboard_html(path)
     }
 }

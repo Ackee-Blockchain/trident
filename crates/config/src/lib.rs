@@ -1,7 +1,7 @@
 pub mod constants;
 pub mod coverage;
 pub mod fuzz;
-
+mod metrics;
 use constants::*;
 use coverage::*;
 use fuzz::*;
@@ -53,6 +53,13 @@ impl TridentConfig {
         self.fuzz
             .as_ref()
             .map(|fuzz| fuzz.get_fuzzing_with_stats())
+            .unwrap_or_default()
+    }
+
+    pub fn get_dashboard(&self) -> bool {
+        self.fuzz
+            .as_ref()
+            .map(|fuzz| fuzz.get_dashboard())
             .unwrap_or_default()
     }
 

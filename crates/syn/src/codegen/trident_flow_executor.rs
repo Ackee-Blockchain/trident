@@ -468,10 +468,7 @@ impl TridentFlowExecutorImpl {
 
             main_pb.finish_with_message("Parallel fuzzing completed!");
 
-            if std::env::var("FUZZING_METRICS").is_ok() {
-                merged_metrics.show_table();
-                merged_metrics.print_to_file("fuzzing_metrics.json");
-            }
+            merged_metrics.generate().unwrap();
         }
     }
 
@@ -480,8 +477,7 @@ impl TridentFlowExecutorImpl {
         quote! {
             if std::env::var("FUZZING_METRICS").is_ok() {
                 let metrics = fuzzer.trident._get_metrics();
-                metrics.show_table();
-                metrics.print_to_file("fuzzing_metrics.json");
+                metrics.generate().unwrap();
             }
         }
     }
