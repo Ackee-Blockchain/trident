@@ -1,7 +1,6 @@
 pub mod accounts_storage;
 pub mod error;
 pub mod fuzz_client_impl;
-pub mod fuzz_stats;
 pub mod traits;
 
 pub mod trident_accounts;
@@ -78,7 +77,8 @@ pub mod fuzzing {
     pub use trident_svm::types::trident_program::TridentProgram;
 
     pub use super::error::*;
-    pub use super::fuzz_stats::FuzzingStatistics;
+
+    pub use trident_fuzz_metrics::FuzzingStatistics;
 
     pub use std::cell::RefCell;
     pub use std::collections::HashMap;

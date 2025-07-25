@@ -4432,21 +4432,14 @@ dependencies = [
 name = "trident-fuzz"
 version = "0.11.0-rc.1"
 dependencies = [
- "anyhow",
- "base64 0.22.1",
- "bincode",
  "borsh 1.5.7",
- "byteorder",
- "fehler",
  "getrandom 0.3.3",
  "hex",
  "indicatif",
  "itertools 0.14.0",
- "prettytable",
  "rand 0.8.5",
  "reqwest",
  "serde",
- "serde_json",
  "sha2 0.10.9",
  "solana-sdk",
  "solana-stake-program",
@@ -4454,7 +4447,6 @@ dependencies = [
  "spl-token",
  "thiserror 1.0.69",
  "tokio",
- "toml 0.8.23",
  "trident-config",
  "trident-derive-accounts",
  "trident-derive-flow-executor",
@@ -4462,7 +4454,18 @@ dependencies = [
  "trident-derive-instruction",
  "trident-derive-remaining-accounts",
  "trident-derive-transaction",
+ "trident-fuzz-metrics",
  "trident-svm",
+]
+
+[[package]]
+name = "trident-fuzz-metrics"
+version = "0.11.0-rc.1"
+dependencies = [
+ "hex",
+ "prettytable",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]
