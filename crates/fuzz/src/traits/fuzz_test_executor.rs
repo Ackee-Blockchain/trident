@@ -51,7 +51,8 @@ pub trait FuzzTestExecutor: FuzzTestGetters {
 
         // Execute the transaction
         if fuzzing_metrics.is_ok() {
-            self.get_metrics().increase_invoked(&transaction_name);
+            self.get_metrics()
+                .add_executed_transaction(&transaction_name);
         }
         if fuzzing_debug.is_ok() {
             let tx = format!("{:#?}", transaction);
@@ -86,7 +87,8 @@ pub trait FuzzTestExecutor: FuzzTestGetters {
                 Ok(_) => {
                     // Record successful execution
                     if fuzzing_metrics.is_ok() {
-                        self.get_metrics().increase_successful(&transaction_name);
+                        self.get_metrics()
+                            .add_successful_transaction(&transaction_name);
                     }
 
                     // Run invariant checks
@@ -102,9 +104,9 @@ pub trait FuzzTestExecutor: FuzzTestGetters {
                         if fuzzing_metrics.is_ok() {
                             let rng = self.get_rng().get_seed();
 
-                            self.get_metrics().increase_failed_invariant(
+                            self.get_metrics().add_failed_invariant(
                                 &transaction_name,
-                                rng,
+                                &rng,
                                 invariant_error.to_string(),
                             );
                         }
@@ -127,7 +129,7 @@ pub trait FuzzTestExecutor: FuzzTestGetters {
                                         );
                                     }
                                     let rng = self.get_rng().get_seed();
-                                    self.get_metrics().increase_transaction_panicked(
+                                    self.get_metrics().add_transaction_panicked(
                                         &transaction_name,
                                         rng,
                                         instruction_error.to_string(),
@@ -137,7 +139,7 @@ pub trait FuzzTestExecutor: FuzzTestGetters {
                             }
                             InstructionError::Custom(error_code) => {
                                 if fuzzing_metrics.is_ok() {
-                                    self.get_metrics().increase_custom_instruction_error(
+                                    self.get_metrics().add_custom_instruction_error(
                                         &transaction_name,
                                         error_code,
                                         details.log_messages.clone(),
@@ -146,7 +148,7 @@ pub trait FuzzTestExecutor: FuzzTestGetters {
                             }
                             _ => {
                                 if fuzzing_metrics.is_ok() {
-                                    self.get_metrics().increase_failed(
+                                    self.get_metrics().add_failed_transaction(
                                         &transaction_name,
                                         instruction_error.to_string(),
                                         details.log_messages.clone(),
@@ -155,7 +157,7 @@ pub trait FuzzTestExecutor: FuzzTestGetters {
                             }
                         }
                     } else if fuzzing_metrics.is_ok() {
-                        self.get_metrics().increase_failed(
+                        self.get_metrics().add_failed_transaction(
                             &transaction_name,
                             transaction_error.to_string(),
                             details.log_messages.clone(),

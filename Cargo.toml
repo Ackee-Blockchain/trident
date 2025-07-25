@@ -6,6 +6,7 @@ members = [
     "crates/fuzz",
     "crates/syn",
     "crates/template",
+    "crates/metrics",
 ]
 exclude = ["examples/"]
 resolver = "1"
@@ -29,6 +30,7 @@ trident-config = { path = "crates/config", version = "0.11.0-rc.1" }
 trident-fuzz = { path = "crates/fuzz", version = "0.11.0-rc.1" }
 trident-syn = { path = "crates/syn", version = "0.11.0-rc.1" }
 trident-template = { path = "crates/template", version = "0.11.0-rc.1" }
+trident-fuzz-metrics = { path = "crates/metrics", version = "0.11.0-rc.1" }
 
 # Derive macros
 trident-derive-accounts = { path = "crates/fuzz/derive/accounts", version = "0.11.0-rc.1" }
