@@ -32,11 +32,11 @@ impl TransactionPanicMetrics {
     }
 
     pub(crate) fn concat(&mut self, other: &TransactionPanicMetrics) {
-        for (panic, metadata) in other.panics.iter() {
+        for (other_panic, other_metadata) in other.panics.iter() {
             self.panics
-                .entry(panic.to_string())
-                .and_modify(|metadata| metadata.occurrences += metadata.occurrences)
-                .or_insert(metadata.clone());
+                .entry(other_panic.to_string())
+                .and_modify(|metadata| metadata.occurrences += other_metadata.occurrences)
+                .or_insert(other_metadata.clone());
         }
     }
 

@@ -182,41 +182,28 @@ impl FuzzingStatistics {
                             CustomMetricValue::Histogram {
                                 min: existing_min,
                                 max: existing_max,
-                                avg: existing_avg,
-                                median: existing_median,
                                 count: existing_count,
+                                sum: existing_sum,
                                 values: existing_values,
+                                ..
                             },
                             CustomMetricValue::Histogram {
                                 min: new_min,
                                 max: new_max,
-                                avg: new_avg,
-                                median: _,
                                 count: new_count,
+                                sum: new_sum,
                                 values: new_values,
+                                ..
                             },
                         ) => {
                             // Update min/max
                             *existing_min = existing_min.min(new_min);
                             *existing_max = existing_max.max(new_max);
-                            // Calculate new weighted average
-                            let total_count = *existing_count + new_count;
-                            if total_count > 0 {
-                                *existing_avg = (*existing_avg * (*existing_count as f64)
-                                    + new_avg * (new_count as f64))
-                                    / (total_count as f64);
-                            }
-                            *existing_count = total_count;
-
-                            // Merge values and recalculate median
+                            // Update sum and count efficiently
+                            *existing_sum += new_sum;
+                            *existing_count += new_count;
+                            // Merge values (avg and median will be calculated when needed)
                             existing_values.extend(new_values);
-                            existing_values.sort_by(|a, b| a.partial_cmp(b).unwrap());
-                            let len = existing_values.len();
-                            *existing_median = if len % 2 == 0 {
-                                (existing_values[len / 2 - 1] + existing_values[len / 2]) / 2.0
-                            } else {
-                                existing_values[len / 2]
-                            };
                         }
                         _ => {
                             // Mismatched types, keep the existing one
@@ -275,39 +262,22 @@ impl FuzzingStatistics {
         self.custom_metrics
             .entry(metric_name.to_string())
             .and_modify(|metric| {
-                if let CustomMetricValue::Histogram {
-                    min,
-                    max,
-                    avg,
-                    median,
-                    count,
-                    values,
-                } = metric
-                {
-                    *min = min.min(value);
-                    *max = max.max(value);
-                    *avg = (*avg * (*count as f64) + value) / (*count as f64 + 1.0);
-                    values.push(value);
-                    values.sort_by(|a, b| a.partial_cmp(b).unwrap());
-
-                    // Calculate median
-                    let len = values.len();
-                    *median = if len % 2 == 0 {
-                        (values[len / 2 - 1] + values[len / 2]) / 2.0
-                    } else {
-                        values[len / 2]
-                    };
-
-                    *count += 1;
-                }
+                metric.add_to_histogram(value);
             })
-            .or_insert(CustomMetricValue::Histogram {
-                min: value,
-                max: value,
-                avg: value,
-                median: value,
-                count: 1,
-                values: vec![value],
+            .or_insert_with(|| {
+                let mut values: Vec<f64> = Vec::with_capacity(10_000);
+                values.push(value);
+
+                CustomMetricValue::Histogram {
+                    min: value,
+                    max: value,
+                    count: 1,
+                    sum: value,
+                    avg: 0.0,     // Will be calculated when needed
+                    median: 0.0,  // Will be calculated when needed
+                    entropy: 0.0, // Will be calculated when needed
+                    values,
+                }
             });
     }
 
@@ -341,6 +311,11 @@ impl FuzzingStatistics {
 
     /// Transform internal transaction stats to dashboard-friendly format
     fn create_dashboard_data_structure(&self) -> serde_json::Value {
+        // Create a mutable copy to finalize histograms for display
+        let mut custom_metrics_for_display = self.custom_metrics.clone();
+        for metric in custom_metrics_for_display.values_mut() {
+            metric.finalize_histogram();
+        }
         let mut instructions = serde_json::Map::new();
 
         for (transaction_name, stats) in &self.transactions {
@@ -388,7 +363,7 @@ impl FuzzingStatistics {
         result.insert("instructions".to_string(), instructions.into());
         result.insert(
             "custom_metrics".to_string(),
-            serde_json::to_value(&self.custom_metrics).unwrap_or_default(),
+            serde_json::to_value(&custom_metrics_for_display).unwrap_or_default(),
         );
 
         result.into()
