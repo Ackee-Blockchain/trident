@@ -39,4 +39,8 @@ impl TransactionPanicMetrics {
                 .or_insert(metadata.clone());
         }
     }
+
+    pub(crate) fn to_dashboard_format(&self) -> serde_json::Value {
+        serde_json::to_value(&self.panics).unwrap_or_default()
+    }
 }

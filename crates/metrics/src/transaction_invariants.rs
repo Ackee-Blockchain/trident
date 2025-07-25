@@ -32,4 +32,8 @@ impl TransactionInvariantMetrics {
                 .or_insert(metadata.clone());
         }
     }
+
+    pub(crate) fn to_dashboard_format(&self) -> serde_json::Value {
+        serde_json::to_value(&self.invariants).unwrap_or_default()
+    }
 }

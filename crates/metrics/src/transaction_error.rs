@@ -30,4 +30,8 @@ impl TransactionErrorMetrics {
                 .or_insert(metadata.clone());
         }
     }
+
+    pub(crate) fn to_dashboard_format(&self) -> serde_json::Value {
+        serde_json::to_value(&self.errors).unwrap_or_default()
+    }
 }

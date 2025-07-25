@@ -1,4 +1,5 @@
 use crate::coverage::Coverage;
+use crate::metrics::Metrics;
 use crate::utils::resolve_path;
 use base64::prelude::BASE64_STANDARD;
 use base64::Engine;
@@ -12,7 +13,7 @@ use std::str::FromStr;
 
 #[derive(Debug, Deserialize, Clone, Default)]
 pub struct Fuzz {
-    pub fuzzing_with_stats: Option<bool>,
+    metrics: Option<Metrics>,
     pub programs: Option<Vec<_FuzzProgram>>,
     pub accounts: Option<Vec<_FuzzAccount>>,
     pub coverage: Option<Coverage>,
@@ -20,9 +21,18 @@ pub struct Fuzz {
 
 impl Fuzz {
     pub fn get_fuzzing_with_stats(&self) -> bool {
-        self.fuzzing_with_stats.unwrap_or(false)
+        match self.metrics.as_ref() {
+            Some(metrics) => metrics.fuzzing_with_stats.unwrap_or(false),
+            None => false,
+        }
     }
 
+    pub fn get_dashboard(&self) -> bool {
+        match self.metrics.as_ref() {
+            Some(metrics) => metrics.dashboard.unwrap_or(false),
+            None => false,
+        }
+    }
     pub fn get_coverage(&self) -> Coverage {
         self.coverage.clone().unwrap_or_default()
     }
