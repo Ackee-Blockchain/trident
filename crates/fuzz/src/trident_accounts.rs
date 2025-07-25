@@ -16,6 +16,7 @@ pub struct TridentAccount {
 }
 
 impl TridentAccount {
+    #[doc(hidden)]
     pub fn set_account_meta(&mut self, address: Pubkey, is_signer: bool, is_writable: bool) {
         if is_writable {
             self.account_meta = Some(AccountMeta::new(address, is_signer));
@@ -54,6 +55,7 @@ impl TridentAccount {
     pub fn is_account_meta_set(&self) -> bool {
         self.account_meta.is_some()
     }
+
     pub fn get_snapshot_before(&self) -> &SnapshotAccount {
         match &self.snapshot_before {
             Some(snapshot) => snapshot,

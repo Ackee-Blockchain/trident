@@ -1,35 +1,74 @@
-use super::transaction_private::TransactionPrivateMethods;
-use super::FuzzTestGetters;
-use super::TransactionGetters;
-use super::TransactionHooks;
-use super::TransactionSetters;
-use crate::error::*;
-use crate::traits::FuzzClient;
-
+use rand::distributions::uniform::SampleRange;
+use rand::distributions::uniform::SampleUniform;
+use solana_sdk::account::ReadableAccount;
+use solana_sdk::account::WritableAccount;
+use solana_sdk::pubkey::Pubkey;
 use solana_sdk::transaction::TransactionError;
+use trident_fuzz_metrics::FuzzingStatistics;
 use trident_svm::prelude::solana_svm::transaction_results::TransactionExecutionResult;
 use trident_svm::processor::InstructionError;
+use trident_svm::trident_svm::TridentSVM;
 
-#[allow(private_bounds)]
-/// Trait providing methods to prepare data and accounts for transaction execution
-pub trait FuzzTestExecutor: FuzzTestGetters {
-    /// Executes the transaction with full lifecycle hooks
-    ///
-    /// This method handles the complete transaction lifecycle:
-    /// - Creates transaction instructions
-    /// - Takes account snapshots before execution
-    /// - Runs pre-transaction hooks
-    /// - Processes the transaction
-    /// - Takes account snapshots after execution
-    /// - Performs invariant checks
-    /// - Runs post-transaction hooks
-    /// - Handles any errors
-    fn execute_transaction<T>(
+use crate::fuzzing::TridentRng;
+use crate::traits::FuzzClient;
+use crate::traits::TransactionGetters;
+use crate::traits::TransactionHooks;
+use crate::traits::TransactionPrivateMethods;
+use crate::traits::TransactionSetters;
+
+use trident_fuzz_metrics::types::Seed;
+
+pub struct Trident {
+    client: TridentSVM,
+    metrics: FuzzingStatistics,
+    rng: TridentRng,
+}
+
+impl Trident {
+    pub fn new_with_random_seed() -> Self {
+        Self {
+            client: TridentSVM::new_client(),
+            metrics: FuzzingStatistics::default(),
+            rng: TridentRng::random(),
+        }
+    }
+
+    pub fn new_with_seed(seed: Seed) -> Self {
+        Self {
+            client: TridentSVM::new_client(),
+            metrics: FuzzingStatistics::default(),
+            rng: TridentRng::new(seed),
+        }
+    }
+
+    pub fn gen_range<T, R>(&mut self, range: R) -> T
+    where
+        T: SampleUniform,
+        R: SampleRange<T>,
+    {
+        self.rng.gen_range(range)
+    }
+
+    pub fn airdrop(&mut self, address: &Pubkey, amount: u64) {
+        let mut account = self.client.get_account(address).unwrap_or_default();
+
+        account.set_lamports(account.lamports() + amount);
+        self.client.set_account_custom(address, &account);
+    }
+
+    pub fn gen_string(&mut self, length: usize) -> String {
+        self.rng.gen_string(length)
+    }
+
+    pub fn get_client(&mut self) -> &mut impl FuzzClient {
+        &mut self.client
+    }
+
+    pub fn execute_transaction<T>(
         &mut self,
         transaction: &mut T,
         transaction_name_override: Option<&str>,
-    ) -> Result<(), FuzzingError>
-    where
+    ) where
         T: TransactionHooks
             + TransactionGetters
             + TransactionSetters
@@ -51,8 +90,7 @@ pub trait FuzzTestExecutor: FuzzTestGetters {
 
         // Execute the transaction
         if fuzzing_metrics.is_ok() {
-            self.get_metrics()
-                .add_executed_transaction(&transaction_name);
+            self.metrics.add_executed_transaction(&transaction_name);
         }
         if fuzzing_debug.is_ok() {
             let tx = format!("{:#?}", transaction);
@@ -87,8 +125,7 @@ pub trait FuzzTestExecutor: FuzzTestGetters {
                 Ok(_) => {
                     // Record successful execution
                     if fuzzing_metrics.is_ok() {
-                        self.get_metrics()
-                            .add_successful_transaction(&transaction_name);
+                        self.metrics.add_successful_transaction(&transaction_name);
                     }
 
                     // Run invariant checks
@@ -102,18 +139,15 @@ pub trait FuzzTestExecutor: FuzzTestGetters {
 
                         // Record check failure
                         if fuzzing_metrics.is_ok() {
-                            let rng = self.get_rng().get_seed();
+                            let rng = self.rng.get_seed();
 
-                            self.get_metrics().add_failed_invariant(
+                            self.metrics.add_failed_invariant(
                                 &transaction_name,
                                 &rng,
                                 invariant_error.to_string(),
                             );
                         }
-                        return Err(invariant_error);
                     }
-
-                    Ok(())
                 }
                 Err(transaction_error) => {
                     if let TransactionError::InstructionError(_error_code, instruction_error) =
@@ -128,8 +162,8 @@ pub trait FuzzTestExecutor: FuzzTestGetters {
                                             trident_svm::prelude::Level::Error,
                                         );
                                     }
-                                    let rng = self.get_rng().get_seed();
-                                    self.get_metrics().add_transaction_panicked(
+                                    let rng = self.rng.get_seed();
+                                    self.metrics.add_transaction_panicked(
                                         &transaction_name,
                                         rng,
                                         instruction_error.to_string(),
@@ -139,7 +173,7 @@ pub trait FuzzTestExecutor: FuzzTestGetters {
                             }
                             InstructionError::Custom(error_code) => {
                                 if fuzzing_metrics.is_ok() {
-                                    self.get_metrics().add_custom_instruction_error(
+                                    self.metrics.add_custom_instruction_error(
                                         &transaction_name,
                                         error_code,
                                         details.log_messages.clone(),
@@ -148,7 +182,7 @@ pub trait FuzzTestExecutor: FuzzTestGetters {
                             }
                             _ => {
                                 if fuzzing_metrics.is_ok() {
-                                    self.get_metrics().add_failed_transaction(
+                                    self.metrics.add_failed_transaction(
                                         &transaction_name,
                                         instruction_error.to_string(),
                                         details.log_messages.clone(),
@@ -157,21 +191,39 @@ pub trait FuzzTestExecutor: FuzzTestGetters {
                             }
                         }
                     } else if fuzzing_metrics.is_ok() {
-                        self.get_metrics().add_failed_transaction(
+                        self.metrics.add_failed_transaction(
                             &transaction_name,
                             transaction_error.to_string(),
                             details.log_messages.clone(),
                         );
                     }
                     // Handle transaction error
-                    transaction.transaction_error_handler(transaction_error.clone())?;
-                    Ok(())
+                    transaction.transaction_error_handler(transaction_error.clone());
                 }
             },
-            TransactionExecutionResult::NotExecuted(transaction_error) => {
+            TransactionExecutionResult::NotExecuted(_transaction_error) => {
                 // Transaction was not executed, just do nothing and return
-                Err(transaction_error.clone().into())
             }
         }
+    }
+
+    pub fn override_seed(&mut self, seed: Seed) {
+        self.rng.override_seed(seed);
+    }
+
+    #[doc(hidden)]
+    pub fn _next_iteration(&mut self) {
+        self.client._clear_accounts();
+        self.rng.rotate_seed();
+    }
+
+    #[doc(hidden)]
+    pub fn _set_thread_id(&mut self, thread_id: usize) {
+        self.rng.set_thread_id(thread_id);
+    }
+
+    #[doc(hidden)]
+    pub fn _get_metrics(self) -> FuzzingStatistics {
+        self.metrics
     }
 }

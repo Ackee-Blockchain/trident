@@ -10,7 +10,7 @@ mod transaction_custom_error;
 mod transaction_error;
 mod transaction_invariants;
 mod transaction_panics;
-mod types;
+pub mod types;
 use types::Seed;
 
 use crate::transaction_custom_error::TransactionCustomErrorMetrics;

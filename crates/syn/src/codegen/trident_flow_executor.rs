@@ -68,7 +68,7 @@ impl TridentFlowExecutorImpl {
     fn generate_init_call(&self) -> TokenStream {
         if let Some(init_method) = &self.init_method {
             quote! {
-                self.#init_method()?;
+                self.#init_method();
             }
         } else {
             quote! {}
@@ -79,7 +79,7 @@ impl TridentFlowExecutorImpl {
     fn generate_end_call(&self) -> TokenStream {
         if let Some(end_method) = &self.end_method {
             quote! {
-                self.#end_method()?;
+                self.#end_method();
             }
         } else {
             quote! {}
@@ -135,7 +135,7 @@ impl TridentFlowExecutorImpl {
         let flow_match_arms = active_methods.iter().enumerate().map(|(index, method)| {
             let method_ident = &method.ident;
             quote! {
-                #index => self.#method_ident()?,
+                #index => self.#method_ident(),
             }
         });
         let num_flows = active_methods.len();
@@ -143,7 +143,7 @@ impl TridentFlowExecutorImpl {
         quote! {
             // Randomly select and execute flows for the specified number of calls
             let flows_results = for _ in 0..flow_calls_per_iteration {
-                let flow_index = self.rng.gen_range(0..#num_flows);
+                let flow_index = self.trident.gen_range(0..#num_flows);
                 match flow_index {
                     #(#flow_match_arms)*
                     _ => unreachable!("Invalid flow index"),
@@ -188,7 +188,7 @@ impl TridentFlowExecutorImpl {
 
                 quote! {
                     if random_weight < #end {
-                        self.#method_ident()?;
+                        self.#method_ident();
                         continue;
                     }
                 }
@@ -198,7 +198,7 @@ impl TridentFlowExecutorImpl {
         quote! {
             // Weighted flow selection based on specified weights
             let flows_results = for _ in 0..flow_calls_per_iteration {
-                let random_weight = self.rng.gen_range(0..#total_weight);
+                let random_weight = self.trident.gen_range(0..#total_weight);
                 #(#weight_ranges)*
             };
         }
@@ -267,7 +267,7 @@ impl TridentFlowExecutorImpl {
                 seed.copy_from_slice(&seed_bytes);
 
                 println!("Using debug seed: {}", debug_seed_hex);
-                fuzzer.rng = TridentRng::new(seed);
+                fuzzer.trident.override_seed(seed);
             }
 
             let total_flow_calls = iterations * flow_calls_per_iteration;
@@ -313,9 +313,7 @@ impl TridentFlowExecutorImpl {
 
             for i in 0..iterations {
                 let result = fuzzer.execute_flows(flow_calls_per_iteration);
-
-                fuzzer.client._clear_accounts();
-                fuzzer.rng.rotate_seed();
+                fuzzer.trident._next_iteration();
                 // this will ensure the fuzz accounts will reset without
                 // specifiyng the type of the fuzz accounts
                 let _ = std::mem::take(&mut fuzzer.fuzz_accounts);
@@ -395,7 +393,7 @@ impl TridentFlowExecutorImpl {
                 let mut fuzzer = #type_name::new();
 
                 // Set deterministic thread ID for reproducible fuzzing
-                fuzzer.rng.set_thread_id(thread_id);
+                fuzzer.trident._set_thread_id(thread_id);
 
                 // Update progress every 100 flow calls or every 50ms, whichever comes first
                 const UPDATE_INTERVAL: u64 = 100;
@@ -409,8 +407,8 @@ impl TridentFlowExecutorImpl {
 
                 for i in 0..thread_iterations {
                     let _ = fuzzer.execute_flows(flow_calls_per_iteration);
-                    fuzzer.client._clear_accounts();
-                    fuzzer.rng.rotate_seed();
+                    fuzzer.trident._next_iteration();
+
                     // this will ensure the fuzz accounts will reset without
                     // specifiyng the type of the fuzz accounts
                     let _ = std::mem::take(&mut fuzzer.fuzz_accounts);
@@ -437,7 +435,7 @@ impl TridentFlowExecutorImpl {
                 }
 
                 // Return the metrics from this thread
-                fuzzer.metrics
+                fuzzer.trident._get_metrics()
             });
 
             handles.push(handle);
@@ -481,8 +479,9 @@ impl TridentFlowExecutorImpl {
     fn generate_metrics_output(&self) -> TokenStream {
         quote! {
             if std::env::var("FUZZING_METRICS").is_ok() {
-                fuzzer.metrics.show_table();
-                fuzzer.metrics.print_to_file("fuzzing_metrics.json");
+                let metrics = fuzzer.trident._get_metrics();
+                metrics.show_table();
+                metrics.print_to_file("fuzzing_metrics.json");
             }
         }
     }

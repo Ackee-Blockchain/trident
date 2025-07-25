@@ -11,6 +11,8 @@ pub mod trident_rng;
 
 pub mod types;
 
+pub mod trident;
+
 pub mod fuzzing {
     /// solana_sdk
     pub use solana_sdk;
@@ -29,26 +31,23 @@ pub mod fuzzing {
     pub use solana_sdk::transaction::Transaction;
     pub use solana_sdk::transaction::TransactionError;
 
-    /// fuzzing
+    /// Trident RNG
     pub use super::trident_rng::TridentRng;
+    pub use hex;
 
-    /// trident traits
+    /// Trident traits
     pub use super::traits::AccountsMethods;
     pub use super::traits::FuzzClient;
     pub use super::traits::InstructionGetters;
     pub use super::traits::InstructionHooks;
     pub use super::traits::InstructionSetters;
-
-    pub use super::traits::FuzzTestExecutor;
-    pub use super::traits::FuzzTestGetters;
     pub use super::traits::RemainingAccountsMethods;
     pub use super::traits::TransactionGetters;
     pub use super::traits::TransactionHooks;
     pub use super::traits::TransactionPrivateMethods;
-    pub use super::traits::TransactionSelector;
     pub use super::traits::TransactionSetters;
 
-    /// trident derive
+    /// Trident derive
     pub use trident_derive_accounts::TridentAccounts;
     pub use trident_derive_flow_executor::end;
     pub use trident_derive_flow_executor::flow;
@@ -59,34 +58,33 @@ pub mod fuzzing {
     pub use trident_derive_instruction::TridentInstruction;
     pub use trident_derive_remaining_accounts::TridentRemainingAccounts;
     pub use trident_derive_transaction::TridentTransaction;
-    /// trident svm
+
+    /// Trident svm
+    pub use trident_svm::prelude;
     pub use trident_svm::processor;
-
-    /// accounts storages
-    pub use super::accounts_storage::account_storage::AccountsStorage;
-    pub use super::accounts_storage::AccountMetadata;
-    pub use super::accounts_storage::PdaSeeds;
-
-    /// trident config
-    pub use trident_config::TridentConfig;
-
-    /// trident svm
     pub use trident_svm::trident_svm::TridentSVM;
     #[cfg(any(feature = "syscall-v1", feature = "syscall-v2"))]
     pub use trident_svm::types::trident_entrypoint::TridentEntrypoint;
     pub use trident_svm::types::trident_program::TridentProgram;
 
+    /// Accounts storages
+    pub use super::accounts_storage::account_storage::AccountsStorage;
+    pub use super::accounts_storage::AccountMetadata;
+    pub use super::accounts_storage::PdaSeeds;
+
+    /// Trident config
+    pub use trident_config::TridentConfig;
+
+    /// Trident
+    pub use super::trident::Trident;
+
+    /// Error
     pub use super::error::*;
 
+    /// Fuzzing metrics
     pub use trident_fuzz_metrics::FuzzingStatistics;
 
-    pub use std::cell::RefCell;
-    pub use std::collections::HashMap;
-
-    /// types
-    pub use crate::types::AccountId;
-
-    /// trident accounts
+    /// Trident accounts
     pub use crate::trident_accounts::TridentAccount;
     pub use crate::trident_pubkey::TridentPubkey;
 
@@ -95,13 +93,6 @@ pub mod fuzzing {
     pub use borsh::BorshSerialize;
 
     pub use indicatif;
-
-    /// RNG
-    pub use rand;
-
-    pub use trident_svm::prelude;
-
-    pub use hex;
 
     // coverage
     pub use reqwest;

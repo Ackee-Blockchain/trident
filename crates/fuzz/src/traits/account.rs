@@ -1,7 +1,7 @@
 use solana_sdk::instruction::AccountMeta;
 use solana_sdk::pubkey::Pubkey;
 
-use crate::fuzzing::TridentRng;
+use crate::trident::Trident;
 
 use super::FuzzClient;
 
@@ -14,11 +14,10 @@ pub trait AccountsMethods {
     #[allow(unused_variables)]
     fn resolve_accounts(
         &mut self,
-        client: &mut impl FuzzClient,
+        trident: &mut Trident,
         ix_accounts: &mut Self::IxAccounts,
         _program_id: Pubkey,
         instruction_data: &Self::IxData,
-        rng: &mut TridentRng,
     ) {
     }
 

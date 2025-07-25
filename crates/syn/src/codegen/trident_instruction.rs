@@ -76,11 +76,10 @@ impl ToTokens for TridentInstructionStruct {
                 /// Resolve all accounts needed for this instruction
                 fn resolve_accounts(
                     &mut self,
-                    client: &mut impl FuzzClient,
+                    trident: &mut Trident,
                     fuzz_accounts: &mut Self::IxAccounts,
-                    rng: &mut TridentRng,
                 ) {
-                    self.#accounts.resolve_accounts(client, fuzz_accounts, self.get_program_id(), &self.data, rng);
+                    self.#accounts.resolve_accounts(trident, fuzz_accounts, self.get_program_id(), &self.data);
                 }
             }
 

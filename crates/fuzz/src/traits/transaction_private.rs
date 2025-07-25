@@ -22,6 +22,7 @@ pub trait TransactionPrivateMethods: TransactionHooks + std::fmt::Debug {
 }
 
 impl<T: TransactionSetters + TransactionGetters + std::fmt::Debug> TransactionPrivateMethods for T {
+    #[doc(hidden)]
     fn create_transaction(&mut self, client: &mut impl FuzzClient) -> Vec<Instruction> {
         // Retrieve instruction discriminators (identifiers for different instruction types)
         let discriminators = self.get_instruction_discriminators();
