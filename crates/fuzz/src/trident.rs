@@ -63,6 +63,10 @@ impl Trident {
         self.rng.gen_range(range)
     }
 
+    pub fn gen_pubkey(&mut self) -> Pubkey {
+        self.rng.gen_pubkey()
+    }
+
     pub fn airdrop(&mut self, address: &Pubkey, amount: u64) {
         let mut account = self.client.get_account(address).unwrap_or_default();
 
@@ -269,11 +273,6 @@ impl Trident {
     #[doc(hidden)]
     pub fn _get_fuzzing_data(&self) -> TridentFuzzingData {
         self.fuzzing_data.clone()
-    }
-
-    #[doc(hidden)]
-    pub fn _set_thread_id(&mut self, thread_id: usize) {
-        self.rng.set_thread_id(thread_id);
     }
 
     #[doc(hidden)]
