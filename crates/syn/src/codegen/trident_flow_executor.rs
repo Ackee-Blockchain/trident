@@ -281,7 +281,7 @@ impl TridentFlowExecutorImpl {
                 seed.copy_from_slice(&seed_bytes);
 
                 println!("Using debug seed: {}", debug_seed_hex);
-                fuzzer.trident._set_master_seed_and_thread_id(seed, 0);
+                fuzzer.trident._set_master_seed_for_debug(seed);
             }
 
             let total_flow_calls = iterations * flow_calls_per_iteration;
