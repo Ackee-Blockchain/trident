@@ -19,7 +19,7 @@ struct FuzzTest {
 #[flow_executor]
 impl FuzzTest {
     fn new() -> Self {
-        let mut trident = Trident::new_with_random_seed();
+        let mut trident = Trident::default();
 
         // Deploy through the entrypoint
         let program = TridentEntrypoint::new(maze0::ID, None, processor!(maze0));
