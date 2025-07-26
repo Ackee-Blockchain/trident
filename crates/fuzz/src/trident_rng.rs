@@ -27,6 +27,11 @@ impl Default for TridentRng {
 }
 
 impl TridentRng {
+    pub(crate) fn set_master_seed_for_debug(&mut self, seed: [u8; 32]) {
+        self.seed = seed;
+        self.rng = SmallRng::from_seed(self.seed);
+    }
+
     pub(crate) fn set_master_seed_and_thread_id(&mut self, seed: [u8; 32], thread_id: usize) {
         let mut thread_hasher = Sha256::new();
         thread_hasher.update(thread_id.to_le_bytes());

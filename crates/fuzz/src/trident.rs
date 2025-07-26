@@ -248,6 +248,11 @@ impl Trident {
     }
 
     #[doc(hidden)]
+    pub fn _set_master_seed_for_debug(&mut self, seed: Seed) {
+        self.rng.set_master_seed_for_debug(seed);
+    }
+
+    #[doc(hidden)]
     pub fn _set_master_seed_and_thread_id(&mut self, seed: Seed, thread_id: usize) {
         self.rng.set_master_seed_and_thread_id(seed, thread_id);
         self.fuzzing_data
