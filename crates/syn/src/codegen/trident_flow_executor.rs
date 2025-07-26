@@ -265,7 +265,6 @@ impl TridentFlowExecutorImpl {
 
         quote! {
             let mut fuzzer = #type_name::new();
-            fuzzer.trident._set_thread_id(0);
 
             // Set debug seed if in debug mode
             if let Ok(debug_seed_hex) = std::env::var("TRIDENT_FUZZ_DEBUG") {
@@ -358,12 +357,8 @@ impl TridentFlowExecutorImpl {
             #parallel_progress_setup
 
             for thread_id in 0..num_threads {
-                // Calculate iterations for this thread
-                let thread_iterations = if thread_id < remaining_iterations as usize {
-                    iterations_per_thread + 1
-                } else {
-                    iterations_per_thread
-                };
+
+                let thread_iterations = iterations_per_thread;
 
                 if thread_iterations == 0 {
                     continue;

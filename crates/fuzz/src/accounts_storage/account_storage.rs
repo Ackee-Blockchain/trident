@@ -3,10 +3,9 @@ use std::collections::HashMap;
 use solana_sdk::account::AccountSharedData;
 use solana_sdk::native_token::LAMPORTS_PER_SOL;
 use solana_sdk::pubkey::Pubkey;
-use solana_sdk::signature::Keypair;
-use solana_sdk::signer::Signer;
 
 use crate::traits::FuzzClient;
+use crate::trident::Trident;
 use crate::types::AccountId;
 
 use super::derive_pda;
@@ -40,14 +39,14 @@ impl AccountsStorage {
     pub fn get_or_create(
         &mut self,
         account_id: AccountId,
-        client: &mut impl FuzzClient,
+        trident: &mut Trident,
         seeds: Option<PdaSeeds>,
         account_metadata: Option<AccountMetadata>,
     ) -> Pubkey {
         match self.accounts.get(&account_id) {
             Some(address) => *address,
             None => {
-                let address = self.get_or_create_address(seeds);
+                let address = self.get_or_create_address(seeds, trident);
 
                 let metadata = match account_metadata {
                     Some(metadata) => metadata,
@@ -59,10 +58,10 @@ impl AccountsStorage {
                 };
 
                 // If account on the address is already initialized, we dont override it
-                if client.get_account(&address) == AccountSharedData::default() {
+                if trident.get_client().get_account(&address) == AccountSharedData::default() {
                     let account =
                         AccountSharedData::new(metadata.lamports, metadata.space, &metadata.owner);
-                    client.set_account_custom(&address, &account);
+                    trident.get_client().set_account_custom(&address, &account);
                 }
 
                 self.accounts.insert(account_id, address);
@@ -76,7 +75,7 @@ impl AccountsStorage {
     pub fn get_or_create_token_account(
         &mut self,
         account_id: AccountId,
-        client: &mut impl FuzzClient,
+        trident: &mut Trident,
         seeds: Option<PdaSeeds>,
         mint: Pubkey,
         owner: Pubkey,
@@ -88,12 +87,12 @@ impl AccountsStorage {
         match self.accounts.get(&account_id) {
             Some(address) => *address,
             None => {
-                let address = self.get_or_create_address(seeds);
+                let address = self.get_or_create_address(seeds, trident);
 
                 // If account on the address is already initialized, we dont override it
-                if client.get_account(&address) == AccountSharedData::default() {
+                if trident.get_client().get_account(&address) == AccountSharedData::default() {
                     self.create_token_account(
-                        client,
+                        trident.get_client(),
                         address,
                         mint,
                         owner,
@@ -117,7 +116,7 @@ impl AccountsStorage {
     pub fn get_or_create_mint_account(
         &mut self,
         account_id: AccountId,
-        client: &mut impl FuzzClient,
+        trident: &mut Trident,
         seeds: Option<PdaSeeds>,
         decimals: u8,
         owner: &Pubkey,
@@ -126,11 +125,17 @@ impl AccountsStorage {
         match self.accounts.get(&account_id) {
             Some(address) => *address,
             None => {
-                let address = self.get_or_create_address(seeds);
+                let address = self.get_or_create_address(seeds, trident);
 
                 // If account on the address is already initialized, we dont override it
-                if client.get_account(&address) == AccountSharedData::default() {
-                    self.create_mint_account(client, address, decimals, owner, freeze_authority);
+                if trident.get_client().get_account(&address) == AccountSharedData::default() {
+                    self.create_mint_account(
+                        trident.get_client(),
+                        address,
+                        decimals,
+                        owner,
+                        freeze_authority,
+                    );
                 }
 
                 self.accounts.insert(account_id, address);
@@ -145,7 +150,7 @@ impl AccountsStorage {
     pub fn get_or_create_delegated_account(
         &mut self,
         account_id: AccountId,
-        client: &mut impl FuzzClient,
+        trident: &mut Trident,
         seeds: Option<PdaSeeds>,
         voter_pubkey: Pubkey,
         staker: Pubkey,
@@ -158,7 +163,7 @@ impl AccountsStorage {
         match self.accounts.get(&account_id) {
             Some(address) => *address,
             None => {
-                let address = self.get_or_create_address(seeds);
+                let address = self.get_or_create_address(seeds, trident);
 
                 // If account on the address is already initialized, we dont override it
                 if client.get_account(&address) == AccountSharedData::default() {
@@ -188,7 +193,7 @@ impl AccountsStorage {
     pub fn get_or_create_initialized_account(
         &mut self,
         account_id: AccountId,
-        client: &mut impl FuzzClient,
+        trident: &mut Trident,
         seeds: Option<PdaSeeds>,
         staker: Pubkey,
         withdrawer: Pubkey,
@@ -197,11 +202,17 @@ impl AccountsStorage {
         match self.accounts.get(&account_id) {
             Some(address) => *address,
             None => {
-                let address = self.get_or_create_address(seeds);
+                let address = self.get_or_create_address(seeds, trident);
 
                 // If account on the address is already initialized, we dont override it
-                if client.get_account(&address) == AccountSharedData::default() {
-                    self.create_initialized_account(client, address, staker, withdrawer, lockup);
+                if trident.get_client().get_account(&address) == AccountSharedData::default() {
+                    self.create_initialized_account(
+                        trident.get_client(),
+                        address,
+                        staker,
+                        withdrawer,
+                        lockup,
+                    );
                 }
 
                 self.accounts.insert(account_id, address);
@@ -217,7 +228,7 @@ impl AccountsStorage {
     pub fn get_or_create_vote_account(
         &mut self,
         account_id: AccountId,
-        client: &mut impl FuzzClient,
+        trident: &mut Trident,
         seeds: Option<PdaSeeds>,
         node_pubkey: &Pubkey,
         authorized_voter: &Pubkey,
@@ -228,7 +239,7 @@ impl AccountsStorage {
         match self.accounts.get(&account_id) {
             Some(address) => *address,
             None => {
-                let address = self.get_or_create_address(seeds);
+                let address = self.get_or_create_address(seeds, trident);
 
                 // If account on the address is already initialized, we dont override it
                 if client.get_account(&address) == AccountSharedData::default() {
@@ -250,16 +261,16 @@ impl AccountsStorage {
         }
     }
 
-    fn get_or_create_address(&self, seeds: Option<PdaSeeds>) -> Pubkey {
+    fn get_or_create_address(&self, seeds: Option<PdaSeeds>, trident: &mut Trident) -> Pubkey {
         match seeds {
             Some(seeds) => {
                 if let Some(pubkey) = derive_pda(seeds.seeds, &seeds.program_id) {
                     pubkey
                 } else {
-                    Pubkey::new_unique()
+                    trident.gen_pubkey()
                 }
             }
-            None => Keypair::new().pubkey(),
+            None => trident.gen_pubkey(),
         }
     }
 }

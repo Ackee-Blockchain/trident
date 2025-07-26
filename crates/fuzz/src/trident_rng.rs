@@ -9,11 +9,11 @@ use rand::RngCore;
 use rand::SeedableRng;
 use sha2::Digest;
 use sha2::Sha256;
+use solana_sdk::pubkey::Pubkey;
 
 pub struct TridentRng {
     seed: [u8; 32],
     rng: SmallRng,
-    thread_id: Option<usize>,
 }
 
 impl Default for TridentRng {
@@ -21,7 +21,6 @@ impl Default for TridentRng {
         Self {
             seed: [0; 32],
             rng: SmallRng::from_seed([0; 32]),
-            thread_id: None,
         }
     }
 }
@@ -44,7 +43,6 @@ impl TridentRng {
 
         self.seed = final_hash.into();
         self.rng = SmallRng::from_seed(self.seed);
-        self.thread_id = Some(thread_id);
     }
 
     pub(crate) fn rotate_seed(&mut self) {
@@ -58,10 +56,6 @@ impl TridentRng {
 
     pub(crate) fn get_seed(&self) -> [u8; 32] {
         self.seed
-    }
-
-    pub(crate) fn set_thread_id(&mut self, thread_id: usize) {
-        self.thread_id = Some(thread_id);
     }
 
     pub(crate) fn gen_range<T, R>(&mut self, range: R) -> T
@@ -78,5 +72,11 @@ impl TridentRng {
             .take(length)
             .map(char::from)
             .collect()
+    }
+
+    pub(crate) fn gen_pubkey(&mut self) -> Pubkey {
+        let mut bytes = [0; 32];
+        self.rng.fill_bytes(&mut bytes);
+        Pubkey::new_from_array(bytes)
     }
 }

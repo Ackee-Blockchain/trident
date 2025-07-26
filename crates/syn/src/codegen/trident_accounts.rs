@@ -109,7 +109,7 @@ impl ToTokens for TridentAccountsStruct {
                             quote! {
                                 storage_accounts
                                     .#storage_ident
-                                    .get_or_create(account_id, trident.get_client(), Some(PdaSeeds::new(&[#(#seeds),*], #program_id_to_use)), #account_metadata)
+                                    .get_or_create(account_id, trident, Some(PdaSeeds::new(&[#(#seeds),*], #program_id_to_use)), #account_metadata)
                             }
                         } else {
                             // Create AccountMetadata if space, owner, or lamports are specified
@@ -126,7 +126,7 @@ impl ToTokens for TridentAccountsStruct {
                             quote! {
                                 storage_accounts
                                     .#storage_ident
-                                    .get_or_create(account_id, trident.get_client(), None, #account_metadata)
+                                    .get_or_create(account_id, trident, None, #account_metadata)
                             }
                         };
 
