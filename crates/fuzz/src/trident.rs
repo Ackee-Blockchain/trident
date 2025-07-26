@@ -20,27 +20,41 @@ use trident_fuzz_metrics::types::Seed;
 
 pub struct Trident {
     client: TridentSVM,
-    metrics: FuzzingStatistics,
+    fuzzing_data: TridentFuzzingData,
     rng: TridentRng,
 }
 
+#[derive(Clone, Default)]
+pub struct TridentFuzzingData {
+    metrics: FuzzingStatistics,
+}
+
+impl TridentFuzzingData {
+    pub fn with_master_seed(seed: Seed) -> Self {
+        Self {
+            metrics: FuzzingStatistics::with_master_seed(&hex::encode(seed)),
+        }
+    }
+    pub fn _merge(&mut self, other: TridentFuzzingData) {
+        self.metrics.merge_from(&other.metrics);
+    }
+
+    pub fn generate(&self) -> std::io::Result<()> {
+        self.metrics.generate()
+    }
+}
+
+impl Default for Trident {
+    fn default() -> Self {
+        Self {
+            client: TridentSVM::new_client(),
+            fuzzing_data: TridentFuzzingData::default(),
+            rng: TridentRng::default(),
+        }
+    }
+}
+
 impl Trident {
-    pub fn new_with_random_seed() -> Self {
-        Self {
-            client: TridentSVM::new_client(),
-            metrics: FuzzingStatistics::default(),
-            rng: TridentRng::random(),
-        }
-    }
-
-    pub fn new_with_seed(seed: Seed) -> Self {
-        Self {
-            client: TridentSVM::new_client(),
-            metrics: FuzzingStatistics::default(),
-            rng: TridentRng::new(seed),
-        }
-    }
-
     pub fn gen_range<T, R>(&mut self, range: R) -> T
     where
         T: SampleUniform,
@@ -65,11 +79,25 @@ impl Trident {
     }
 
     pub fn add_histogram_metric(&mut self, metric_name: &str, value: f64) {
-        self.metrics.add_to_histogram(metric_name, value);
+        self.fuzzing_data
+            .metrics
+            .add_to_histogram(metric_name, value);
     }
 
     pub fn add_accumulator_metric(&mut self, metric_name: &str, value: f64) {
-        self.metrics.add_to_accumulator(metric_name, value);
+        self.fuzzing_data
+            .metrics
+            .add_to_accumulator(metric_name, value);
+    }
+
+    pub fn monitor_account_state(&mut self, account: &Pubkey, account_name: &str) {
+        let account_shared_data = self.client.get_account(account).unwrap_or_default();
+        self.fuzzing_data.metrics.monitor_account_state(
+            &hex::encode(self.rng.get_seed()),
+            account_name,
+            account,
+            &account_shared_data,
+        );
     }
 
     pub fn execute_transaction<T>(
@@ -98,7 +126,9 @@ impl Trident {
 
         // Execute the transaction
         if fuzzing_metrics.is_ok() {
-            self.metrics.add_executed_transaction(&transaction_name);
+            self.fuzzing_data
+                .metrics
+                .add_executed_transaction(&transaction_name);
         }
         if fuzzing_debug.is_ok() {
             let tx = format!("{:#?}", transaction);
@@ -133,7 +163,9 @@ impl Trident {
                 Ok(_) => {
                     // Record successful execution
                     if fuzzing_metrics.is_ok() {
-                        self.metrics.add_successful_transaction(&transaction_name);
+                        self.fuzzing_data
+                            .metrics
+                            .add_successful_transaction(&transaction_name);
                     }
 
                     // Run invariant checks
@@ -149,7 +181,7 @@ impl Trident {
                         if fuzzing_metrics.is_ok() {
                             let rng = self.rng.get_seed();
 
-                            self.metrics.add_failed_invariant(
+                            self.fuzzing_data.metrics.add_failed_invariant(
                                 &transaction_name,
                                 &rng,
                                 invariant_error.to_string(),
@@ -171,7 +203,7 @@ impl Trident {
                                         );
                                     }
                                     let rng = self.rng.get_seed();
-                                    self.metrics.add_transaction_panicked(
+                                    self.fuzzing_data.metrics.add_transaction_panicked(
                                         &transaction_name,
                                         rng,
                                         instruction_error.to_string(),
@@ -181,7 +213,7 @@ impl Trident {
                             }
                             InstructionError::Custom(error_code) => {
                                 if fuzzing_metrics.is_ok() {
-                                    self.metrics.add_custom_instruction_error(
+                                    self.fuzzing_data.metrics.add_custom_instruction_error(
                                         &transaction_name,
                                         error_code,
                                         details.log_messages.clone(),
@@ -190,7 +222,7 @@ impl Trident {
                             }
                             _ => {
                                 if fuzzing_metrics.is_ok() {
-                                    self.metrics.add_failed_transaction(
+                                    self.fuzzing_data.metrics.add_failed_transaction(
                                         &transaction_name,
                                         instruction_error.to_string(),
                                         details.log_messages.clone(),
@@ -199,7 +231,7 @@ impl Trident {
                             }
                         }
                     } else if fuzzing_metrics.is_ok() {
-                        self.metrics.add_failed_transaction(
+                        self.fuzzing_data.metrics.add_failed_transaction(
                             &transaction_name,
                             transaction_error.to_string(),
                             details.log_messages.clone(),
@@ -215,8 +247,12 @@ impl Trident {
         }
     }
 
-    pub fn override_seed(&mut self, seed: Seed) {
-        self.rng.override_seed(seed);
+    #[doc(hidden)]
+    pub fn _set_master_seed_and_thread_id(&mut self, seed: Seed, thread_id: usize) {
+        self.rng.set_master_seed_and_thread_id(seed, thread_id);
+        self.fuzzing_data
+            .metrics
+            .add_master_seed(&hex::encode(seed));
     }
 
     #[doc(hidden)]
@@ -226,16 +262,21 @@ impl Trident {
     }
 
     #[doc(hidden)]
+    pub fn _get_fuzzing_data(&self) -> TridentFuzzingData {
+        self.fuzzing_data.clone()
+    }
+
+    #[doc(hidden)]
     pub fn _set_thread_id(&mut self, thread_id: usize) {
         self.rng.set_thread_id(thread_id);
     }
 
     #[doc(hidden)]
-    pub fn _get_metrics(self) -> FuzzingStatistics {
-        self.metrics
+    pub fn _get_metrics(&self) -> &FuzzingStatistics {
+        &self.fuzzing_data.metrics
     }
     #[doc(hidden)]
     pub fn generate_dashboard_html(&self, path: &str) -> std::io::Result<()> {
-        self.metrics.generate_dashboard_html(path)
+        self.fuzzing_data.metrics.generate_dashboard_html(path)
     }
 }

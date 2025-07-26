@@ -4,7 +4,6 @@ pub mod fuzz_client_impl;
 pub mod traits;
 
 pub mod trident_accounts;
-
 pub mod trident_pubkey;
 
 pub mod trident_rng;
@@ -77,6 +76,7 @@ pub mod fuzzing {
 
     /// Trident
     pub use super::trident::Trident;
+    pub use super::trident::TridentFuzzingData;
 
     /// Error
     pub use super::error::*;
@@ -92,6 +92,7 @@ pub mod fuzzing {
     pub use borsh::BorshDeserialize;
     pub use borsh::BorshSerialize;
 
+    pub use getrandom;
     pub use indicatif;
 
     // coverage

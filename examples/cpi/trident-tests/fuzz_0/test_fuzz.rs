@@ -18,7 +18,7 @@ struct FuzzTest {
 impl FuzzTest {
     fn new() -> Self {
         Self {
-            trident: Trident::new_with_random_seed(),
+            trident: Trident::default(),
             fuzz_accounts: FuzzAccounts::default(),
         }
     }
