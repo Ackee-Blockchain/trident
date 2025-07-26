@@ -52,6 +52,11 @@ pub(crate) enum FuzzCommand {
             help = "Run the fuzzing with exit code, i.e. if it discovers crash the Trident will exit with exit code 1."
         )]
         with_exit_code: bool,
+        #[arg(
+            required = false,
+            help = "Master seed used for fuzzing, if not provided it will be generated randomly."
+        )]
+        seed: Option<String>,
     },
     Debug {
         #[arg(
@@ -61,7 +66,7 @@ pub(crate) enum FuzzCommand {
         target: String,
         #[arg(
             required = true,
-            help = "Seed of the desired fuzz template to execute (for example fuzz_0)."
+            help = "Master seed of the desired fuzz template to execute."
         )]
         seed: String,
     },
@@ -77,10 +82,11 @@ pub(crate) async fn fuzz(subcmd: FuzzCommand) {
         FuzzCommand::Run {
             target,
             with_exit_code,
+            seed,
         } => {
             let commander = Commander::new(&root);
 
-            commander.run(target, with_exit_code).await?;
+            commander.run(target, with_exit_code, seed).await?;
         }
         FuzzCommand::Debug { target, seed } => {
             let commander = Commander::new(&root);

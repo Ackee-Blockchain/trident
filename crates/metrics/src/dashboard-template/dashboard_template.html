@@ -452,6 +452,10 @@
         <div class="header">
             <h1>Trident Fuzzing Dashboard</h1>
             <p>Fuzzing session completed. Results generated on: <span id="timestamp"></span></p>
+            <div id="master-seed-header" style="margin-top: 12px; padding: 12px; background: #334155; border-radius: 8px; border-left: 4px solid #38bdf8;">
+                <div style="font-size: 0.9rem; color: #94a3b8; margin-bottom: 4px;">Master Seed:</div>
+                <div id="master-seed-value" style="font-family: 'Courier New', monospace; font-size: 1rem; color: #e2e8f0; word-break: break-all; background: #1e293b; padding: 8px; border-radius: 4px; border: 1px solid #475569;">Not available</div>
+            </div>
         </div>
 
         <div class="summary-stats">
@@ -516,6 +520,27 @@
         <div class="card full-width">
             <h2>Custom Metrics</h2>
             <div id="custom-metrics"></div>
+        </div>
+
+        <div class="card full-width" id="state-snapshots-section">
+            <h2>State Snapshots</h2>
+            
+            <div class="metric" id="state-hash-metric" style="display: none;">
+                <span>State Snapshots Hash</span>
+                <span class="metric-value" id="state-hash" style="font-family: 'Courier New', monospace; font-size: 0.9em; word-break: break-all;"></span>
+            </div>
+            
+            <div id="no-state-info" style="text-align: center; padding: 20px; color: #64748b;">
+                <p>No state snapshots available for this fuzzing session.</p>
+                <p style="font-size: 0.9em; margin-top: 8px;">Add <code style="background: #334155; padding: 2px 6px; border-radius: 4px;">self.trident.monitor_account_state(...)</code> in your fuzzing tests to track account state changes.</p>
+            </div>
+            
+            <div id="state-info" style="display: none;">
+                <p style="color: #94a3b8; font-size: 0.9em; margin-top: 12px;">
+                    The state snapshots hash represents the aggregated state of all monitored account snapshots during fuzzing. 
+                    It can be used to verify state consistency across different fuzzing runs.
+                </p>
+            </div>
         </div>
 
         <div class="card full-width" style="margin-top: 20px;">
@@ -1046,6 +1071,41 @@
             return '';
         }
 
+        // Display state monitoring information
+        function displayStateMonitoring() {
+            const masterSeedValue = document.getElementById('master-seed-value');
+            const stateHashMetric = document.getElementById('state-hash-metric');
+            const stateHashElement = document.getElementById('state-hash');
+            const noStateInfo = document.getElementById('no-state-info');
+            const stateInfo = document.getElementById('state-info');
+            
+            let hasSnapshotData = false;
+            
+            // Always display master seed section, update content based on availability
+            if (data.master_seed && data.master_seed !== null) {
+                masterSeedValue.textContent = data.master_seed;
+                masterSeedValue.style.color = '#e2e8f0';
+            } else {
+                masterSeedValue.textContent = 'Not available';
+                masterSeedValue.style.color = '#64748b';
+            }
+            
+            // Display state snapshots hash if available
+            if (data.state_snapshots_hash) {
+                stateHashMetric.style.display = 'flex';
+                stateHashElement.textContent = data.state_snapshots_hash;
+                stateInfo.style.display = 'block';
+                hasSnapshotData = true;
+            }
+            
+            // Show appropriate message for snapshots section
+            if (hasSnapshotData) {
+                noStateInfo.style.display = 'none';
+            } else {
+                noStateInfo.style.display = 'block';
+            }
+        }
+
         // Initialize dashboard
         calculateSummaryStats();
         generateInstructionStats();
@@ -1055,6 +1115,7 @@
         generateErrorDetails();
         generateInvariantFailures();
         generateCustomMetrics();
+        displayStateMonitoring();
     </script>
 </body>
 </html> 
