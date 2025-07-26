@@ -12,6 +12,7 @@ incremented upon a breaking change and the patch version will be incremented for
 
 **Added**
 
+- Added state monitoring support for fuzzing metrics ([341](https://github.com/Ackee-Blockchain/trident/pull/341))
 - Added dashboard support for fuzzing metrics ([340](https://github.com/Ackee-Blockchain/trident/pull/340))
 - Code coverage tracking support enabled and configured via Trident.toml. Coverage data can be visualized using the VS Code extension [330](https://github.com/Ackee-Blockchain/trident/pull/330)
 - Added features to enable syscalls in fuzzing ([329](https://github.com/Ackee-Blockchain/trident/pull/329))

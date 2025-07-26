@@ -14,4 +14,6 @@ readme = { workspace = true }
 prettytable = "0.10"
 serde = { version = "1", default-features = false }
 hex = "0.4"
+sha2 = "0.10"
 serde_json = "1"
+solana-sdk = { workspace = true }

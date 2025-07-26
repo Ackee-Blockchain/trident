@@ -12,7 +12,7 @@ use super::Error;
 
 impl Commander {
     #[throws]
-    pub async fn run(&self, target: String, _exit_code: bool) {
+    pub async fn run(&self, target: String, _exit_code: bool, seed: Option<String>) {
         let config = TridentConfig::new();
 
         if config.get_fuzzing_with_stats() {
@@ -25,16 +25,16 @@ impl Commander {
 
         let coverage_config = config.get_coverage();
         if coverage_config.get_enable() {
-            self.run_with_coverage(&target, &config, coverage_config)
+            self.run_with_coverage(&target, &config, coverage_config, seed)
                 .await?;
         } else {
-            self.run_default(&target).await?;
+            self.run_default(&target, seed).await?;
         }
     }
 
     #[throws]
-    pub async fn run_default(&self, target: &str) {
-        let mut child = self.spawn_fuzzer(target, HashMap::new())?;
+    pub async fn run_default(&self, target: &str, seed: Option<String>) {
+        let mut child = self.spawn_fuzzer(target, HashMap::new(), seed)?;
         Self::handle_child(&mut child).await?;
     }
 
@@ -44,6 +44,7 @@ impl Commander {
         target: &str,
         config: &TridentConfig,
         coverage_config: CoverageConfig,
+        seed: Option<String>,
     ) {
         if let Err(err) = coverage_config.validate() {
             throw!(Error::Anyhow(anyhow::anyhow!(err)));
@@ -65,7 +66,7 @@ impl Commander {
         coverage.clean().await?;
 
         let env_vars = self.setup_coverage_env_vars(&coverage, config).await?;
-        let mut child = self.spawn_fuzzer(target, env_vars)?;
+        let mut child = self.spawn_fuzzer(target, env_vars, seed)?;
 
         coverage.notify_extension(NotificationType::Setup).await?;
         Self::handle_child(&mut child).await?;
@@ -98,7 +99,21 @@ impl Commander {
     }
 
     #[throws]
-    fn spawn_fuzzer(&self, target: &str, env_vars: HashMap<&str, String>) -> tokio::process::Child {
+    fn spawn_fuzzer(
+        &self,
+        target: &str,
+        mut env_vars: HashMap<&str, String>,
+        seed: Option<String>,
+    ) -> tokio::process::Child {
+        if let Some(seed) = seed {
+            // this is just to make sure it will be possible to decode the seed
+            // if it is not a valid hex string, it will panic
+            let _decoded_seed = hex::decode(&seed)
+                .unwrap_or_else(|_| panic!("The seed is not a valid hex string: {}", seed));
+
+            env_vars.insert("TRIDENT_FUZZ_SEED", seed);
+        }
+
         Command::new("cargo")
             .envs(env_vars)
             .arg("run")

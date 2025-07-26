@@ -227,6 +227,19 @@ impl TridentFlowExecutorImpl {
                 use std::thread;
                 use std::time::{Duration, Instant};
 
+                let master_seed = if let Ok(seed) = std::env::var("TRIDENT_FUZZ_SEED") {
+                    let seed_bytes = hex::decode(&seed).unwrap_or_else(|_| panic!("The seed is not a valid hex string: {}", seed));
+                    let mut seed = [0; 32];
+                    seed.copy_from_slice(&seed_bytes);
+                    seed
+                } else{
+                    let mut seed = [0; 32];
+                    if let Err(err) = getrandom::fill(&mut seed) {
+                        panic!("from_entropy failed: {}", err);
+                    }
+                    seed
+                };
+
                 let num_threads = thread::available_parallelism()
                     .map(|n| n.get())
                     .unwrap_or(1)
@@ -252,6 +265,7 @@ impl TridentFlowExecutorImpl {
 
         quote! {
             let mut fuzzer = #type_name::new();
+            fuzzer.trident._set_thread_id(0);
 
             // Set debug seed if in debug mode
             if let Ok(debug_seed_hex) = std::env::var("TRIDENT_FUZZ_DEBUG") {
@@ -267,7 +281,7 @@ impl TridentFlowExecutorImpl {
                 seed.copy_from_slice(&seed_bytes);
 
                 println!("Using debug seed: {}", debug_seed_hex);
-                fuzzer.trident.override_seed(seed);
+                fuzzer.trident._set_master_seed_and_thread_id(seed, 0);
             }
 
             let total_flow_calls = iterations * flow_calls_per_iteration;
@@ -388,12 +402,11 @@ impl TridentFlowExecutorImpl {
 
         quote! {
             let main_pb_clone = main_pb.clone();
-            let handle = thread::spawn(move || -> FuzzingStatistics {
+            let handle = thread::spawn(move || -> TridentFuzzingData {
                 // Each thread creates its own client and fuzzer instance
                 let mut fuzzer = #type_name::new();
 
-                // Set deterministic thread ID for reproducible fuzzing
-                fuzzer.trident._set_thread_id(thread_id);
+                fuzzer.trident._set_master_seed_and_thread_id(master_seed, thread_id);
 
                 // Update progress every 100 flow calls or every 50ms, whichever comes first
                 const UPDATE_INTERVAL: u64 = 100;
@@ -435,7 +448,7 @@ impl TridentFlowExecutorImpl {
                 }
 
                 // Return the metrics from this thread
-                fuzzer.trident._get_metrics()
+                fuzzer.trident._get_fuzzing_data()
             });
 
             handles.push(handle);
@@ -446,12 +459,12 @@ impl TridentFlowExecutorImpl {
     fn generate_metrics_collection_logic(&self) -> TokenStream {
         quote! {
             // Collect metrics from all threads
-            let mut merged_metrics = FuzzingStatistics::new();
+            let mut fuzzing_data = TridentFuzzingData::with_master_seed(master_seed);
 
             for handle in handles {
                 match handle.join() {
                     Ok(thread_metrics) => {
-                        merged_metrics.merge_from(thread_metrics);
+                        fuzzing_data._merge(thread_metrics);
                     }
                     Err(err) => {
                         if let Some(s) = err.downcast_ref::<&str>() {
@@ -468,7 +481,7 @@ impl TridentFlowExecutorImpl {
 
             main_pb.finish_with_message("Parallel fuzzing completed!");
 
-            merged_metrics.generate().unwrap();
+            fuzzing_data.generate().unwrap();
         }
     }
 
@@ -476,8 +489,8 @@ impl TridentFlowExecutorImpl {
     fn generate_metrics_output(&self) -> TokenStream {
         quote! {
             if std::env::var("FUZZING_METRICS").is_ok() {
-                let metrics = fuzzer.trident._get_metrics();
-                metrics.generate().unwrap();
+                let fuzzing_data = fuzzer.trident._get_fuzzing_data();
+                fuzzing_data.generate().unwrap();
             }
         }
     }

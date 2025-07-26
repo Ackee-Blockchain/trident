@@ -2,12 +2,15 @@
 
 use prettytable::row;
 use prettytable::Table;
+use solana_sdk::account::AccountSharedData;
+use solana_sdk::pubkey::Pubkey;
 use std::collections::BTreeMap;
 use std::fs::File;
 use std::io::Write;
 
 mod custom_metrics;
 mod dashboard;
+mod state_monitoring;
 mod transaction_custom_error;
 mod transaction_error;
 mod transaction_invariants;
@@ -17,12 +20,13 @@ use types::Seed;
 
 use crate::custom_metrics::CustomMetricValue;
 use crate::dashboard::DashboardConfig;
+use crate::state_monitoring::StateMonitor;
 use crate::transaction_custom_error::TransactionCustomErrorMetrics;
 use crate::transaction_error::TransactionErrorMetrics;
 use crate::transaction_invariants::TransactionInvariantMetrics;
 use crate::transaction_panics::TransactionPanicMetrics;
 
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, serde::Serialize, serde::Deserialize, Clone)]
 pub(crate) struct TransactionStats {
     transaction_invoked: u64,
     transaction_successful: u64,
@@ -36,21 +40,62 @@ pub(crate) struct TransactionStats {
     transactions_invariant_fails: TransactionInvariantMetrics,
 }
 
-#[derive(Debug, Default, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Default, serde::Serialize, serde::Deserialize, Clone)]
 pub struct FuzzingStatistics {
+    // Master seed - always included in serialization
+    #[serde(default)]
+    master_seed: Option<String>,
     transactions: BTreeMap<String, TransactionStats>,
     // New field for custom metrics without breaking existing API
     #[serde(default)]
     custom_metrics: BTreeMap<String, CustomMetricValue>,
+    // State snapshots hash - only included if snapshots exist
+    #[serde(skip_serializing_if = "Option::is_none")]
+    state_snapshots_hash: Option<String>,
+
+    #[serde(skip)]
+    state_monitor: StateMonitor,
 }
 
 impl FuzzingStatistics {
     pub fn new() -> Self {
         let empty_transactions = BTreeMap::<String, TransactionStats>::default();
         Self {
+            master_seed: None,
             transactions: empty_transactions,
             custom_metrics: BTreeMap::default(),
+            state_snapshots_hash: None,
+            state_monitor: StateMonitor::default(),
         }
+    }
+
+    pub fn add_master_seed(&mut self, seed: &str) {
+        self.master_seed = Some(seed.to_string());
+    }
+
+    pub fn with_master_seed(seed: &str) -> Self {
+        Self {
+            master_seed: Some(seed.to_string()),
+            transactions: BTreeMap::default(),
+            custom_metrics: BTreeMap::default(),
+            state_snapshots_hash: None,
+            state_monitor: StateMonitor::default(),
+        }
+    }
+
+    pub fn monitor_account_state(
+        &mut self,
+        iteration_seed: &str,
+        account_name: &str,
+        address: &Pubkey,
+        account_shared_data: &AccountSharedData,
+    ) {
+        self.state_monitor.monitor_account_state(
+            iteration_seed,
+            account_name,
+            address,
+            account_shared_data,
+        );
     }
 
     pub fn add_executed_transaction(&mut self, transaction: &str) {
@@ -159,17 +204,22 @@ impl FuzzingStatistics {
 
     pub fn print_to_file(&self, path: &str) {
         let mut file = File::create(path).unwrap();
-        let serialized = serde_json::to_string_pretty(&self).unwrap();
+
+        // Create a copy with the state hash included
+        let mut stats_with_hash = self.clone();
+        stats_with_hash.state_snapshots_hash = self.state_monitor.get_state_hash().unwrap_or(None);
+
+        let serialized = serde_json::to_string_pretty(&stats_with_hash).unwrap();
         file.write_all(serialized.as_bytes()).unwrap();
     }
 
     /// Merges statistics from another FuzzingStatistics instance into this one.
     /// # Arguments
     /// * `other` - The other FuzzingStatistics instance to merge from.
-    pub fn merge_from(&mut self, other: FuzzingStatistics) {
+    pub fn merge_from(&mut self, other: &FuzzingStatistics) {
         // Merge custom metrics
-        for (metric_name, metric_value) in other.custom_metrics {
-            match self.custom_metrics.get_mut(&metric_name) {
+        for (metric_name, metric_value) in &other.custom_metrics {
+            match self.custom_metrics.get_mut(metric_name) {
                 Some(existing_metric) => {
                     match (existing_metric, metric_value) {
                         (
@@ -197,8 +247,8 @@ impl FuzzingStatistics {
                             },
                         ) => {
                             // Update min/max
-                            *existing_min = existing_min.min(new_min);
-                            *existing_max = existing_max.max(new_max);
+                            *existing_min = existing_min.min(*new_min);
+                            *existing_max = existing_max.max(*new_max);
                             // Update sum and count efficiently
                             *existing_sum += new_sum;
                             *existing_count += new_count;
@@ -211,12 +261,13 @@ impl FuzzingStatistics {
                     }
                 }
                 None => {
-                    self.custom_metrics.insert(metric_name, metric_value);
+                    self.custom_metrics
+                        .insert(metric_name.to_string(), metric_value.clone());
                 }
             }
         }
 
-        for (transaction, stats) in other.transactions {
+        for (transaction, stats) in &other.transactions {
             self.transactions
                 .entry(transaction.to_string())
                 .and_modify(|existing_stats| {
@@ -239,8 +290,10 @@ impl FuzzingStatistics {
                         .transactions_invariant_fails
                         .concat(&stats.transactions_invariant_fails);
                 })
-                .or_insert(stats);
+                .or_insert_with(|| stats.clone());
         }
+
+        self.state_monitor.merge_from(&other.state_monitor);
     }
 
     // Dashboard-related methods
@@ -366,10 +419,20 @@ impl FuzzingStatistics {
             serde_json::to_value(&custom_metrics_for_display).unwrap_or_default(),
         );
 
+        // Always include master seed (null if not set)
+        result.insert("master_seed".to_string(), self.master_seed.clone().into());
+
+        // Include state snapshots hash if available
+        if let Ok(Some(state_hash)) = self.state_monitor.get_state_hash() {
+            result.insert("state_snapshots_hash".to_string(), state_hash.into());
+        }
+
         result.into()
     }
 
     pub fn generate(&self) -> std::io::Result<()> {
+        self.state_monitor.generate()?;
+
         if std::env::var("FUZZING_METRICS").is_ok() {
             self.show_table();
             self.print_to_file("fuzzing_metrics.json");

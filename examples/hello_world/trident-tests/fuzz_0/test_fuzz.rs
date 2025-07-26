@@ -18,7 +18,7 @@ struct FuzzTest {
 impl FuzzTest {
     fn new() -> Self {
         Self {
-            trident: Trident::new_with_random_seed(),
+            trident: Trident::default(),
             fuzz_accounts: FuzzAccounts::default(),
         }
     }
@@ -26,6 +26,7 @@ impl FuzzTest {
     #[init]
     fn start(&mut self) {
         let mut ix = InitializeFnTransaction::build(&mut self.trident, &mut self.fuzz_accounts);
+
         self.trident.execute_transaction(&mut ix, Some("Init"));
     }
 

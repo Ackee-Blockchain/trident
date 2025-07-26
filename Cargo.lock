@@ -4339,6 +4339,7 @@ dependencies = [
  "cargo_metadata",
  "fehler",
  "heck 0.4.1",
+ "hex",
  "pretty_assertions",
  "rand 0.8.5",
  "reqwest",
@@ -4466,6 +4467,8 @@ dependencies = [
  "prettytable",
  "serde",
  "serde_json",
+ "sha2 0.10.9",
+ "solana-sdk",
 ]
 
 [[package]]
