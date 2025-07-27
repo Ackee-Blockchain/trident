@@ -17,10 +17,14 @@ impl Commander {
 
         if config.get_fuzzing_with_stats() {
             std::env::set_var("FUZZING_METRICS", "1");
-        }
 
-        if config.get_dashboard() {
-            std::env::set_var("FUZZING_DASHBOARD", "1");
+            if config.get_state_monitor() {
+                std::env::set_var("FUZZING_STATE_MONITOR", "1");
+            }
+
+            if config.get_dashboard() {
+                std::env::set_var("FUZZING_DASHBOARD", "1");
+            }
         }
 
         let coverage_config = config.get_coverage();

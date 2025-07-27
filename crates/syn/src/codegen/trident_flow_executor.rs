@@ -283,6 +283,8 @@ impl TridentFlowExecutorImpl {
                 fuzzer.trident._set_master_seed_for_debug(seed);
             }
 
+            let fuzzing_data = fuzzer.trident._get_fuzzing_data();
+
             let total_flow_calls = iterations * flow_calls_per_iteration;
 
             #progress_bar_setup
@@ -452,6 +454,7 @@ impl TridentFlowExecutorImpl {
 
     /// Generate metrics collection and output logic
     fn generate_metrics_collection_logic(&self) -> TokenStream {
+        let metrics_output = self.generate_metrics_output();
         quote! {
             // Collect metrics from all threads
             let mut fuzzing_data = TridentFuzzingData::with_master_seed(master_seed);
@@ -459,7 +462,9 @@ impl TridentFlowExecutorImpl {
             for handle in handles {
                 match handle.join() {
                     Ok(thread_metrics) => {
-                        fuzzing_data._merge(thread_metrics);
+                        if std::env::var("FUZZING_METRICS").is_ok() {
+                            fuzzing_data._merge(thread_metrics);
+                        }
                     }
                     Err(err) => {
                         if let Some(s) = err.downcast_ref::<&str>() {
@@ -475,8 +480,7 @@ impl TridentFlowExecutorImpl {
             }
 
             main_pb.finish_with_message("Parallel fuzzing completed!");
-
-            fuzzing_data.generate().unwrap();
+            #metrics_output
         }
     }
 
@@ -484,7 +488,6 @@ impl TridentFlowExecutorImpl {
     fn generate_metrics_output(&self) -> TokenStream {
         quote! {
             if std::env::var("FUZZING_METRICS").is_ok() {
-                let fuzzing_data = fuzzer.trident._get_fuzzing_data();
                 fuzzing_data.generate().unwrap();
             }
         }

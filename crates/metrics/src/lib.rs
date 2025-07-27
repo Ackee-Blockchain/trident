@@ -431,14 +431,16 @@ impl FuzzingStatistics {
     }
 
     pub fn generate(&self) -> std::io::Result<()> {
-        self.state_monitor.generate()?;
-
         if std::env::var("FUZZING_METRICS").is_ok() {
             self.show_table();
             self.print_to_file("fuzzing_metrics.json");
 
             if std::env::var("FUZZING_DASHBOARD").is_ok() {
                 self.generate_dashboard_html("fuzzing_dashboard.html")?;
+            }
+
+            if std::env::var("FUZZING_STATE_MONITOR").is_ok() {
+                self.state_monitor.generate()?;
             }
         }
         Ok(())
