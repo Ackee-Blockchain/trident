@@ -282,9 +282,6 @@ impl TridentFlowExecutorImpl {
                 println!("Using debug seed: {}", debug_seed_hex);
                 fuzzer.trident._set_master_seed_for_debug(seed);
             }
-
-            let fuzzing_data = fuzzer.trident._get_fuzzing_data();
-
             let total_flow_calls = iterations * flow_calls_per_iteration;
 
             #progress_bar_setup
@@ -340,6 +337,9 @@ impl TridentFlowExecutorImpl {
             }
 
             pb.finish_with_message("Fuzzing completed!");
+
+            let fuzzing_data = fuzzer.trident._get_fuzzing_data();
+
         }
     }
 

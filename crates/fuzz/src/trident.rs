@@ -267,6 +267,9 @@ impl Trident {
     #[doc(hidden)]
     pub fn _set_master_seed_for_debug(&mut self, seed: Seed) {
         self.rng.set_master_seed_for_debug(seed);
+        self.fuzzing_data
+            .metrics
+            .add_master_seed(&hex::encode(seed));
     }
 
     #[doc(hidden)]
