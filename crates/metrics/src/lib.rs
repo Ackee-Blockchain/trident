@@ -436,16 +436,16 @@ impl FuzzingStatistics {
     }
 
     pub fn generate(&self) -> std::io::Result<()> {
-        if std::env::var("FUZZING_METRICS").is_ok() {
+        if let Ok(file_name) = std::env::var("FUZZING_METRICS") {
             self.show_table();
-            self.print_to_file("fuzzing_metrics.json");
+            self.print_to_file(&file_name);
 
-            if std::env::var("FUZZING_DASHBOARD").is_ok() {
-                self.generate_dashboard_html("fuzzing_dashboard.html")?;
+            if let Ok(dashboard_file_name) = std::env::var("FUZZING_DASHBOARD") {
+                self.generate_dashboard_html(&dashboard_file_name)?;
             }
 
-            if std::env::var("FUZZING_STATE_MONITOR").is_ok() {
-                self.state_monitor.generate()?;
+            if let Ok(state_monitor_file_name) = std::env::var("FUZZING_STATE_MONITOR") {
+                self.state_monitor.generate(&state_monitor_file_name)?;
             }
         }
         Ok(())

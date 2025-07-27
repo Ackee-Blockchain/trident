@@ -65,9 +65,9 @@ impl StateMonitor {
         Ok(Some(hash_hex))
     }
 
-    pub(crate) fn generate(&self) -> std::io::Result<()> {
+    pub(crate) fn generate(&self, file_name: &str) -> std::io::Result<()> {
         if !self.snapshots.is_empty() {
-            let file = File::create("state_monitor.json")?;
+            let file = File::create(file_name)?;
             serde_json::to_writer_pretty(file, &self)?;
         }
 

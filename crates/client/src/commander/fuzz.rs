@@ -16,14 +16,14 @@ impl Commander {
         let config = TridentConfig::new();
 
         if config.get_fuzzing_with_stats() {
-            std::env::set_var("FUZZING_METRICS", "1");
+            std::env::set_var("FUZZING_METRICS", "fuzzing_metrics.json");
 
             if config.get_state_monitor() {
-                std::env::set_var("FUZZING_STATE_MONITOR", "1");
+                std::env::set_var("FUZZING_STATE_MONITOR", "state_monitor.json");
             }
 
             if config.get_dashboard() {
-                std::env::set_var("FUZZING_DASHBOARD", "1");
+                std::env::set_var("FUZZING_DASHBOARD", "fuzzing_dashboard.html");
             }
         }
 
@@ -132,7 +132,15 @@ impl Commander {
         let config = TridentConfig::new();
 
         if config.get_fuzzing_with_stats() {
-            std::env::set_var("FUZZING_METRICS", "1");
+            std::env::set_var("FUZZING_METRICS", "fuzzing_metrics_debug.json");
+
+            if config.get_state_monitor() {
+                std::env::set_var("FUZZING_STATE_MONITOR", "state_monitor_debug.json");
+            }
+
+            if config.get_dashboard() {
+                std::env::set_var("FUZZING_DASHBOARD", "fuzzing_dashboard_debug.html");
+            }
         }
 
         let mut child = Command::new("cargo")
