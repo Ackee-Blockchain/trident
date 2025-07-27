@@ -828,83 +828,115 @@
             }).join('');
         }
 
-        // Generate panic analysis
+        // Generate panic analysis grouped by transaction
         function generatePanicAnalysis() {
             const container = document.getElementById('panic-analysis');
             let html = '';
-            let panicCount = 0;
+            let totalPanics = 0;
             
             for (const [instruction, stats] of Object.entries(data.instructions)) {
-                for (const [panic, panicData] of Object.entries(stats.transactions_panics || {})) {
-                    panicCount++;
-                    const panicId = `panic-${panicCount}`;
+                const panics = stats.transactions_panics || {};
+                const panicKeys = Object.keys(panics);
+                
+                if (panicKeys.length > 0) {
+                    totalPanics += panicKeys.length;
+                    
                     html += `
-                        <div class="error-section">
-                            <div class="error-title">${instruction}: ${panic}</div>
-                            <div class="error-count">Occurred ${panicData.occurrences} times | Seed: ${panicData.seed}</div>
-                            <div class="collapsible" onclick="toggleCollapsible('${panicId}')">
-                                View Panic Logs ▼
-                            </div>
-                            <div id="${panicId}" class="collapsible-content">
-                                <div class="error-logs">${formatSolanaLogs(panicData.logs)}</div>
-                            </div>
-                        </div>
+                        <div style="background: #334155; border-radius: 8px; padding: 20px; margin-bottom: 16px; border-left: 4px solid #a855f7;">
+                            <h3 style="margin: 0 0 16px 0; color: #e2e8f0; font-size: 1.1rem; display: flex; align-items: center;">
+                                <span style="background: #a855f7; color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.9rem; margin-right: 12px;">${instruction}</span>
+                                ${panicKeys.length} panic${panicKeys.length > 1 ? 's' : ''}
+                            </h3>
                     `;
+                    
+                    for (const [panic, panicData] of Object.entries(panics)) {
+                        const panicId = `panic-${instruction.replace(/\W/g, '_')}-${totalPanics}`;
+                        html += `
+                            <div class="error-section" style="margin-left: 0; margin-bottom: 12px;">
+                                <div class="error-title">${panic}</div>
+                                <div class="error-count">Occurred ${panicData.occurrences} times | Seed: ${panicData.seed}</div>
+                                <div class="collapsible" onclick="toggleCollapsible('${panicId}')">
+                                    View Panic Logs ▼
+                                </div>
+                                <div id="${panicId}" class="collapsible-content">
+                                    <div class="error-logs">${formatSolanaLogs(panicData.logs)}</div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                    
+                    html += '</div>';
                 }
             }
             
-            if (panicCount === 0) {
+            if (totalPanics === 0) {
                 html = '<p style="text-align: center; color: #22c55e; font-size: 1.2em;">No panics detected!</p>';
             }
             
             container.innerHTML = html;
         }
         
-        // Generate detailed error analysis
+        // Generate detailed error analysis grouped by transaction
         function generateErrorDetails() {
             const container = document.getElementById('error-details');
             let html = '';
-            let totalErrors = 0;
+            let globalErrorCount = 0;
             
             for (const [instruction, stats] of Object.entries(data.instructions)) {
-                // Regular transaction errors
-                for (const [error, errorData] of Object.entries(stats.transactions_errors || {})) {
-                    totalErrors++;
-                    const errorId = `error-${totalErrors}`;
-                    html += `
-                        <div class="error-section">
-                            <div class="error-title">${instruction}: ${error}</div>
-                            <div class="error-count">Occurred ${errorData.occurrences} times</div>
-                            <div class="collapsible" onclick="toggleCollapsible('${errorId}')">
-                                View Error Logs ▼
-                            </div>
-                            <div id="${errorId}" class="collapsible-content">
-                                <div class="error-logs">${formatSolanaLogs(errorData.logs)}</div>
-                            </div>
-                        </div>
-                    `;
-                }
+                const transactionErrors = stats.transactions_errors || {};
+                const customErrors = stats.custom_instruction_errors || {};
+                const totalErrorsForTransaction = Object.keys(transactionErrors).length + Object.keys(customErrors).length;
                 
-                // Custom instruction errors
-                for (const [errorCode, errorData] of Object.entries(stats.custom_instruction_errors || {})) {
-                    totalErrors++;
-                    const errorId = `error-${totalErrors}`;
+                if (totalErrorsForTransaction > 0) {
                     html += `
-                        <div class="error-section">
-                            <div class="error-title">${instruction}: Custom Error Code ${errorCode}</div>
-                            <div class="error-count">Occurred ${errorData.occurrences} times</div>
-                            <div class="collapsible" onclick="toggleCollapsible('${errorId}')">
-                                View Error Logs ▼
-                            </div>
-                            <div id="${errorId}" class="collapsible-content">
-                                <div class="error-logs">${formatSolanaLogs(errorData.logs)}</div>
-                            </div>
-                        </div>
+                        <div style="background: #334155; border-radius: 8px; padding: 20px; margin-bottom: 16px; border-left: 4px solid #ef4444;">
+                            <h3 style="margin: 0 0 16px 0; color: #e2e8f0; font-size: 1.1rem; display: flex; align-items: center;">
+                                <span style="background: #ef4444; color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.9rem; margin-right: 12px;">${instruction}</span>
+                                ${totalErrorsForTransaction} error${totalErrorsForTransaction > 1 ? 's' : ''}
+                            </h3>
                     `;
+                    
+                    // Regular transaction errors
+                    for (const [error, errorData] of Object.entries(transactionErrors)) {
+                        globalErrorCount++;
+                        const errorId = `error-${instruction.replace(/\W/g, '_')}-${globalErrorCount}`;
+                        html += `
+                            <div class="error-section" style="margin-left: 0; margin-bottom: 12px;">
+                                <div class="error-title">${error}</div>
+                                <div class="error-count">Occurred ${errorData.occurrences} times</div>
+                                <div class="collapsible" onclick="toggleCollapsible('${errorId}')">
+                                    View Error Logs ▼
+                                </div>
+                                <div id="${errorId}" class="collapsible-content">
+                                    <div class="error-logs">${formatSolanaLogs(errorData.logs)}</div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                    
+                    // Custom instruction errors
+                    for (const [errorCode, errorData] of Object.entries(customErrors)) {
+                        globalErrorCount++;
+                        const errorId = `error-${instruction.replace(/\W/g, '_')}-${globalErrorCount}`;
+                        html += `
+                            <div class="error-section" style="margin-left: 0; margin-bottom: 12px;">
+                                <div class="error-title">Custom Error Code ${errorCode}</div>
+                                <div class="error-count">Occurred ${errorData.occurrences} times</div>
+                                <div class="collapsible" onclick="toggleCollapsible('${errorId}')">
+                                    View Error Logs ▼
+                                </div>
+                                <div id="${errorId}" class="collapsible-content">
+                                    <div class="error-logs">${formatSolanaLogs(errorData.logs)}</div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                    
+                    html += '</div>';
                 }
             }
             
-            if (totalErrors === 0) {
+            if (globalErrorCount === 0) {
                 html = '<p style="text-align: center; color: #22c55e; font-size: 1.2em;">No detailed error information available!</p>';
             }
             

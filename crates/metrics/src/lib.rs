@@ -205,9 +205,14 @@ impl FuzzingStatistics {
     pub fn print_to_file(&self, path: &str) {
         let mut file = File::create(path).unwrap();
 
-        // Create a copy with the state hash included
+        // Create a copy with the state hash included and finalize custom metrics
         let mut stats_with_hash = self.clone();
         stats_with_hash.state_snapshots_hash = self.state_monitor.get_state_hash().unwrap_or(None);
+
+        // Finalize all histogram metrics for proper serialization
+        for metric in stats_with_hash.custom_metrics.values_mut() {
+            metric.finalize_histogram();
+        }
 
         let serialized = serde_json::to_string_pretty(&stats_with_hash).unwrap();
         file.write_all(serialized.as_bytes()).unwrap();
