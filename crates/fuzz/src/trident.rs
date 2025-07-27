@@ -82,6 +82,10 @@ impl Trident {
         &mut self.client
     }
 
+    pub fn fill_bytes(&mut self, bytes: &mut [u8]) {
+        self.rng.fill_bytes(bytes);
+    }
+
     pub fn add_histogram_metric(&mut self, metric_name: &str, value: f64) {
         let metrics = std::env::var("FUZZING_METRICS");
         if metrics.is_ok() {
