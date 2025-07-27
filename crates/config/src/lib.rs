@@ -63,6 +63,13 @@ impl TridentConfig {
             .unwrap_or_default()
     }
 
+    pub fn get_state_monitor(&self) -> bool {
+        self.fuzz
+            .as_ref()
+            .map(|fuzz| fuzz.get_state_monitor())
+            .unwrap_or_default()
+    }
+
     pub fn get_coverage(&self) -> Coverage {
         self.fuzz
             .as_ref()

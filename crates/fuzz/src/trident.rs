@@ -83,25 +83,34 @@ impl Trident {
     }
 
     pub fn add_histogram_metric(&mut self, metric_name: &str, value: f64) {
-        self.fuzzing_data
-            .metrics
-            .add_to_histogram(metric_name, value);
+        let metrics = std::env::var("FUZZING_METRICS");
+        if metrics.is_ok() {
+            self.fuzzing_data
+                .metrics
+                .add_to_histogram(metric_name, value);
+        }
     }
 
     pub fn add_accumulator_metric(&mut self, metric_name: &str, value: f64) {
-        self.fuzzing_data
-            .metrics
-            .add_to_accumulator(metric_name, value);
+        let metrics = std::env::var("FUZZING_METRICS");
+        if metrics.is_ok() {
+            self.fuzzing_data
+                .metrics
+                .add_to_accumulator(metric_name, value);
+        }
     }
 
     pub fn monitor_account_state(&mut self, account: &Pubkey, account_name: &str) {
-        let account_shared_data = self.client.get_account(account).unwrap_or_default();
-        self.fuzzing_data.metrics.monitor_account_state(
-            &hex::encode(self.rng.get_seed()),
-            account_name,
-            account,
-            &account_shared_data,
-        );
+        let state_monitor = std::env::var("FUZZING_STATE_MONITOR");
+        if state_monitor.is_ok() {
+            let account_shared_data = self.client.get_account(account).unwrap_or_default();
+            self.fuzzing_data.metrics.monitor_account_state(
+                &hex::encode(self.rng.get_seed()),
+                account_name,
+                account,
+                &account_shared_data,
+            );
+        }
     }
 
     pub fn execute_transaction<T>(
@@ -278,9 +287,5 @@ impl Trident {
     #[doc(hidden)]
     pub fn _get_metrics(&self) -> &FuzzingStatistics {
         &self.fuzzing_data.metrics
-    }
-    #[doc(hidden)]
-    pub fn generate_dashboard_html(&self, path: &str) -> std::io::Result<()> {
-        self.fuzzing_data.metrics.generate_dashboard_html(path)
     }
 }

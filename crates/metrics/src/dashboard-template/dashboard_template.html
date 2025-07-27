@@ -532,13 +532,15 @@
             
             <div id="no-state-info" style="text-align: center; padding: 20px; color: #64748b;">
                 <p>No state snapshots available for this fuzzing session.</p>
-                <p style="font-size: 0.9em; margin-top: 8px;">Add <code style="background: #334155; padding: 2px 6px; border-radius: 4px;">self.trident.monitor_account_state(...)</code> in your fuzzing tests to track account state changes.</p>
+                <p style="font-size: 0.9em; margin-top: 8px;">To enable state monitoring:</p>
+                <p style="font-size: 0.9em; margin-top: 4px;">1. Set <code style="background: #334155; padding: 2px 6px; border-radius: 4px;">state_monitor = true</code> in your Trident.toml</p>
+                <p style="font-size: 0.9em; margin-top: 4px;">2. Add <code style="background: #334155; padding: 2px 6px; border-radius: 4px;">self.trident.monitor_account_state(...)</code> in your fuzzing tests</p>
             </div>
             
             <div id="state-info" style="display: none;">
                 <p style="color: #94a3b8; font-size: 0.9em; margin-top: 12px;">
                     The state snapshots hash represents the aggregated state of all monitored account snapshots during fuzzing. 
-                    It can be used to verify state consistency across different fuzzing runs.
+                    It can be used to verify state consistency across different fuzzing runs <strong>when using the same master seed</strong>.
                 </p>
             </div>
         </div>
@@ -988,10 +990,14 @@
             } else if (data.Histogram !== undefined) {
                 const hist = data.Histogram;
                 
-                // Determine entropy quality indicator
-                const entropyClass = hist.entropy < 5 ? 'entropy-low' : 
-                                   hist.entropy < 10 ? 'entropy-medium' : 
-                                   hist.entropy < 15 ? 'entropy-good' : 'entropy-excellent';
+                // Determine entropy quality indicator based on sample count
+                // Calculate theoretical maximum entropy (log2 of count)
+                const maxEntropy = Math.log2(hist.count);
+                const entropyRatio = hist.entropy / maxEntropy;
+                
+                const entropyClass = entropyRatio < 0.3 ? 'entropy-low' : 
+                                   entropyRatio < 0.6 ? 'entropy-medium' : 
+                                   entropyRatio < 0.8 ? 'entropy-good' : 'entropy-excellent';
                 
                 return `
                     <div class="metric-card">
@@ -1059,7 +1065,11 @@
                                 <span class="info-icon">i
                                     <div class="tooltip">
                                         <strong>Shannon Entropy</strong><br>
-                                        Measures data diversity. Higher values indicate better test coverage, but quality depends on sample count - same entropy with more samples suggests less diversity.
+                                        Measures data diversity (0 to log₂(count)). The color indicator shows entropy relative to the theoretical maximum for your sample count:<br>
+                                        • <span style="color: #ef4444;">Red</span>: &lt;30% of max (low diversity)<br>
+                                        • <span style="color: #f59e0b;">Orange</span>: 30-60% of max (medium)<br>
+                                        • <span style="color: #22c55e;">Green</span>: 60-80% of max (good)<br>
+                                        • <span style="color: #06b6d4;">Cyan</span>: &gt;80% of max (excellent)
                                     </div>
                                 </span>
                             </div>

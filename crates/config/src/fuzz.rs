@@ -33,6 +33,14 @@ impl Fuzz {
             None => false,
         }
     }
+
+    pub fn get_state_monitor(&self) -> bool {
+        match self.metrics.as_ref() {
+            Some(metrics) => metrics.state_monitor.unwrap_or(false),
+            None => false,
+        }
+    }
+
     pub fn get_coverage(&self) -> Coverage {
         self.coverage.clone().unwrap_or_default()
     }
