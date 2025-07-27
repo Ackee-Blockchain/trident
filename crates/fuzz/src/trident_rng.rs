@@ -79,4 +79,8 @@ impl TridentRng {
         self.rng.fill_bytes(&mut bytes);
         Pubkey::new_from_array(bytes)
     }
+
+    pub(crate) fn fill_bytes(&mut self, bytes: &mut [u8]) {
+        self.rng.fill_bytes(bytes);
+    }
 }
