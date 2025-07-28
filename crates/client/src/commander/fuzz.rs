@@ -1,5 +1,6 @@
 use crate::coverage::Coverage;
 use crate::coverage::NotificationType;
+use crate::utils::generate_unique_fuzz_filename;
 use fehler::throw;
 use fehler::throws;
 use std::collections::HashMap;
@@ -16,14 +17,49 @@ impl Commander {
         let config = TridentConfig::new();
 
         if config.get_fuzzing_with_stats() {
-            std::env::set_var("FUZZING_METRICS", "fuzzing_metrics.json");
+            let metrics_path = generate_unique_fuzz_filename("fuzzing_metrics", &target, "json")
+                .await
+                .map_err(|e| {
+                    Error::Anyhow(anyhow::anyhow!(
+                        "Failed to generate fuzzing metrics path: {:?}",
+                        e
+                    ))
+                })?;
+            std::env::set_var(
+                "FUZZING_METRICS",
+                metrics_path.to_string_lossy().to_string(),
+            );
 
             if config.get_state_monitor() {
-                std::env::set_var("FUZZING_STATE_MONITOR", "state_monitor.json");
+                let state_monitor_path =
+                    generate_unique_fuzz_filename("state_monitor", &target, "json")
+                        .await
+                        .map_err(|e| {
+                            Error::Anyhow(anyhow::anyhow!(
+                                "Failed to generate state monitor path: {:?}",
+                                e
+                            ))
+                        })?;
+                std::env::set_var(
+                    "FUZZING_STATE_MONITOR",
+                    state_monitor_path.to_string_lossy().to_string(),
+                );
             }
 
             if config.get_dashboard() {
-                std::env::set_var("FUZZING_DASHBOARD", "fuzzing_dashboard.html");
+                let dashboard_path =
+                    generate_unique_fuzz_filename("fuzzing_dashboard", &target, "html")
+                        .await
+                        .map_err(|e| {
+                            Error::Anyhow(anyhow::anyhow!(
+                                "Failed to generate dashboard path: {:?}",
+                                e
+                            ))
+                        })?;
+                std::env::set_var(
+                    "FUZZING_DASHBOARD",
+                    dashboard_path.to_string_lossy().to_string(),
+                );
             }
         }
 
@@ -132,14 +168,50 @@ impl Commander {
         let config = TridentConfig::new();
 
         if config.get_fuzzing_with_stats() {
-            std::env::set_var("FUZZING_METRICS", "fuzzing_metrics_debug.json");
+            let metrics_path =
+                generate_unique_fuzz_filename("fuzzing_metrics_debug", &target, "json")
+                    .await
+                    .map_err(|e| {
+                        Error::Anyhow(anyhow::anyhow!(
+                            "Failed to generate debug fuzzing metrics path: {:?}",
+                            e
+                        ))
+                    })?;
+            std::env::set_var(
+                "FUZZING_METRICS",
+                metrics_path.to_string_lossy().to_string(),
+            );
 
             if config.get_state_monitor() {
-                std::env::set_var("FUZZING_STATE_MONITOR", "state_monitor_debug.json");
+                let state_monitor_path =
+                    generate_unique_fuzz_filename("state_monitor_debug", &target, "json")
+                        .await
+                        .map_err(|e| {
+                            Error::Anyhow(anyhow::anyhow!(
+                                "Failed to generate debug state monitor path: {:?}",
+                                e
+                            ))
+                        })?;
+                std::env::set_var(
+                    "FUZZING_STATE_MONITOR",
+                    state_monitor_path.to_string_lossy().to_string(),
+                );
             }
 
             if config.get_dashboard() {
-                std::env::set_var("FUZZING_DASHBOARD", "fuzzing_dashboard_debug.html");
+                let dashboard_path =
+                    generate_unique_fuzz_filename("fuzzing_dashboard_debug", &target, "html")
+                        .await
+                        .map_err(|e| {
+                            Error::Anyhow(anyhow::anyhow!(
+                                "Failed to generate debug dashboard path: {:?}",
+                                e
+                            ))
+                        })?;
+                std::env::set_var(
+                    "FUZZING_DASHBOARD",
+                    dashboard_path.to_string_lossy().to_string(),
+                );
             }
         }
 
