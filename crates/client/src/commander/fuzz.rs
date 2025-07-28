@@ -148,6 +148,7 @@ impl Commander {
             .arg("run")
             .arg("--bin")
             .arg(target)
+            .args(["--profile", "release"])
             .spawn()?;
 
         Self::handle_child(&mut child).await?;
