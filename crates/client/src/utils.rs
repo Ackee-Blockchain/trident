@@ -71,3 +71,53 @@ pub fn get_fuzz_id(fuzz_dir_path: &Path) -> i32 {
         0
     }
 }
+
+/// Creates .fuzz-artifacts directory if it doesn't exist
+#[throws]
+pub async fn ensure_fuzz_artifacts_dir() -> PathBuf {
+    let artifacts_dir = PathBuf::from(".fuzz-artifacts");
+    create_directory_all(&artifacts_dir).await?;
+    artifacts_dir
+}
+
+/// Generates a unique filename in .fuzz-artifacts directory
+/// If the base filename already exists, appends a readable timestamp to make it unique
+#[throws]
+pub async fn generate_unique_fuzz_filename(
+    base_name: &str,
+    fuzz_test_name: &str,
+    extension: &str,
+) -> PathBuf {
+    let artifacts_dir = ensure_fuzz_artifacts_dir().await?;
+    let base_filename = format!("{}_{}.{}", base_name, fuzz_test_name, extension);
+    let mut target_path = artifacts_dir.join(&base_filename);
+
+    // If file already exists, append a readable timestamp to make it unique
+    if target_path.exists() {
+        use chrono::DateTime;
+        use chrono::Local;
+
+        // Try different timestamp formats until we find a unique one
+        let now: DateTime<Local> = Local::now();
+
+        // First try: YYYY-MM-DD_HH-MM-SS format
+        let timestamp = now.format("%Y-%m-%d_%H-%M-%S").to_string();
+        let unique_filename = format!(
+            "{}_{}-{}.{}",
+            base_name, fuzz_test_name, timestamp, extension
+        );
+        target_path = artifacts_dir.join(&unique_filename);
+
+        // If that still exists (very unlikely), add milliseconds
+        if target_path.exists() {
+            let timestamp_with_ms = now.format("%Y-%m-%d_%H-%M-%S-%3f").to_string();
+            let unique_filename = format!(
+                "{}_{}-{}.{}",
+                base_name, fuzz_test_name, timestamp_with_ms, extension
+            );
+            target_path = artifacts_dir.join(&unique_filename);
+        }
+    }
+
+    target_path
+}

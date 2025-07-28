@@ -2,6 +2,7 @@
 
 [fuzz.metrics]
 fuzzing_with_stats = true
+dashboard = true
 
 
 [[fuzz.programs]]
