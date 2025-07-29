@@ -27,7 +27,7 @@ The macro implements the following trait:
 ## Remaining Accounts Methods
 
 !!! warning "Internal Method"
-    These methods are used internally by Trident and is not expected to use them manually.
+    These methods are used internally by Trident and it is not expected to use them manually.
 
 The macro implements the `RemainingAccountsMethods` trait with the corresponding methods:
 

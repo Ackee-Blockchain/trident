@@ -26,8 +26,8 @@ project-root
 │   ├── fuzz_1
 │   ├── fuzz_X # possible multiple fuzz tests
 │   ├── fuzzing # compilations and crashes folder
-│   └── Cargo.toml
-├── Trident.toml
+│   ├── Cargo.toml
+│   └── Trident.toml
 └── ...
 ```
 

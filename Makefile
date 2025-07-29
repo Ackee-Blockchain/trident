@@ -22,3 +22,6 @@ refresh-crates:
 
 release-workspace:
 	cargo workspaces publish --token $(TOKEN) --publish-as-is
+
+release-docs:
+	mike deploy --push -b documentation --update-aliases $(VERSION) latest
