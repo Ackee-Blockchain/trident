@@ -19,8 +19,9 @@ nav:
       - start-fuzzing/index.md
       - Writting Fuzz Test:
         - start-fuzzing/writting-fuzz-test/index.md
-        - start-fuzzing/writting-fuzz-test/instruction-accounts.md
         - start-fuzzing/writting-fuzz-test/instruction-data.md
+        - start-fuzzing/writting-fuzz-test/instruction-accounts.md
+        - start-fuzzing/writting-fuzz-test/fuzzing-flows.md
         - start-fuzzing/writting-fuzz-test/remaining-accounts.md
       - Executing Fuzz Test:
         - start-fuzzing/executing-fuzz-test/index.md
@@ -34,32 +35,30 @@ nav:
           - trident-advanced/trident-transactions/transaction-hooks/typed-accounts.md
       - Multi-Instruction Transactions:
           - trident-advanced/trident-transactions/multi-instruction-transactions/index.md
-      - Fuzzing Flows:
-          - trident-advanced/trident-transactions/trident-fuzzing-flows/index.md
-          - trident-advanced/trident-transactions/trident-fuzzing-flows/initialization.md
-          - trident-advanced/trident-transactions/trident-fuzzing-flows/flow.md
   - API & Macro Reference:
       - trident-api-macro/index.md
+      - Trident:
+          - trident-api-macro/trident/trident.md
       - Fuzz Client:
-          - trident-api-macro/trident-fuzz-client/index.md
+          - trident-api-macro/trident-fuzz-client/fuzz-client-trait.md
+      - Hooks:
+          - trident-api-macro/hooks/instruction-hooks.md
+          - trident-api-macro/hooks/transaction-hooks.md
+      - Account Attributes:
+          - trident-api-macro/attributes-for-accounts/account-attributes.md
       - Trident Macros:
           - trident-api-macro/trident-macros/trident-transaction.md
           - trident-api-macro/trident-macros/trident-instruction.md
           - trident-api-macro/trident-macros/trident-accounts.md
           - trident-api-macro/trident-macros/trident-remaining-accounts.md
           - trident-api-macro/trident-macros/trident-flow-executor.md
-          - trident-api-macro/trident-macros/trident-selector.md
       - Trident Types:
-          - trident-api-macro/trident-types/fuzz-transactions.md
           - trident-api-macro/trident-types/fuzz-accounts.md
           - trident-api-macro/trident-types/trident-account.md
           - trident-api-macro/trident-types/trident-pubkey.md
           - trident-api-macro/trident-types/custom-types.md
   - Trident Manifest:
       - trident-manifest/index.md
-      - trident-manifest/general.md
-      - trident-manifest/afl.md
-      - trident-manifest/honggfuzz.md
   - TridentSVM:
       - trident-svm/index.md
   - Trident Examples:

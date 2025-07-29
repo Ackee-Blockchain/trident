@@ -12,38 +12,6 @@ Trident requires the following prerequisites:
 
   Check out [supported versions](#supported-versions) for version compatibility.
 
-## Install system dependencies
-
-### Linux
-Update your package list:
-
-```bash
-sudo apt update
-sudo apt upgrade
-```
-Install the required packages:
-```bash
-sudo apt install build-essential
-sudo apt-get install binutils-dev
-sudo apt-get install libunwind-dev
-```
-
-### macOS
-Install [Homebrew](https://brew.sh/) (unless you have it already)
-```bash
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-```
-Update installed packages:
-```bash
-brew update
-brew upgrade
-```
-Install the required packages:
-```bash
-brew install binutils
-brew install protobuf
-```
-
 ## Install Trident
 
 ```bash
@@ -53,21 +21,6 @@ cargo install trident-cli
 You can also use the `version` flag to install a specific version:
 ```bash
 cargo install trident-cli --version x.y.z
-```
-
-## Install Hongfuzz and AFL
-
-!!! warning Honggfuzz Availability
-    Honggfuzz is not available for macOS versions newer than 13 (Ventura). Please use a Linux environment to install and run Honggfuzz.
-
-```bash
-cargo install honggfuzz
-cargo install cargo-afl
-```
-To install a specific version use the following commands:
-```bash
-cargo install honggfuzz --version x.y.z
-cargo install cargo-afl --version x.y.z
 ```
 
 ## Install cargo-llvm-cov
@@ -87,7 +40,7 @@ cargo +stable install cargo-llvm-cov --locked
 
 | **Version Type**                       | **Anchor**          | **Solana**       | **Rust**  | **Honggfuzz** | **AFL**   |
 | :------------------------------------- | :------------------ | :--------------- | :-------- | :------------ | :-------- |
-| Development :material-developer-board: | `>=0.29.0 < 0.31.0` | `>=1.17.3 < 2.1` | `nightly` | `0.5.56`      | `0.15.11` |
+| Development :material-developer-board: | `>=0.29.0           |                  | 1.86      | removed       | removed   |
 | **Current (0.10.x)** :material-tag:    | `>=0.29.0 < 0.31.0` | `>=1.17.3 < 2.1` | `nightly` | `0.5.56`      | `0.15.11` |
 | **0.9.x** :material-tag:               | `>=0.29.0 < 0.31.0` | `>=1.17.3 < 2.1` | `nightly` | `0.5.56`      | `0.15.11` |
 | **0.8.x** :material-tag:               | `0.30.1`            | `^1.17.4`        | `nightly` | `0.5.56`      | `-`       |

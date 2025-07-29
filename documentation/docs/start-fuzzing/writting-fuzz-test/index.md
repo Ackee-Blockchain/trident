@@ -1,19 +1,22 @@
 # Writing fuzz test
 
-In order to start fuzzing, you need to guide the fuzzer to use correct and meaningful instruction inputs.
+Trident is Manually Guided fuzzing framework for Solana programs.
 
-Trident generates random data for instruction executions. However, allowing the fuzzer to generate completely random account addresses would lead to numerous failed transactions, making the fuzzing process ineffective.
+In order to start fuzzing, you need to guide the fuzzer by specifying what are the expected inputs to instruction or the expected sequences of instructions to execute.
 
-Each program instruction has a corresponding file in the instructions directory. Instructions consist of two main components:
+**Why is this important?**
 
-- Instruction Accounts
-- Instruction Data
-- (Optional) Remaining Accounts
+Letting the fuzzer to generate completely random instruction inputs and completely random sequqnces of instruction would lead in most case 
 
-## Guide the Instruction Inputs
+- to transaction failures, which would mean the fuzzer is not properly fuzzing the logic within the program; and
+- executing irrelevant random instruction sequences, which would again lead to transaction failures.
+
+
+## Guide the fuzzer
 
 Start with properly configuring different types of instruction inputs:
 
-- [Instruction Accounts](./instruction-accounts.md)
 - [Instruction Data](./instruction-data.md)
+- [Instruction Accounts](./instruction-accounts.md)
+- [Fuzzing Flows](./fuzzing-flows.md)
 - (Optional) [Remaining Accounts](./remaining-accounts.md)

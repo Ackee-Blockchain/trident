@@ -18,104 +18,84 @@ project-root
 │   ├── fuzz_1
 │   ├── fuzz_X # possible multiple fuzz tests
 │   ├── fuzzing # compilations and crashes folder
-│   └── Cargo.toml
-├── Trident.toml
+│   ├── Cargo.toml
+│   └── Trident.toml # Configuration file located in trident-tests directory
 └── ...
 ```
 
 #### Options
 
-- `-f, --force` - Force Trident initialization. Updates Trident dependencies based on the CLI version.
-- `-p, --program-name <NAME>` - Specify the program name for which the fuzz test will be generated.
-- `-t, --test-name <NAME>` - Specify a custom name for the fuzz test to initialize.
+- `-f, --force` - Force Trident initialization. Trident dependencies will be updated based on the version of Trident CLI.
+- `-s, --skip-build` - Skip building the program before initializing Trident.
+- `-p, --program-name <FILE>` - Specify the name of the program for which fuzz test will be generated.
+- `-t, --test-name <NAME>` - Name of the fuzz test to initialize.
 
 ---
 
 ## `trident how`
 
-Print How To message about writing fuzz tests.
+Show the HowTo message about writing fuzz tests.
 
 ---
 
 ## `trident fuzz`
 
-Fuzzing-related commands with various subcommands:
+Run fuzz subcommands. With fuzz subcommands you can add new fuzz test template or you can run fuzz test on already initialized one.
 
-
-### `trident fuzz run-afl <fuzz_target>`
-
-!!! warning "Directory Note"
-    Execute fuzz tests from the `trident-tests` directory.
-
-!!! warning "Solana Logs"
-    In case you want to see the logs of the fuzzed transactions, prefix the command with `TRIDENT_LOG=1`.
-    ```bash
-    TRIDENT_LOG=1 trident fuzz run-afl <fuzz_target>
-    ```
-
-Runs AFL on the specified Fuzz Target (e.g., fuzz_0).
-
-#### Options
-
-- `-g, --generate-coverage` - Tracks code coverage during fuzzing and generates a JSON report upon completion. The coverage data can be visualized in your source code using our [VS Code extension](https://marketplace.visualstudio.com/items?itemName=AckeeBlockchain.solana).
-- `-a, --attach-extension` - Enables real-time coverage visualization in VS Code during fuzzing. The VS Code extension must be actively running to utilize this feature. Only works if the generate coverage flag is enabled.
-
----
-
-### `trident fuzz run-hfuzz <fuzz_target>`
-
-!!! warning "Directory Note"
-    Execute fuzz tests from the `trident-tests` directory.
-
-!!! warning "Solana Logs"
-    In case you want to see the logs of the fuzzed transactions, prefix the command with `TRIDENT_LOG=1`.
-    ```bash
-    TRIDENT_LOG=1 trident fuzz run-hfuzz <fuzz_target>
-    ```
-
-Runs Honggfuzz on the specified Fuzz Target (e.g., fuzz_0).
-
-
-The output includes:
-
-1. **Iterations**: Number of fuzzing iterations completed
-2. **Mode**: Feedback Driven Mode - generates data based on coverage progress
-3. **Speed**: Average iterations per second
-4. **Crashes**: Number of detected crashes (panics or failed invariant checks)
-
+**Examples:**
 ```bash
-------------------------[  0 days 00 hrs 00 mins 01 secs ]----------------------
-  Iterations : 688 (out of: 1000 [68%])
-  Mode [3/3] : Feedback Driven Mode
-      Target : .../release/fuzz_0
-     Threads : 16, CPUs: 32, CPU%: 1262% [39%/CPU]
-       Speed : 680/sec [avg: 688]
-     Crashes : 1 [unique: 1, blocklist: 0, verified: 0]
-    Timeouts : 0 [10 sec]
- Corpus Size : 98, max: 1048576 bytes, init: 0 files
-    Coverage : edge: 10345/882951 [1%] pc: 163 cmp: 622547
+trident fuzz add
+trident fuzz run fuzz_0
+trident fuzz debug <FUZZ_TARGET> <SEED>
 ```
 
+### `trident fuzz add`
+
+Generate new Fuzz Test template.
+
 #### Options
 
-- `-w, --with-exit-code` - Run the Honggfuzz with exit code, i.e. if it discovers crash the Trident will exit with exit code 1.
-- `-g, --generate-coverage` - Tracks code coverage during fuzzing and generates a JSON report upon completion. The coverage data can be visualized in your source code using our [VS Code extension](https://marketplace.visualstudio.com/items?itemName=AckeeBlockchain.solana).
-- `-a, --attach-extension` - Enables real-time coverage visualization in VS Code during fuzzing. The VS Code extension must be actively running to utilize this feature. Only works if the generate coverage flag is enabled.
+- `-p, --program-name <FILE>` - Specify the name of the program for which the fuzz test will be generated.
+- `-t, --test-name <NAME>` - Name of the fuzz test to add.
+- `-s, --skip-build` - Skip building the program before adding new fuzz test.
 
 ---
 
-### `trident fuzz debug-afl <fuzz_target> <crash_file_path>`
+### `trident fuzz run <fuzz_target>`
 
-Debug AFL crashes by analyzing specific crash files.
+!!! warning "Directory Note"
+    Execute fuzz tests from the `trident-tests` directory.
+
+!!! warning "Solana Logs"
+    In case you want to see the logs of the fuzzed transactions, prefix the command with `TRIDENT_LOG=1`.
+    ```bash
+    TRIDENT_LOG=1 trident fuzz run <fuzz_target>
+    ```
+
+Runs the specified Fuzz Target using Trident's Manually Guided Fuzzing (e.g., fuzz_0).
+
+#### Arguments
+
+- `<fuzz_target>` - Name of the desired fuzz template to execute (for example fuzz_0).
+- `[seed]` - Master seed used for fuzzing, if not provided it will be generated randomly.
+
+#### Options
+
+- `-w, --with-exit-code` - Run the fuzzing with exit code, i.e. if it discovers crash the Trident will exit with exit code 1.
 
 ---
 
-### `trident fuzz debug-hfuzz <fuzz_target> <crash_file_path>`
+### `trident fuzz debug <fuzz_target> <seed>`
 
-Debug Honggfuzz crashes by analyzing specific crash files.
+Debug crashes by analyzing specific crash files using the provided seed.
+
+#### Arguments
+
+- `<fuzz_target>` - Name of the desired fuzz template to execute (for example fuzz_0).
+- `<seed>` - Master seed of the desired fuzz template to execute.
 
 !!! note "Debug Output"
-    The debug output currently includes verbose lldb information. It shows:
+    The debug output includes:
 
     1. Transaction logs
     2. Instruction data structures
@@ -123,17 +103,11 @@ Debug Honggfuzz crashes by analyzing specific crash files.
 
 ---
 
-### `trident fuzz add`
+## `trident clean`
 
-!!! warning "Directory Note"
-    This commands needs to be executed from the project root directory.
+Clean build target, additionally perform `anchor clean`.
 
-Adds a new Fuzz Test Template.
 
-#### Options
-
-- `-p, --program-name <NAME>` - Specify the program name for which the fuzz test will be generated.
-- `-t, --test-name <NAME>` - Specify a custom name for the fuzz test to add.
 
 ---
 

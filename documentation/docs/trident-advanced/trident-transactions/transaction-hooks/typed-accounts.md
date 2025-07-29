@@ -3,6 +3,11 @@
 If you need to work with `data accounts` in the `Transaction hooks`, you will first need to deserialize the accounts. For deserialization into known structs, Trident generates `types.rs`, where each struct derives `BorshDeserialize` and `BorshSerialize`.
 
 
+!!! warning "Serialization/Deserialization"
+
+    - If you use custom Serialization/Deserialization, you will need to add it also to the `types.rs` file.
+
+
 ## Example
 
 The following example demonstrates:

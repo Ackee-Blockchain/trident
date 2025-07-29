@@ -2,57 +2,27 @@
 
 The `TridentTransaction` macro is used to derive required methods for `Transactions`. This procedural macro automatically implements transaction-related functionality for structs that represent transactions.
 
+
+
+
+
+
+
 ## Derived Traits
 
 The macro implements the following traits:
 
 - `TransactionGetters` - Methods to retrieve transaction data
 - `TransactionSetters` - Methods to set up transaction state
-- `TransactionMethods` - Core transaction execution methods
 
 !!! warning "Manual Implementation Note"
-    There is no need to manually implement the getter, setter, or core methods. The macro handles these implementations automatically based on the structure of your transaction.
+    There is no need to manually implement the TransactionGetters and TransactionSetters. The macro handles these implementations automatically based on the structure of your transaction.
 
-## Transaction Methods
-
-### `build`
-
-Creates a new transaction instance from fuzzer data.
-
-```rust
-fn build(
-    fuzzer_data: &mut FuzzerData,
-    client: &mut impl FuzzClient,
-    fuzz_accounts: &mut Self::IxAccounts,
-) -> arbitrary::Result<Self>
-```
-
----
-
-### `execute`
-
-Execute the transaction with the TransactionHooks.
-
-```rust
-fn execute(&mut self, client: &mut impl FuzzClient) -> Result<(), FuzzingError>
-```
-
----
-
-### `execute_no_hooks`
-
-Execute the transaction without the TransactionHooks (simplified version).
-
-```rust
-fn execute_no_hooks(&mut self, client: &mut impl FuzzClient) -> Result<(), TransactionError>
-```
-
----
 
 ## Transaction Getters
 
 !!! warning "Internal Method"
-    These methods are used internally by Trident and is not expected to use them manually.
+    These methods are used internally by Trident and it is not expected to use them manually.
 
 ### `get_transaction_name`
 
@@ -107,7 +77,19 @@ fn get_instruction_accounts(&mut self, client: &mut impl FuzzClient) -> Vec<Vec<
 ## Transaction Setters
 
 !!! warning "Internal Method"
-    These methods are used internally by Trident and is not expected to use them manually.
+    `set_snapshot_before`, `set_snapshot_after` and `set_instructions` methods are used internally by Trident and is not expected to use them manually.
+
+### `build`
+
+Creates a new transaction instance from fuzzer data.
+
+```rust
+fn build(trident: &mut Trident, fuzz_accounts: &mut Self::IxAccounts) -> Self
+where
+    Self: Default
+```
+
+---
 
 ### `set_snapshot_before`
 
@@ -135,7 +117,7 @@ Sets up all instructions for the transaction.
 
 !!! warning "Instruction Setup Order"
 
-    The order in which the instructions inputs are set are:
+    The order in which the instruction inputs are set is:
 
     1. `set_data` - Sets up instruction-specific data
     2. `resolve_accounts` - Resolves account addresses
@@ -145,25 +127,7 @@ Sets up all instructions for the transaction.
 ```rust
 fn set_instructions(
     &mut self,
-    client: &mut impl FuzzClient,
+    trident: &mut Trident,
     fuzz_accounts: &mut Self::IxAccounts,
 )
-```
-
----
-
-## Struct-Level Attributes
-
-These attributes are applied to the struct definition itself.
-
-### `name`
-
-The custom name of the transaction. This is optional - if not provided, the struct name will be used.
-
-```rust
-#[derive(Arbitrary, Debug, TridentTransaction)]
-#[name("Custom Transaction Name")]
-pub struct ExampleTransaction {
-    pub instruction1: ExampleInstruction,
-}
 ```
