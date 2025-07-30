@@ -167,14 +167,18 @@ impl FuzzingStatistics {
         seed: Seed,
         panic: String,
         logs: Option<Vec<String>>,
+        instruction_inputs: String,
     ) {
         self.transactions
             .entry(transaction.to_string())
             .and_modify(|iterations_stats| {
                 iterations_stats.transaction_panicked += 1;
-                iterations_stats
-                    .transactions_panics
-                    .add_transaction_panic(&panic, &seed, logs);
+                iterations_stats.transactions_panics.add_transaction_panic(
+                    &panic,
+                    &seed,
+                    logs,
+                    instruction_inputs,
+                );
             });
     }
 

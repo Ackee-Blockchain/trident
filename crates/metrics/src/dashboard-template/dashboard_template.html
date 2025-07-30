@@ -92,12 +92,28 @@
             border-radius: 6px;
             font-family: 'Courier New', monospace;
             font-size: 0.9em;
-            max-height: 400px;
+            max-height: 800px;
             overflow-y: auto;
             margin-top: 8px;
             border: 1px solid #475569;
             line-height: 1.5;
             white-space: pre-wrap;
+        }
+        
+        /* Custom scrollbar for error-logs */
+        .error-logs::-webkit-scrollbar {
+            width: 8px;
+        }
+        .error-logs::-webkit-scrollbar-track {
+            background: #1e293b;
+            border-radius: 4px;
+        }
+        .error-logs::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 4px;
+        }
+        .error-logs::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
         }
         .log-line {
             margin: 2px 0;
@@ -828,6 +844,176 @@
             }).join('');
         }
 
+        // Format instruction data for better readability
+        function formatTransactionInputs(inputData) {
+            if (!inputData) {
+                return 'No instruction data available';
+            }
+            
+            try {
+                // If it's already a JSON object, format it nicely
+                if (typeof inputData === 'object') {
+                    return formatTransactionJsonStructure(inputData, 0);
+                }
+                
+                // If it's a string, try to parse it as JSON
+                if (typeof inputData === 'string') {
+                    try {
+                        const parsed = JSON.parse(inputData);
+                        return formatTransactionJsonStructure(parsed, 0);
+                    } catch (e) {
+                        // If not JSON, treat as debug format and clean it up
+                        return formatDebugString(inputData);
+                    }
+                }
+                
+                // For any other type, convert to string and format
+                return formatDebugString(String(inputData));
+            } catch (e) {
+                return `Error formatting inputs: ${e.message}`;
+            }
+        }
+
+        // Enhanced formatter specifically for transaction inputs with better hierarchy
+        function formatTransactionJsonStructure(obj, indent = 0) {
+            const indentStyle = `margin-left: ${indent * 20}px;`;
+            const nextIndentStyle = `margin-left: ${(indent + 1) * 20}px;`;
+            
+            if (obj === null) {
+                return 'null';
+            }
+            
+            if (typeof obj === 'boolean') {
+                return String(obj);
+            }
+            
+            if (typeof obj === 'number') {
+                return String(obj);
+            }
+            
+            if (typeof obj === 'string') {
+                return `"${obj}"`;
+            }
+            
+            if (Array.isArray(obj)) {
+                if (obj.length === 0) {
+                    return '[]';
+                }
+                
+                let result = '<div>[';
+                obj.forEach((item, index) => {
+                    result += `<div style="${nextIndentStyle}">`;
+                    result += formatTransactionJsonStructure(item, indent + 1);
+                    if (index < obj.length - 1) {
+                        result += ',';
+                    }
+                    result += '</div>';
+                });
+                result += `<div style="${indentStyle}">]</div></div>`;
+                return result;
+            }
+            
+            if (typeof obj === 'object') {
+                const keys = Object.keys(obj);
+                if (keys.length === 0) {
+                    return '{}';
+                }
+                
+                let result = '<div>{';
+                keys.forEach((key, index) => {
+                    const value = obj[key];
+                    result += `<div style="${nextIndentStyle}">`;
+                    result += `"${key}": `;
+                    result += formatTransactionJsonStructure(value, indent + 1);
+                    if (index < keys.length - 1) {
+                        result += ',';
+                    }
+                    result += '</div>';
+                });
+                result += `<div style="${indentStyle}">}</div></div>`;
+                return result;
+            }
+            
+            return String(obj);
+        }
+
+        // Format JSON structure with professional styling
+        function formatJsonStructure(obj, indent = 0) {
+            const indentStyle = `margin-left: ${indent * 20}px;`;
+            const nextIndentStyle = `margin-left: ${(indent + 1) * 20}px;`;
+            
+            if (obj === null) {
+                return 'null';
+            }
+            
+            if (typeof obj === 'boolean') {
+                return String(obj);
+            }
+            
+            if (typeof obj === 'number') {
+                return String(obj);
+            }
+            
+            if (typeof obj === 'string') {
+                return `"${obj}"`;
+            }
+            
+            if (Array.isArray(obj)) {
+                if (obj.length === 0) {
+                    return '[]';
+                }
+                
+                let result = '<div>[';
+                obj.forEach((item, index) => {
+                    result += `<div style="${nextIndentStyle}">`;
+                    result += formatJsonStructure(item, indent + 1);
+                    if (index < obj.length - 1) {
+                        result += ',';
+                    }
+                    result += '</div>';
+                });
+                result += `<div style="${indentStyle}">]</div></div>`;
+                return result;
+            }
+            
+            if (typeof obj === 'object') {
+                const keys = Object.keys(obj);
+                if (keys.length === 0) {
+                    return '{}';
+                }
+                
+                let result = '<div>{';
+                keys.forEach((key, index) => {
+                    const value = obj[key];
+                    result += `<div style="${nextIndentStyle}">`;
+                    result += `"${key}": `;
+                    result += formatJsonStructure(value, indent + 1);
+                    if (index < keys.length - 1) {
+                        result += ',';
+                    }
+                    result += '</div>';
+                });
+                result += `<div style="${indentStyle}">}</div></div>`;
+                return result;
+            }
+            
+            return String(obj);
+        }
+        
+        // Simple formatter for Rust debug format strings  
+        function formatDebugString(inputString) {
+            if (!inputString) return 'No instruction data available';
+            
+            // Just escape HTML and format basic structure
+            return String(inputString)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/\n/g, '<br>')
+                .replace(/\s/g, '&nbsp;');
+        }
+
         // Generate panic analysis grouped by transaction
         function generatePanicAnalysis() {
             const container = document.getElementById('panic-analysis');
@@ -851,6 +1037,7 @@
                     
                     for (const [panic, panicData] of Object.entries(panics)) {
                         const panicId = `panic-${instruction.replace(/\W/g, '_')}-${totalPanics}`;
+                        const inputsId = `inputs-${instruction.replace(/\W/g, '_')}-${totalPanics}`;
                         html += `
                             <div class="error-section" style="margin-left: 0; margin-bottom: 12px;">
                                 <div class="error-title">${panic}</div>
@@ -861,6 +1048,14 @@
                                 <div id="${panicId}" class="collapsible-content">
                                     <div class="error-logs">${formatSolanaLogs(panicData.logs)}</div>
                                 </div>
+                                ${panicData.instruction_inputs ? `
+                                    <div class="collapsible" onclick="toggleCollapsible('${inputsId}')">
+                                        View Instruction Data ▼
+                                    </div>
+                                    <div id="${inputsId}" class="collapsible-content">
+                                        <div class="error-logs" style="white-space: pre-wrap;">${formatDebugString(panicData.instruction_inputs)}</div>
+                                    </div>
+                                ` : ''}
                             </div>
                         `;
                     }
@@ -947,12 +1142,23 @@
         function toggleCollapsible(id) {
             const element = document.getElementById(id);
             const button = element.previousElementSibling;
+            
+            // Determine the content type based on the button's current text
+            let contentType = 'Logs';
+            if (button.innerHTML.includes('Panic Logs')) {
+                contentType = 'Panic Logs';
+            } else if (button.innerHTML.includes('Instruction Data')) {
+                contentType = 'Instruction Data';
+            } else if (button.innerHTML.includes('Error Logs')) {
+                contentType = 'Error Logs';
+            }
+            
             if (element.style.display === 'block') {
                 element.style.display = 'none';
-                button.innerHTML = 'View Error Logs ▼';
+                button.innerHTML = `View ${contentType} ▼`;
             } else {
                 element.style.display = 'block';
-                button.innerHTML = 'Hide Error Logs ▲';
+                button.innerHTML = `Hide ${contentType} ▲`;
             }
         }
 

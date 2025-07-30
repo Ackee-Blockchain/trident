@@ -220,11 +220,14 @@ impl Trident {
                                         );
                                     }
                                     let rng = self.rng.get_seed();
+                                    let tx = format!("{:#?}", transaction);
+
                                     self.fuzzing_data.metrics.add_transaction_panicked(
                                         &transaction_name,
                                         rng,
                                         instruction_error.to_string(),
                                         details.log_messages.clone(),
+                                        tx,
                                     );
                                 }
                             }
