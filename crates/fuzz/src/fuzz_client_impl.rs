@@ -63,8 +63,12 @@ impl FuzzClient for TridentSVM {
         svm_builder.with_sbf_programs(program_binaries);
         svm_builder.with_permanent_accounts(permanent_accounts);
 
-        if std::env::var("TRIDENT_FUZZ_DEBUG").is_ok() {
-            svm_builder.with_debug_file_logs();
+        if std::env::var("TRIDENT_FUZZ_DEBUG_PATH").is_ok()
+            && std::env::var("TRIDENT_FUZZ_DEBUG").is_ok()
+        {
+            let debug_path =
+                std::env::var("TRIDENT_FUZZ_DEBUG_PATH").unwrap_or("trident_debug.log".to_string());
+            svm_builder.with_debug_file_logs(&debug_path);
         } else if std::env::var("TRIDENT_LOG").is_ok() {
             svm_builder.with_cli_logs();
         }

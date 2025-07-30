@@ -215,8 +215,23 @@ impl Commander {
             }
         }
 
+        let debug_path = generate_unique_fuzz_filename("trident_logs", &seed, "log")
+            .await
+            .map_err(|e| {
+                Error::Anyhow(anyhow::anyhow!(
+                    "Failed to generate debug fuzzing path: {:?}",
+                    e
+                ))
+            })?;
+
+        std::env::set_var(
+            "TRIDENT_FUZZ_DEBUG_PATH",
+            debug_path.to_string_lossy().to_string(),
+        );
+
+        std::env::set_var("TRIDENT_FUZZ_DEBUG", seed);
+
         let mut child = Command::new("cargo")
-            .env("TRIDENT_FUZZ_DEBUG", seed)
             .arg("run")
             .arg("--bin")
             .arg(target)
