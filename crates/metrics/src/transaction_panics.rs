@@ -12,6 +12,7 @@ pub(crate) struct TransactionPanicMetricsMetadata {
     occurrences: u64,
     seed: String,
     logs: Option<Vec<String>>,
+    instruction_inputs: String,
 }
 
 impl TransactionPanicMetrics {
@@ -20,6 +21,7 @@ impl TransactionPanicMetrics {
         panic: &str,
         seed: &Seed,
         logs: Option<Vec<String>>,
+        instruction_inputs: String,
     ) {
         self.panics
             .entry(panic.to_string())
@@ -28,6 +30,7 @@ impl TransactionPanicMetrics {
                 occurrences: 1,
                 seed: hex::encode(seed),
                 logs,
+                instruction_inputs,
             });
     }
 
