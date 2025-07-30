@@ -11,6 +11,7 @@ mod clean;
 mod fuzz;
 mod howto;
 mod init;
+mod server;
 
 pub(crate) use fuzz::FuzzCommand;
 
@@ -18,6 +19,7 @@ pub(crate) use clean::clean;
 pub(crate) use fuzz::fuzz;
 pub(crate) use howto::howto;
 pub(crate) use init::init;
+pub(crate) use server::server;
 
 pub(crate) const ANCHOR_TOML: &str = "Anchor.toml";
 pub(crate) const TRIDENT_TOML: &str = "Trident.toml";
