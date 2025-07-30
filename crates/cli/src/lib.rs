@@ -73,6 +73,35 @@ enum Command {
     },
     #[command(about = "Clean build target, additionally perform `anchor clean`")]
     Clean,
+    #[command(about = "Start HTTP server to serve fuzzing dashboards")]
+    Server {
+        #[arg(
+            short,
+            long,
+            required = false,
+            help = "Directory to monitor for dashboard files",
+            value_name = "DIR",
+            default_value = ".fuzz-artifacts"
+        )]
+        directory: String,
+        #[arg(
+            short,
+            long,
+            required = false,
+            help = "Port to run the server on",
+            value_name = "PORT",
+            default_value = "8000"
+        )]
+        port: u16,
+        #[arg(
+            long,
+            required = false,
+            help = "Host to bind the server to",
+            value_name = "HOST",
+            default_value = "localhost"
+        )]
+        host: String,
+    },
 }
 
 #[throws]
@@ -89,5 +118,10 @@ pub async fn start() {
             test_name,
         } => command::init(force, skip_build, program_name, test_name).await?,
         Command::Clean => command::clean().await?,
+        Command::Server {
+            directory,
+            port,
+            host,
+        } => command::server(directory, port, host).await?,
     }
 }

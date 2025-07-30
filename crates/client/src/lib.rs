@@ -7,6 +7,7 @@ mod commander;
 mod coverage;
 mod error;
 mod idl_loader;
+mod server;
 mod test_generator;
 mod test_generator_manifest;
 mod test_generator_template;
@@ -17,6 +18,7 @@ pub mod ___private {
     pub use super::commander::Error;
     pub use super::idl_loader::load_idls;
     pub use super::idl_loader::IdlError;
+    pub use super::server::DashboardServer;
     pub use super::test_generator::TestGenerator;
 }
 
