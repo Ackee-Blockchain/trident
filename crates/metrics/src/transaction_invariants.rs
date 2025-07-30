@@ -11,16 +11,23 @@ pub(crate) struct TransactionInvariantMetrics {
 pub(crate) struct TransactionInvariantMetricsMetadata {
     occurrences: u64,
     seed: String,
+    transaction_inputs: String,
 }
 
 impl TransactionInvariantMetrics {
-    pub(crate) fn add_failed_invariant(&mut self, invariant: &str, seed: &Seed) {
+    pub(crate) fn add_failed_invariant(
+        &mut self,
+        invariant: &str,
+        seed: &Seed,
+        transaction_inputs: String,
+    ) {
         self.invariants
             .entry(invariant.to_string())
             .and_modify(|metadata| metadata.occurrences += 1)
             .or_insert(TransactionInvariantMetricsMetadata {
                 occurrences: 1,
                 seed: hex::encode(seed),
+                transaction_inputs,
             });
     }
 

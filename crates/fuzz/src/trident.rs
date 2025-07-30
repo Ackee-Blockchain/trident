@@ -197,11 +197,13 @@ impl Trident {
                         // Record check failure
                         if fuzzing_metrics.is_ok() {
                             let rng = self.rng.get_seed();
+                            let tx_inputs = format!("{:#?}", transaction);
 
                             self.fuzzing_data.metrics.add_failed_invariant(
                                 &transaction_name,
                                 &rng,
                                 invariant_error.to_string(),
+                                tx_inputs,
                             );
                         }
                     }

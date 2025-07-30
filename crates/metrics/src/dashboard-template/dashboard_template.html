@@ -1151,6 +1151,8 @@
                 contentType = 'Instruction Data';
             } else if (button.innerHTML.includes('Error Logs')) {
                 contentType = 'Error Logs';
+            } else if (button.innerHTML.includes('Transaction Inputs')) {
+                contentType = 'Transaction Inputs';
             }
             
             if (element.style.display === 'block') {
@@ -1166,21 +1168,46 @@
         function generateInvariantFailures() {
             const container = document.getElementById('invariant-failures');
             let html = '';
-            let failureCount = 0;
+            let totalFailures = 0;
             
             for (const [instruction, stats] of Object.entries(data.instructions)) {
-                for (const [failure, failureData] of Object.entries(stats.transactions_invariant_fails || {})) {
-                    failureCount++;
+                const failures = stats.transactions_invariant_fails || {};
+                const failureKeys = Object.keys(failures);
+                
+                if (failureKeys.length > 0) {
                     html += `
-                        <div class="error-section">
-                            <div class="error-title">${instruction}: ${failure}</div>
-                            <div class="error-count">Occurred ${failureData.occurrences} times | Seed: ${failureData.seed}</div>
-                        </div>
+                        <div style="background: #334155; border-radius: 8px; padding: 20px; margin-bottom: 16px; border-left: 4px solid #f59e0b;">
+                            <h3 style="margin: 0 0 16px 0; color: #e2e8f0; font-size: 1.1rem; display: flex; align-items: center;">
+                                <span style="background: #f59e0b; color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.9rem; margin-right: 12px;">${instruction}</span>
+                                ${failureKeys.length} failure${failureKeys.length > 1 ? 's' : ''}
+                            </h3>
                     `;
+                    
+                    for (const [failure, failureData] of Object.entries(failures)) {
+                        totalFailures++;
+                        const failureId = `invariant-${instruction.replace(/\W/g, '_')}-${totalFailures}`;
+                        const inputsId = `invariant-inputs-${instruction.replace(/\W/g, '_')}-${totalFailures}`;
+                        html += `
+                            <div class="error-section" style="margin-left: 0; margin-bottom: 12px;">
+                                <div class="error-title">${failure}</div>
+                                <div class="error-count">Occurred ${failureData.occurrences} times | Seed: ${failureData.seed}</div>
+                                ${failureData.transaction_inputs ? `
+                                    <div class="collapsible" onclick="toggleCollapsible('${inputsId}')">
+                                        View Transaction Inputs ▼
+                                    </div>
+                                    <div id="${inputsId}" class="collapsible-content">
+                                        <div class="error-logs" style="white-space: pre-wrap;">${formatDebugString(failureData.transaction_inputs)}</div>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        `;
+                    }
+                    
+                    html += '</div>';
                 }
             }
             
-            if (failureCount === 0) {
+            if (totalFailures === 0) {
                 html = '<p style="text-align: center; color: #22c55e; font-size: 1.2em;">No invariant check failures detected!</p>';
             }
             

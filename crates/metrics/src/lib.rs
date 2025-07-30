@@ -150,14 +150,20 @@ impl FuzzingStatistics {
             });
     }
 
-    pub fn add_failed_invariant(&mut self, transaction: &str, seed: &Seed, error: String) {
+    pub fn add_failed_invariant(
+        &mut self,
+        transaction: &str,
+        seed: &Seed,
+        error: String,
+        transaction_inputs: String,
+    ) {
         self.transactions
             .entry(transaction.to_string())
             .and_modify(|iterations_stats| {
                 iterations_stats.transaction_failed_invariant += 1;
                 iterations_stats
                     .transactions_invariant_fails
-                    .add_failed_invariant(&error, seed);
+                    .add_failed_invariant(&error, seed, transaction_inputs);
             });
     }
 
