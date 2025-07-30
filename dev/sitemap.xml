@@ -37,6 +37,10 @@
          <lastmod>2025-07-30</lastmod>
     </url>
     <url>
+         <loc>https://ackee.xyz/trident/docs/latest/start-fuzzing/writting-fuzz-test/fuzzing-flows/</loc>
+         <lastmod>2025-07-30</lastmod>
+    </url>
+    <url>
          <loc>https://ackee.xyz/trident/docs/latest/start-fuzzing/writting-fuzz-test/instruction-accounts/</loc>
          <lastmod>2025-07-30</lastmod>
     </url>
@@ -77,23 +81,27 @@
          <lastmod>2025-07-30</lastmod>
     </url>
     <url>
-         <loc>https://ackee.xyz/trident/docs/latest/trident-advanced/trident-transactions/trident-fuzzing-flows/</loc>
-         <lastmod>2025-07-30</lastmod>
-    </url>
-    <url>
-         <loc>https://ackee.xyz/trident/docs/latest/trident-advanced/trident-transactions/trident-fuzzing-flows/flow/</loc>
-         <lastmod>2025-07-30</lastmod>
-    </url>
-    <url>
-         <loc>https://ackee.xyz/trident/docs/latest/trident-advanced/trident-transactions/trident-fuzzing-flows/initialization/</loc>
-         <lastmod>2025-07-30</lastmod>
-    </url>
-    <url>
          <loc>https://ackee.xyz/trident/docs/latest/trident-api-macro/</loc>
          <lastmod>2025-07-30</lastmod>
     </url>
     <url>
-         <loc>https://ackee.xyz/trident/docs/latest/trident-api-macro/trident-fuzz-client/</loc>
+         <loc>https://ackee.xyz/trident/docs/latest/trident-api-macro/attributes-for-accounts/account-attributes/</loc>
+         <lastmod>2025-07-30</lastmod>
+    </url>
+    <url>
+         <loc>https://ackee.xyz/trident/docs/latest/trident-api-macro/hooks/instruction-hooks/</loc>
+         <lastmod>2025-07-30</lastmod>
+    </url>
+    <url>
+         <loc>https://ackee.xyz/trident/docs/latest/trident-api-macro/hooks/transaction-hooks/</loc>
+         <lastmod>2025-07-30</lastmod>
+    </url>
+    <url>
+         <loc>https://ackee.xyz/trident/docs/latest/trident-api-macro/trident/trident/</loc>
+         <lastmod>2025-07-30</lastmod>
+    </url>
+    <url>
+         <loc>https://ackee.xyz/trident/docs/latest/trident-api-macro/trident-fuzz-client/fuzz-client-trait/</loc>
          <lastmod>2025-07-30</lastmod>
     </url>
     <url>
@@ -113,10 +121,6 @@
          <lastmod>2025-07-30</lastmod>
     </url>
     <url>
-         <loc>https://ackee.xyz/trident/docs/latest/trident-api-macro/trident-macros/trident-selector/</loc>
-         <lastmod>2025-07-30</lastmod>
-    </url>
-    <url>
          <loc>https://ackee.xyz/trident/docs/latest/trident-api-macro/trident-macros/trident-transaction/</loc>
          <lastmod>2025-07-30</lastmod>
     </url>
@@ -126,10 +130,6 @@
     </url>
     <url>
          <loc>https://ackee.xyz/trident/docs/latest/trident-api-macro/trident-types/fuzz-accounts/</loc>
-         <lastmod>2025-07-30</lastmod>
-    </url>
-    <url>
-         <loc>https://ackee.xyz/trident/docs/latest/trident-api-macro/trident-types/fuzz-transactions/</loc>
          <lastmod>2025-07-30</lastmod>
     </url>
     <url>
@@ -146,18 +146,6 @@
     </url>
     <url>
          <loc>https://ackee.xyz/trident/docs/latest/trident-manifest/</loc>
-         <lastmod>2025-07-30</lastmod>
-    </url>
-    <url>
-         <loc>https://ackee.xyz/trident/docs/latest/trident-manifest/afl/</loc>
-         <lastmod>2025-07-30</lastmod>
-    </url>
-    <url>
-         <loc>https://ackee.xyz/trident/docs/latest/trident-manifest/general/</loc>
-         <lastmod>2025-07-30</lastmod>
-    </url>
-    <url>
-         <loc>https://ackee.xyz/trident/docs/latest/trident-manifest/honggfuzz/</loc>
          <lastmod>2025-07-30</lastmod>
     </url>
     <url>
