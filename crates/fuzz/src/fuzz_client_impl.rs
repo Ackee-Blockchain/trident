@@ -10,14 +10,14 @@ use trident_config::TridentConfig;
 
 use trident_svm::trident_svm::TridentSVM;
 use trident_svm::types::trident_account::TridentAccountSharedData;
-#[cfg(any(feature = "syscall-v1", feature = "syscall-v2"))]
+#[cfg(feature = "syscall-v2")]
 use trident_svm::types::trident_entrypoint::TridentEntrypoint;
 use trident_svm::types::trident_program::TridentProgram;
 
 use crate::traits::FuzzClient;
 
 impl FuzzClient for TridentSVM {
-    #[cfg(any(feature = "syscall-v1", feature = "syscall-v2"))]
+    #[cfg(feature = "syscall-v2")]
     fn deploy_entrypoint(&mut self, _program: TridentEntrypoint) {
         self.deploy_entrypoint_program(&_program);
     }

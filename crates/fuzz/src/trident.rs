@@ -5,7 +5,8 @@ use solana_sdk::account::WritableAccount;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::transaction::TransactionError;
 use trident_fuzz_metrics::FuzzingStatistics;
-use trident_svm::prelude::solana_svm::transaction_results::TransactionExecutionResult;
+use trident_svm::prelude::solana_svm::transaction_processing_result::ProcessedTransaction;
+use trident_svm::prelude::solana_svm::transaction_processing_result::TransactionProcessingResultExtensions;
 use trident_svm::processor::InstructionError;
 use trident_svm::trident_svm::TridentSVM;
 
@@ -170,13 +171,12 @@ impl Trident {
         transaction.post_transaction(self.get_client());
 
         // NOTE: for now we just expect that one transaction was executed
-        let tx_result = &processing_data.execution_results[0];
+        let processed_transaction = processing_data.processing_results[0]
+            .processed_transaction()
+            .expect("Transaction was not processed");
 
-        match tx_result {
-            TransactionExecutionResult::Executed {
-                details,
-                programs_modified_by_tx: _,
-            } => match &details.status {
+        match processed_transaction {
+            ProcessedTransaction::Executed(details) => match &details.execution_details.status {
                 Ok(_) => {
                     // Record successful execution
                     if fuzzing_metrics.is_ok() {
@@ -228,7 +228,7 @@ impl Trident {
                                         &transaction_name,
                                         rng,
                                         instruction_error.to_string(),
-                                        details.log_messages.clone(),
+                                        details.execution_details.log_messages.clone(),
                                         tx,
                                     );
                                 }
@@ -238,7 +238,7 @@ impl Trident {
                                     self.fuzzing_data.metrics.add_custom_instruction_error(
                                         &transaction_name,
                                         error_code,
-                                        details.log_messages.clone(),
+                                        details.execution_details.log_messages.clone(),
                                     );
                                 }
                             }
@@ -247,7 +247,7 @@ impl Trident {
                                     self.fuzzing_data.metrics.add_failed_transaction(
                                         &transaction_name,
                                         instruction_error.to_string(),
-                                        details.log_messages.clone(),
+                                        details.execution_details.log_messages.clone(),
                                     );
                                 }
                             }
@@ -256,14 +256,14 @@ impl Trident {
                         self.fuzzing_data.metrics.add_failed_transaction(
                             &transaction_name,
                             transaction_error.to_string(),
-                            details.log_messages.clone(),
+                            details.execution_details.log_messages.clone(),
                         );
                     }
                     // Handle transaction error
                     transaction.transaction_error_handler(transaction_error.clone());
                 }
             },
-            TransactionExecutionResult::NotExecuted(_transaction_error) => {
+            ProcessedTransaction::FeesOnly(_) => {
                 // Transaction was not executed, just do nothing and return
             }
         }
