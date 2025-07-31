@@ -138,9 +138,4 @@ impl FuzzClient for TridentSVM {
     fn get_sysvar<T: Sysvar>(&self) -> T {
         trident_svm::trident_svm::TridentSVM::get_sysvar::<T>(self)
     }
-
-    #[doc(hidden)]
-    fn _clear_accounts(&mut self) {
-        self.clear_accounts();
-    }
 }

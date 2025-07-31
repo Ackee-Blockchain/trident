@@ -287,7 +287,7 @@ impl Trident {
 
     #[doc(hidden)]
     pub fn _next_iteration(&mut self) {
-        self.client._clear_accounts();
+        self.client.clear_accounts();
         self.rng.rotate_seed();
     }
 

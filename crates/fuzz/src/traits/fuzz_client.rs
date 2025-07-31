@@ -57,8 +57,4 @@ pub trait FuzzClient {
         &mut self,
         _instructions: &[Instruction],
     ) -> trident_svm::prelude::solana_svm::transaction_processor::LoadAndExecuteSanitizedTransactionsOutput;
-
-    #[doc(hidden)]
-    // Clear Temp account created during fuzzing iteration
-    fn _clear_accounts(&mut self);
 }
