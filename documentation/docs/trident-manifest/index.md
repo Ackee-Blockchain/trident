@@ -12,7 +12,7 @@ state_monitor = false
 ```
 
 
-- `fuzzing_with_stats` - Trident will show statistics after the fuzzing session. This option forces use of honggfuzz parameter `keep_output` as true in order to be able to catch fuzzer stdout.
+- `fuzzing_with_stats` - Trident will show statistics after the fuzzing session.
 - `dashboard` - Trident will save a dashboard after the fuzzing session.
 - `state_monitor` - Trident will save a state monitor after the fuzzing session.
 
@@ -29,8 +29,26 @@ state_monitor = false
     - This feature can be used to compare two fuzzing sessions, for example in case significant refactor of the programs was done and you want to check if the program is still working as expected.
     - Keep in mind that the feature hashes contents of accounts, if the contents are dependant for example on time, the final hash might not be the same as the one from the first fuzzing session.
 
+---
 
+## Fuzzing Coverage
 
+```bash
+[fuzz.coverage]
+enable = false
+server_port = 58432,
+loopcount = 0,
+format = "json",
+attach_extension = false,
+```
+
+The coverage configuration enables code coverage analysis during fuzzing sessions, providing insights into which parts of your program are being tested.
+
+- `enable` - When set to `true`, Trident collects code coverage data throughout the fuzzing session and generates a comprehensive report upon completion.
+- `server_port` - Specifies the HTTP server port used for communication between Trident and the [Solana VS Code extension](https://marketplace.visualstudio.com/items?itemName=AckeeBlockchain.solana).
+- `loopcount` - Defines the number of execution flows processed before generating an intermediate coverage data file. Lower values provide more frequent coverage updates at the cost of performance. When set to `0`, coverage files are only generated at the end of the fuzzing session.
+- `format` - Determines the output format for coverage reports. Trident supports both `json` and `html` formats.
+- `attach_extension` - Enables real-time coverage visualization in VS Code when the extension is active. This feature requires `loopcount` to be greater than `0` and `format` to be set to `json`. 
 
 ---
 
