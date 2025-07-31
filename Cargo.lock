@@ -2267,9 +2267,9 @@ checksum = "f9fbbcab51052fe104eb5e5d351cf728d30a5be1fe14d9be8a3b097481fb97de"
 
 [[package]]
 name = "libredox"
-version = "0.1.8"
+version = "0.1.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "360e552c93fa0e8152ab463bc4c4837fce76a225df11dfaeea66c313de5e61f7"
+checksum = "391290121bad3d37fbddad76d8f5d1c1c314cfc646d143d7e07a3086ddff0ce3"
 dependencies = [
  "bitflags 2.9.1",
  "libc",
@@ -4655,7 +4655,7 @@ dependencies = [
 
 [[package]]
 name = "trident-cli"
-version = "0.11.0-rc.2"
+version = "0.11.0-rc.3"
 dependencies = [
  "anyhow",
  "clap",
@@ -4668,7 +4668,7 @@ dependencies = [
 
 [[package]]
 name = "trident-client"
-version = "0.11.0-rc.2"
+version = "0.11.0-rc.3"
 dependencies = [
  "anyhow",
  "axum",
@@ -4696,7 +4696,7 @@ dependencies = [
 
 [[package]]
 name = "trident-config"
-version = "0.11.0-rc.2"
+version = "0.11.0-rc.3"
 dependencies = [
  "anyhow",
  "base64 0.22.1",
@@ -4711,7 +4711,7 @@ dependencies = [
 
 [[package]]
 name = "trident-derive-accounts"
-version = "0.11.0-rc.2"
+version = "0.11.0-rc.3"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -4721,7 +4721,7 @@ dependencies = [
 
 [[package]]
 name = "trident-derive-flow-executor"
-version = "0.11.0-rc.2"
+version = "0.11.0-rc.3"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -4731,7 +4731,7 @@ dependencies = [
 
 [[package]]
 name = "trident-derive-fuzz-test-methods"
-version = "0.11.0-rc.2"
+version = "0.11.0-rc.3"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -4741,7 +4741,7 @@ dependencies = [
 
 [[package]]
 name = "trident-derive-instruction"
-version = "0.11.0-rc.2"
+version = "0.11.0-rc.3"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -4751,7 +4751,7 @@ dependencies = [
 
 [[package]]
 name = "trident-derive-remaining-accounts"
-version = "0.11.0-rc.2"
+version = "0.11.0-rc.3"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -4761,7 +4761,7 @@ dependencies = [
 
 [[package]]
 name = "trident-derive-transaction"
-version = "0.11.0-rc.2"
+version = "0.11.0-rc.3"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -4771,7 +4771,7 @@ dependencies = [
 
 [[package]]
 name = "trident-fuzz"
-version = "0.11.0-rc.2"
+version = "0.11.0-rc.3"
 dependencies = [
  "borsh 1.5.7",
  "getrandom 0.3.3",
@@ -4801,7 +4801,7 @@ dependencies = [
 
 [[package]]
 name = "trident-fuzz-metrics"
-version = "0.11.0-rc.2"
+version = "0.11.0-rc.3"
 dependencies = [
  "hex",
  "prettytable",
@@ -4851,7 +4851,7 @@ dependencies = [
 
 [[package]]
 name = "trident-syn"
-version = "0.11.0-rc.2"
+version = "0.11.0-rc.3"
 dependencies = [
  "petgraph",
  "proc-macro2",
@@ -4884,7 +4884,7 @@ dependencies = [
 
 [[package]]
 name = "trident-template"
-version = "0.11.0-rc.2"
+version = "0.11.0-rc.3"
 dependencies = [
  "convert_case 0.6.0",
  "serde",
