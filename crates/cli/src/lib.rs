@@ -11,7 +11,8 @@ use crate::command::FuzzCommand;
 #[derive(Parser)]
 #[command(
     name = "Trident",
-    about = "Trident is Rust based fuzzer for Solana programs written using Anchor framework."
+    about = "Trident is Rust based fuzzer for Solana programs written using Anchor framework.",
+    version = env!("CARGO_PKG_VERSION")
 )]
 struct Cli {
     #[clap(subcommand)]
