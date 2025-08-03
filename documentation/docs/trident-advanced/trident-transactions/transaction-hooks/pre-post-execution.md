@@ -27,7 +27,7 @@ impl TransactionHooks for ExampleTransaction {
 
 ## Example
 
-The following examples demonstrates:
+The following examples demonstrate:
 
 - Always forward in time before the transaction
 - Always forward in time after the transaction
