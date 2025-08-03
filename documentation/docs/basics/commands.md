@@ -106,11 +106,3 @@ Debug crashes by analyzing specific crash files using the provided seed.
 ## `trident clean`
 
 Clean build target, additionally perform `anchor clean`.
-
-
-
----
-
-## `trident clean`
-
-Executes `anchor clean` and cleans Honggfuzz targets while preserving crashfiles and fuzzing inputs.
