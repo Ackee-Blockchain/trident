@@ -1,11 +1,11 @@
 # Executing the Fuzz Test
 
-To execute the fuzz test, navigate to the `trident-tests` directory and run the following command to execute the fuzz test using Honggfuzz:
+To execute the fuzz test, navigate to the `trident-tests` directory and run the following command to execute the fuzz test:
 
 ```bash
 trident fuzz run <FUZZ_TARGET> <SEED>
 # for example:
-# trident fuzz run-hfuzz fuzz_0
+# trident fuzz run fuzz_0
 # seed is optional, if not provided, a random seed will be used
 ```
 
