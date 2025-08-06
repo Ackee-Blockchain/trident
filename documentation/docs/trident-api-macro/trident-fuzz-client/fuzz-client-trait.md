@@ -1,7 +1,7 @@
 # Trident's Fuzz Client
 
 
-Trident's Client (`FuzzClient`) is a wrapper around the [TridentSVM](../../additional-features/index.md#tridentsvm) that provides methods to manipulate the execution environment during fuzzing.
+Trident's Client (`FuzzClient`) is a wrapper around the [TridentSVM](../../trident-svm/index.md) that provides methods to manipulate the execution environment during fuzzing.
 
 This section describes the methods that are available in the `FuzzClient`.
 

@@ -18,6 +18,8 @@ Explore the various features Trident provides.
  - [Transaction Hooks](./trident-advanced/trident-transactions/transaction-hooks/index.md) - Create and manipulate transactions with different methods
  - [Multi-Instruction Transactions](./trident-advanced/trident-transactions/multi-instruction-transactions/index.md) - Compose fuzzed transactions with multiple instructions
  - [Trident Manifest](./trident-manifest/index.md) - Customize your fuzz tests with different configurations
+ - [Code Coverage](./trident-advanced/code-coverage/index.md) - Track and display fuzz test code coverage
+ - [Dashboard](./trident-advanced/dashboard/index.md) - A web-based interface for visualizing fuzzing session results
 
 ## API & Macros Reference
 
@@ -31,13 +33,11 @@ Check out examples to learn how to use Trident.
 
  - [Trident Examples](./trident-examples/trident-examples.md)
 
-## Additional Features
+## TridentSVM
 
-Trident offers various additional features to take your fuzzing experience to the next level.
+Check out the TridentSVM, lightweight fuzzing execution and account storage environment.
 
- - [Code Coverage](./additional-features/index.md#code-coverage)
- - [Dashboard](./additional-features/index.md#dashboard)
- - [TridentSVM](./additional-features/index.md#tridentsvm)
+ - [TridentSVM](./trident-svm/index.md)
 
 
 ## What is Fuzzing ?

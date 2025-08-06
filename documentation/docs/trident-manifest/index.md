@@ -1,9 +1,3 @@
----
-hide:
-  - toc
-  - navigation
----
-
 # Trident Manifest
 
 Trident supports its own Trident Manifest, called `Trident.toml`. This section describes all possible configuration fields.
