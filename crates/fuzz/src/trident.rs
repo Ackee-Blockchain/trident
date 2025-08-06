@@ -42,6 +42,10 @@ impl TridentFuzzingData {
     pub fn generate(&self) -> std::io::Result<()> {
         self.metrics.generate()
     }
+
+    pub fn get_exit_code(&self) -> i32 {
+        self.metrics.get_exit_code()
+    }
 }
 
 impl Default for Trident {

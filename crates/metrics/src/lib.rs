@@ -460,4 +460,13 @@ impl FuzzingStatistics {
         }
         Ok(())
     }
+
+    pub fn get_exit_code(&self) -> i32 {
+        for stats in self.transactions.values() {
+            if stats.transaction_failed_invariant > 0 || stats.transaction_panicked > 0 {
+                return 99;
+            }
+        }
+        0
+    }
 }

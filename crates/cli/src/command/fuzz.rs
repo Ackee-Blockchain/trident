@@ -49,7 +49,7 @@ pub(crate) enum FuzzCommand {
             short,
             long,
             required = false,
-            help = "Run the fuzzing with exit code, i.e. if it discovers crash the Trident will exit with exit code 1."
+            help = "Run the fuzzing with exit code, i.e. if it discovers invariant failures or panics the Trident will exit with exit code."
         )]
         with_exit_code: bool,
         #[arg(

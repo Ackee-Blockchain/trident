@@ -456,15 +456,12 @@ impl TridentFlowExecutorImpl {
     fn generate_metrics_collection_logic(&self) -> TokenStream {
         let metrics_output = self.generate_metrics_output();
         quote! {
-            // Collect metrics from all threads
             let mut fuzzing_data = TridentFuzzingData::with_master_seed(master_seed);
 
             for handle in handles {
                 match handle.join() {
                     Ok(thread_metrics) => {
-                        if std::env::var("FUZZING_METRICS").is_ok() {
-                            fuzzing_data._merge(thread_metrics);
-                        }
+                        fuzzing_data._merge(thread_metrics);
                     }
                     Err(err) => {
                         if let Some(s) = err.downcast_ref::<&str>() {
@@ -480,7 +477,13 @@ impl TridentFlowExecutorImpl {
             }
 
             main_pb.finish_with_message("Parallel fuzzing completed!");
+
+            let exit_code = fuzzing_data.get_exit_code();
+            println!("Exit code: {}", exit_code);
+
             #metrics_output
+
+            std::process::exit(exit_code);
         }
     }
 
