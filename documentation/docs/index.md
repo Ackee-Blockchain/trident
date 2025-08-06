@@ -31,11 +31,13 @@ Check out examples to learn how to use Trident.
 
  - [Trident Examples](./trident-examples/trident-examples.md)
 
-## TridentSVM
+## Additional Features
 
-Check out the TridentSVM, lightweight fuzzing execution and account storage environment.
+Trident offers various additional features to take your fuzzing experience to the next level.
 
- - [TridentSVM](./trident-svm/index.md)
+ - [Code Coverage](./additional-features/index.md#code-coverage)
+ - [Dashboard](./additional-features/index.md#dashboard)
+ - [TridentSVM](./additional-features/index.md#tridentsvm)
 
 
 ## What is Fuzzing ?

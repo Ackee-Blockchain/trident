@@ -6,7 +6,6 @@ edit_uri: edit/master/docs
 site_description: Rust-based Fuzzing framework for Solana programs to help you ship secure code.
 site_author: Ackee Blockchain Security
 
-
 nav:
   - Basics:
       - "index.md"
@@ -18,13 +17,13 @@ nav:
   - Start Fuzzing:
       - start-fuzzing/index.md
       - Writting Fuzz Test:
-        - start-fuzzing/writting-fuzz-test/index.md
-        - start-fuzzing/writting-fuzz-test/instruction-data.md
-        - start-fuzzing/writting-fuzz-test/instruction-accounts.md
-        - start-fuzzing/writting-fuzz-test/fuzzing-flows.md
-        - start-fuzzing/writting-fuzz-test/remaining-accounts.md
+          - start-fuzzing/writting-fuzz-test/index.md
+          - start-fuzzing/writting-fuzz-test/instruction-data.md
+          - start-fuzzing/writting-fuzz-test/instruction-accounts.md
+          - start-fuzzing/writting-fuzz-test/fuzzing-flows.md
+          - start-fuzzing/writting-fuzz-test/remaining-accounts.md
       - Executing Fuzz Test:
-        - start-fuzzing/executing-fuzz-test/index.md
+          - start-fuzzing/executing-fuzz-test/index.md
   - Advanced Customization:
       - trident-advanced/index.md
       - Transaction Hooks:
@@ -59,8 +58,8 @@ nav:
           - trident-api-macro/trident-types/custom-types.md
   - Trident Manifest:
       - trident-manifest/index.md
-  - TridentSVM:
-      - trident-svm/index.md
+  - Additional Features:
+      - additional-features/index.md
   - Trident Examples:
       - trident-examples/trident-examples.md
 
@@ -69,8 +68,8 @@ nav:
 theme:
   # https://squidfunk.github.io/mkdocs-material/setup/
   name: material
-  logo: 'images/logo.png'
-  favicon: 'images/favicon.ico'
+  logo: "images/logo.png"
+  favicon: "images/favicon.ico"
   custom_dir: docs/overrides
   # https://squidfunk.github.io/mkdocs-material/setup/changing-the-colors/?h=palette+sw#color-palette-toggle
   palette:
@@ -81,29 +80,29 @@ theme:
         icon: material/lightbulb
         name: Switch to dark mode
     # Palette toggle for dark mode
-    - scheme: slate  # dark mode scheme
+    - scheme: slate # dark mode scheme
       primary: black
       toggle:
         icon: material/lightbulb-outline
         name: Switch to light mode
   features:
-  # https://squidfunk.github.io/mkdocs-material/setup/setting-up-navigation/#navigation-tabs
+    # https://squidfunk.github.io/mkdocs-material/setup/setting-up-navigation/#navigation-tabs
     - navigation.tabs
     - navigation.tabs.sticky
-  # https://squidfunk.github.io/mkdocs-material/setup/setting-up-navigation/#back-to-top-button
+    # https://squidfunk.github.io/mkdocs-material/setup/setting-up-navigation/#back-to-top-button
     - navigation.top
-  # https://squidfunk.github.io/mkdocs-material/setup/setting-up-navigation/#section-index-pages
+    # https://squidfunk.github.io/mkdocs-material/setup/setting-up-navigation/#section-index-pages
     - navigation.indexes
-  # https://squidfunk.github.io/mkdocs-material/reference/code-blocks/?h=content+copy#code-copy-button
+    # https://squidfunk.github.io/mkdocs-material/reference/code-blocks/?h=content+copy#code-copy-button
     - content.code.copy
-  # https://squidfunk.github.io/mkdocs-material/setup/setting-up-navigation/#navigation-sections
+    # https://squidfunk.github.io/mkdocs-material/setup/setting-up-navigation/#navigation-sections
     - navigation.sections
   # may be used
-    # - navigation.footer
+  # - navigation.footer
   icon:
     repo: fontawesome/brands/github
   font:
-        text: Space Grotesk
+    text: Space Grotesk
 
 # https://squidfunk.github.io/mkdocs-material/setup/setting-up-the-footer/?h=social#social-links
 extra:
@@ -114,7 +113,7 @@ extra:
       link: https://discord.gg/urRbxVcMrB
     - icon: fontawesome/brands/twitter
       link: https://x.com/TridentSolana
-# https://squidfunk.github.io/mkdocs-material/setup/setting-up-versioning/
+  # https://squidfunk.github.io/mkdocs-material/setup/setting-up-versioning/
   version:
     provider: mike
 
@@ -137,7 +136,6 @@ extra_css:
 
 extra_javascript:
   - js/asciinema-player.min.js
-
 
 markdown_extensions:
   # https://squidfunk.github.io/mkdocs-material/reference/code-blocks/#code-blocks
