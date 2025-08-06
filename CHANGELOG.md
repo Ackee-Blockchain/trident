@@ -90,7 +90,7 @@ incremented upon a breaking change and the patch version will be incremented for
 
 **Removed**
 
-- removed unnecesarry deserialization with AccountsSnapshots, to deserialize data implementation AccountDeserialize can be used ([221](https://github.com/Ackee-Blockchain/trident/pull/221))
+- removed unnecessary deserialization with AccountsSnapshots, to deserialize data implementation AccountDeserialize can be used ([221](https://github.com/Ackee-Blockchain/trident/pull/221))
 
 **Changed**
 
@@ -169,7 +169,7 @@ incremented upon a breaking change and the patch version will be incremented for
 - feat/fuzzer framework core, macros, helpers, templates, and examples. ([#111](https://github.com/Ackee-Blockchain/trident/pull/111))
 - feat/improved trident-tests folder structure for PoC and Fuzz Tests ([#109](https://github.com/Ackee-Blockchain/trident/pull/109))
 - feat/support for additional fuzzer parameters in Trident.toml config file ([#107](https://github.com/Ackee-Blockchain/trident/pull/107))
-- feat/posibility to pass params to the fuzzer via Trident.toml config file ([#106](https://github.com/Ackee-Blockchain/trident/pull/106))
+- feat/possibility to pass params to the fuzzer via Trident.toml config file ([#106](https://github.com/Ackee-Blockchain/trident/pull/106))
 - feat/client now reads by default keypair from default location ([#105](https://github.com/Ackee-Blockchain/trident/pull/105))
 - feat/added new --exit-code option to return corresponding exit code based on fuzz test result ([#104](https://github.com/Ackee-Blockchain/trident/pull/104))
 - feat/removed/updated deprecated functions, removed allow deprecated macros ([#103](https://github.com/Ackee-Blockchain/trident/pull/103))
