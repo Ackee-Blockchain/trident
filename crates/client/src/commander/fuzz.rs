@@ -16,37 +16,22 @@ impl Commander {
     pub async fn run(&self, target: String, with_exit_code: bool, seed: Option<String>) {
         let config = TridentConfig::new();
 
-        if config.get_fuzzing_with_stats() {
-            let metrics_path = generate_unique_fuzz_filename("fuzzing_metrics", &target, "json")
-                .await
-                .map_err(|e| {
-                    Error::Anyhow(anyhow::anyhow!(
-                        "Failed to generate fuzzing metrics path: {:?}",
-                        e
-                    ))
-                })?;
-            std::env::set_var(
-                "FUZZING_METRICS",
-                metrics_path.to_string_lossy().to_string(),
-            );
+        if config.get_metrics() {
+            std::env::set_var("FUZZING_METRICS", "true");
 
-            if config.get_state_monitor() {
-                let state_monitor_path =
-                    generate_unique_fuzz_filename("state_monitor", &target, "json")
-                        .await
-                        .map_err(|e| {
-                            Error::Anyhow(anyhow::anyhow!(
-                                "Failed to generate state monitor path: {:?}",
-                                e
-                            ))
-                        })?;
-                std::env::set_var(
-                    "FUZZING_STATE_MONITOR",
-                    state_monitor_path.to_string_lossy().to_string(),
-                );
+            if config.get_metrics_json() {
+                let json_path = generate_unique_fuzz_filename("fuzzing_metrics", &target, "json")
+                    .await
+                    .map_err(|e| {
+                        Error::Anyhow(anyhow::anyhow!(
+                            "Failed to generate fuzzing metrics path: {:?}",
+                            e
+                        ))
+                    })?;
+                std::env::set_var("FUZZING_JSON", json_path.to_string_lossy().to_string());
             }
 
-            if config.get_dashboard() {
+            if config.get_metrics_dashboard() {
                 let dashboard_path =
                     generate_unique_fuzz_filename("fuzzing_dashboard", &target, "html")
                         .await
@@ -61,6 +46,23 @@ impl Commander {
                     dashboard_path.to_string_lossy().to_string(),
                 );
             }
+        }
+
+        if config.get_regression() {
+            let regression_path = generate_unique_fuzz_filename("regression", &target, "json")
+                .await
+                .map_err(|e| {
+                    Error::Anyhow(anyhow::anyhow!(
+                        "Failed to generate regression path: {:?}",
+                        e
+                    ))
+                })?;
+            std::env::set_var(
+                "FUZZING_REGRESSION",
+                regression_path.to_string_lossy().to_string(),
+            );
+
+            println!("FUZZING_REGRESSION: {}", regression_path.to_string_lossy());
         }
 
         let coverage_config = config.get_coverage();
@@ -168,44 +170,26 @@ impl Commander {
     pub async fn run_debug(&self, target: String, seed: String) {
         let config = TridentConfig::new();
 
-        if config.get_fuzzing_with_stats() {
-            let metrics_path =
-                generate_unique_fuzz_filename("fuzzing_metrics_debug", &target, "json")
+        if config.get_metrics() {
+            if config.get_metrics_json() {
+                let json_path = generate_unique_fuzz_filename("fuzzing_metrics", &target, "json")
                     .await
                     .map_err(|e| {
                         Error::Anyhow(anyhow::anyhow!(
-                            "Failed to generate debug fuzzing metrics path: {:?}",
+                            "Failed to generate fuzzing metrics path: {:?}",
                             e
                         ))
                     })?;
-            std::env::set_var(
-                "FUZZING_METRICS",
-                metrics_path.to_string_lossy().to_string(),
-            );
-
-            if config.get_state_monitor() {
-                let state_monitor_path =
-                    generate_unique_fuzz_filename("state_monitor_debug", &target, "json")
-                        .await
-                        .map_err(|e| {
-                            Error::Anyhow(anyhow::anyhow!(
-                                "Failed to generate debug state monitor path: {:?}",
-                                e
-                            ))
-                        })?;
-                std::env::set_var(
-                    "FUZZING_STATE_MONITOR",
-                    state_monitor_path.to_string_lossy().to_string(),
-                );
+                std::env::set_var("FUZZING_JSON", json_path.to_string_lossy().to_string());
             }
 
-            if config.get_dashboard() {
+            if config.get_metrics_dashboard() {
                 let dashboard_path =
-                    generate_unique_fuzz_filename("fuzzing_dashboard_debug", &target, "html")
+                    generate_unique_fuzz_filename("fuzzing_dashboard", &target, "html")
                         .await
                         .map_err(|e| {
                             Error::Anyhow(anyhow::anyhow!(
-                                "Failed to generate debug dashboard path: {:?}",
+                                "Failed to generate dashboard path: {:?}",
                                 e
                             ))
                         })?;
@@ -214,6 +198,23 @@ impl Commander {
                     dashboard_path.to_string_lossy().to_string(),
                 );
             }
+        }
+
+        if config.get_regression() {
+            let regression_path = generate_unique_fuzz_filename("regression", &target, "json")
+                .await
+                .map_err(|e| {
+                    Error::Anyhow(anyhow::anyhow!(
+                        "Failed to generate regression path: {:?}",
+                        e
+                    ))
+                })?;
+            std::env::set_var(
+                "FUZZING_REGRESSION",
+                regression_path.to_string_lossy().to_string(),
+            );
+
+            println!("FUZZING_REGRESSION: {}", regression_path.to_string_lossy());
         }
 
         let debug_path = generate_unique_fuzz_filename("trident_logs", &seed, "log")

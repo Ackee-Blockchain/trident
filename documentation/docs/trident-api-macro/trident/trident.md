@@ -124,7 +124,7 @@ pub fn add_accumulator_metric(&mut self, metric_name: &str, value: f64)
 
 ### `monitor_account_state`
 
-Monitors the state of an account for fuzzing metrics. Only records if the `FUZZING_STATE_MONITOR` environment variable is set.
+Monitors the state of an account for fuzzing metrics. Only records if the `FUZZING_REGRESSION` environment variable is set.
 
 ```rust
 pub fn monitor_account_state(&mut self, account: &Pubkey, account_name: &str)

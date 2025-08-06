@@ -538,25 +538,25 @@
             <div id="custom-metrics"></div>
         </div>
 
-        <div class="card full-width" id="state-snapshots-section">
-            <h2>State Snapshots</h2>
+        <div class="card full-width" id="regression-testing-section">
+            <h2>Regression Testing</h2>
             
             <div class="metric" id="state-hash-metric" style="display: none;">
-                <span>State Snapshots Hash</span>
+                <span>Regression Data Hash</span>
                 <span class="metric-value" id="state-hash" style="font-family: 'Courier New', monospace; font-size: 0.9em; word-break: break-all;"></span>
             </div>
             
             <div id="no-state-info" style="text-align: center; padding: 20px; color: #64748b;">
-                <p>No state snapshots available for this fuzzing session.</p>
-                <p style="font-size: 0.9em; margin-top: 8px;">To enable state monitoring:</p>
-                <p style="font-size: 0.9em; margin-top: 4px;">1. Set <code style="background: #334155; padding: 2px 6px; border-radius: 4px;">state_monitor = true</code> in your Trident.toml</p>
-                <p style="font-size: 0.9em; margin-top: 4px;">2. Add <code style="background: #334155; padding: 2px 6px; border-radius: 4px;">self.trident.monitor_account_state(...)</code> in your fuzzing tests</p>
+                <p>No regression data available for this fuzzing session.</p>
+                <p style="font-size: 0.9em; margin-top: 8px;">To enable regression testing:</p>
+                <p style="font-size: 0.9em; margin-top: 4px;">1. Add <code style="background: #334155; padding: 2px 6px; border-radius: 4px;">[fuzz.regression]<br/>enabled = true</code> in your Trident.toml</p>
+                <p style="font-size: 0.9em; margin-top: 4px;">2. Add <code style="background: #334155; padding: 2px 6px; border-radius: 4px;">self.trident.add_to_regression(...)</code> in your fuzzing tests</p>
             </div>
             
             <div id="state-info" style="display: none;">
                 <p style="color: #94a3b8; font-size: 0.9em; margin-top: 12px;">
-                    The state snapshots hash represents the aggregated state of all monitored account snapshots during fuzzing. 
-                    It can be used to verify state consistency across different fuzzing runs <strong>when using the same master seed</strong>.
+                    The regression data hash represents the aggregated state of all account snapshots captured during fuzzing. 
+                    It can be used to verify consistency across different fuzzing runs <strong>when using the same master seed</strong> for regression testing purposes.
                 </p>
             </div>
         </div>
@@ -1346,15 +1346,15 @@
             return '';
         }
 
-        // Display state monitoring information
-        function displayStateMonitoring() {
+        // Display regression testing information
+        function displayRegressionTesting() {
             const masterSeedValue = document.getElementById('master-seed-value');
             const stateHashMetric = document.getElementById('state-hash-metric');
             const stateHashElement = document.getElementById('state-hash');
             const noStateInfo = document.getElementById('no-state-info');
             const stateInfo = document.getElementById('state-info');
             
-            let hasSnapshotData = false;
+            let hasRegressionData = false;
             
             // Always display master seed section, update content based on availability
             if (data.master_seed && data.master_seed !== null) {
@@ -1365,16 +1365,16 @@
                 masterSeedValue.style.color = '#64748b';
             }
             
-            // Display state snapshots hash if available
+            // Display regression data hash if available
             if (data.state_snapshots_hash) {
                 stateHashMetric.style.display = 'flex';
                 stateHashElement.textContent = data.state_snapshots_hash;
                 stateInfo.style.display = 'block';
-                hasSnapshotData = true;
+                hasRegressionData = true;
             }
             
-            // Show appropriate message for snapshots section
-            if (hasSnapshotData) {
+            // Show appropriate message for regression section
+            if (hasRegressionData) {
                 noStateInfo.style.display = 'none';
             } else {
                 noStateInfo.style.display = 'block';
@@ -1390,7 +1390,7 @@
         generateErrorDetails();
         generateInvariantFailures();
         generateCustomMetrics();
-        displayStateMonitoring();
+        displayRegressionTesting();
     </script>
 </body>
 </html> 
