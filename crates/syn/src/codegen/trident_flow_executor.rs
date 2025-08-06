@@ -479,7 +479,6 @@ impl TridentFlowExecutorImpl {
             main_pb.finish_with_message("Parallel fuzzing completed!");
 
             let exit_code = fuzzing_data.get_exit_code();
-            println!("Exit code: {}", exit_code);
 
             #metrics_output
 
