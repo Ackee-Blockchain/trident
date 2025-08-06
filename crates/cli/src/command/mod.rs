@@ -8,6 +8,7 @@ use anyhow::Context;
 use anyhow::Result;
 
 mod clean;
+mod compare_regression;
 mod fuzz;
 mod howto;
 mod init;
@@ -16,6 +17,7 @@ mod server;
 pub(crate) use fuzz::FuzzCommand;
 
 pub(crate) use clean::clean;
+pub(crate) use compare_regression::compare_regression;
 pub(crate) use fuzz::fuzz;
 pub(crate) use howto::howto;
 pub(crate) use init::init;

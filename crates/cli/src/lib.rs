@@ -103,6 +103,13 @@ enum Command {
         )]
         host: String,
     },
+    #[command(about = "Compare two regression JSON files and identify differing iteration seeds")]
+    Compare {
+        #[arg(help = "Path to the first regression JSON file", value_name = "FILE1")]
+        file1: String,
+        #[arg(help = "Path to the second regression JSON file", value_name = "FILE2")]
+        file2: String,
+    },
 }
 
 #[throws]
@@ -124,5 +131,6 @@ pub async fn start() {
             port,
             host,
         } => command::server(directory, port, host).await?,
+        Command::Compare { file1, file2 } => command::compare_regression(file1, file2)?,
     }
 }

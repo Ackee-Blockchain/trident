@@ -13,6 +13,9 @@ readme = { workspace = true }
 [dependencies.trident-client]
 workspace = true
 
+[dependencies.trident-fuzz-metrics]
+workspace = true
+
 [dependencies]
 
 # Misc

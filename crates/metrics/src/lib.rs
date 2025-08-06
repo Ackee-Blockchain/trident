@@ -12,6 +12,9 @@ use types::Seed;
 use crate::regression::regression::FuzzingRegression;
 use crate::transactions::transaction_stats::FuzzingStatistics;
 
+pub use crate::regression::compare::compare_regression_files;
+pub use crate::regression::compare::ComparisonResult;
+
 #[derive(Clone, Default)]
 pub struct TridentFuzzingData {
     master_seed: Option<String>,
