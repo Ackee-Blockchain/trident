@@ -5,7 +5,6 @@ mod metrics;
 use constants::*;
 use coverage::*;
 use fuzz::*;
-
 pub mod utils;
 
 use serde::Deserialize;
@@ -13,6 +12,7 @@ use std::fs;
 use std::io;
 use thiserror::Error;
 use utils::discover_root;
+mod regression;
 
 #[derive(Error, Debug)]
 pub enum Error {
@@ -49,24 +49,31 @@ impl TridentConfig {
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
     // fuzz
-    pub fn get_fuzzing_with_stats(&self) -> bool {
+    pub fn get_metrics(&self) -> bool {
         self.fuzz
             .as_ref()
-            .map(|fuzz| fuzz.get_fuzzing_with_stats())
+            .map(|fuzz| fuzz.get_metrics())
             .unwrap_or_default()
     }
 
-    pub fn get_dashboard(&self) -> bool {
+    pub fn get_metrics_json(&self) -> bool {
         self.fuzz
             .as_ref()
-            .map(|fuzz| fuzz.get_dashboard())
+            .map(|fuzz| fuzz.get_metrics_json())
             .unwrap_or_default()
     }
 
-    pub fn get_state_monitor(&self) -> bool {
+    pub fn get_metrics_dashboard(&self) -> bool {
         self.fuzz
             .as_ref()
-            .map(|fuzz| fuzz.get_state_monitor())
+            .map(|fuzz| fuzz.get_metrics_dashboard())
+            .unwrap_or_default()
+    }
+
+    pub fn get_regression(&self) -> bool {
+        self.fuzz
+            .as_ref()
+            .map(|fuzz| fuzz.get_regression())
             .unwrap_or_default()
     }
 

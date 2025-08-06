@@ -1,5 +1,6 @@
 use crate::coverage::Coverage;
 use crate::metrics::Metrics;
+use crate::regression::Regression;
 use crate::utils::resolve_path;
 use base64::prelude::BASE64_STANDARD;
 use base64::Engine;
@@ -14,29 +15,37 @@ use std::str::FromStr;
 #[derive(Debug, Deserialize, Clone, Default)]
 pub struct Fuzz {
     metrics: Option<Metrics>,
+    regression: Option<Regression>,
     pub programs: Option<Vec<_FuzzProgram>>,
     pub accounts: Option<Vec<_FuzzAccount>>,
     pub coverage: Option<Coverage>,
 }
 
 impl Fuzz {
-    pub fn get_fuzzing_with_stats(&self) -> bool {
+    pub fn get_metrics(&self) -> bool {
         match self.metrics.as_ref() {
-            Some(metrics) => metrics.fuzzing_with_stats.unwrap_or(false),
+            Some(metrics) => metrics.enabled.unwrap_or(false),
             None => false,
         }
     }
 
-    pub fn get_dashboard(&self) -> bool {
+    pub fn get_metrics_json(&self) -> bool {
+        match self.metrics.as_ref() {
+            Some(metrics) => metrics.json.unwrap_or(false),
+            None => false,
+        }
+    }
+
+    pub fn get_metrics_dashboard(&self) -> bool {
         match self.metrics.as_ref() {
             Some(metrics) => metrics.dashboard.unwrap_or(false),
             None => false,
         }
     }
 
-    pub fn get_state_monitor(&self) -> bool {
-        match self.metrics.as_ref() {
-            Some(metrics) => metrics.state_monitor.unwrap_or(false),
+    pub fn get_regression(&self) -> bool {
+        match self.regression.as_ref() {
+            Some(regression) => regression.enabled.unwrap_or(false),
             None => false,
         }
     }

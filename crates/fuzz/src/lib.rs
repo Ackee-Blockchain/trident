@@ -76,13 +76,10 @@ pub mod fuzzing {
 
     /// Trident
     pub use super::trident::Trident;
-    pub use super::trident::TridentFuzzingData;
+    pub use trident_fuzz_metrics::TridentFuzzingData;
 
     /// Error
     pub use super::error::*;
-
-    /// Fuzzing metrics
-    pub use trident_fuzz_metrics::FuzzingStatistics;
 
     /// Trident accounts
     pub use crate::trident_accounts::TridentAccount;

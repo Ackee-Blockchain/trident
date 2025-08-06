@@ -1,5 +1,5 @@
 [fuzz.metrics]
-fuzzing_with_stats = true
+enabled = true
 
 {% for program in programs %}
 [[fuzz.programs]]
