@@ -34,6 +34,10 @@ nav:
           - trident-advanced/trident-transactions/transaction-hooks/typed-accounts.md
       - Multi-Instruction Transactions:
           - trident-advanced/trident-transactions/multi-instruction-transactions/index.md
+      - Code Coverage:
+          - trident-advanced/code-coverage/index.md
+      - Dashboard:
+          - trident-advanced/dashboard/index.md
   - API & Macro Reference:
       - trident-api-macro/index.md
       - Trident:
@@ -58,8 +62,8 @@ nav:
           - trident-api-macro/trident-types/custom-types.md
   - Trident Manifest:
       - trident-manifest/index.md
-  - Additional Features:
-      - additional-features/index.md
+  - TridentSVM:
+      - trident-svm/index.md
   - Trident Examples:
       - trident-examples/trident-examples.md
 
