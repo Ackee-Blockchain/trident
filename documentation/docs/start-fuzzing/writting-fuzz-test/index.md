@@ -6,7 +6,7 @@ In order to start fuzzing, you need to guide the fuzzer by specifying what are t
 
 **Why is this important?**
 
-Letting the fuzzer to generate completely random instruction inputs and completely random sequqnces of instruction would lead in most case 
+Letting the fuzzer to generate completely random instruction inputs and completely random sequences of instruction would lead in most case 
 
 - to transaction failures, which would mean the fuzzer is not properly fuzzing the logic within the program; and
 - executing irrelevant random instruction sequences, which would again lead to transaction failures.

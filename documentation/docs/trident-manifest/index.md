@@ -20,7 +20,7 @@ state_monitor = false
 !!! note "Dashboard"
 
     - Dashboard is HTML file created by Trident.
-    - It can be opened in any prefered web browser, to see the results of the fuzzing session.
+    - It can be opened in any preferred web browser, to see the results of the fuzzing session.
 
 
 !!! note "State monitoring"

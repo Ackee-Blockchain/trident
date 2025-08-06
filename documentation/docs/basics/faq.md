@@ -17,7 +17,7 @@
 
 - Create [issue](https://github.com/Ackee-Blockchain/trident/issues).
 
-*Is Trident deployed on Mainnet / Devnet / Testenet?*
+*Is Trident deployed on Mainnet / Devnet / Testnet?*
 
 - No, Trident is Fuzz Testing Framework, not Solana Program.
 

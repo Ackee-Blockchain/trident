@@ -7,7 +7,7 @@ Some Solana instructions require additional accounts beyond their primary accoun
 Remaining accounts are defined as a struct with the `TridentRemainingAccounts` derive macro. The macro expects remaining accounts as an array of `TridentAccount`, allowing you to specify any number of additional accounts.
 
 !!! warning "Remaining Accounts Configuration"
-    Do not forget to add remaining accounts to the `Instuction` struct. Additionally the field has to be named `remaining_accounts`.
+    Do not forget to add remaining accounts to the `Instruction` struct. Additionally the field has to be named `remaining_accounts`.
 
 Here's an example of how to set up remaining accounts:
 
