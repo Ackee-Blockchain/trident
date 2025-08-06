@@ -13,7 +13,7 @@ use super::Error;
 
 impl Commander {
     #[throws]
-    pub async fn run(&self, target: String, _exit_code: bool, seed: Option<String>) {
+    pub async fn run(&self, target: String, with_exit_code: bool, seed: Option<String>) {
         let config = TridentConfig::new();
 
         if config.get_fuzzing_with_stats() {
@@ -65,17 +65,17 @@ impl Commander {
 
         let coverage_config = config.get_coverage();
         if coverage_config.get_enable() {
-            self.run_with_coverage(&target, &config, coverage_config, seed)
+            self.run_with_coverage(&target, &config, coverage_config, seed, with_exit_code)
                 .await?;
         } else {
-            self.run_default(&target, seed).await?;
+            self.run_default(&target, seed, with_exit_code).await?;
         }
     }
 
     #[throws]
-    pub async fn run_default(&self, target: &str, seed: Option<String>) {
+    pub async fn run_default(&self, target: &str, seed: Option<String>, with_exit_code: bool) {
         let mut child = self.spawn_fuzzer(target, HashMap::new(), seed)?;
-        Self::handle_child(&mut child).await?;
+        Self::handle_child(&mut child, with_exit_code).await?;
     }
 
     #[throws]
@@ -85,6 +85,7 @@ impl Commander {
         config: &TridentConfig,
         coverage_config: CoverageConfig,
         seed: Option<String>,
+        with_exit_code: bool,
     ) {
         if let Err(err) = coverage_config.validate() {
             throw!(Error::Anyhow(anyhow::anyhow!(err)));
@@ -109,7 +110,7 @@ impl Commander {
         let mut child = self.spawn_fuzzer(target, env_vars, seed)?;
 
         coverage.notify_extension(NotificationType::Setup).await?;
-        Self::handle_child(&mut child).await?;
+        Self::handle_child(&mut child, with_exit_code).await?;
 
         coverage.generate_report().await?;
     }
@@ -238,6 +239,6 @@ impl Commander {
             .args(["--profile", "release"])
             .spawn()?;
 
-        Self::handle_child(&mut child).await?;
+        Self::handle_child(&mut child, false).await?;
     }
 }

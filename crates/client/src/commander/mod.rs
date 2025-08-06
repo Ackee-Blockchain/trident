@@ -27,6 +27,8 @@ pub enum Error {
     BuildProgramsFailed,
     #[error("fuzzing failed")]
     FuzzingFailed,
+    #[error("Fuzzing found failing invariants or unhandled panics")]
+    FuzzingFailedInvariantOrPanic,
     #[error("Coverage error: {0}")]
     Coverage(#[from] crate::coverage::CoverageError),
     #[error("Cannot find the trident-tests directory in the current workspace")]
@@ -114,12 +116,20 @@ impl Commander {
     /// # Errors
     /// * Throws `Error::FuzzingFailed` if waiting on the child process fails.
     #[throws]
-    async fn handle_child(child: &mut Child) {
+    async fn handle_child(child: &mut Child, with_exit_code: bool) {
         tokio::select! {
             res = child.wait() =>
                 match res {
-                    Ok(status) => if !status.success() {
-                        throw!(Error::FuzzingFailed);
+                    Ok(status) => match status.code() {
+                        Some(code) => {
+                            match (code, with_exit_code) {
+                                (0, _) => {} // fuzzing did not find any failing invariants or panics and we dont care about exit code
+                                (99, true) => throw!(Error::FuzzingFailedInvariantOrPanic), // fuzzing found failing invariants or panics and we care about exit code
+                                (99, false) => {} // fuzzing found failing invariants or panics and we dont care about exit code
+                                (_, _) => throw!(Error::FuzzingFailed), // fuzzing failed for some other reason so we care about exit code
+                            }
+                        }
+                        None => throw!(Error::FuzzingFailed),
                     },
                     Err(e) => throw!(e),
             },
