@@ -1,0 +1,13 @@
+# For the detailed description of the parameters, see: https://ackee.xyz/trident/docs/latest/features/trident-manifest/
+
+[fuzz.metrics]
+enabled = true
+dashboard = true
+
+[fuzz.regression]
+enabled = true
+
+[[fuzz.programs]]
+address = "FtevoQoDMv6ZB3N9Lix5Tbjs8EVuNL8vDSqG9kzaZPit"
+program = "../target/deploy/hello_world.so"
+ 

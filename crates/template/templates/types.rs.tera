@@ -1,0 +1,56 @@
+use borsh::{BorshDeserialize, BorshSerialize};
+use trident_fuzz::fuzzing::*;
+
+/// File containing all custom types which can be used
+/// in transactions and instructions or invariant checks.
+///
+/// You can define your own custom types here.
+
+{% if custom_types %}
+{% for custom_type in custom_types %}
+{% if custom_type.type == "struct" %}
+#[derive(Debug, BorshDeserialize, BorshSerialize, Clone, Default)]
+pub struct {{ custom_type.name }} {
+{% if custom_type.fields %}
+{% if custom_type.fields.type == "named" %}
+{% for field in custom_type.fields.fields %}
+    pub {{ field.name }}: {{ field.rust_type }},
+{% endfor %}
+{% elif custom_type.fields.type == "tuple" %}
+{% for field in custom_type.fields.fields %}
+    pub field_{{ loop.index0 }}: {{ field.rust_type }},
+{% endfor %}
+{% endif %}
+{% endif %}
+}
+{% elif custom_type.type == "enum" %}
+#[derive(Debug, BorshDeserialize, BorshSerialize, Clone, Default)]
+pub enum {{ custom_type.name }} {
+{% for variant in custom_type.variants %}
+{% if variant.fields %}
+{% if variant.fields.type == "named" %}
+    {{ variant.name }} {
+{% for field in variant.fields.fields %}
+        {{ field.name }}: {{ field.rust_type }},
+{% endfor %}
+    },
+{% elif variant.fields.type == "tuple" %}
+    {{ variant.name }}({% for field in variant.fields.fields %}{{ field.rust_type }}{% if not loop.last %}, {% endif %}{% endfor %}),
+{% endif %}
+{% else %}
+    {% if loop.first %}#[default]
+    {% endif %}{{ variant.name }},
+{% endif %}
+{% endfor %}
+}
+{% elif custom_type.type == "type_alias" %}
+// Type alias for {{ custom_type.name }} not implemented
+{% endif %}
+
+{% endfor %}
+{% else %}
+#[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
+pub struct ExampleType {
+    example_data: u8,
+}
+{% endif %}

@@ -1,6 +1,7 @@
 use proc_macro::TokenStream;
 use quote::ToTokens;
-use syn::{parse_macro_input, ItemStruct};
+use syn::parse_macro_input;
+use syn::ItemStruct;
 
 use trident_syn::parser::trident_accounts::parse_trident_accounts;
 

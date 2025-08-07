@@ -12,9 +12,24 @@ incremented upon a breaking change and the patch version will be incremented for
 
 **Added**
 
+- Add server for displaying content of fuzzing artifacts ([347](https://github.com/Ackee-Blockchain/trident/pull/347))
+- Add fuzz artifacts directory to the fuzz test folder ([343](https://github.com/Ackee-Blockchain/trident/pull/343))
+- Added state monitoring support for fuzzing metrics ([341](https://github.com/Ackee-Blockchain/trident/pull/341))
+- Added dashboard support for fuzzing metrics ([340](https://github.com/Ackee-Blockchain/trident/pull/340))
+- Code coverage tracking support enabled and configured via Trident.toml. Coverage data can be visualized using the VS Code extension [330](https://github.com/Ackee-Blockchain/trident/pull/330)
+- Added features to enable syscalls in fuzzing ([329](https://github.com/Ackee-Blockchain/trident/pull/329))
+- Add `--skip-build` flag to only initialize fuzz test without building the project ([325](https://github.com/Ackee-Blockchain/trident/pull/325))
+- Add support for space, lamports and  owner to TridentAccounts macro ([320](https://github.com/Ackee-Blockchain/trident/pull/320))
+
 **Removed**
 
 **Changed**
+
+- FuzzTest fields are now aggregated into Trident struct ([339](https://github.com/Ackee-Blockchain/trident/pull/339))
+- Add support for reproducible fuzzing with thread-specific seeds ([332](https://github.com/Ackee-Blockchain/trident/pull/332))
+- Move Trident.toml into trident-tests folder ([328](https://github.com/Ackee-Blockchain/trident/pull/328))
+- Conversion from AFL and Honggfuzz into Manually Guided Fuzzing ([324](https://github.com/Ackee-Blockchain/trident/pull/324))
+- Update template generation to use tera ([326](https://github.com/Ackee-Blockchain/trident/pull/326))
 
 ## [0.10.0] - 2025-03-13
 

@@ -1,0 +1,19 @@
+[package]
+name = "trident-fuzz-metrics"
+
+version = { workspace = true }
+edition = { workspace = true }
+authors = { workspace = true }
+repository = { workspace = true }
+documentation = { workspace = true }
+description = { workspace = true }
+license-file = { workspace = true }
+readme = { workspace = true }
+
+[dependencies]
+prettytable = "0.10"
+serde = { version = "1", default-features = false }
+hex = "0.4"
+sha2 = "0.10"
+serde_json = "1"
+solana-sdk = { workspace = true }

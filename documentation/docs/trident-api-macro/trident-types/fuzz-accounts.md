@@ -2,7 +2,7 @@
 
 `FuzzAccounts` is a struct that contains `all the accounts that can be used in the fuzz test` i.e. `storage` for accounts.
 
-By default, Trident generates the struct based on the program's idl, i.e. for each account Trident generates a field in the struct.
+By default, Trident generates the struct based on the program's IDL, i.e. for each account Trident generates a field in the struct.
 
 On demand, you can add your own accounts to the struct, these accounts are meant to be used within the `set_accounts`, `set_remaining_accounts` and potentially within the `set_data` methods, with the corresponding account indexes.
 
@@ -37,8 +37,9 @@ fn is_empty(&self) -> bool
 Gets an existing account or creates a new one with specified metadata.
 ```rust
 fn get_or_create(
+    &mut self,
     account_id: AccountId,
-    client: &mut impl FuzzClient,
+    trident: &mut Trident,
     seeds: Option<PdaSeeds>,
     account_metadata: Option<AccountMetadata>
 ) -> Pubkey
@@ -54,14 +55,14 @@ fn get_or_create(
 Creates or retrieves a token account with specified parameters.
 ```rust
 fn get_or_create_token_account(
+    &mut self,
     account_id: AccountId,
-    client: &mut impl FuzzClient,
+    trident: &mut Trident,
     seeds: Option<PdaSeeds>,
     mint: Pubkey,
     owner: Pubkey,
     amount: u64,
     delegate: Option<Pubkey>,
-    is_native: bool,
     delegated_amount: u64,
     close_authority: Option<Pubkey>
 ) -> Pubkey
@@ -77,8 +78,9 @@ fn get_or_create_token_account(
 Creates or retrieves a mint account for tokens.
 ```rust
 fn get_or_create_mint_account(
+    &mut self,
     account_id: AccountId,
-    client: &mut impl FuzzClient,
+    trident: &mut Trident,
     seeds: Option<PdaSeeds>,
     decimals: u8,
     owner: &Pubkey,
@@ -96,8 +98,9 @@ fn get_or_create_mint_account(
 Creates or retrieves a delegated stake account.
 ```rust
 fn get_or_create_delegated_account(
+    &mut self,
     account_id: AccountId,
-    client: &mut impl FuzzClient,
+    trident: &mut Trident,
     seeds: Option<PdaSeeds>,
     voter_pubkey: Pubkey,
     staker: Pubkey,
@@ -119,8 +122,9 @@ fn get_or_create_delegated_account(
 Creates or retrieves an initialized stake account.
 ```rust
 fn get_or_create_initialized_account(
+    &mut self,
     account_id: AccountId,
-    client: &mut impl FuzzClient,
+    trident: &mut Trident,
     seeds: Option<PdaSeeds>,
     staker: Pubkey,
     withdrawer: Pubkey,
@@ -138,8 +142,9 @@ fn get_or_create_initialized_account(
 Creates or retrieves a vote account.
 ```rust
 fn get_or_create_vote_account(
+    &mut self,
     account_id: AccountId,
-    client: &mut impl FuzzClient,
+    trident: &mut Trident,
     seeds: Option<PdaSeeds>,
     node_pubkey: &Pubkey,
     authorized_voter: &Pubkey,

@@ -9,26 +9,34 @@ use solana_sdk::sysvar::Sysvar;
 use trident_config::TridentConfig;
 
 use trident_svm::trident_svm::TridentSVM;
-use trident_svm::utils::ProgramEntrypoint;
-use trident_svm::utils::SBFTarget;
-use trident_svm::utils::TridentAccountSharedData;
+use trident_svm::types::trident_account::TridentAccountSharedData;
+#[cfg(any(feature = "syscall-v1", feature = "syscall-v2"))]
+use trident_svm::types::trident_entrypoint::TridentEntrypoint;
+use trident_svm::types::trident_program::TridentProgram;
 
 use crate::traits::FuzzClient;
-use solana_sdk::transaction::TransactionError;
 
 impl FuzzClient for TridentSVM {
-    fn deploy_native_program(&mut self, program: ProgramEntrypoint) {
-        trident_svm::trident_svm::TridentSVM::deploy_native_program(self, program);
+    #[cfg(any(feature = "syscall-v1", feature = "syscall-v2"))]
+    fn deploy_entrypoint(&mut self, _program: TridentEntrypoint) {
+        self.deploy_entrypoint_program(&_program);
     }
-    fn new_client(programs: &[ProgramEntrypoint], config: &TridentConfig) -> Self {
-        let sbf_programs =
+
+    fn deploy_program(&mut self, program: TridentProgram) {
+        self.deploy_binary_program(&program);
+    }
+
+    #[doc(hidden)]
+    fn new_client() -> Self {
+        let config = TridentConfig::new();
+        let program_binaries =
             config
                 .programs()
                 .iter()
                 .fold(Vec::new(), |mut sbf_programs, config_program| {
-                    let target = SBFTarget::new(
+                    let target = TridentProgram::new(
                         config_program.address,
-                        None, // TODO add authority to the config fuzzing program
+                        config_program.upgrade_authority,
                         config_program.data.clone(),
                     );
 
@@ -49,7 +57,23 @@ impl FuzzClient for TridentSVM {
                     permanent_accounts
                 });
 
-        TridentSVM::new_with_syscalls(programs, &sbf_programs, &permanent_accounts)
+        let mut svm_builder = TridentSVM::builder();
+        svm_builder.with_syscalls_v1();
+        svm_builder.with_syscalls_v2();
+        svm_builder.with_sbf_programs(program_binaries);
+        svm_builder.with_permanent_accounts(permanent_accounts);
+
+        if std::env::var("TRIDENT_FUZZ_DEBUG_PATH").is_ok()
+            && std::env::var("TRIDENT_FUZZ_DEBUG").is_ok()
+        {
+            let debug_path =
+                std::env::var("TRIDENT_FUZZ_DEBUG_PATH").unwrap_or("trident_debug.log".to_string());
+            svm_builder.with_debug_file_logs(&debug_path);
+        } else if std::env::var("TRIDENT_LOG").is_ok() {
+            svm_builder.with_cli_logs();
+        }
+
+        svm_builder.build()
     }
     fn warp_to_epoch(&mut self, warp_epoch: u64) {
         let mut clock = self.get_sysvar::<Clock>();
@@ -79,7 +103,7 @@ impl FuzzClient for TridentSVM {
     }
 
     fn set_account_custom(&mut self, address: &Pubkey, account: &AccountSharedData) {
-        self.add_temp_account(address, account);
+        self.set_account(address, account, false);
     }
 
     fn payer(&self) -> solana_sdk::signature::Keypair {
@@ -94,10 +118,11 @@ impl FuzzClient for TridentSVM {
         panic!("Not yet implemented for TridentSVM");
     }
 
-    fn process_instructions(
+    #[doc(hidden)]
+    fn _process_instructions(
         &mut self,
         instructions: &[Instruction],
-    ) -> Result<(), TransactionError> {
+    ) -> trident_svm::prelude::solana_svm::transaction_processor::LoadAndExecuteSanitizedTransactionsOutput{
         // there should be at least 1 RW fee-payer account.
         // But we do not pay for TX currently so has to be manually updated
         // tx.message.header.num_required_signatures = 1;
@@ -107,15 +132,10 @@ impl FuzzClient for TridentSVM {
             Some(&self.payer().pubkey()),
         );
 
-        self.process_transaction_with_settle(tx)?;
-        Ok(())
+        self.process_transaction_with_settle(tx)
     }
 
     fn get_sysvar<T: Sysvar>(&self) -> T {
         trident_svm::trident_svm::TridentSVM::get_sysvar::<T>(self)
-    }
-
-    fn clear_accounts(&mut self) {
-        self.clear_accounts();
     }
 }

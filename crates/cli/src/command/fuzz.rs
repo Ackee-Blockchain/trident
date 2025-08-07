@@ -1,21 +1,18 @@
-use std::path::Path;
-
-use anyhow::{bail, Error};
+use anyhow::Error;
 
 use clap::Subcommand;
 use fehler::throws;
 use heck::ToSnakeCase;
-use trident_client::___private::{Commander, TestGenerator};
+use trident_client::___private::Commander;
+use trident_client::___private::TestGenerator;
 
-use crate::_discover;
-
-pub const TRIDENT_TOML: &str = "Trident.toml";
-pub const TRIDENT_TESTS: &str = "trident-tests";
-pub const SKIP: &str = "\x1b[33mSkip\x1b[0m";
+use crate::command::check_anchor_initialized;
+use crate::command::check_fuzz_test_exists;
+use crate::command::check_trident_uninitialized;
 
 #[derive(Subcommand)]
 #[allow(non_camel_case_types)]
-pub enum FuzzCommand {
+pub(crate) enum FuzzCommand {
     #[command(about = "Generate new Fuzz Test template.")]
     Add {
         #[arg(
@@ -34,29 +31,15 @@ pub enum FuzzCommand {
             value_name = "NAME"
         )]
         test_name: Option<String>,
-    },
-    #[command(
-        about = "Run the AFL on desired fuzz test.",
-        override_usage = "Specify the desired fuzz \x1b[92m<TARGET>\x1b[0m.\
-            \n      \x1b[1m\x1b[4m<TARGET>:\x1b[0m Name of the desired fuzz template to execute (for example fuzz_0).\
-            \n\n\x1b[1m\x1b[4mEXAMPLE:\x1b[0m\
-            \n      trident fuzz run-afl fuzz_0"
-    )]
-    Run_Afl {
         #[arg(
-            required = true,
-            help = "Name of the desired fuzz template to execute (for example fuzz_0)."
+            short,
+            long,
+            required = false,
+            help = "Skip building the program before adding new fuzz test."
         )]
-        target: String,
+        skip_build: bool,
     },
-    #[command(
-        about = "Run the Honggfuzz on desired fuzz test.",
-        override_usage = "Specify the desired fuzz \x1b[92m<TARGET>\x1b[0m.\
-            \n      \x1b[1m\x1b[4m<TARGET>:\x1b[0m Name of the desired fuzz template to execute (for example fuzz_0).\
-            \n\n\x1b[1m\x1b[4mEXAMPLE:\x1b[0m\
-            \n      trident fuzz run-hfuzz fuzz_0"
-    )]
-    Run_Hfuzz {
+    Run {
         #[arg(
             required = true,
             help = "Name of the desired fuzz template to execute (for example fuzz_0)."
@@ -66,106 +49,64 @@ pub enum FuzzCommand {
             short,
             long,
             required = false,
-            help = "Run the Honggfuzz with exit code, i.e. if it discovers crash the Trident will exit with exit code 1."
+            help = "Run the fuzzing with exit code, i.e. if it discovers invariant failures or panics the Trident will exit with exit code."
         )]
         with_exit_code: bool,
+        #[arg(
+            required = false,
+            help = "Master seed used for fuzzing, if not provided it will be generated randomly."
+        )]
+        seed: Option<String>,
     },
-
-    #[command(
-        about = "Debug found crash using the AFL on desired fuzz test.",
-        override_usage = "Specify the desired fuzz \x1b[92m<TARGET>\x1b[0m and \x1b[92m<PATH_TO_CRASHFILE>\x1b[0m.\
-            \n      \x1b[1m\x1b[4m<TARGET>:\x1b[0m Name of the desired fuzz template to debug (for example fuzz_0).\
-            \n      \x1b[1m\x1b[4m<PATH_TO_CRASHFILE>:\x1b[0m Path to the crash found during fuzzing.\
-            \n\n\x1b[1m\x1b[4mHINT:\x1b[0m By default crashfiles will be stored in the following folders:\
-            \n      \x1b[1m\x1b[4mHonggfuzz:\x1b[0m trident-tests/fuzzing/honggfuzz/hfuzz_workspace/<TARGET>\
-            \n      \x1b[1m\x1b[4mAFL:\x1b[0m trident-tests/fuzzing/afl/afl_workspace/out/default/crashes\
-            \n\n\x1b[1m\x1b[4mEXAMPLE:\x1b[0m\
-            \n      trident fuzz debug-afl fuzz_0 trident-tests/fuzzing/afl/afl_workspace/out/default/crashes/id...\
-            \n\n\x1b[1m\x1b[33mWarning\x1b[0m:\
-            \n      Do not mix fuzz templates and crashfiles. If the crash was found with fuzz_0, then debug it with fuzz_0."
-    )]
-    Debug_Afl {
+    Debug {
         #[arg(
             required = true,
-            help = "Name of the desired fuzz template to execute (for example fuzz_0)"
+            help = "Name of the desired fuzz template to execute (for example fuzz_0)."
         )]
         target: String,
-        #[arg(required = true, help = "Path to the crash found during fuzzing")]
-        crash_file_path: String,
-    },
-    #[command(
-        about = "Debug found crash using the Honggfuzz on desired fuzz test.",
-        override_usage = "Specify the desired fuzz \x1b[92m<TARGET>\x1b[0m and \x1b[92m<PATH_TO_CRASHFILE>\x1b[0m.\
-            \n      \x1b[1m\x1b[4m<TARGET>:\x1b[0m Name of the desired fuzz template to debug (for example fuzz_0).\
-            \n      \x1b[1m\x1b[4m<PATH_TO_CRASHFILE>:\x1b[0m Path to the crash found during fuzzing.\
-            \n\n\x1b[1m\x1b[4mHINT:\x1b[0m By default crashfiles will be stored in the following folders:\
-            \n      \x1b[1m\x1b[4mHonggfuzz:\x1b[0m trident-tests/fuzzing/honggfuzz/hfuzz_workspace/<TARGET>\
-            \n\n\x1b[1m\x1b[4mEXAMPLE:\x1b[0m\
-            \n      trident fuzz debug-hfuzz fuzz_0 trident-tests/fuzzing/honggfuzz/hfuzz_workspace/fuzz_0/SIGAR...\
-            \n\n\x1b[1m\x1b[33mWarning\x1b[0m:\
-            \n      Do not mix fuzz templates and crashfiles. If the crash was found with fuzz_0, then debug it with fuzz_0."
-    )]
-    Debug_Hfuzz {
         #[arg(
             required = true,
-            help = "Name of the desired fuzz template to execute (for example fuzz_0)"
+            help = "Master seed of the desired fuzz template to execute."
         )]
-        target: String,
-        #[arg(required = true, help = "Path to the crash found during fuzzing")]
-        crash_file_path: String,
+        seed: String,
     },
 }
 
 #[throws]
-pub async fn fuzz(subcmd: FuzzCommand) {
-    let root = match _discover(TRIDENT_TOML)? {
-        Some(root) => root,
-        None => {
-            bail!("It does not seem that Trident is initialized because the Trident.toml file was not found in any parent directory!");
-        }
-    };
+pub(crate) async fn fuzz(subcmd: FuzzCommand) {
+    let root = check_anchor_initialized()?;
 
-    let commander = Commander::with_root(&Path::new(&root).to_path_buf());
+    check_trident_uninitialized(&root)?;
 
     match subcmd {
-        FuzzCommand::Run_Afl { target } => {
-            commander.run_afl(target).await?;
-        }
-        FuzzCommand::Run_Hfuzz {
+        FuzzCommand::Run {
             target,
             with_exit_code,
+            seed,
         } => {
-            if with_exit_code {
-                commander.run_honggfuzz_with_exit_code(target).await?;
-            } else {
-                commander.run_honggfuzz(target).await?;
-            }
+            let commander = Commander::new(&root);
+
+            commander.run(target, with_exit_code, seed).await?;
         }
-        FuzzCommand::Debug_Afl {
-            target,
-            crash_file_path,
-        } => {
-            commander.run_afl_debug(target, crash_file_path).await?;
+        FuzzCommand::Debug { target, seed } => {
+            let commander = Commander::new(&root);
+
+            commander.run_debug(target, seed).await?;
         }
-        FuzzCommand::Debug_Hfuzz {
-            target,
-            crash_file_path,
-        } => {
-            commander.run_hfuzz_debug(target, crash_file_path).await?;
-        }
+
         FuzzCommand::Add {
             program_name,
             test_name,
+            skip_build,
         } => {
             let test_name_snake = test_name.map(|name| name.to_snake_case());
-            if let Some(name) = &test_name_snake {
-                let fuzz_test_dir = Path::new(&root).join(TRIDENT_TESTS).join(name);
-                if fuzz_test_dir.exists() {
-                    println!("{SKIP} [{}/{}] already exists", TRIDENT_TESTS, name);
-                    return;
-                }
+
+            let mut generator = TestGenerator::new_with_root(&root, skip_build)?;
+
+            if let Some(test_name) = &test_name_snake {
+                check_fuzz_test_exists(&root, test_name)?;
             }
-            let mut generator = TestGenerator::new_with_root(&root)?;
+
             generator
                 .add_fuzz_test(program_name, test_name_snake)
                 .await?;

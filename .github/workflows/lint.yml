@@ -14,7 +14,7 @@ on:
 jobs:
   Lint-Workspace:
     name: Lint Workspace
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
       - run: echo "Starting Lint-Workspace"
 
@@ -22,7 +22,7 @@ jobs:
     name: Lint
     needs: Lint-Workspace
     # This job runs on an Ubuntu 20.04 runner
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v3  # Checkout the code from the repository
 
@@ -39,23 +39,20 @@ jobs:
         # Set up the Rust environment (e.g., install nightly, Rust components)
         uses: ./.github/actions/setup-rust/
 
-      - name: Cargo build
-        # Build the Trident workspace
-        run: cargo build --release --all-features
-      - name: Cargo fmt
+      - name: Format
         # Run cargo fmt to check if the code is formatted correctly
-        run: cargo fmt --check
-      - name: Cargo clippy
+        run: make format-checks
+      - name: Clippy
         # Run Clippy to check for code linting issues and fail on warnings
-        run: cargo clippy -- -D warnings
-      - name: Cargo test
+        run: make clippy
+      - name: Test
         # Run tests to ensure the project works as expected
-        run: cargo test
+        run: make test
 
 
   checks:
     name: Lint-Workspace (Checks)
     needs: lint
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
       - run: echo "Lint Workspace completed successfully"

@@ -1,32 +1,64 @@
+use crate::coverage::Coverage;
+use crate::metrics::Metrics;
+use crate::regression::Regression;
 use crate::utils::resolve_path;
-use base64::{prelude::BASE64_STANDARD, Engine};
-use serde::{Deserialize, Serialize};
-use solana_sdk::{
-    account::{AccountSharedData, WritableAccount},
-    pubkey::Pubkey,
-};
-use std::{fs, str::FromStr};
+use base64::prelude::BASE64_STANDARD;
+use base64::Engine;
+use serde::Deserialize;
+use serde::Serialize;
+use solana_sdk::account::AccountSharedData;
+use solana_sdk::account::WritableAccount;
+use solana_sdk::pubkey::Pubkey;
+use std::fs;
+use std::str::FromStr;
 
 #[derive(Debug, Deserialize, Clone, Default)]
 pub struct Fuzz {
-    pub fuzzing_with_stats: Option<bool>,
-    pub allow_duplicate_txs: Option<bool>,
+    metrics: Option<Metrics>,
+    regression: Option<Regression>,
     pub programs: Option<Vec<_FuzzProgram>>,
     pub accounts: Option<Vec<_FuzzAccount>>,
+    pub coverage: Option<Coverage>,
 }
 
 impl Fuzz {
-    pub fn get_fuzzing_with_stats(&self) -> bool {
-        self.fuzzing_with_stats.unwrap_or(false)
+    pub fn get_metrics(&self) -> bool {
+        match self.metrics.as_ref() {
+            Some(metrics) => metrics.enabled.unwrap_or(false),
+            None => false,
+        }
     }
-    pub fn get_allow_duplicate_txs(&self) -> bool {
-        self.allow_duplicate_txs.unwrap_or(false)
+
+    pub fn get_metrics_json(&self) -> bool {
+        match self.metrics.as_ref() {
+            Some(metrics) => metrics.json.unwrap_or(false),
+            None => false,
+        }
+    }
+
+    pub fn get_metrics_dashboard(&self) -> bool {
+        match self.metrics.as_ref() {
+            Some(metrics) => metrics.dashboard.unwrap_or(false),
+            None => false,
+        }
+    }
+
+    pub fn get_regression(&self) -> bool {
+        match self.regression.as_ref() {
+            Some(regression) => regression.enabled.unwrap_or(false),
+            None => false,
+        }
+    }
+
+    pub fn get_coverage(&self) -> Coverage {
+        self.coverage.clone().unwrap_or_default()
     }
 }
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct _FuzzProgram {
     pub address: String,
+    pub upgrade_authority: Option<String>,
     pub program: String,
 }
 
@@ -39,6 +71,7 @@ pub struct _FuzzAccount {
 #[derive(Debug, Deserialize, Clone)]
 pub struct FuzzProgram {
     pub address: Pubkey,
+    pub upgrade_authority: Option<Pubkey>,
     pub data: Vec<u8>,
 }
 
@@ -46,6 +79,11 @@ impl From<&_FuzzProgram> for FuzzProgram {
     fn from(_f: &_FuzzProgram) -> Self {
         let program_path = &_f.program;
         let program_address = &_f.address;
+
+        let upgrade_authority = _f
+            .upgrade_authority
+            .as_ref()
+            .map(|upgrade_authority| Pubkey::from_str(upgrade_authority).unwrap());
 
         let path = resolve_path(program_path);
 
@@ -57,6 +95,7 @@ impl From<&_FuzzProgram> for FuzzProgram {
 
         FuzzProgram {
             address: pubkey,
+            upgrade_authority,
             data: program_data,
         }
     }

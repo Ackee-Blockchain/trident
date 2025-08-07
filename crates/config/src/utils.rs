@@ -1,10 +1,11 @@
-use crate::{argument::Argument, Error, ANCHOR_TOML};
+use crate::constants::TRIDENT_TOML;
+use crate::Error;
+
 use anyhow::Context;
 use fehler::throw;
-use std::{
-    env,
-    path::{Path, PathBuf},
-};
+use std::env;
+use std::path::Path;
+use std::path::PathBuf;
 
 pub(crate) fn resolve_path(filename: &str) -> PathBuf {
     let path = Path::new(filename);
@@ -14,17 +15,6 @@ pub(crate) fn resolve_path(filename: &str) -> PathBuf {
         discover_root()
             .map(|cwd| cwd.join(path))
             .unwrap_or_else(|_| panic!("Failed to resolve relative path: {}", path.display()))
-    }
-}
-
-pub(crate) fn arg_to_string(arg: &Argument) -> Vec<String> {
-    let val = arg.value.clone().unwrap_or_default();
-    if let Some(opt) = &arg.short_opt {
-        vec![opt.clone(), val]
-    } else if let Some(opt) = &arg.long_opt {
-        vec![opt.clone(), val]
-    } else {
-        vec![]
     }
 }
 
@@ -43,7 +33,7 @@ pub fn discover_root() -> Result<PathBuf, Error> {
                 })?
                 .path();
             if let Some(filename) = path.file_name() {
-                if filename.to_str() == Some(ANCHOR_TOML) {
+                if filename.to_str() == Some(TRIDENT_TOML) {
                     return Ok(PathBuf::from(cwd));
                 }
             }

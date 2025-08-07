@@ -1,4 +1,5 @@
 use crate::traits::FuzzClient;
+use crate::trident::Trident;
 
 use super::InstructionHooks;
 
@@ -13,9 +14,5 @@ pub trait InstructionSetters: InstructionHooks {
 
     #[doc(hidden)]
     /// Resolve accounts
-    fn resolve_accounts(
-        &mut self,
-        client: &mut impl FuzzClient,
-        fuzz_accounts: &mut Self::IxAccounts,
-    );
+    fn resolve_accounts(&mut self, trident: &mut Trident, fuzz_accounts: &mut Self::IxAccounts);
 }

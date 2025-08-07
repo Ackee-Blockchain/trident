@@ -28,22 +28,26 @@ impl InstructionSetters for SomeInstruction {
 
     fn set_remaining_accounts(
         &mut self,
-        client: &mut impl FuzzClient,
+        trident: &mut Trident,
         fuzz_accounts: &mut Self::IxAccounts,
     ) {
+
+        // Generate random account id
+        let account_id = trident.gen_range(0..3);
+
         // Get the account from storage using the generated index
-        let owner = fuzz_accounts
+        let remaining_account1 = fuzz_accounts
             .owner
-            .get_or_create(self.remaining_accounts.remaining_accounts[0].account_id, client, None, None);
+            .get_or_create(account_id, trident, None, None);
 
         // Configure the account meta with:
         // - Account public key
         // - is_signer flag (false in this example)
         // - is_writable flag (true in this example)
         self.remaining_accounts.remaining_accounts[0].set_account_meta(
-            owner,
-            false,
-            true
+            remaining_account1,
+            false, // is_signer
+            true // is_writable
         );
     }
 }

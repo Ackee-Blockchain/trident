@@ -1,0 +1,8 @@
+[fuzz.metrics]
+enabled = true
+
+{% for program in programs %}
+[[fuzz.programs]]
+address = "{{ program.program_id }}"
+program = "../target/deploy/{{ program.name }}.so"
+{% endfor %} 

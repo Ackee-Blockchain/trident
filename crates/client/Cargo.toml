@@ -9,18 +9,11 @@ license-file = { workspace = true }
 readme = { workspace = true }
 
 
-# Trident
-[dependencies.trident-fuzz]
-path = "../fuzz"
-version = "0.10.0"
-
 [dependencies.trident-config]
-path = "../config"
-version = "0.10.0"
+workspace = true
 
 [dependencies.trident-template]
-path = "../template"
-version = "0.10.0"
+workspace = true
 
 
 [dependencies]
@@ -36,9 +29,19 @@ thiserror = "1"
 anyhow = "1"
 cargo_metadata = "0.18"
 toml = { version = "0.8", features = ["preserve_order"] }
-pathdiff = "0.2"
 rand = "0.8"
 heck = "0.4.0"
+reqwest = { version = "0.11", features = ["json"] }
+hex = "0.4"
+chrono = { version = "0.4", features = ["serde"] }
+
+# HTTP Server
+axum = "0.7"
+tower = "0.4"
+tower-http = { version = "0.5", features = ["fs", "cors"] }
+notify = "6.0"
+
 
 [dev-dependencies]
 pretty_assertions = "1.1.0"
+tempfile = "3.0"

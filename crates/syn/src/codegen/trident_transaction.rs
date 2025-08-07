@@ -1,5 +1,6 @@
 use proc_macro2::TokenStream;
-use quote::{quote, ToTokens};
+use quote::quote;
+use quote::ToTokens;
 
 use crate::types::trident_transaction::TridentTransactionStruct;
 
@@ -9,20 +10,17 @@ impl ToTokens for TridentTransactionStruct {
         let field_idents = self.fields.iter().map(|f| &f.ident).collect::<Vec<_>>();
 
         // Generate the name implementation
-        let name_impl = match &self.custom_name {
-            Some(custom) => quote! { #custom.to_string() },
-            None => quote! { stringify!(#name).to_string() },
-        };
+        let name_impl = quote! { stringify!(#name).to_string() };
 
         // Generate instruction blocks for each field
         let instruction_blocks = self.fields.iter().map(|f| {
             let field_ident = &f.ident;
             quote! {
                 {
-                    self.#field_ident.set_data(client, fuzz_accounts);
-                    self.#field_ident.resolve_accounts(client, fuzz_accounts);
-                    self.#field_ident.set_accounts(client, fuzz_accounts);
-                    self.#field_ident.set_remaining_accounts(client, fuzz_accounts);
+                    self.#field_ident.set_data(trident, fuzz_accounts);
+                    self.#field_ident.resolve_accounts(trident, fuzz_accounts);
+                    self.#field_ident.set_accounts(trident, fuzz_accounts);
+                    self.#field_ident.set_remaining_accounts(trident, fuzz_accounts);
                 }
             }
         });
@@ -83,24 +81,13 @@ impl ToTokens for TridentTransactionStruct {
 
                 fn set_instructions(
                     &mut self,
-                    client: &mut impl FuzzClient,
+                    trident: &mut Trident,
                     fuzz_accounts: &mut Self::IxAccounts,
                 ) {
                     #(#instruction_blocks)*
                 }
             }
 
-            impl TransactionMethods for #name {
-                fn build(
-                    fuzzer_data: &mut FuzzerData,
-                    client: &mut impl FuzzClient,
-                    fuzz_accounts: &mut Self::IxAccounts,
-                ) -> arbitrary::Result<Self> {
-                    let mut tx = Self::arbitrary(fuzzer_data)?;
-                    tx.set_instructions(client, fuzz_accounts);
-                    Ok(tx)
-                }
-            }
         };
 
         tokens.extend(expanded);

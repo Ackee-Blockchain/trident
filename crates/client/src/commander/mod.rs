@@ -1,18 +1,21 @@
-use fehler::{throw, throws};
-use std::path::{Path, PathBuf};
-use std::{io, process::Stdio, string::FromUtf8Error};
+use anyhow::Context;
+use fehler::throw;
+use fehler::throws;
+use std::env;
+use std::io;
+use std::path::Path;
+use std::path::PathBuf;
+use std::process::Stdio;
+use std::string::FromUtf8Error;
 use thiserror::Error;
-use tokio::{
-    io::AsyncWriteExt,
-    process::{Child, Command},
-    signal,
-};
+use tokio::io::AsyncWriteExt;
+use tokio::process::Child;
+use tokio::process::Command;
+use tokio::signal;
 
-mod afl;
-mod honggfuzz;
+use crate::constants::TESTS_WORKSPACE_DIRECTORY;
 
-use tokio::io::AsyncBufReadExt;
-use trident_fuzz::fuzz_stats::FuzzingStatistics;
+mod fuzz;
 
 #[derive(Error, Debug)]
 pub enum Error {
@@ -24,14 +27,14 @@ pub enum Error {
     BuildProgramsFailed,
     #[error("fuzzing failed")]
     FuzzingFailed,
-    #[error("Trident it not correctly initialized! The trident-tests folder in the root of your project does not exist")]
-    NotInitialized,
-    #[error("the crash file does not exist")]
-    CrashFileNotFound,
-    #[error("The Solana project does not contain any programs")]
-    NoProgramsFound,
-    #[error("Incorrect AFL workspace provided")]
-    BadAFLWorkspace,
+    #[error("Fuzzing found failing invariants or unhandled panics")]
+    FuzzingFailedInvariantOrPanic,
+    #[error("Coverage error: {0}")]
+    Coverage(#[from] crate::coverage::CoverageError),
+    #[error("Cannot find the trident-tests directory in the current workspace")]
+    BadWorkspace,
+    #[error("{0:?}")]
+    Anyhow(#[from] anyhow::Error),
 }
 
 /// `Commander` allows you to start localnet, build programs,
@@ -42,25 +45,17 @@ pub struct Commander {
 }
 
 impl Commander {
-    /// Creates a new `Commander` instance with the provided `root`.
-    pub fn with_root(root: &PathBuf) -> Self {
+    pub fn new(root: &str) -> Self {
         Self {
             root: Path::new(&root).to_path_buf(),
         }
     }
-    pub fn get_anchor_version() -> Result<String, std::io::Error> {
-        let output = std::process::Command::new("anchor")
-            .arg("--version")
-            .output()?;
-
-        let version = String::from_utf8_lossy(&output.stdout).trim().to_string();
-        Ok(version)
-    }
 
     #[throws]
-    pub async fn build_anchor_project(program_name: Option<String>) {
+    pub async fn build_anchor_project(root: &Path, program_name: Option<String>) {
         let mut cmd = Command::new("anchor");
         cmd.arg("build");
+        cmd.current_dir(root);
 
         if let Some(name) = program_name {
             cmd.args(["-p", name.as_str()]);
@@ -121,14 +116,22 @@ impl Commander {
     /// # Errors
     /// * Throws `Error::FuzzingFailed` if waiting on the child process fails.
     #[throws]
-    async fn handle_child(child: &mut Child) {
+    async fn handle_child(child: &mut Child, with_exit_code: bool) {
         tokio::select! {
             res = child.wait() =>
                 match res {
-                    Ok(status) => if !status.success() {
-                        throw!(Error::FuzzingFailed);
+                    Ok(status) => match status.code() {
+                        Some(code) => {
+                            match (code, with_exit_code) {
+                                (0, _) => {} // fuzzing did not find any failing invariants or panics and we dont care about exit code
+                                (99, true) => throw!(Error::FuzzingFailedInvariantOrPanic), // fuzzing found failing invariants or panics and we care about exit code
+                                (99, false) => {} // fuzzing found failing invariants or panics and we dont care about exit code
+                                (_, _) => throw!(Error::FuzzingFailed), // fuzzing failed for some other reason so we care about exit code
+                            }
+                        }
+                        None => throw!(Error::FuzzingFailed),
                     },
-                    Err(_) => throw!(Error::FuzzingFailed),
+                    Err(e) => throw!(e),
             },
             _ = signal::ctrl_c() => {
                 let _res = child.wait().await?;
@@ -137,174 +140,49 @@ impl Commander {
             },
         }
     }
-    /// Asynchronously manages a child fuzzing process, collecting and logging its statistics.
-    /// This function spawns a new task dedicated to reading the process's standard output and logging the fuzzing statistics.
-    /// It waits for either the child process to exit or a Ctrl+C signal to be received. Upon process exit or Ctrl+C signal,
-    /// it stops the logging task and displays the collected statistics in a table format.
-    ///
-    /// The implementation ensures that the statistics logging task only stops after receiving a signal indicating the end of the fuzzing process
-    /// or an interrupt from the user, preventing premature termination of the logging task if scenarios where reading is faster than fuzzing,
-    /// which should not be common.
-    ///
-    /// # Arguments
-    /// * `child` - A mutable reference to a `Child` process, representing the child fuzzing process.
-    ///
-    /// # Errors
-    /// * `Error::FuzzingFailed` - Thrown if there's an issue with managing the child process, such as failing to wait on the child process.
     #[throws]
-    async fn handle_child_with_stats(child: &mut Child) {
-        let stdout = child
-            .stdout
-            .take()
-            .expect("child did not have a handle to stdout");
+    pub async fn clean_target(&self) {
+        self.clean_anchor_target().await?;
+        self.clean_fuzz_target().await?;
+    }
 
-        let reader = tokio::io::BufReader::new(stdout);
+    #[throws]
+    async fn clean_anchor_target(&self) {
+        Command::new("anchor").arg("clean").spawn()?.wait().await?;
+    }
 
-        let fuzz_end = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false));
-        let fuzz_end_clone = std::sync::Arc::clone(&fuzz_end);
+    #[throws]
+    #[allow(dead_code)]
+    async fn clean_fuzz_target(&self) {
+        let trident_tests_dir = self.root.join(TESTS_WORKSPACE_DIRECTORY);
+        Command::new("cargo")
+            .arg("clean")
+            .current_dir(trident_tests_dir)
+            .spawn()?
+            .wait()
+            .await?;
+    }
 
-        let stats_handle: tokio::task::JoinHandle<Result<FuzzingStatistics, std::io::Error>> =
-            tokio::spawn(async move {
-                let mut stats_logger = FuzzingStatistics::new();
-
-                let mut lines = reader.lines();
-                loop {
-                    let _line = lines.next_line().await;
-                    match _line {
-                        Ok(__line) => match __line {
-                            Some(content) => {
-                                stats_logger.insert_serialized(&content);
-                            }
-                            None => {
-                                if fuzz_end_clone.load(std::sync::atomic::Ordering::SeqCst) {
-                                    break;
-                                }
-                            }
-                        },
-                        Err(e) => return Err(e),
+    pub fn get_target_dir(&self) -> Result<String, Error> {
+        let current_dir = env::current_dir()?;
+        let mut dir = Some(current_dir.as_path());
+        while let Some(cwd) = dir {
+            for file in std::fs::read_dir(cwd).with_context(|| {
+                format!("Error reading the directory with path: {}", cwd.display())
+            })? {
+                let path = file
+                    .with_context(|| {
+                        format!("Error reading the directory with path: {}", cwd.display())
+                    })?
+                    .path();
+                if let Some(filename) = path.file_name() {
+                    if filename.to_str() == Some("trident-tests") {
+                        return Ok(path.join("target").to_str().unwrap().to_string());
                     }
                 }
-                Ok(stats_logger)
-            });
-
-        tokio::select! {
-            res = child.wait() =>{
-                fuzz_end.store(true, std::sync::atomic::Ordering::SeqCst);
-
-                match res {
-                    Ok(status) => {
-                        if !status.success() {
-                            throw!(Error::FuzzingFailed);
-                        }
-                    },
-                    Err(_) => throw!(Error::FuzzingFailed),
-                }
-            },
-            _ = signal::ctrl_c() => {
-                fuzz_end.store(true, std::sync::atomic::Ordering::SeqCst);
-                tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
-            },
-        }
-        let stats_result = stats_handle
-            .await
-            .expect("Unable to obtain Statistics Handle");
-        match stats_result {
-            Ok(stats_result) => {
-                stats_result.show_table();
             }
-            Err(e) => {
-                println!("Statistics thread exited with the Error: {}", e);
-            }
+            dir = cwd.parent();
         }
+        throw!(Error::BadWorkspace);
     }
-}
-
-fn get_crash_dir_and_ext(
-    root: &Path,
-    target: &str,
-    hfuzz_run_args: &str,
-    hfuzz_workspace: &str,
-) -> (PathBuf, String) {
-    // FIXME: we split by whitespace without respecting escaping or quotes - same approach as honggfuzz-rs so there is no point to fix it here before the upstream is fixed
-    let hfuzz_run_args = hfuzz_run_args.split_whitespace();
-
-    let extension =
-        get_cmd_option_value(hfuzz_run_args.clone(), "-e", "--ext").unwrap_or("fuzz".to_string());
-
-    // If we run fuzzer like:
-    // HFUZZ_WORKSPACE="./new_hfuzz_workspace" HFUZZ_RUN_ARGS="--crashdir ./new_crash_dir -W ./new_workspace" cargo hfuzz run
-    // The structure will be as follows:
-    // ./new_hfuzz_workspace - will contain inputs
-    // ./new_crash_dir - will contain crashes
-    // ./new_workspace - will contain report
-    // So finally , we have to give precedence:
-    // --crashdir > --workspace > HFUZZ_WORKSPACE
-    let crash_dir = get_cmd_option_value(hfuzz_run_args.clone(), "", "--cr")
-        .or_else(|| get_cmd_option_value(hfuzz_run_args.clone(), "-W", "--w"));
-
-    let crash_path = if let Some(dir) = crash_dir {
-        // INFO If path is absolute, it replaces the current path.
-        root.join(dir)
-    } else {
-        std::path::Path::new(hfuzz_workspace).join(target)
-    };
-
-    (crash_path, extension)
-}
-
-fn get_cmd_option_value<'a>(
-    hfuzz_run_args: impl Iterator<Item = &'a str>,
-    short_opt: &str,
-    long_opt: &str,
-) -> Option<String> {
-    let mut args_iter = hfuzz_run_args;
-    let mut value: Option<String> = None;
-
-    // ensure short option starts with one dash and long option with two dashes
-    let short_opt = format!("-{}", short_opt.trim_start_matches('-'));
-    let long_opt = format!("--{}", long_opt.trim_start_matches('-'));
-
-    while let Some(arg) = args_iter.next() {
-        match arg.strip_prefix(&short_opt) {
-            Some(val) if short_opt.len() > 1 => {
-                if !val.is_empty() {
-                    // -ecrash for crash extension with no space
-                    value = Some(val.to_string());
-                } else if let Some(next_arg) = args_iter.next() {
-                    // -e crash for crash extension with space
-                    value = Some(next_arg.to_string());
-                } else {
-                    value = None;
-                }
-            }
-            _ => {
-                if arg.starts_with(&long_opt) && long_opt.len() > 2 {
-                    value = args_iter.next().map(|a| a.to_string());
-                }
-            }
-        }
-    }
-
-    value
-}
-
-fn get_crash_files(
-    dir: &PathBuf,
-    extension: &str,
-) -> Result<Vec<PathBuf>, Box<dyn std::error::Error>> {
-    let paths = std::fs::read_dir(dir)?
-        // Filter out all those directory entries which couldn't be read
-        .filter_map(|res| res.ok())
-        // Map the directory entries to paths
-        .map(|dir_entry| dir_entry.path())
-        // Filter out all paths with extensions other than `extension`
-        .filter_map(|path| {
-            if path.extension().is_some_and(|ext| ext == extension) {
-                Some(path)
-            } else {
-                None
-            }
-        })
-        .collect::<Vec<_>>();
-    Ok(paths)
 }
