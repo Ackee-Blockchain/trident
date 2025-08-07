@@ -22,8 +22,10 @@ macro_rules! load_template {
     about = "Trident is Rust based fuzzer for Solana programs written using Anchor framework."
 )]
 struct Cli {
+    #[arg(short = 'v', long, help = "Print version information")]
+    version: bool,
     #[clap(subcommand)]
-    command: Command,
+    command: Option<Command>,
 }
 
 #[derive(Subcommand)]
@@ -80,15 +82,30 @@ enum Command {
 pub async fn start() {
     let cli = Cli::parse();
 
-    match cli.command {
-        Command::How => command::howto()?,
-        Command::Fuzz { subcmd } => command::fuzz(subcmd).await?,
-        Command::Init {
-            force,
-            program_name,
-            test_name,
-        } => command::init(force, program_name, test_name).await?,
-        Command::Clean => command::clean().await?,
+    match (cli.version, cli.command) {
+        (true, _) => {
+            println!(
+                "{} - {} \n{}",
+                "version",
+                env!("CARGO_PKG_VERSION"),
+                "https://ackee.xyz/trident/docs/latest/"
+            );
+            return;
+        }
+        (false, Some(command)) => match command {
+            Command::How => command::howto()?,
+            Command::Fuzz { subcmd } => command::fuzz(subcmd).await?,
+            Command::Init {
+                force,
+                program_name,
+                test_name,
+            } => command::init(force, program_name, test_name).await?,
+            Command::Clean => command::clean().await?,
+        },
+        (false, None) => {
+            // No command provided, show help
+            Cli::parse_from(["trident", "--help"]);
+        }
     }
 }
 
