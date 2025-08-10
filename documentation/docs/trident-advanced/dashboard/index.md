@@ -14,4 +14,12 @@ Features:
 - **Browser Access**: Open in any web browser without additional software
 - **Comprehensive Analysis**: Insights into instruction coverage and account interactions
 
-For configuration details, see the [Fuzzing Metrics section](../../trident-manifest/index.md#fuzzing-metrics) in the Trident manifest documentation.
+## Viewing the Dashboard
+
+1. Enable the dashboard in the [Trident manifest](../../trident-manifest/index.md#fuzzing-metrics) by setting `dashboard = true`
+2. Run the fuzz test to generate dashboard data
+3. Start the dashboard server:
+   ```bash
+   trident server
+   ```
+4. Open your browser and navigate to the provided URL (typically `http://localhost:8080`)
