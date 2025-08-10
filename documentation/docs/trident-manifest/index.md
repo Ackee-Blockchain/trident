@@ -54,6 +54,7 @@ The coverage configuration enables code coverage analysis during fuzzing session
 
     Coverage is only gathered for the programs deployed through an entrypoint!
 
+<a id="entrypoint-deployment"></a>
 ??? note "Entrypoint deployment guide"
   
     1. Comment out the program in `Trident.toml`
