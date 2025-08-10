@@ -43,7 +43,7 @@ You have two options for displaying coverage data: generate an HTML report for b
 For real-time coverage monitoring during fuzzing:
 
 1. Set `format = "json"` in the [Trident manifest](../../trident-manifest/index.md#fuzzing-coverage)
-2. Set `loopcount` to a value other than `0` e.g., `5` for frequent updates, for more info check out [Trident manifest](../../trident-manifest/index.md#fuzzing-coverage)
+2. Set `loopcount` to a value other than `0` e.g., `5` for frequent updates, for more info check out [Trident manifest](.../../trident-manifest/index.md#entrypoint-deployment)
 3. Install the [Solana VS Code extension](https://marketplace.visualstudio.com/items?itemName=AckeeBlockchain.solana)
 4. Choose one of these options:
     - **Automatic**: Set `attach_extension = true` in the [Trident manifest](../../trident-manifest/index.md#fuzzing-coverage) to automatically show live updates while the fuzz test is running
