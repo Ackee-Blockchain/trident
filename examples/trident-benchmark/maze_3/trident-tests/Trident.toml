@@ -2,13 +2,10 @@
 
 [fuzz.metrics]
 enabled = true
-dashboard = false
-json = false
 
-[fuzz.regression]
-enabled = true
+
+
 
 [[fuzz.programs]]
-address = "FtevoQoDMv6ZB3N9Lix5Tbjs8EVuNL8vDSqG9kzaZPit"
-program = "../target/deploy/hello_world.so"
- 
+address = "5e554BrmQN7a2nbKrSUUxP8PMbq55rMntnkoCPmwr3Aq"
+program = "../target/deploy/maze3.so"
