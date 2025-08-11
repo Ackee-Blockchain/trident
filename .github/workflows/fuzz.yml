@@ -11,179 +11,81 @@ on:
       - master
 
 env:
-  SOLANA_VERSION: "2.2.16"
-
+  SOLANA_VERSION: "v2.2.16"
+  RUST_VERSION: "1.86"
 
 jobs:
-  Fuzz-Tests:
-    name: Fuzz Tests
+  fuzz-tests:
+    name: Fuzz Tests - ${{ matrix.test.name }}
     runs-on: ubuntu-24.04
-    steps:
-      - run: echo "Starting Fuzz Tests"
-
-  simple-cpi:
-    name: Fuzz Tests - Simple CPI
-    needs: Fuzz-Tests
-    # Runs on an Ubuntu 20.04 runner
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@v3
-        name: Checkout Repository  # Checkout the repository to get access to the project files
-
-      # https://github.com/Swatinem/rust-cache
-      - name: Cache Rust and its Packages
-        # Caches Rust dependencies to avoid redundant downloads and speed up builds
-        uses: Swatinem/rust-cache@v2
-        with:
-          prefix-key: "fuzz"
-          shared-key: "trident-rust-cache"  # Using a shared cache key for multiple jobs
-
-      - name: Setup Rust Environment
-        # Sets up the Rust environment (e.g., installing Rust and required components)
-        uses: ./.github/actions/setup-rust/
-
-      - name: Install Trident
-        # Sets up the Trident
-        uses: ./.github/actions/setup-trident/
-
-      - name: Setup Solana CLI
-        # Sets up the Solana CLI
-        uses: ./.github/actions/setup-solana/
-
-      # Cache the target folder
-      - name: Cache Target Folder
-        uses: actions/cache@v3
-        with:
-          path: examples/cpi/target  # Cache the folder where build artifacts are stored
-          key: target-${{ runner.os }}-simple-cpi-build 
-
-      # Build the Solana program
-      - name: Run Solana CLI
-        working-directory: examples/cpi
-        run: cargo build-sbf
-
-      # Cache the target folder
-      - name: Cache Target Folder
-        uses: actions/cache@v3
-        with:
-          path: examples/cpi/trident-tests/target  # Cache the folder where build artifacts are stored
-          key: target-${{ runner.os }}-simple-cpi 
-
-      # Run the fuzzing test using Trident in the simple-cpi-6 directory
-      - name: Test Fuzz
-        working-directory: examples/cpi/trident-tests  # Set the working directory for the fuzzing test
-        run: trident fuzz run fuzz_0  # Run the fuzz test with trident
-
-  maze-0:
-    name: Fuzz Tests - Trident Benchmark Maze 0
-    needs: Fuzz-Tests
-    # Runs on an Ubuntu 20.04 runner for a different fuzz test
-    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        test:
+          - name: "Simple CPI"
+            path: "examples/cpi"
+            cache-key: "simple-cpi"
+          - name: "Trident Benchmark Maze 0"
+            path: "examples/trident-benchmark/maze_0"
+            cache-key: "maze-0"
+          - name: "Trident Benchmark Maze 1"
+            path: "examples/trident-benchmark/maze_1"
+            cache-key: "maze-1"
+          - name: "Trident Benchmark Maze 2"
+            path: "examples/trident-benchmark/maze_2"
+            cache-key: "maze-2"
+          - name: "Trident Benchmark Maze 3"
+            path: "examples/trident-benchmark/maze_3"
+            cache-key: "maze-3"
+          - name: "Trident Benchmark Maze 4"
+            path: "examples/trident-benchmark/maze_4"
+            cache-key: "maze-4"
+          - name: "Metaplex CPI"
+            path: "examples/metaplex"
+            cache-key: "metaplex"
+    
     steps:
       - uses: actions/checkout@v3
-        name: Checkout Repository  # Checkout the repository
+        name: Checkout Repository
 
-      # https://github.com/Swatinem/rust-cache
-      - name: Cache Rust and its Packages
-        # Caches Rust dependencies to avoid redundant downloads and speed up builds
+      - name: Install system packages
+        run: sudo apt-get update && sudo apt-get install -y build-essential libudev-dev protobuf-compiler libprotobuf-dev
+        shell: bash
+
+      - uses: hubbleprotocol/solana-setup-action@v0.5
+        id: solana-setup
+        with:
+          solana-version: ${{ env.SOLANA_VERSION }}
+          rust-version: ${{ env.RUST_VERSION }}
+          rust-shared-key: "trident-testing"
+
+      - name: Rust Cache
+        id: rust-cache
         uses: Swatinem/rust-cache@v2
         with:
-          prefix-key: "fuzz" # Using a locally shared cache key
-          shared-key: "trident-rust-cache"  # Using a shared cache key for multiple jobs
-
-      - name: Setup Rust Environment
-        # Sets up the Rust environment (e.g., installing Rust and required components)
-        uses: ./.github/actions/setup-rust/
-
-      - name: Install Trident
-        # Sets up the Trident
-        uses: ./.github/actions/setup-trident/
-
-      - name: Setup Solana CLI
-        # Sets up the Solana CLI
-        uses: ./.github/actions/setup-solana/
-
-      # Cache the target folder
-      - name: Cache Target Folder
-        uses: actions/cache@v3
-        with:
-          path: examples/trident-benchmark/maze_0/target  # Cache the folder where build artifacts are stored
-          key: target-${{ runner.os }}-maze-0-build 
-
-      # Build the Solana program
-      - name: Run Solana CLI
-        working-directory: examples/trident-benchmark/maze_0
-        run: cargo build-sbf
-
-      # Cache the target folder
-      - name: Cache Target Folder
-        uses: actions/cache@v3
-        with:
-          path: examples/trident-benchmark/maze_0/trident-tests/target  # Cache the folder where build artifacts are stored
-          key: target-${{ runner.os }}-maze-0 
-
-      # Run the fuzzing test using Trident in the arbitrary-limit-inputs-5 directory
-      - name: Test Fuzz
-        working-directory: examples/trident-benchmark/maze_0/trident-tests  # Set the working directory for the fuzzing test
-        run: trident fuzz run fuzz_0  # Run the fuzz test with trident
-
-  metaplex:
-    name: Fuzz Tests - Metaplex CPI
-    needs: Fuzz-Tests
-    # Runs on an Ubuntu 20.04 runner for a different fuzz test
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@v3
-        name: Checkout Repository  # Checkout the repository
-
-      # https://github.com/Swatinem/rust-cache
-      - name: Cache Rust and its Packages
-        # Caches Rust dependencies to avoid redundant downloads and speed up builds
-        uses: Swatinem/rust-cache@v2
-        with:
-          prefix-key: "fuzz" # Using a locally shared cache key
-          shared-key: "trident-rust-cache"  # Using a shared cache key for multiple jobs
-
-      - name: Setup Rust Environment
-        # Sets up the Rust environment (e.g., installing Rust and required components)
-        uses: ./.github/actions/setup-rust/
+          cache-on-failure: true
+          shared-key: "trident-fuzzing"
+          key: fuzz-tests-${{ runner.os }}-${{ matrix.test.cache-key }}
+          workspaces: |
+            ./${{ matrix.test.path }}
+            ./${{ matrix.test.path }}/trident-tests
 
       - name: Install Trident
-        # Sets up the Trident
+        if: steps.rust-cache.outputs.cache-hit != 'true'
         uses: ./.github/actions/setup-trident/
 
-      - name: Setup Solana CLI
-        # Sets up the Solana CLI
-        uses: ./.github/actions/setup-solana/
-
-
-      # Cache the target folder
-      - name: Cache Target Folder
-        uses: actions/cache@v3
-        with:
-          path: examples/metaplex/target  # Cache the folder where build artifacts are stored
-          key: target-${{ runner.os }}-metaplex-build 
-
-      # Build the Solana program
-      - name: Run Solana CLI
-        working-directory: examples/metaplex
+      - name: Build Solana Program
+        working-directory: ${{ matrix.test.path }}
         run: cargo build-sbf
 
-      # Cache the target folder
-      - name: Cache Target Folder
-        uses: actions/cache@v3
-        with:
-          path: examples/metaplex/trident-tests/target  # Cache the folder where build artifacts are stored
-          key: target-${{ runner.os }}-metaplex 
+      - name: Run Fuzz Test
+        working-directory: ${{ matrix.test.path }}/trident-tests
+        run: trident fuzz run fuzz_0
 
-      # Run the fuzzing test using Trident in the cpi-metaplex-7 directory
-      - name: Test Fuzz
-        working-directory: examples/metaplex/trident-tests  # Set the working directory for the fuzzing test
-        run: trident fuzz run fuzz_0  # Run the fuzz test with trident
 
   checks:
     name: Fuzz Tests (Checks)
-    needs: [metaplex, maze-0, simple-cpi]
+    needs: fuzz-tests
     runs-on: ubuntu-24.04
     steps:
       - run: echo "All fuzz tests completed successfully"

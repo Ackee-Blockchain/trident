@@ -482,6 +482,8 @@ impl TridentFlowExecutorImpl {
 
             #metrics_output
 
+            println!("MASTER SEED used: {:?}", &hex::encode(master_seed));
+
             std::process::exit(exit_code);
         }
     }

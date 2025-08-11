@@ -61,8 +61,6 @@ impl Commander {
                 "FUZZING_REGRESSION",
                 regression_path.to_string_lossy().to_string(),
             );
-
-            println!("FUZZING_REGRESSION: {}", regression_path.to_string_lossy());
         }
 
         let coverage_config = config.get_coverage();
