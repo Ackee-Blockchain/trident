@@ -8,18 +8,6 @@ This section describes the methods that are available in the `FuzzClient`.
 
 ## Trident Client Methods
 
-### `new_client`
-
-Creates a new instance of the fuzzing client.
-
-!!! warning "Internal Method"
-    This method is internal and should not be called directly.
-
-```rust
-fn new_client() -> Self
-```
-
----
 
 ### `deploy_entrypoint`
 
@@ -123,33 +111,4 @@ Retrieves the most recent blockhash.
 
 ```rust
 fn get_last_blockhash(&self) -> Hash
-```
-
----
-
-### `_process_instructions`
-
-Executes a set of instructions and waits for them to be either finalized or rejected.
-
-!!! warning "Internal Method"
-    This method is internal and should not be called directly.
-
-```rust
-fn _process_instructions(
-    &mut self,
-    instructions: &[Instruction],
-) -> trident_svm::prelude::solana_svm::transaction_processor::LoadAndExecuteSanitizedTransactionsOutput
-```
-
----
-
-### `_clear_accounts`
-
-Removes temporary accounts created during the fuzzing iteration.
-
-!!! warning "Internal Method"
-    This method is internal and should not be called directly.
-
-```rust
-fn _clear_accounts(&mut self)
 ```

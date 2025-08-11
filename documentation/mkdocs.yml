@@ -38,6 +38,8 @@ nav:
           - trident-advanced/code-coverage/index.md
       - Dashboard:
           - trident-advanced/dashboard/index.md
+      - Regression Testing:
+          - trident-advanced/regression/index.md
   - API & Macro Reference:
       - trident-api-macro/index.md
       - Trident:

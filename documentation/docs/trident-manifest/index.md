@@ -6,30 +6,33 @@ Trident supports its own Trident Manifest, called `Trident.toml`. This section d
 
 ```bash
 [fuzz.metrics]
-fuzzing_with_stats = true
-dashboard = true
-state_monitor = false
+enabled = true
+dashboard = false
+json = false
 ```
 
 
-- `fuzzing_with_stats` - Trident will show statistics after the fuzzing session.
-- `dashboard` - Trident will save a dashboard after the fuzzing session.
-- `state_monitor` - Trident will save a state monitor after the fuzzing session.
+- `enabled` - Trident will show and save statistics after the fuzzing session.
+- `dashboard` - Trident will save a HTML dashboard after the fuzzing session.
+- `json` - Trident will save a JSON file after the fuzzing session.
 
+---
 
-!!! note "Dashboard"
+## Regression testing
 
-    - Dashboard is HTML file created by Trident.
-    - It can be opened in any preferred web browser, to see the results of the fuzzing session.
+```bash
+[fuzz.regression]
+enabled = true
+```
 
+- `enabled` - Trident will save a JSON file with all monitored states after the fuzzing session.
 
-!!! note "State monitoring"
+!!! note "Regression testing"
 
-    - State monitoring is experimental feature. Accounts which you want to monitor can be specified with `trident.monitor_account_state` method. The method tracks contents of data stored in the account when the method is called. The `state_monitor` will create one state hash at the end of fuzzing session, and json file containing hashes created during fuzzing.
-    - This feature can be used to compare two fuzzing sessions, for example in case significant refactor of the programs was done and you want to check if the program is still working as expected.
     - Keep in mind that the feature hashes contents of accounts, if the contents are dependant for example on time, the final hash might not be the same as the one from the first fuzzing session.
 
 ---
+
 
 ## Fuzzing Coverage
 
@@ -68,7 +71,7 @@ The coverage configuration enables code coverage analysis during fuzzing session
       [dependencies.example_program]
       path = "../programs/example_program"
      ```
-    3. Add `syscall-v1` or `syscall-v2` feature depending on the version of `solana-sdk`
+    3. Add `syscall-v1` or `syscall-v2` feature depending on the version of `solana-program`. Programs written for `solana-program` v1.x should use `syscall-v1`, programs written for `solana-program` v2.x should use `syscall-v2` feature.
      ```toml
       [dependencies.trident-fuzz]
       features = ["syscall-v2"]
