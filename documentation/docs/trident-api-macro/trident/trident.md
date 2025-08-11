@@ -104,7 +104,7 @@ pub fn fill_bytes(&mut self, bytes: &mut [u8])
 
 ### `add_histogram_metric`
 
-Adds a value to a histogram metric. Only records if the `FUZZING_METRICS` environment variable is set.
+Adds a value to a histogram metric. Only records if the fuzzing metrics are enabled.
 
 ```rust
 pub fn add_histogram_metric(&mut self, metric_name: &str, value: f64)
@@ -114,7 +114,7 @@ pub fn add_histogram_metric(&mut self, metric_name: &str, value: f64)
 
 ### `add_accumulator_metric`
 
-Adds a value to an accumulator metric. Only records if the `FUZZING_METRICS` environment variable is set.
+Adds a value to an accumulator metric. Only records if the fuzzing metrics are enabled.
 
 ```rust
 pub fn add_accumulator_metric(&mut self, metric_name: &str, value: f64)
@@ -122,65 +122,14 @@ pub fn add_accumulator_metric(&mut self, metric_name: &str, value: f64)
 
 ---
 
-### `monitor_account_state`
+## Regression Testing Methods
 
-Monitors the state of an account for fuzzing metrics. Only records if the `FUZZING_REGRESSION` environment variable is set.
+### `add_to_regression`
+
+Adds an account to the regression test. Only records if the fuzzing regression is enabled.
 
 ```rust
-pub fn monitor_account_state(&mut self, account: &Pubkey, account_name: &str)
+pub fn add_to_regression(&mut self, account: &Pubkey, account_name: &str)
 ```
 
 ---
-
-## Internal Methods
-
-!!! warning "Internal Methods"
-    These methods are used internally by Trident and should not be called directly.
-
-### `_set_master_seed_for_debug`
-
-Sets the master seed for deterministic fuzzing in debug mode.
-
-```rust
-pub fn _set_master_seed_for_debug(&mut self, seed: [u8; 32])
-```
-
----
-
-### `_set_master_seed_and_thread_id`
-
-Sets the master seed and thread ID for multi-threaded fuzzing.
-
-```rust
-pub fn _set_master_seed_and_thread_id(&mut self, seed: [u8; 32], thread_id: usize)
-```
-
----
-
-### `_next_iteration`
-
-Prepares for the next fuzzing iteration by clearing temporary accounts and rotating the seed.
-
-```rust
-pub fn _next_iteration(&mut self)
-```
-
----
-
-### `_get_fuzzing_data`
-
-Returns the current fuzzing data for metrics collection.
-
-```rust
-pub fn _get_fuzzing_data(&self) -> TridentFuzzingData
-```
-
----
-
-### `_get_metrics`
-
-Returns a reference to the fuzzing statistics.
-
-```rust
-pub fn _get_metrics(&self) -> &FuzzingStatistics
-``` 

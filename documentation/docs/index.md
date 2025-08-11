@@ -20,6 +20,7 @@ Explore the various features Trident provides.
  - [Trident Manifest](./trident-manifest/index.md) - Customize your fuzz tests with different configurations
  - [Code Coverage](./trident-advanced/code-coverage/index.md) - Track and display fuzz test code coverage
  - [Dashboard](./trident-advanced/dashboard/index.md) - A web-based interface for visualizing fuzzing session results
+ - [Regression Testing](./trident-advanced/regression/index.md) - Track and compare fuzzing session results
 
 ## API & Macros Reference
 

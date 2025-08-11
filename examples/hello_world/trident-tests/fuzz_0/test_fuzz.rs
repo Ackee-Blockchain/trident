@@ -51,9 +51,8 @@ impl FuzzTest {
     }
 
     #[end]
-    fn cleanup(&mut self) -> Result<(), FuzzingError> {
+    fn cleanup(&mut self) {
         // This method will be called after all flows have been executed
-        Ok(())
     }
 }
 
