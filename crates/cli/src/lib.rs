@@ -15,8 +15,10 @@ use crate::command::FuzzCommand;
     version = env!("CARGO_PKG_VERSION")
 )]
 struct Cli {
+    #[arg(short = 'v', long, help = "Print version information")]
+    version: bool,
     #[clap(subcommand)]
-    command: Command,
+    command: Option<Command>,
 }
 
 #[derive(Subcommand)]
@@ -116,21 +118,36 @@ enum Command {
 pub async fn start() {
     let cli = Cli::parse();
 
-    match cli.command {
-        Command::How => command::howto()?,
-        Command::Fuzz { subcmd } => command::fuzz(subcmd).await?,
-        Command::Init {
-            force,
-            skip_build,
-            program_name,
-            test_name,
-        } => command::init(force, skip_build, program_name, test_name).await?,
-        Command::Clean => command::clean().await?,
-        Command::Server {
-            directory,
-            port,
-            host,
-        } => command::server(directory, port, host).await?,
-        Command::Compare { file1, file2 } => command::compare_regression(file1, file2)?,
+    match (cli.version, cli.command) {
+        (true, _) => {
+            println!(
+                "{} - {} \n{}",
+                "version",
+                env!("CARGO_PKG_VERSION"),
+                "https://ackee.xyz/trident/docs/latest/"
+            );
+            return;
+        }
+        (false, Some(command)) => match command {
+            Command::How => command::howto()?,
+            Command::Fuzz { subcmd } => command::fuzz(subcmd).await?,
+            Command::Init {
+                force,
+                skip_build,
+                program_name,
+                test_name,
+            } => command::init(force, skip_build, program_name, test_name).await?,
+            Command::Clean => command::clean().await?,
+            Command::Server {
+                directory,
+                port,
+                host,
+            } => command::server(directory, port, host).await?,
+            Command::Compare { file1, file2 } => command::compare_regression(file1, file2)?,
+        },
+        (false, None) => {
+            // No command provided, show help
+            Cli::parse_from(["trident", "--help"]);
+        }
     }
 }
