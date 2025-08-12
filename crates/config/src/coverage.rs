@@ -6,7 +6,7 @@ use crate::constants::DEFAULT_LOOPCOUNT;
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct Coverage {
-    pub enable: Option<bool>,
+    pub enabled: Option<bool>,
     pub server_port: Option<u16>,
     pub loopcount: Option<u64>,
     pub format: Option<String>,
@@ -16,7 +16,7 @@ pub struct Coverage {
 impl Default for Coverage {
     fn default() -> Self {
         Self {
-            enable: Some(false),
+            enabled: Some(false),
             server_port: Some(DEFAULT_COVERAGE_SERVER_PORT),
             loopcount: Some(DEFAULT_LOOPCOUNT),
             format: Some(DEFAULT_COVERAGE_FORMAT.to_string()),
@@ -27,7 +27,7 @@ impl Default for Coverage {
 
 impl Coverage {
     pub fn get_enable(&self) -> bool {
-        self.enable.unwrap_or(false)
+        self.enabled.unwrap_or(false)
     }
 
     pub fn get_server_port(&self) -> u16 {
