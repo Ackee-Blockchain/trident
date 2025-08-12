@@ -29,8 +29,6 @@ mod constants {
 
     // Tests
     pub(crate) const TESTS_WORKSPACE_DIRECTORY: &str = "trident-tests";
-    pub(crate) const INSTRUCTIONS_DIRECTORY: &str = "instructions";
-    pub(crate) const TRANSACTIONS_DIRECTORY: &str = "transactions";
 
     // Fuzzing
     pub(crate) const FUZZ_ACCOUNTS_FILE_NAME: &str = "fuzz_accounts.rs";
