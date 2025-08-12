@@ -14,6 +14,8 @@ mod vote_account;
 
 use solana_sdk::pubkey::Pubkey;
 
+use crate::fuzzing::AccountsStorage;
+
 pub struct AccountMetadata {
     pub lamports: u64,
     pub space: usize,
@@ -46,5 +48,16 @@ fn derive_pda(seeds: &[&[u8]], program_id: &Pubkey) -> Option<Pubkey> {
         Some(address)
     } else {
         None
+    }
+}
+
+pub struct StorageMeta<'a> {
+    storage: &'a mut AccountsStorage,
+    range: std::ops::Range<u8>,
+}
+
+impl<'a> StorageMeta<'a> {
+    pub fn new(storage: &'a mut AccountsStorage, range: std::ops::Range<u8>) -> Self {
+        Self { storage, range }
     }
 }
