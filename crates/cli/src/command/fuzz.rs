@@ -8,6 +8,7 @@ use trident_client::___private::TestGenerator;
 
 use crate::command::check_anchor_initialized;
 use crate::command::check_fuzz_test_exists;
+use crate::command::check_fuzz_test_not_exists;
 use crate::command::check_trident_uninitialized;
 
 #[derive(Subcommand)]
@@ -70,6 +71,28 @@ pub(crate) enum FuzzCommand {
         )]
         seed: String,
     },
+    Refresh {
+        #[arg(
+            required = true,
+            help = "Name of the fuzz test to refresh (for example fuzz_0)."
+        )]
+        target: String,
+        #[arg(
+            short,
+            long,
+            required = false,
+            help = "Specify the name of the program for which the fuzz test will be refreshed.",
+            value_name = "FILE"
+        )]
+        program_name: Option<String>,
+        #[arg(
+            short,
+            long,
+            required = false,
+            help = "Skip building the program before refreshing the types file."
+        )]
+        skip_build: bool,
+    },
 }
 
 #[throws]
@@ -110,6 +133,17 @@ pub(crate) async fn fuzz(subcmd: FuzzCommand) {
             generator
                 .add_fuzz_test(program_name, test_name_snake)
                 .await?;
+        }
+        FuzzCommand::Refresh {
+            target,
+            program_name,
+            skip_build,
+        } => {
+            check_fuzz_test_not_exists(&root, &target)?;
+
+            let mut generator = TestGenerator::new_with_root(&root, skip_build)?;
+
+            generator.refresh_fuzz_test(target, program_name).await?;
         }
     };
 }

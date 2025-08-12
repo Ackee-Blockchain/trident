@@ -3,8 +3,8 @@ pub mod error;
 pub mod fuzz_client_impl;
 pub mod traits;
 
-pub mod trident_accounts;
-pub mod trident_pubkey;
+// pub mod trident_accounts;
+// pub mod trident_pubkey;
 
 pub mod trident_rng;
 
@@ -35,28 +35,14 @@ pub mod fuzzing {
     pub use hex;
 
     /// Trident traits
-    pub use super::traits::AccountsMethods;
     pub use super::traits::FuzzClient;
-    pub use super::traits::InstructionGetters;
-    pub use super::traits::InstructionHooks;
-    pub use super::traits::InstructionSetters;
-    pub use super::traits::RemainingAccountsMethods;
-    pub use super::traits::TransactionGetters;
-    pub use super::traits::TransactionHooks;
-    pub use super::traits::TransactionPrivateMethods;
-    pub use super::traits::TransactionSetters;
 
     /// Trident derive
-    pub use trident_derive_accounts::TridentAccounts;
     pub use trident_derive_flow_executor::end;
     pub use trident_derive_flow_executor::flow;
     pub use trident_derive_flow_executor::flow_executor;
     pub use trident_derive_flow_executor::init;
     pub use trident_derive_fuzz_test_methods::FuzzTestMethods;
-
-    pub use trident_derive_instruction::TridentInstruction;
-    pub use trident_derive_remaining_accounts::TridentRemainingAccounts;
-    pub use trident_derive_transaction::TridentTransaction;
 
     /// Trident svm
     pub use trident_svm::prelude;
@@ -80,10 +66,6 @@ pub mod fuzzing {
 
     /// Error
     pub use super::error::*;
-
-    /// Trident accounts
-    pub use crate::trident_accounts::TridentAccount;
-    pub use crate::trident_pubkey::TridentPubkey;
 
     pub use borsh;
     pub use borsh::BorshDeserialize;

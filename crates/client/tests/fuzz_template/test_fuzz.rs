@@ -1,10 +1,8 @@
 use fuzz_accounts::*;
 use trident_fuzz::fuzzing::*;
 mod fuzz_accounts;
-mod instructions;
-mod transactions;
 mod types;
-pub use transactions::*;
+use types::*;
 
 #[derive(FuzzTestMethods)]
 struct FuzzTest {

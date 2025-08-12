@@ -47,8 +47,25 @@ impl TestGenerator {
         }
 
         self.load_programs_idl(program_name.clone())?;
+
         self.create_template().await?;
+
         self.add_new_fuzz_test(&test_name).await?;
+    }
+
+    #[throws]
+    pub async fn refresh_fuzz_test(
+        &mut self,
+        fuzz_test_name: String,
+        program_name: Option<String>,
+    ) {
+        if !self.skip_build {
+            Commander::build_anchor_project(&self.root, program_name.clone()).await?;
+        }
+
+        self.load_programs_idl(program_name)?;
+        self.create_template().await?;
+        self.refresh_types_file(&fuzz_test_name).await?;
     }
 
     #[throws]
@@ -72,22 +89,6 @@ impl TestGenerator {
         self.anchor_idls = crate::idl_loader::load_idls(target_path, program_name)?;
     }
 
-    pub(crate) fn get_instructions(&self) -> Vec<(String, String)> {
-        if let Some(ref output) = self.generated_files {
-            output.instructions.clone()
-        } else {
-            Vec::new()
-        }
-    }
-
-    pub(crate) fn get_transactions(&self) -> Vec<(String, String)> {
-        if let Some(ref output) = self.generated_files {
-            output.transactions.clone()
-        } else {
-            Vec::new()
-        }
-    }
-
     pub(crate) fn get_test_fuzz(&self) -> String {
         if let Some(ref output) = self.generated_files {
             output.test_fuzz.clone()
@@ -96,25 +97,9 @@ impl TestGenerator {
         }
     }
 
-    pub(crate) fn get_instructions_mod(&self) -> String {
+    pub(crate) fn get_types(&self) -> String {
         if let Some(ref output) = self.generated_files {
-            output.instructions_mod.clone()
-        } else {
-            String::new()
-        }
-    }
-
-    pub(crate) fn get_transactions_mod(&self) -> String {
-        if let Some(ref output) = self.generated_files {
-            output.transactions_mod.clone()
-        } else {
-            String::new()
-        }
-    }
-
-    pub(crate) fn get_custom_types(&self) -> String {
-        if let Some(ref output) = self.generated_files {
-            output.custom_types.clone()
+            output.types.clone()
         } else {
             String::new()
         }
