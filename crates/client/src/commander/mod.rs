@@ -176,7 +176,7 @@ impl Commander {
                     })?
                     .path();
                 if let Some(filename) = path.file_name() {
-                    if filename.to_str() == Some("trident-tests") {
+                    if filename.to_str() == Some(TESTS_WORKSPACE_DIRECTORY) {
                         return Ok(path.join("target").to_str().unwrap().to_string());
                     }
                 }
