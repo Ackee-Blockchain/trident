@@ -1,10 +1,15 @@
 ---
 hide:
-  - navigation
-  - toc
+ - navigation
+ - toc
 ---
+<style>
+  .md-typeset h1,
+  .md-content__button {
+    display: none;
+  }
+</style>
 
-# Trident Examples
 
 <div class="grid cards" markdown>
 
@@ -23,9 +28,9 @@ hide:
 
     Trident supports Cross-Program Invocation, you can fuzz your programs and create NFTs at the same time.
 
-    [Simple CPI](https://github.com/Ackee-Blockchain/trident/tree/master/examples/cpi/simple-cpi-6)
+    [Simple CPI](https://github.com/Ackee-Blockchain/trident/tree/develop/examples/cpi)
 
-    [CPI with Metaplex Metadata Program](https://github.com/Ackee-Blockchain/trident/tree/master/examples/cpi/cpi-metaplex-7)
+    [CPI with Metaplex Metadata Program](https://github.com/Ackee-Blockchain/trident/tree/develop/examples/metaplex)
 
 -   :material-google-analytics:{ .lg .middle } __Benchmarking__
 
@@ -34,7 +39,17 @@ hide:
     Trident contains benchmarks of [Daedaluzz: A Benchmark Generator for Smart-Contract Fuzzers](https://github.com/Consensys/daedaluzz) rewritten in Rust.
 
 
-    [Trident Benchmark](https://github.com/Ackee-Blockchain/trident/tree/master/examples/trident-benchmark)
+    [Trident Benchmark](https://github.com/Ackee-Blockchain/trident/tree/develop/examples/trident-benchmark)
+
+
+
+-   :material-hand-wave:{ .lg .middle } __Fuzzing Pipeline__
+
+    ---
+
+    Trident provides a fuzzing pipeline that can be used to fuzz your programs.
+
+    [Fuzzing pipeline](https://github.com/Ackee-Blockchain/trident/blob/master/.github/workflows/fuzz.yml)
 
 
 </div>
