@@ -12,6 +12,15 @@ incremented upon a breaking change and the patch version will be incremented for
 
 **Added**
 
+**Removed**
+
+**Changed**
+
+
+## [0.11.0] - 2025-08-14
+
+**Added**
+
 - Add server for displaying content of fuzzing artifacts ([347](https://github.com/Ackee-Blockchain/trident/pull/347))
 - Add fuzz artifacts directory to the fuzz test folder ([343](https://github.com/Ackee-Blockchain/trident/pull/343))
 - Added state monitoring support for fuzzing metrics ([341](https://github.com/Ackee-Blockchain/trident/pull/341))
