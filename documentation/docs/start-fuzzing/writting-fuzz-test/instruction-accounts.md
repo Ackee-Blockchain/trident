@@ -18,7 +18,7 @@ There are two ways to guide the fuzzer about which storage locations to retrieve
 
 The `TridentAccounts` macro is used to derive account handling functionality for instruction accounts (similar to the Context structure in Anchor-based programs).
 
-You can check the [TridentAccounts](../../trident-api-macro/trident-macros/trident-accounts.md/#field-level-attributes) page to see the attributes that can be used.
+You can check the [TridentAccounts attributes](../../trident-api-macro/attributes-for-accounts/account-attributes.md) page to see the attributes that can be used.
 
 Consider the following example:
 
@@ -28,11 +28,17 @@ Consider the following example:
 #[instruction_data(InitializeFnInstructionData)]
 #[storage(FuzzAccounts)]
 pub struct InitializeFnInstructionAccounts {
-    #[account(mut,signer,storage = author)]
+    #[account(
+        mut,
+        signer,
+        storage = author,
+        storage::account_id = (0..1)
+    )]
     pub author: TridentAccount,
     #[account(
         mut,
-        storage = hello_world_account,
+        storage::name = hello_world_account,
+        storage::account_id = (0..3)
         seeds = [b"hello_world_seed"],
     )]
     pub hello_world_account: TridentAccount,
@@ -47,10 +53,11 @@ The example specifies these attributes:
 - `#[storage(FuzzAccounts)]` - Specifies the account storage type
 - `mut` - Marks the account as mutable
 - `signer` - Marks the account as a transaction signer
+- `storage::name = <target_account_storage>` - Links the account to a storage location for address retrieval
+- `storage::account_id = (0..3)` - Randomly generates an account id from the range of values, this is particularly helpful if you want to try to send different accounts to the instruction
 - `address = "..."` - Sets a constant address for the account
-- `storage = <target_account_storage>` - Links the account to a storage location for address retrieval
-- `skip_snapshot` - Excludes the account from snapshot creation
 - `seeds = [b"hello_world_seed"]` - Specifies the seeds for Program Derived Addresses (PDAs)
+- `skip_snapshot` - Excludes the account from snapshot creation
 
 
 ### Manual Accounts Setup
@@ -64,11 +71,14 @@ If you need more control than the `TridentAccounts` macro provides, you can manu
 impl InstructionSetters for ExampleInstruction {
     type IxAccounts = FuzzAccounts;
 
-    fn set_accounts(&mut self, client: &mut impl FuzzClient, fuzz_accounts: &mut Self::IxAccounts) {
+    fn set_accounts(&mut self, trident: &mut Trident, fuzz_accounts: &mut Self::IxAccounts) {
+        // Generate random account id
+        let account_id = trident.gen_range(0..3);
+        
         // Create and store a PDA
         let hello_world_account = fuzz_accounts.hello_world_account.get_or_create(
-            self.accounts.hello_world_account.account_id,
-            client,
+            account_id,
+            trident,
             Some(PdaSeeds::new(&[b"hello_world_seed"], self.get_program_id())),
             None,
         );
@@ -83,6 +93,6 @@ impl InstructionSetters for ExampleInstruction {
 
 In the previous examples:
 
-- We configured the fuzzer to always keep the `author` account as a `signer` and as `mutable`. It will be stored in the `FuzzAccounts::author` storage.
-- We configured the fuzzer to always keep the `hello_world_account` as a `mutable` account, which will be stored in the `FuzzAccounts::hello_world_account` storage. Additionally, the `hello_world_account` is a PDA with an address derived from the `seeds` attribute.
+- We configured the fuzzer to always keep the `author` account as a `signer` and as `mutable`. It will be stored in the `FuzzAccounts::author` storage, and the account id will be randomly generated from the range of 0 to 1.
+- We configured the fuzzer to always keep the `hello_world_account` as a `mutable` account, which will be stored in the `FuzzAccounts::hello_world_account` storage, and it will be a PDA with an address derived from the `seeds` attribute, and the account id will be randomly generated from the range of 0 to 3.
 - We configured the fuzzer to always keep the `system_program` account as a `constant`. Snapshots of this account before and after the instruction execution will not be taken.

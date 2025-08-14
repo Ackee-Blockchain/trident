@@ -1,7 +1,10 @@
 use syn::parse::Error as ParseError;
 use syn::parse::Result as ParseResult;
 use syn::spanned::Spanned;
-use syn::{Data, DeriveInput, Fields, Type};
+use syn::Data;
+use syn::DeriveInput;
+use syn::Fields;
+use syn::Type;
 
 use crate::types::trident_remaining_accounts::TridentRemainingAccountsStruct;
 

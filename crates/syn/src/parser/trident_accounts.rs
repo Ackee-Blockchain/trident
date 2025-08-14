@@ -9,6 +9,7 @@ use syn::Ident;
 use syn::ItemStruct;
 use syn::Type;
 
+use crate::types::trident_accounts::AccountIdSpec;
 use crate::types::trident_accounts::CompositeField;
 use crate::types::trident_accounts::TridentAccountField;
 use crate::types::trident_accounts::TridentAccountTy;
@@ -130,73 +131,140 @@ fn parse_constraints(attrs: &[Attribute]) -> ParseResult<TridentConstraints> {
         }
 
         attr.parse_nested_meta(|meta| {
-            let ident = meta
-                .path
-                .get_ident()
-                .ok_or_else(|| meta.error("expected identifier"))?;
-
-            match ident.to_string().as_str() {
-                "mut" => {
-                    constraints.mutable = true;
-                    Ok(())
-                }
-                "signer" => {
-                    constraints.signer = true;
-                    Ok(())
-                }
-                "address" => {
-                    if meta.input.peek(syn::Token![=]) {
-                        meta.input.parse::<syn::Token![=]>()?;
-                        // Parse a string literal
-                        let addr_str: syn::LitStr = meta.input.parse()?;
-                        // Convert the string literal into a pubkey expression
-                        constraints.address = Some(syn::parse_str::<syn::Expr>(&format!(
-                            "pubkey!(\"{}\")",
-                            addr_str.value()
-                        ))?);
+            // Handle both single identifiers and paths like storage::name
+            if let Some(ident) = meta.path.get_ident() {
+                // Single identifier path
+                match ident.to_string().as_str() {
+                    "mut" => {
+                        constraints.mutable = true;
+                        Ok(())
                     }
-                    Ok(())
-                }
-                "storage" => {
-                    if meta.input.peek(syn::Token![=]) {
-                        meta.input.parse::<syn::Token![=]>()?;
-                        let storage_ident: Ident = meta.input.parse()?;
-                        constraints.storage = Some(storage_ident);
+                    "signer" => {
+                        constraints.signer = true;
+                        Ok(())
                     }
-                    Ok(())
-                }
-                "skip_snapshot" => {
-                    constraints.skip_snapshot = true;
-                    Ok(())
-                }
-                "seeds" => {
-                    if meta.input.peek(syn::Token![=]) {
-                        meta.input.parse::<syn::Token![=]>()?;
-                        let content;
-                        syn::bracketed!(content in meta.input);
-
-                        let mut seeds = Vec::new();
-                        while !content.is_empty() {
-                            let expr: syn::Expr = content.parse()?;
-                            seeds.push(expr);
-
-                            if !content.is_empty() {
-                                content.parse::<syn::Token![,]>()?;
-                            }
+                    "address" => {
+                        if meta.input.peek(syn::Token![=]) {
+                            meta.input.parse::<syn::Token![=]>()?;
+                            // Parse a string literal
+                            let addr_str: syn::LitStr = meta.input.parse()?;
+                            // Convert the string literal into a pubkey expression
+                            constraints.address = Some(syn::parse_str::<syn::Expr>(&format!(
+                                "pubkey!(\"{}\")",
+                                addr_str.value()
+                            ))?);
                         }
-                        constraints.seeds = Some(seeds);
+                        Ok(())
                     }
-                    Ok(())
-                }
-                "program_id" => {
-                    if meta.input.peek(syn::Token![=]) {
-                        meta.input.parse::<syn::Token![=]>()?;
-                        let expr: syn::Expr = meta.input.parse()?;
-                        constraints.program_id = Some(expr);
+                    "skip_snapshot" => {
+                        constraints.skip_snapshot = true;
+                        Ok(())
                     }
-                    Ok(())
+                    "seeds" => {
+                        if meta.input.peek(syn::Token![=]) {
+                            meta.input.parse::<syn::Token![=]>()?;
+                            let content;
+                            syn::bracketed!(content in meta.input);
+
+                            let mut seeds = Vec::new();
+                            while !content.is_empty() {
+                                let expr: syn::Expr = content.parse()?;
+                                seeds.push(expr);
+
+                                if !content.is_empty() {
+                                    content.parse::<syn::Token![,]>()?;
+                                }
+                            }
+                            constraints.seeds = Some(seeds);
+                        }
+                        Ok(())
+                    }
+                    "program_id" => {
+                        if meta.input.peek(syn::Token![=]) {
+                            meta.input.parse::<syn::Token![=]>()?;
+                            let expr: syn::Expr = meta.input.parse()?;
+                            constraints.program_id = Some(expr);
+                        }
+                        Ok(())
+                    }
+                    "space" => {
+                        if meta.input.peek(syn::Token![=]) {
+                            meta.input.parse::<syn::Token![=]>()?;
+                            let expr: syn::Expr = meta.input.parse()?;
+                            constraints.space = Some(expr);
+                        }
+                        Ok(())
+                    }
+                    "owner" => {
+                        if meta.input.peek(syn::Token![=]) {
+                            meta.input.parse::<syn::Token![=]>()?;
+                            let expr: syn::Expr = meta.input.parse()?;
+                            constraints.owner = Some(expr);
+                        }
+                        Ok(())
+                    }
+                    "lamports" => {
+                        if meta.input.peek(syn::Token![=]) {
+                            meta.input.parse::<syn::Token![=]>()?;
+                            let expr: syn::Expr = meta.input.parse()?;
+                            constraints.lamports = Some(expr);
+                        }
+                        Ok(())
+                    }
+                    _ => Err(meta.error("unsupported constraint")),
                 }
-                _ => Err(meta.error("unsupported constraint")),
+            } else {
+                // Multi-segment path like storage::name or storage::account_id
+                let path_segments: Vec<_> = meta.path.segments.iter().collect();
+                if path_segments.len() == 2 {
+                    let first = &path_segments[0].ident;
+                    let second = &path_segments[1].ident;
+
+                    if first == "storage" {
+                        match second.to_string().as_str() {
+                            "name" => {
+                                if meta.input.peek(syn::Token![=]) {
+                                    meta.input.parse::<syn::Token![=]>()?;
+                                    let storage_ident: Ident = meta.input.parse()?;
+                                    constraints.storage = Some(storage_ident);
+                                }
+                                Ok(())
+                            }
+                            "account_id" => {
+                                if meta.input.peek(syn::Token![=]) {
+                                    meta.input.parse::<syn::Token![=]>()?;
+                                    // Parse account ID specification
+                                    if meta.input.peek(syn::token::Paren) {
+                                        // Parse range like (0..55)
+                                        let content;
+                                        syn::parenthesized!(content in meta.input);
+
+                                        let start: syn::LitInt = content.parse()?;
+                                        content.parse::<syn::Token![..]>()?;
+                                        let end: syn::LitInt = content.parse()?;
+
+                                        let start_val = start.base10_parse::<u8>()?;
+                                        let end_val = end.base10_parse::<u8>()?;
+
+                                        constraints.account_id =
+                                            AccountIdSpec::Range(start_val, end_val);
+                                    } else {
+                                        // Parse static number
+                                        let lit: syn::LitInt = meta.input.parse()?;
+                                        let val = lit.base10_parse::<u8>()?;
+                                        constraints.account_id = AccountIdSpec::Static(val);
+                                    }
+                                }
+                                Ok(())
+                            }
+                            _ => Err(meta.error("unsupported storage attribute")),
+                        }
+                    } else {
+                        Err(meta.error("unsupported path"))
+                    }
+                } else {
+                    Err(meta.error("unsupported path"))
+                }
             }
         })?;
     }
@@ -208,6 +276,26 @@ fn parse_constraints(attrs: &[Attribute]) -> ParseResult<TridentConstraints> {
         return Err(ParseError::new(
             proc_macro2::Span::call_site(),
             "seeds require non-optional storage attribute",
+        ));
+    }
+
+    // Validate that owner is specified when space is used
+    if constraints.space.is_some() && constraints.owner.is_none() {
+        return Err(ParseError::new(
+            proc_macro2::Span::call_site(),
+            "space requires non-optional storage and owner attributes",
+        ));
+    }
+
+    // Validate that space, owner, and lamports can only be used with storage
+    if (constraints.space.is_some()
+        || constraints.owner.is_some()
+        || constraints.lamports.is_some())
+        && constraints.storage.is_none()
+    {
+        return Err(ParseError::new(
+            proc_macro2::Span::call_site(),
+            "space, owner, and lamports attributes require non-optional storage attribute",
         ));
     }
 

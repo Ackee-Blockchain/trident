@@ -1,5 +1,6 @@
 use std::collections::HashMap;
-use syn::visit::{self, Visit};
+use syn::visit::Visit;
+use syn::visit::{self};
 use syn::Ident;
 use syn::TypePath;
 
@@ -44,6 +45,17 @@ pub struct TridentAccountTy {
     pub program_type_path: TypePath,
 }
 
+#[derive(Debug, Clone, Default)]
+pub enum AccountIdSpec {
+    #[default]
+    /// Default range (0..3)
+    Default,
+    /// Static account ID
+    Static(u8),
+    /// Range of account IDs (start..end)
+    Range(u8, u8),
+}
+
 #[derive(Default)]
 pub struct TridentConstraints {
     pub mutable: bool,
@@ -51,8 +63,12 @@ pub struct TridentConstraints {
     pub address: Option<syn::Expr>,
     pub skip_snapshot: bool,
     pub storage: Option<Ident>,
+    pub account_id: AccountIdSpec,
     pub seeds: Option<Vec<syn::Expr>>, // Store the raw expressions from the array
     pub program_id: Option<syn::Expr>,
+    pub space: Option<syn::Expr>,
+    pub owner: Option<syn::Expr>,
+    pub lamports: Option<syn::Expr>,
 }
 
 pub struct SeedDependency {

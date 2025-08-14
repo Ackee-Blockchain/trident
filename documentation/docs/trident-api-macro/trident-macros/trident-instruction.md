@@ -3,6 +3,9 @@
 The `TridentInstruction` macro is used to derive required methods for `Instructions`. This procedural macro automatically implements instruction-related functionality for structs that represent instructions.
 
 
+
+
+
 !!! warning "Required Field Names"
     The macro parser strictly requires the struct to have an `accounts` field named exactly `accounts`. If a remaining accounts field is used, it must be named exactly `remaining_accounts`.
 
@@ -19,7 +22,7 @@ The macro implements the following traits:
 ## Instruction Getters
 
 !!! warning "Internal Method"
-    These methods are used internally by Trident and is not expected to use them manually.
+    These methods are used internally by Trident and it is not expected to use them manually.
 
 ### `get_discriminator`
 
@@ -54,7 +57,7 @@ fn to_account_metas(&mut self) -> Vec<AccountMeta>
 ## Instruction Setters
 
 !!! warning "Internal Method"
-    These methods are used internally by Trident and is not expected to use them manually.
+    These methods are used internally by Trident and it is not expected to use them manually.
 
 ### `set_snapshot_before`
 
@@ -89,6 +92,7 @@ fn resolve_accounts(
 ```
 
 ---
+
 
 
 ## Struct-Level Attributes

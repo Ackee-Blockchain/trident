@@ -1,7 +1,3 @@
-[[bin]]
-name = "fuzz_0"
-path = "fuzz_0/test_fuzz.rs"
-
 [workspace]
 
 [package]
@@ -11,12 +7,16 @@ description = "Created with Trident"
 edition = "2021"
 
 [dependencies]
-arbitrary = "1.3.0"
 borsh = "1.5.3"
 solana-sdk = "~2.0"
 
 [dependencies.trident-fuzz]
 path = "../../../../crates/fuzz"
+features = ["syscalls"]
 
 [dependencies.maze0]
 path = "../programs/maze0"
+
+[[bin]]
+name = "fuzz_0"
+path = "fuzz_0/test_fuzz.rs"

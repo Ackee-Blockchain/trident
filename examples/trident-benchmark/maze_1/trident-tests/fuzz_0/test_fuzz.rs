@@ -1,45 +1,58 @@
-use fuzz_transactions::FuzzTransactions;
+use fuzz_accounts::*;
 use trident_fuzz::fuzzing::*;
-mod fuzz_transactions;
+mod fuzz_accounts;
 mod instructions;
 mod transactions;
 mod types;
-use maze1::entry as entry_maze1;
 pub use transactions::*;
-struct TransactionsSequence;
-/// Define transaction sequences for execution.
-/// `starting_sequence` runs at the start, `middle` in the middle, and `ending`
-/// at the end.
-/// For example, to call `InitializeFn`, `UpdateFn` and then `WithdrawFn` during
-/// each fuzzing iteration:
-/// ```
-/// impl FuzzDataBuilder<FuzzTransactions> for InstructionsSequence {
-///     fn starting_sequence(fuzzer_data: &mut FuzzerData) ->
-/// SequenceResult<FuzzTransactions> {
-///         let seq1 = sequence!([InitializeFn, UpdateFn], fuzzer_data);
-///         Ok(seq1)
-///     }
-///     fn middle_sequence(fuzzer_data: &mut FuzzerData) ->
-/// SequenceResult<FuzzTransactions> {
-///         let seq1 = sequence!([WithdrawFn], fuzzer_data);
-///         Ok(seq1)
-///     }
-///}
-/// ```
-/// For more details, see: https://ackee.xyz/trident/docs/latest/features/instructions-sequences/#instructions-sequences
-impl FuzzSequenceBuilder<FuzzTransactions> for TransactionsSequence {
-    fn starting_sequence(fuzzer_data: &mut FuzzerData) -> SequenceResult<FuzzTransactions> {
-        let seq1 = sequence!([InitializeTransaction], fuzzer_data);
-        Ok(seq1)
+
+#[derive(FuzzTestMethods)]
+struct FuzzTest {
+    /// for fuzzing
+    trident: Trident,
+    /// for storing fuzzing accounts
+    fuzz_accounts: FuzzAccounts,
+}
+
+#[flow_executor]
+impl FuzzTest {
+    fn new() -> Self {
+        Self {
+            trident: Trident::default(),
+            fuzz_accounts: FuzzAccounts::default(),
+        }
+    }
+
+    #[init]
+    fn start(&mut self) {
+        let mut tx = InitializeTransaction::build(&mut self.trident, &mut self.fuzz_accounts);
+
+        self.trident
+            .execute_transaction(&mut tx, Some("Initialize"));
+    }
+
+    #[flow]
+    fn flow1(&mut self) {
+        let mut tx = MoveEastTransaction::build(&mut self.trident, &mut self.fuzz_accounts);
+        self.trident.execute_transaction(&mut tx, Some("MoveEast"));
+    }
+    #[flow]
+    fn flow2(&mut self) {
+        let mut tx = MoveSouthTransaction::build(&mut self.trident, &mut self.fuzz_accounts);
+        self.trident.execute_transaction(&mut tx, Some("MoveSouth"));
+    }
+    #[flow]
+    fn flow3(&mut self) {
+        let mut tx = MoveNorthTransaction::build(&mut self.trident, &mut self.fuzz_accounts);
+        self.trident.execute_transaction(&mut tx, Some("MoveNorth"));
+    }
+    #[flow]
+    fn flow4(&mut self) {
+        let mut tx = MoveWestTransaction::build(&mut self.trident, &mut self.fuzz_accounts);
+        self.trident.execute_transaction(&mut tx, Some("MoveWest"));
     }
 }
+
 fn main() {
-    let program_maze1 = ProgramEntrypoint::new(
-        pubkey!("5e554BrmQN7a2nbKrSUUxP8PMbq55rMntnkoCPmwr3Aq"),
-        None,
-        processor!(entry_maze1),
-    );
-    let config = TridentConfig::new();
-    let mut client = TridentSVM::new_client(&[program_maze1], &config);
-    fuzz_trident ! (| fuzz_data : TransactionsSequence , client : TridentSVM , config : TridentConfig |);
+    FuzzTest::fuzz(1000, 100);
 }

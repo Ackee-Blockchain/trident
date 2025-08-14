@@ -1,34 +1,49 @@
-use crate::fuzz_transactions::FuzzAccounts;
-use borsh::{BorshDeserialize, BorshSerialize};
+use crate::fuzz_accounts::FuzzAccounts;
+use crate::types::*;
+use borsh::BorshDeserialize;
+use borsh::BorshSerialize;
 use trident_fuzz::fuzzing::*;
-#[derive(Arbitrary, TridentInstruction)]
+
+#[derive(TridentInstruction, Default)]
 #[program_id("FtevoQoDMv6ZB3N9Lix5Tbjs8EVuNL8vDSqG9kzaZPit")]
-# [discriminator ([18u8 , 187u8 , 169u8 , 213u8 , 94u8 , 180u8 , 86u8 , 152u8 ,])]
+#[discriminator([18u8, 187u8, 169u8, 213u8, 94u8, 180u8, 86u8, 152u8])]
 pub struct InitializeFnInstruction {
     pub accounts: InitializeFnInstructionAccounts,
     pub data: InitializeFnInstructionData,
 }
+
 /// Instruction Accounts
-#[derive(Arbitrary, Debug, Clone, TridentAccounts)]
+#[derive(Debug, Clone, TridentAccounts, Default)]
 #[instruction_data(InitializeFnInstructionData)]
 #[storage(FuzzAccounts)]
 pub struct InitializeFnInstructionAccounts {
-    #[account(mut,signer,storage = author)]
-    pub author: TridentAccount,
     #[account(
         mut,
-        storage = hello_world_account,
+        signer,
+        storage::name = author,
+        storage::account_id = (0..3)
+    )]
+    pub author: TridentAccount,
+
+    #[account(
+        mut,
+        storage::name = hello_world_account,
+        storage::account_id = (0..3),
+        lamports = 5 * LAMPORTS_PER_SOL,
         seeds = [b"hello_world_seed"],
     )]
     pub hello_world_account: TridentAccount,
-    #[account(address = "11111111111111111111111111111111", skip_snapshot)]
+
+    #[account(address = "11111111111111111111111111111111")]
     pub system_program: TridentAccount,
 }
+
 /// Instruction Data
-#[derive(Arbitrary, Debug, BorshDeserialize, BorshSerialize, Clone)]
+#[derive(Debug, BorshDeserialize, BorshSerialize, Clone, Default)]
 pub struct InitializeFnInstructionData {
-    input: u8,
+    pub input: u8,
 }
+
 /// Implementation of instruction setters for fuzzing
 ///
 /// Provides methods to:
@@ -39,4 +54,7 @@ pub struct InitializeFnInstructionData {
 /// Docs: https://ackee.xyz/trident/docs/latest/start-fuzzing/writting-fuzz-test/
 impl InstructionHooks for InitializeFnInstruction {
     type IxAccounts = FuzzAccounts;
+    fn set_data(&mut self, trident: &mut Trident, _fuzz_accounts: &mut Self::IxAccounts) {
+        self.data.input = trident.gen_range(0..u8::MAX);
+    }
 }

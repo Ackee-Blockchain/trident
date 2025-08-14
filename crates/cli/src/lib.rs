@@ -1,25 +1,18 @@
 use anyhow::Error;
-use anyhow::{Context, Result};
-use clap::{Parser, Subcommand};
+use clap::Parser;
+use clap::Subcommand;
+
 use fehler::throws;
 
-// subcommand functions to call and nested subcommands
 mod command;
-// bring nested subcommand enums into scope
-use command::FuzzCommand;
-use termimad::MadSkin;
 
-macro_rules! load_template {
-    ($file:expr) => {
-        include_str!(concat!(env!("CARGO_MANIFEST_DIR"), $file))
-    };
-}
+use crate::command::FuzzCommand;
 
-/// Simple program to greet a person
 #[derive(Parser)]
 #[command(
     name = "Trident",
-    about = "Trident is Rust based fuzzer for Solana programs written using Anchor framework."
+    about = "Trident is Rust based fuzzer for Solana programs written using Anchor framework.",
+    version = env!("CARGO_PKG_VERSION")
 )]
 struct Cli {
     #[clap(subcommand)]
@@ -46,6 +39,13 @@ enum Command {
             short,
             long,
             required = false,
+            help = "Skip building the program before initializing Trident."
+        )]
+        skip_build: bool,
+        #[arg(
+            short,
+            long,
+            required = false,
             help = "Specify the name of the program for which fuzz test will be generated.",
             value_name = "FILE"
         )]
@@ -65,15 +65,51 @@ enum Command {
         template or you can run fuzz test on already initialzied one.\
         \n\n\x1b[1m\x1b[4mEXAMPLE:\x1b[0m\
         \n    trident add\
-        \n    trident fuzz run-hfuzz fuzz_0\
-        \n    trident fuzz debug-hfuzz \x1b[92m<FUZZ_TARGET>\x1b[0m \x1b[92m<PATH_TO_CRASHFILE>\x1b[0m"
+        \n    trident fuzz run fuzz_0\
+        \n    trident fuzz debug \x1b[92m<FUZZ_TARGET>\x1b[0m \x1b[92m<SEED>\x1b[0m"
     )]
     Fuzz {
         #[clap(subcommand)]
         subcmd: FuzzCommand,
     },
-    #[command(about = "Clean Honggfuzz build targets ,additionally perform `anchor clean`")]
+    #[command(about = "Clean build target, additionally perform `anchor clean`")]
     Clean,
+    #[command(about = "Start HTTP server to serve fuzzing dashboards")]
+    Server {
+        #[arg(
+            short,
+            long,
+            required = false,
+            help = "Directory to monitor for dashboard files",
+            value_name = "DIR",
+            default_value = ".fuzz-artifacts"
+        )]
+        directory: String,
+        #[arg(
+            short,
+            long,
+            required = false,
+            help = "Port to run the server on",
+            value_name = "PORT",
+            default_value = "8000"
+        )]
+        port: u16,
+        #[arg(
+            long,
+            required = false,
+            help = "Host to bind the server to",
+            value_name = "HOST",
+            default_value = "localhost"
+        )]
+        host: String,
+    },
+    #[command(about = "Compare two regression JSON files and identify differing iteration seeds")]
+    Compare {
+        #[arg(help = "Path to the first regression JSON file", value_name = "FILE1")]
+        file1: String,
+        #[arg(help = "Path to the second regression JSON file", value_name = "FILE2")]
+        file2: String,
+    },
 }
 
 #[throws]
@@ -85,46 +121,16 @@ pub async fn start() {
         Command::Fuzz { subcmd } => command::fuzz(subcmd).await?,
         Command::Init {
             force,
+            skip_build,
             program_name,
             test_name,
-        } => command::init(force, program_name, test_name).await?,
+        } => command::init(force, skip_build, program_name, test_name).await?,
         Command::Clean => command::clean().await?,
+        Command::Server {
+            directory,
+            port,
+            host,
+        } => command::server(directory, port, host).await?,
+        Command::Compare { file1, file2 } => command::compare_regression(file1, file2)?,
     }
-}
-
-// Climbs each parent directory until we find target.
-fn _discover(target: &str) -> Result<Option<String>> {
-    let _cwd = std::env::current_dir()?;
-    let mut cwd_opt = Some(_cwd.as_path());
-
-    while let Some(cwd) = cwd_opt {
-        for f in std::fs::read_dir(cwd)
-            .with_context(|| format!("Error reading the directory with path: {}", cwd.display()))?
-        {
-            let p = f
-                .with_context(|| {
-                    format!("Error reading the directory with path: {}", cwd.display())
-                })?
-                .path();
-            if let Some(filename) = p.file_name() {
-                if filename.to_str() == Some(target) {
-                    return Ok(Some(cwd.to_string_lossy().to_string()));
-                }
-            }
-        }
-
-        cwd_opt = cwd.parent();
-    }
-
-    Ok(None)
-}
-
-fn show_howto() {
-    let markdown_input = load_template!("/src/howto.md");
-
-    // Create a MadSkin for styling the Markdown.
-    let skin = MadSkin::default();
-
-    // Print the markdown content to the terminal.
-    skin.print_text(markdown_input);
 }

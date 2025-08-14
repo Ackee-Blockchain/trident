@@ -6,13 +6,14 @@ members = [
     "crates/fuzz",
     "crates/syn",
     "crates/template",
+    "crates/metrics",
 ]
 exclude = ["examples/"]
 resolver = "1"
 
 
 [workspace.package]
-version = "0.10.0"
+version = "0.11.0"
 edition = "2021"
 authors = ["Ackee Blockchain Security"]
 repository = "https://github.com/Ackee-Blockchain/trident"
@@ -22,16 +23,23 @@ license-file = "./LICENSE"
 readme = "./README.md"
 
 [workspace.dependencies]
-# Solana
+# Internal Trident crates
+trident-cli = { path = "crates/cli", version = "0.11.0" }
+trident-client = { path = "crates/client", version = "0.11.0" }
+trident-config = { path = "crates/config", version = "0.11.0" }
+trident-fuzz = { path = "crates/fuzz", version = "0.11.0" }
+trident-syn = { path = "crates/syn", version = "0.11.0" }
+trident-template = { path = "crates/template", version = "0.11.0" }
+trident-fuzz-metrics = { path = "crates/metrics", version = "0.11.0" }
+
+# Derive macros
+trident-derive-accounts = { path = "crates/fuzz/derive/accounts", version = "0.11.0" }
+trident-derive-flow-executor = { path = "crates/fuzz/derive/flow_executor", version = "0.11.0" }
+trident-derive-fuzz-test-methods = { path = "crates/fuzz/derive/fuzz_test_methods", version = "0.11.0" }
+trident-derive-instruction = { path = "crates/fuzz/derive/instruction", version = "0.11.0" }
+trident-derive-remaining-accounts = { path = "crates/fuzz/derive/remaining_accounts", version = "0.11.0" }
+trident-derive-transaction = { path = "crates/fuzz/derive/transaction", version = "0.11.0" }
+
+# External dependencies
 solana-sdk = "~2.0"
-
-# ARBITRARY
-arbitrary = { version = "1.3.0", features = ["derive"] }
-
-# Honggfuzz
-honggfuzz = { version = "0.5.55" }
-
-#AFL
-afl = { version = "0.15.10" }
-
 syn = { version = "2.0", features = ["full", "parsing", "visit"] }

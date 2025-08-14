@@ -13,12 +13,6 @@ readme = { workspace = true }
 # Solana
 solana-sdk = { workspace = true }
 
-# Honggfuzz
-honggfuzz = { workspace = true }
-
-# Afl
-afl = { workspace = true }
-
 # Misc
 rand = "0.8"
 serde = { version = "1", default-features = false }

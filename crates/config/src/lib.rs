@@ -1,20 +1,18 @@
-pub mod afl;
-pub mod argument;
 pub mod constants;
+pub mod coverage;
 pub mod fuzz;
-pub mod honggfuzz;
-
-use afl::*;
+mod metrics;
 use constants::*;
+use coverage::*;
 use fuzz::*;
-use honggfuzz::*;
-
 pub mod utils;
 
 use serde::Deserialize;
-use std::{fs, io};
+use std::fs;
+use std::io;
 use thiserror::Error;
-use utils::{discover_root, resolve_path};
+use utils::discover_root;
+mod regression;
 
 #[derive(Error, Debug)]
 pub enum Error {
@@ -30,8 +28,6 @@ pub enum Error {
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct TridentConfig {
-    pub honggfuzz: Option<HonggFuzz>,
-    pub afl: Option<Afl>,
     pub fuzz: Option<Fuzz>,
 }
 
@@ -52,101 +48,48 @@ impl TridentConfig {
     }
 
     // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    // honggfuzz
-    pub fn get_honggfuzz_args(&self, cli_input: String) -> String {
-        if let Some(honggfuzz) = &self.honggfuzz {
-            let mut args = honggfuzz.get_collect_fuzz_args();
-            args.push(cli_input);
-            args.join(" ")
-        } else {
-            String::default()
-        }
-    }
-    pub fn get_honggfuzz_workspace(&self) -> String {
-        let path = self
-            .honggfuzz
+    // fuzz
+    pub fn get_metrics(&self) -> bool {
+        self.fuzz
             .as_ref()
-            .map(|honggfuzz| honggfuzz.get_hfuzz_workspace().value)
-            .unwrap_or_else(|| HFUZZ_WORKSPACE_DEFAULT_HFUZZ.to_string());
-        let full_path = resolve_path(&path);
-        full_path.to_str().unwrap().to_string()
-    }
-    pub fn get_honggfuzz_target_dir(&self) -> String {
-        let path = self
-            .honggfuzz
-            .as_ref()
-            .map(|honggfuzz| honggfuzz.get_cargo_target_dir().value)
-            .unwrap_or_else(|| CARGO_TARGET_DIR_DEFAULT_HFUZZ.to_string());
-        let full_path = resolve_path(&path);
-        full_path.to_str().unwrap().to_string()
-    }
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    // afl
-    pub fn get_afl_target_dir(&self) -> String {
-        let path = self
-            .afl
-            .as_ref()
-            .map(|afl| afl.get_cargo_target_dir().value.unwrap())
-            .unwrap_or_else(|| CARGO_TARGET_DIR_DEFAULT_AFL.to_string());
-        let full_path = resolve_path(&path);
-        full_path.to_str().unwrap().to_string()
-    }
-    pub fn get_afl_target_path(&self, target: &str) -> String {
-        let mut afl_target_dir = self.get_afl_target_dir();
-        afl_target_dir.push_str("/debug/");
-        afl_target_dir.push_str(target);
-        afl_target_dir
-    }
-    pub fn get_afl_workspace_in(&self) -> String {
-        let path = self
-            .afl
-            .as_ref()
-            .map(|afl| afl.get_workspace_in().value.unwrap())
-            .unwrap_or_else(|| AFL_WORKSPACE_DEFAULT_IN.to_string());
-        let full_path = resolve_path(&path);
-        full_path.to_str().unwrap().to_string()
-    }
-    pub fn get_afl_workspace_out(&self) -> String {
-        let path = self
-            .afl
-            .as_ref()
-            .map(|afl| afl.get_workspace_out().value.unwrap())
-            .unwrap_or_else(|| AFL_WORKSPACE_DEFAULT_OUT.to_string());
-        let full_path = resolve_path(&path);
-        full_path.to_str().unwrap().to_string()
-    }
-    pub fn get_afl_build_args(&self) -> Vec<String> {
-        self.afl
-            .as_ref()
-            .map(|afl| afl.get_collect_build_args())
-            .unwrap_or_default()
-    }
-    pub fn get_afl_fuzz_args(&self) -> Vec<String> {
-        self.afl
-            .as_ref()
-            .map(|afl| afl.get_collect_fuzz_args())
+            .map(|fuzz| fuzz.get_metrics())
             .unwrap_or_default()
     }
 
-    pub fn get_initial_seed(&self) -> Vec<AflSeed> {
-        self.afl
-            .as_ref()
-            .map(|afl| afl.get_seeds())
-            .unwrap_or_else(|| vec![AflSeed::default()])
-    }
-    // -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-    // fuzz
-    pub fn get_fuzzing_with_stats(&self) -> bool {
+    pub fn get_metrics_json(&self) -> bool {
         self.fuzz
             .as_ref()
-            .map(|fuzz| fuzz.get_fuzzing_with_stats())
+            .map(|fuzz| fuzz.get_metrics_json())
             .unwrap_or_default()
     }
-    pub fn get_allow_duplicate_txs(&self) -> bool {
+
+    pub fn get_metrics_dashboard(&self) -> bool {
         self.fuzz
             .as_ref()
-            .map(|fuzz| fuzz.get_allow_duplicate_txs())
+            .map(|fuzz| fuzz.get_metrics_dashboard())
             .unwrap_or_default()
+    }
+
+    pub fn get_regression(&self) -> bool {
+        self.fuzz
+            .as_ref()
+            .map(|fuzz| fuzz.get_regression())
+            .unwrap_or_default()
+    }
+
+    pub fn get_coverage(&self) -> Coverage {
+        self.fuzz
+            .as_ref()
+            .map(|fuzz| fuzz.get_coverage())
+            .unwrap_or_default()
+    }
+
+    pub fn loopcount(&self) -> u64 {
+        self.get_coverage().get_loopcount()
+    }
+
+    pub fn coverage_server_port(&self) -> u16 {
+        self.get_coverage().get_server_port()
     }
 
     pub fn programs(&self) -> Vec<FuzzProgram> {
@@ -161,6 +104,7 @@ impl TridentConfig {
             })
             .unwrap_or_default()
     }
+
     pub fn accounts(&self) -> Vec<FuzzAccount> {
         self.fuzz
             .as_ref()

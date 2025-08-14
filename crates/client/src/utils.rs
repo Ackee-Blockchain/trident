@@ -1,7 +1,7 @@
-use crate::test_generator::Error;
+use crate::error::Error;
 
 use crate::constants::*;
-use fehler::{throw, throws};
+use fehler::throws;
 use std::path::Path;
 use std::path::PathBuf;
 use tokio::fs;
@@ -71,71 +71,53 @@ pub fn get_fuzz_id(fuzz_dir_path: &Path) -> i32 {
         0
     }
 }
+
+/// Creates .fuzz-artifacts directory if it doesn't exist
 #[throws]
-pub async fn collect_program_packages(
-    program_name: Option<String>,
-) -> Vec<cargo_metadata::Package> {
-    let packages: Vec<cargo_metadata::Package> = program_packages(program_name).collect();
-    if packages.is_empty() {
-        throw!(Error::NoProgramsFound)
-    } else {
-        packages
-    }
-}
-pub fn program_packages(
-    program_name: Option<String>,
-) -> Box<dyn Iterator<Item = cargo_metadata::Package>> {
-    let cargo_toml_data = cargo_metadata::MetadataCommand::new()
-        .no_deps()
-        .exec()
-        .expect("Cargo.toml reading failed");
-
-    match program_name {
-        Some(name) => Box::new(
-            cargo_toml_data
-                .packages
-                .into_iter()
-                .filter(move |package| package.name == name),
-        ),
-        None => Box::new(cargo_toml_data.packages.into_iter().filter(|package| {
-            // TODO less error-prone test if the package is a _program_?
-            if let Some("programs") = package.manifest_path.iter().nth_back(2) {
-                return true;
-            }
-            false
-        })),
-    }
+pub async fn ensure_fuzz_artifacts_dir() -> PathBuf {
+    let artifacts_dir = PathBuf::from(".fuzz-artifacts");
+    create_directory_all(&artifacts_dir).await?;
+    artifacts_dir
 }
 
-// #[throws]
-// pub async fn add_workspace_member(root: &Path, member: &str) {
-//     // Construct the path to the Cargo.toml file
-//     let cargo = root.join("Cargo.toml");
+/// Generates a unique filename in .fuzz-artifacts directory
+/// If the base filename already exists, appends a readable timestamp to make it unique
+#[throws]
+pub async fn generate_unique_fuzz_filename(
+    base_name: &str,
+    fuzz_test_name: &str,
+    extension: &str,
+) -> PathBuf {
+    let artifacts_dir = ensure_fuzz_artifacts_dir().await?;
+    let base_filename = format!("{}_{}.{}", base_name, fuzz_test_name, extension);
+    let mut target_path = artifacts_dir.join(&base_filename);
 
-//     // Read and parse the Cargo.toml file
-//     let cargo_toml_content = fs::read_to_string(&cargo).await?;
-//     let mut cargo_toml: Value = toml::from_str(&cargo_toml_content)?;
+    // If file already exists, append a readable timestamp to make it unique
+    if target_path.exists() {
+        use chrono::DateTime;
+        use chrono::Local;
 
-//     // Ensure that the 'workspace' table exists
-//     let workspace_table = ensure_table(&mut cargo_toml, "workspace")?;
+        // Try different timestamp formats until we find a unique one
+        let now: DateTime<Local> = Local::now();
 
-//     // Ensure that the 'members' array exists within the 'workspace' table
-//     let members = workspace_table
-//         .entry("members")
-//         .or_insert(Value::Array(Vec::new()))
-//         .as_array_mut()
-//         .ok_or(Error::CannotParseCargoToml)?;
+        // First try: YYYY-MM-DD_HH-MM-SS format
+        let timestamp = now.format("%Y-%m-%d_%H-%M-%S").to_string();
+        let unique_filename = format!(
+            "{}_{}-{}.{}",
+            base_name, fuzz_test_name, timestamp, extension
+        );
+        target_path = artifacts_dir.join(&unique_filename);
 
-//     // Check if the new member already exists in the 'members' array
-//     if !members.iter().any(|x| x.as_str() == Some(member)) {
-//         // Add the new member to the 'members' array
-//         members.push(Value::String(member.to_string()));
-//         println!("{FINISH} [{CARGO_TOML}] updated with [{member}]");
+        // If that still exists (very unlikely), add milliseconds
+        if target_path.exists() {
+            let timestamp_with_ms = now.format("%Y-%m-%d_%H-%M-%S-%3f").to_string();
+            let unique_filename = format!(
+                "{}_{}-{}.{}",
+                base_name, fuzz_test_name, timestamp_with_ms, extension
+            );
+            target_path = artifacts_dir.join(&unique_filename);
+        }
+    }
 
-//         // Write the updated Cargo.toml back to the file
-//         let updated_toml = toml::to_string(&cargo_toml).unwrap();
-//         fs::write(cargo, updated_toml).await?;
-//     } else {
-//         println!("{SKIP} [{CARGO_TOML}], already contains [{member}]");
-//     }
-// }
+    target_path
+}

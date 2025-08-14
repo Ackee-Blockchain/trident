@@ -1,0 +1,10 @@
+# For the detailed description of the parameters, see: https://ackee.xyz/trident/docs/latest/features/trident-manifest/
+
+[fuzz.metrics]
+enabled = true
+
+
+[[fuzz.programs]]
+address = "H2XPhu8mmGDZioamVp2C5bDWXSSKn6bDdhpiUqWqPmLS"
+program = "../target/deploy/metaplex.so"
+ 

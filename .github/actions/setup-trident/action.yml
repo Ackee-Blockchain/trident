@@ -1,10 +1,8 @@
 name: "Setup Trident"
 
 runs:
-  # This setup does not use caching, so it always installs Trident fresh
   using: "composite"
   steps:
-    # Install Trident from the local crates/cli directory
     - name: Install Trident
-      run: cargo install --path crates/cli
+      run: make install
       shell: bash

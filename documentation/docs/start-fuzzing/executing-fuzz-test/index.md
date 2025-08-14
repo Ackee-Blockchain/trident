@@ -1,21 +1,12 @@
 # Executing the Fuzz Test
 
-To execute the fuzz test, navigate to the `trident-tests` directory and run the following command to execute the fuzz test using Honggfuzz:
+To execute the fuzz test, navigate to the `trident-tests` directory and run the following command to execute the fuzz test:
 
 ```bash
-trident fuzz run-hfuzz <FUZZ_TARGET>
+trident fuzz run <FUZZ_TARGET> <SEED>
 # for example:
-# trident fuzz run-hfuzz fuzz_0
-```
-
-
-
-To execute the fuzz test using AFL, run the following command:
-
-```bash
-trident fuzz run-afl <FUZZ_TARGET>
-# for example:
-# trident fuzz run-afl fuzz_0
+# trident fuzz run fuzz_0
+# seed is optional, if not provided, a random seed will be used
 ```
 
 !!! warning "Directory Note"
@@ -24,8 +15,9 @@ trident fuzz run-afl <FUZZ_TARGET>
 !!! warning "Solana Logs"
     In case you want to see the logs of the fuzzed transactions, prefix the command with `TRIDENT_LOG=1`.
     ```bash
-    TRIDENT_LOG=1 trident fuzz run-afl <fuzz_target>
-    TRIDENT_LOG=1 trident fuzz run-hfuzz <fuzz_target>
+    TRIDENT_LOG=1 trident fuzz run <fuzz_target> <seed>
     ```
 
 For the output reference and additional options such as debugging the found issues, check out [Commands](../../basics/commands.md).
+
+For the additional customization through the `trident.toml` file, check out the [Trident Manifest](../../trident-manifest/index.md) page.

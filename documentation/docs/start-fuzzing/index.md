@@ -1,6 +1,6 @@
 # Start Fuzzing
 
-To start writting fuzz tests, you need to initialize Trident in your Anchor-based workspace.
+To start writing fuzz tests, you need to initialize Trident in your Anchor-based workspace.
 
 ```bash
 trident init
@@ -26,12 +26,12 @@ project-root
 │   ├── fuzz_1
 │   ├── fuzz_X # possible multiple fuzz tests
 │   ├── fuzzing # compilations and crashes folder
-│   └── Cargo.toml
-├── Trident.toml
+│   ├── Cargo.toml
+│   └── Trident.toml
 └── ...
 ```
 
 
 `Instructions` folder contains the `instructions` that can be used in the fuzz test.
 
-`Transactions` folder contains the `transactions` that will be used during the fuzzing, each transaction can contain `one` or `multiple instructions`, based on the developers choice. By default there is only one instruction in each transaction.
+`Transactions` folder contains the `transactions` that will be used during the fuzzing, each transaction can contain `one` or `multiple instructions`, based on the developer's choice. By default there is only one instruction in each transaction.

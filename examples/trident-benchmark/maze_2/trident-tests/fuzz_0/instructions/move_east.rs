@@ -1,33 +1,50 @@
-use crate::fuzz_transactions::FuzzAccounts;
-use borsh::{BorshDeserialize, BorshSerialize};
+use crate::fuzz_accounts::FuzzAccounts;
+use crate::types::*;
+use borsh::BorshDeserialize;
+use borsh::BorshSerialize;
 use trident_fuzz::fuzzing::*;
-#[derive(Arbitrary, TridentInstruction)]
+
+#[derive(TridentInstruction, Default)]
 #[program_id("5e554BrmQN7a2nbKrSUUxP8PMbq55rMntnkoCPmwr3Aq")]
-# [discriminator ([220u8 , 96u8 , 254u8 , 139u8 , 6u8 , 133u8 , 127u8 , 93u8 ,])]
+#[discriminator([220u8, 96u8, 254u8, 139u8, 6u8, 133u8, 127u8, 93u8])]
 pub struct MoveEastInstruction {
     pub accounts: MoveEastInstructionAccounts,
     pub data: MoveEastInstructionData,
 }
+
 /// Instruction Accounts
-#[derive(Arbitrary, Debug, Clone, TridentAccounts)]
+#[derive(Debug, Clone, TridentAccounts, Default)]
 #[instruction_data(MoveEastInstructionData)]
 #[storage(FuzzAccounts)]
 pub struct MoveEastInstructionAccounts {
-    #[account(mut,storage = state)]
-    state: TridentAccount,
+    #[account(
+        mut,
+        storage::name = state,
+        storage::account_id = (0..1)
+    )]
+    pub state: TridentAccount,
 }
+
 /// Instruction Data
-#[derive(Arbitrary, Debug, BorshDeserialize, BorshSerialize, Clone)]
+#[derive(Debug, BorshDeserialize, BorshSerialize, Clone, Default)]
 pub struct MoveEastInstructionData {
-    p0: u64,
-    p1: u64,
-    p2: u64,
-    p3: u64,
-    p4: u64,
-    p5: u64,
-    p6: u64,
-    p7: u64,
+    pub p0: u64,
+
+    pub p1: u64,
+
+    pub p2: u64,
+
+    pub p3: u64,
+
+    pub p4: u64,
+
+    pub p5: u64,
+
+    pub p6: u64,
+
+    pub p7: u64,
 }
+
 /// Implementation of instruction setters for fuzzing
 ///
 /// Provides methods to:
@@ -38,4 +55,15 @@ pub struct MoveEastInstructionData {
 /// Docs: https://ackee.xyz/trident/docs/latest/start-fuzzing/writting-fuzz-test/
 impl InstructionHooks for MoveEastInstruction {
     type IxAccounts = FuzzAccounts;
+
+    fn set_data(&mut self, trident: &mut Trident, _fuzz_accounts: &mut Self::IxAccounts) {
+        self.data.p0 = trident.gen_range(0..u64::MAX);
+        self.data.p1 = trident.gen_range(0..u64::MAX);
+        self.data.p2 = trident.gen_range(0..u64::MAX);
+        self.data.p3 = trident.gen_range(0..u64::MAX);
+        self.data.p4 = trident.gen_range(0..u64::MAX);
+        self.data.p5 = trident.gen_range(0..u64::MAX);
+        self.data.p6 = trident.gen_range(0..u64::MAX);
+        self.data.p7 = trident.gen_range(0..u64::MAX);
+    }
 }

@@ -2,7 +2,7 @@
 
 Trident lets you perform specific logic before and after transaction execution with pre_transaction and post_transaction methods.
 
-These methods accept a `FuzzClient` parameter, which provides methods to interact with the fuzzing environment. See the [FuzzClient](../../../trident-api-macro/trident-fuzz-client/index.md) documentation for details.
+These methods accept a `FuzzClient` parameter, which provides methods to interact with the fuzzing environment. See the [FuzzClient](../../../trident-api-macro/trident-fuzz-client/fuzz-client-trait.md) documentation for details.
 
 !!! warning "Post-Transaction Execution Order"
     The `post_transaction` method is called only after the transaction is `SUCCESSFULLY` executed.
@@ -27,7 +27,7 @@ impl TransactionHooks for ExampleTransaction {
 
 ## Example
 
-The following examples demonstrates:
+The following examples demonstrate:
 
 - Always forward in time before the transaction
 - Always forward in time after the transaction

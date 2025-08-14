@@ -10,52 +10,57 @@ on:
       - develop
       - master
 
+env:
+  CARGO_TERM_COLOR: always
+  RUST_VERSION: "1.86"
 
 jobs:
   Lint-Workspace:
     name: Lint Workspace
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
       - run: echo "Starting Lint-Workspace"
 
   lint:
     name: Lint
     needs: Lint-Workspace
-    # This job runs on an Ubuntu 20.04 runner
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v3  # Checkout the code from the repository
+      - uses: actions/checkout@v3
 
-      # https://github.com/Swatinem/rust-cache
-      - name: Cache Rust and its Packages
-        # Cache Rust dependencies using Swatinem's rust-cache action to speed up builds
+
+      - name: Install system packages
+        run: sudo apt-get update && sudo apt-get install -y build-essential libudev-dev protobuf-compiler libprotobuf-dev
+        shell: bash
+
+      - name: Rust Cache
+        id: rust-cache
         uses: Swatinem/rust-cache@v2
         with:
-          prefix-key: "lint" # Using a locally shared cache key
-          shared-key: "trident-rust-cache"  # Use a shared cache key across multiple jobs to reuse cache
-          cache-directories: "~/.rustup" # Additional non workspace directories to be cached, separated by newlines.
+          cache-on-failure: true
+          shared-key: "trident-lint"
+          key: lint-${{ runner.os }}
+          workspaces: |
+            ./
 
-      - name: Setup Rust Environment
-        # Set up the Rust environment (e.g., install nightly, Rust components)
-        uses: ./.github/actions/setup-rust/
+      - name: Install Rust Toolchain Components
+        run: |
+          rustup install nightly
+          rustup component add rustfmt clippy
+          rustup component add rustfmt clippy --toolchain nightly
+        shell: bash
 
-      - name: Cargo build
-        # Build the Trident workspace
-        run: cargo build --release --all-features
-      - name: Cargo fmt
-        # Run cargo fmt to check if the code is formatted correctly
-        run: cargo fmt --check
-      - name: Cargo clippy
-        # Run Clippy to check for code linting issues and fail on warnings
-        run: cargo clippy -- -D warnings
-      - name: Cargo test
-        # Run tests to ensure the project works as expected
-        run: cargo test
+      - name: Format
+        run: make format-checks
+      - name: Clippy
+        run: make clippy
+      - name: Test
+        run: make test
 
 
   checks:
     name: Lint-Workspace (Checks)
     needs: lint
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
       - run: echo "Lint Workspace completed successfully"

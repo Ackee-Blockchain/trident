@@ -1,0 +1,11 @@
+# For the detailed description of the parameters, see: https://ackee.xyz/trident/docs/latest/features/trident-manifest/
+
+[fuzz.metrics]
+enabled = true
+
+
+
+
+[[fuzz.programs]]
+address = "5e554BrmQN7a2nbKrSUUxP8PMbq55rMntnkoCPmwr3Aq"
+program = "../target/deploy/maze4.so"

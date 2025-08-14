@@ -5,5 +5,3 @@ target
 node_modules
 test-ledger
 .yarn
-trident-tests/fuzzing/honggfuzz/hfuzz_target
-trident-tests/fuzzing/afl/afl_target

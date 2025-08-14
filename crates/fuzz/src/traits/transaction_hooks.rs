@@ -21,9 +21,7 @@ pub trait TransactionHooks {
 
     /// Method to handle transaction errors
     #[allow(unused_variables)]
-    fn transaction_error_handler(&self, e: TransactionError) -> Result<(), TransactionError> {
-        Err(e)
-    }
+    fn transaction_error_handler(&self, _e: TransactionError) {}
 
     /// Method to perform custom actions after the transaction is executed
     #[allow(unused_variables)]

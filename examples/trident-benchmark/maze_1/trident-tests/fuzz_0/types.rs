@@ -1,13 +1,15 @@
-use borsh::{BorshDeserialize, BorshSerialize};
+use borsh::BorshDeserialize;
+use borsh::BorshSerialize;
 use trident_fuzz::fuzzing::*;
-/// File containing all custom types which can be used in transactions and
-/// instructions
-/// or invariant checks.
+
+/// File containing all custom types which can be used
+/// in transactions and instructions or invariant checks.
 ///
-/// You can create your own types here and use them in transactions and
-/// instructions.
-#[derive(Arbitrary, Debug, BorshDeserialize, BorshSerialize, Clone)]
+/// You can define your own custom types here.
+
+#[derive(Debug, BorshDeserialize, BorshSerialize, Clone, Default)]
 pub struct State {
-    x: u64,
-    y: u64,
+    pub x: u64,
+
+    pub y: u64,
 }

@@ -1,70 +1,58 @@
-use fuzz_transactions::*;
+use fuzz_accounts::*;
 use trident_fuzz::fuzzing::*;
-mod fuzz_transactions;
+mod fuzz_accounts;
 mod instructions;
 mod transactions;
 mod types;
-use maze2::entry as entry_maze2;
 pub use transactions::*;
-#[derive(Default)]
-struct FuzzTest<C> {
-    client: C,
+
+#[derive(FuzzTestMethods)]
+struct FuzzTest {
+    /// for fuzzing
+    trident: Trident,
+    /// for storing fuzzing accounts
+    fuzz_accounts: FuzzAccounts,
 }
-#[flow_executor(random_tail = true)]
-impl<C: FuzzClient + std::panic::RefUnwindSafe> FuzzTest<C> {
-    fn new(client: C) -> Self {
-        Self { client }
+
+#[flow_executor]
+impl FuzzTest {
+    fn new() -> Self {
+        Self {
+            trident: Trident::default(),
+            fuzz_accounts: FuzzAccounts::default(),
+        }
     }
+
     #[init]
     fn start(&mut self) {
-        self.client.deploy_native_program(ProgramEntrypoint::new(
-            pubkey!("5e554BrmQN7a2nbKrSUUxP8PMbq55rMntnkoCPmwr3Aq"),
-            None,
-            processor!(entry_maze2),
-        ));
-    }
-    #[flow]
-    fn flow1(
-        &mut self,
-        fuzzer_data: &mut FuzzerData,
-        accounts: &mut FuzzAccounts,
-    ) -> Result<(), FuzzingError> {
-        InitializeTransaction::build(fuzzer_data, &mut self.client, accounts)?
-            .execute(&mut self.client)?;
+        let mut tx = InitializeTransaction::build(&mut self.trident, &mut self.fuzz_accounts);
 
-        Ok(())
+        self.trident
+            .execute_transaction(&mut tx, Some("Initialize"));
     }
 
     #[flow]
-    fn flow2(
-        &mut self,
-        fuzzer_data: &mut FuzzerData,
-        accounts: &mut FuzzAccounts,
-    ) -> Result<(), FuzzingError> {
-        FuzzTransactions::select_n_execute(fuzzer_data, &mut self.client, accounts)?;
-        Ok(())
-    }
-
-    #[flow]
-    fn flow3(
-        &mut self,
-        fuzzer_data: &mut FuzzerData,
-        accounts: &mut FuzzAccounts,
-    ) -> Result<(), FuzzingError> {
-        FuzzTransactions::select_n_execute_no_hooks(fuzzer_data, &mut self.client, accounts)?;
-        Ok(())
+    fn flow1(&mut self) {
+        let mut tx = MoveEastTransaction::build(&mut self.trident, &mut self.fuzz_accounts);
+        self.trident.execute_transaction(&mut tx, Some("MoveEast"));
     }
     #[flow]
-    fn flow4(
-        &mut self,
-        fuzzer_data: &mut FuzzerData,
-        accounts: &mut FuzzAccounts,
-    ) -> Result<(), FuzzingError> {
-        FuzzTransactions::select_n_execute_no_hooks(fuzzer_data, &mut self.client, accounts)?;
-        Ok(())
+    fn flow2(&mut self) {
+        let mut tx = MoveSouthTransaction::build(&mut self.trident, &mut self.fuzz_accounts);
+        self.trident.execute_transaction(&mut tx, Some("MoveSouth"));
+    }
+    #[flow]
+    fn flow3(&mut self) {
+        let mut tx = MoveNorthTransaction::build(&mut self.trident, &mut self.fuzz_accounts);
+        self.trident.execute_transaction(&mut tx, Some("MoveNorth"));
+    }
+    #[flow]
+    fn flow4(&mut self) {
+        let mut tx = MoveWestTransaction::build(&mut self.trident, &mut self.fuzz_accounts);
+        self.trident.execute_transaction(&mut tx, Some("MoveWest"));
     }
 }
+
 fn main() {
-    let client = TridentSVM::new_client(&[], &TridentConfig::new());
-    FuzzTest::new(client).fuzz();
+    FuzzTest::fuzz(1000, 100);
 }

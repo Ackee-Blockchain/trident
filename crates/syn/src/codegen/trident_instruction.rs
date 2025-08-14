@@ -1,5 +1,6 @@
 use proc_macro2::TokenStream;
-use quote::{quote, ToTokens};
+use quote::quote;
+use quote::ToTokens;
 
 use crate::types::trident_instruction::TridentInstructionStruct;
 
@@ -30,7 +31,7 @@ impl ToTokens for TridentInstructionStruct {
             if let Some(ref remaining_field) = self.remaining_accounts_field {
                 let remaining = syn::Ident::new(remaining_field, proc_macro2::Span::call_site());
                 quote! {
-                    .field("\x1b[96mremaining_accounts\x1b[0m", &self.#remaining)
+                    .field("remaining_accounts", &self.#remaining)
                 }
             } else {
                 quote! {}
@@ -75,10 +76,10 @@ impl ToTokens for TridentInstructionStruct {
                 /// Resolve all accounts needed for this instruction
                 fn resolve_accounts(
                     &mut self,
-                    client: &mut impl FuzzClient,
+                    trident: &mut Trident,
                     fuzz_accounts: &mut Self::IxAccounts,
                 ) {
-                    self.#accounts.resolve_accounts(client, fuzz_accounts, self.get_program_id(), &self.data);
+                    self.#accounts.resolve_accounts(trident, fuzz_accounts, self.get_program_id(), &self.data);
                 }
             }
 
@@ -86,11 +87,11 @@ impl ToTokens for TridentInstructionStruct {
             impl std::fmt::Debug for #name {
                 fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
                     f.debug_struct(stringify!(#name))
-                        .field("\x1b[96mprogram_id\x1b[0m", &format_args!("\x1b[93m{}\x1b[0m", pubkey!(#program_id)))
-                        .field("\x1b[96mdiscriminator\x1b[0m", &format_args!("{:?}", vec![#(#discriminator_bytes),*]))
-                        .field("\x1b[96maccounts\x1b[0m", &self.#accounts)
+                        .field("program_id", &format_args!("{}", pubkey!(#program_id)))
+                        .field("discriminator", &format_args!("{:?}", vec![#(#discriminator_bytes),*]))
+                        .field("accounts", &self.#accounts)
                         #debug_remaining_accounts
-                        .field("\x1b[96mdata\x1b[0m", &self.data)
+                        .field("data", &self.data)
                         .finish()
                 }
             }

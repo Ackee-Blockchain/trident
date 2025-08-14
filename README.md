@@ -16,7 +16,7 @@
 
 
 <p align="left">
-  Rust-based framework to Fuzz Solana programs, designed to help you ship secure code.
+  Rust-based Manually Guided Fuzzer to Fuzz Solana programs, designed to help you ship secure code.
 <p>
 
 <p align="left">
@@ -85,15 +85,20 @@ cargo install trident-cli
 
 ## Features
 
-### • Coverage-guided gray box fuzzer specifically for Solana programs
 
-### • Built in Rust for maximum performance and reliability
+### • Property-based fuzz testing a.k.a. "invariant fuzz testing"
 
 ### • Intuitive Anchor-like macros for streamlined testing
 
+### • Stateful fuzz testing
+
 ### • High-performance [TridentSVM](https://github.com/Ackee-Blockchain/trident-svm) client powered by [Anza's SVM API](https://www.anza.xyz/blog/anzas-new-svm-api)
 
-### • Leverages battle-tested web2 fuzzers [Honggfuzz](https://github.com/google/honggfuzz) and [AFL](https://github.com/AFLplusplus/AFLplusplus)
+### • Random instruction selection with repetition a.k.a. "fuzzing flows"
+
+### • Intuitive HTML dashboard with fuzzing results
+
+### • Regression testing
 
 
 ---

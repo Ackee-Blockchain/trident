@@ -1,50 +1,53 @@
-use fuzz_transactions::*;
+use fuzz_accounts::*;
 use trident_fuzz::fuzzing::*;
-mod fuzz_transactions;
+mod fuzz_accounts;
 mod instructions;
 mod transactions;
 mod types;
-use additional_program::entry as entry_additional_program;
-use idl_test::entry as entry_idl_test;
 pub use transactions::*;
-#[derive(Default)]
-struct FuzzTest<C> {
-    client: C,
+
+#[derive(FuzzTestMethods)]
+struct FuzzTest {
+    /// for fuzzing
+    trident: Trident,
+    /// for storing fuzzing accounts
+    fuzz_accounts: FuzzAccounts,
 }
-/// Use flows to specify custom sequences of behavior
-/// #[init]
-/// fn start(&mut self) {
-///     // Initialization goes here
-/// }
-/// #[flow]
-/// fn flow1(
-///     &mut self,
-///     fuzzer_data: &mut FuzzerData,
-///     accounts: &mut FuzzAccounts,
-/// ) -> Result<(), FuzzingError> {
-///     // Flow logic goes here
-///     Ok(())
-/// }
+
 #[flow_executor]
-impl<C: FuzzClient + std::panic::RefUnwindSafe> FuzzTest<C> {
-    fn new(client: C) -> Self {
-        Self { client }
+impl FuzzTest {
+    fn new() -> Self {
+        Self {
+            trident: Trident::default(),
+            fuzz_accounts: FuzzAccounts::default(),
+        }
     }
+
     #[init]
     fn start(&mut self) {
-        self.client.deploy_native_program(ProgramEntrypoint::new(
-            pubkey!("8bPSKGoWCdAW8Hu3S1hLHPpBv8BNwse4jDyaXNrj3jWB"),
-            None,
-            processor!(entry_additional_program),
-        ));
-        self.client.deploy_native_program(ProgramEntrypoint::new(
-            pubkey!("HtD1eaPZ1JqtxcirNtYt3aAhUMoJWZ2Ddtzu4NDZCrhN"),
-            None,
-            processor!(entry_idl_test),
-        ));
+        // perform any initialization here, this method will be executed
+        // at start of each iteration
+    }
+
+    #[flow]
+    fn flow1(&mut self) {
+        // perform logic which is meant to be fuzzed
+        // this flow is selected randomly from other flows
+    }
+
+    #[flow]
+    fn flow2(&mut self) {
+        // perform logic which is meant to be fuzzed
+        // this flow is selected randomly from other flows
+    }
+
+    #[end]
+    fn end(&mut self) {
+        // perform any cleaning here, this method will be executed
+        // at the end of each iteration
     }
 }
+
 fn main() {
-    let client = TridentSVM::new_client(&[], &TridentConfig::new());
-    FuzzTest::new(client).fuzz();
+    FuzzTest::fuzz(1000, 100);
 }

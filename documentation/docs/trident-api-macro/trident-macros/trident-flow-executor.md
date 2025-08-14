@@ -8,52 +8,52 @@ The Flow Executor functionality consists of four main attribute macros:
 
 1. `#[flow_executor]` - Implements the flow executor for a struct
 2. `#[flow]` - Marks a method as part of the execution flow
-3. `#[init]` - Marks a method as the initialization method for the flow
-4. `#[flow_ignore]` - Marks a flow method to be skipped during execution
+3. `#[init]` - Marks a method to run once at the beginning of each iteration before all flow methods
+4. `#[end]` - Marks a method to run once at the end of each iteration after all flow methods
 
 ## Usage
 
-!!! warning "Default callback"
-
-    If not flows are defined, or all of the flows are ignored, the default callback will execute a `random selection sequence` of transactions from the `FuzzTransactions` enum.
-
 ```rust
-use trident_fuzz::prelude::*;
 
-
-#[derive(Default)]
-struct FuzzTest<C> {
-    client: C,
+#[derive(FuzzTestMethods)]
+struct FuzzTest {
+    /// for fuzzing
+    trident: Trident,
+    /// for storing fuzzing accounts
+    fuzz_accounts: FuzzAccounts,
 }
 
 #[flow_executor]
-impl<C: FuzzClient + std::panic::RefUnwindSafe> FuzzTest<C> {
-    fn new(client: C) -> Self {
-        Self { client }
+impl FuzzTest {
+    fn new() -> Self {
+        Self {
+            trident: Trident::default(),
+            fuzz_accounts: FuzzAccounts::default(),
+        }
     }
+
     #[init]
-    fn initialize(&mut self, client: &mut C) -> Result<(), FlowError> {
-        // Initialization logic
-        Ok(())
+    fn start(&mut self) {
+        // perform any initialization here, this method will be executed
+        // at start of each iteration
     }
 
     #[flow]
-    fn flow1(&mut self, client: &mut C) -> Result<(), FlowError> {
-        // First step in the flow
-        Ok(())
+    fn flow1(&mut self) {
+        // perform logic which is meant to be fuzzed
+        // this flow is selected randomly from other flows
     }
 
     #[flow]
-    fn flow2(&mut self, client: &mut C) -> Result<(), FlowError> {
-        // Second step in the flow
-        Ok(())
+    fn flow2(&mut self) {
+        // perform logic which is meant to be fuzzed
+        // this flow is selected randomly from other flows
     }
 
-    #[flow_ignore]
-    #[flow]
-    fn skipped_flow(&mut self, client: &mut C) -> Result<(), FlowError> {
-        // This step will be skipped during execution
-        Ok(())
+    #[end]
+    fn end(&mut self) {
+        // perform any cleanup here, this method will be executed
+        // at the end of each iteration
     }
 }
 ```
@@ -66,20 +66,7 @@ The `flow_executor` attribute macro is applied to an `impl` block and implements
 
 ```rust
 #[flow_executor]
-impl<C: FuzzClient + std::panic::RefUnwindSafe> FuzzTest<C> {
-    // Flow methods...
-}
-```
-
----
-
-### `random_tail`
-
-The `random_tail` attribute is used to specify if remaining random data after flow execution should be used to execute random transactions.
-
-```rust
-#[flow_executor(random_tail = true)]
-impl<C: FuzzClient + std::panic::RefUnwindSafe> FuzzTest<C> {
+impl FuzzTest {
     // Flow methods...
 }
 ```
@@ -89,32 +76,9 @@ impl<C: FuzzClient + std::panic::RefUnwindSafe> FuzzTest<C> {
 
 ## Method-Level attributes
 
-### `#[flow]`
-
-The `flow` attribute macro marks a method as part of the execution flow.
-
-!!! warning "Flow Methods"
-    It is possible to define multiple flow methods.
-
-    Multiple flows are executed sequentially.
-
-```rust
-#[flow]
-fn step_one(
-    &mut self,
-    fuzzer_data: &mut FuzzerData,
-    accounts: &mut FuzzAccounts
-) -> Result<(), FuzzingError> {
-    // Flow step implementation
-    Ok(())
-}
-```
-
----
-
 ### `#[init]`
 
-The `init` attribute macro marks a method as the initialization method for the flow.
+The `init` attribute macro marks a method as the initialization method for the flows. This method is executed at the beginning of each iteration before all flow methods.
 
 !!! warning "Initialization Method"
     It is possible to define only one initialization method.
@@ -123,26 +87,58 @@ The `init` attribute macro marks a method as the initialization method for the f
 #[init]
 fn initialize(&mut self) {
     // Initialization logic
-    // For example, deploy program here
+    // Perform initialization Transaction here
 }
 ```
 
 ---
 
 
-### `#[flow_ignore]`
+### `#[flow]`
 
-The `flow_ignore` attribute macro marks a flow method to be skipped during execution.
+The `flow` attribute macro marks a method as part of the execution flow.
+
+!!! warning "Flow Methods"
+    It is possible to define multiple flow methods.
+
+    If multiple flows are defined, the fuzzer will pick randomly and generate a sequence of random flows to execute.
 
 ```rust
-#[flow_ignore]
 #[flow]
-fn step_one(
-    &mut self,
-    fuzzer_data: &mut FuzzerData,
-    accounts: &mut FuzzAccounts
-) -> Result<(), FuzzingError> {
+fn step_one(&mut self) {
     // Flow step implementation
-    Ok(())
 }
 ```
+
+---
+
+
+
+
+### `#[end]`
+
+The `end` attribute macro marks a method to run once at the end of each iteration after all flow methods.
+
+!!! warning "Cleanup Method"
+    It is possible to define only one end method.
+
+```rust
+#[end]
+fn cleanup(&mut self) {
+    // Cleanup logic
+}
+```
+
+## Generated Methods
+
+
+### `fuzz`
+
+Runs the fuzzing process with multiple concurrent fuzzing threads.
+
+```rust
+fn fuzz(iterations: u64, flow_calls_per_iteration: u64)
+```
+
+- `iterations` - Number of iterations to run
+- `flow_calls_per_iteration` - Number of flow methods called in each iteration (e.g. if the `flow_calls_per_iteration` is 100, the fuzzer will pick a random sequence of 100 flow methods to execute in each iteration)

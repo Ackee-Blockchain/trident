@@ -1,8 +1,10 @@
 use petgraph::algo::toposort;
 use petgraph::Graph;
-use quote::{quote, ToTokens};
+use quote::quote;
+use quote::ToTokens;
 use std::collections::HashMap;
 
+use crate::types::trident_accounts::AccountIdSpec;
 use crate::types::trident_accounts::TridentAccountField;
 use crate::types::trident_accounts::TridentAccountsStruct;
 
@@ -69,6 +71,22 @@ impl ToTokens for TridentAccountsStruct {
                             };
                         }
                     } else if let Some(storage_ident) = &f.constraints.storage {
+                        // Generate account ID based on the specification
+                        let account_id_generation = match &f.constraints.account_id {
+                            AccountIdSpec::Default => quote! {
+                                // Default range (0..3)
+                                let account_id = trident.gen_range(0..3);
+                            },
+                            AccountIdSpec::Static(val) => quote! {
+                                // Static account ID
+                                let account_id = #val;
+                            },
+                            AccountIdSpec::Range(start, end) => quote! {
+                                // Range-based account ID
+                                let account_id = trident.gen_range(#start..#end);
+                            },
+                        };
+
                         let account_resolution = if let Some(seeds) = &f.constraints.seeds {
                             // Get program_id from constraint if available, otherwise use the passed program_id
                             let program_id_to_use = if let Some(program_id) = &f.constraints.program_id {
@@ -77,21 +95,44 @@ impl ToTokens for TridentAccountsStruct {
                                 quote!(program_id)
                             };
 
+                            // Create AccountMetadata if space, owner, or lamports are specified
+                            let account_metadata = if f.constraints.space.is_some() || f.constraints.owner.is_some() || f.constraints.lamports.is_some() {
+                                let space = f.constraints.space.as_ref().map(|s| quote!(#s as usize)).unwrap_or_else(|| quote!(0));
+                                let owner = f.constraints.owner.as_ref().map(|o| quote!(#o)).unwrap_or_else(|| quote!(solana_sdk::system_program::ID));
+                                let lamports = f.constraints.lamports.as_ref().map(|l| quote!(#l)).unwrap_or_else(|| quote!(500 * solana_sdk::native_token::LAMPORTS_PER_SOL));
+
+                                quote!(Some(AccountMetadata::new(#lamports, #space, #owner)))
+                            } else {
+                                quote!(None)
+                            };
+
                             quote! {
                                 storage_accounts
                                     .#storage_ident
-                                    .get_or_create(self.#field_name.account_id, client, Some(PdaSeeds::new(&[#(#seeds),*], #program_id_to_use)), None)
+                                    .get_or_create(account_id, trident, Some(PdaSeeds::new(&[#(#seeds),*], #program_id_to_use)), #account_metadata)
                             }
                         } else {
+                            // Create AccountMetadata if space, owner, or lamports are specified
+                            let account_metadata = if f.constraints.space.is_some() || f.constraints.owner.is_some() || f.constraints.lamports.is_some() {
+                                let space = f.constraints.space.as_ref().map(|s| quote!(#s as usize)).unwrap_or_else(|| quote!(0));
+                                let owner = f.constraints.owner.as_ref().map(|o| quote!(#o)).unwrap_or_else(|| quote!(solana_sdk::system_program::ID));
+                                let lamports = f.constraints.lamports.as_ref().map(|l| quote!(#l)).unwrap_or_else(|| quote!(500 * solana_sdk::native_token::LAMPORTS_PER_SOL));
+
+                                quote!(Some(AccountMetadata::new(#lamports, #space, #owner)))
+                            } else {
+                                quote!(None)
+                            };
+
                             quote! {
                                 storage_accounts
                                     .#storage_ident
-                                    .get_or_create(self.#field_name.account_id, client, None, None)
+                                    .get_or_create(account_id, trident, None, #account_metadata)
                             }
                         };
 
                         quote! {
                             let #field_name = {
+                                #account_id_generation
                                 let account = #account_resolution;
                                 self.#field_name.set_address(account);
 
@@ -101,6 +142,7 @@ impl ToTokens for TridentAccountsStruct {
                                 if #is_mutable {
                                     self.#field_name.set_is_writable();
                                 }
+                                self.#field_name.account_id = account_id;
 
                                 account
                             };
@@ -123,7 +165,7 @@ impl ToTokens for TridentAccountsStruct {
                     let field_name = &f.ident;
                     quote! {
                         let #field_name = {
-                            self.#field_name.resolve_accounts(client, storage_accounts, program_id, instruction_data);
+                            self.#field_name.resolve_accounts(trident, storage_accounts, program_id, instruction_data);
                             &self.#field_name
                         };
                     }
@@ -173,7 +215,7 @@ impl ToTokens for TridentAccountsStruct {
                 #[allow(unused_variables)]
                 fn resolve_accounts(
                     &mut self,
-                    client: &mut impl FuzzClient,
+                    trident: &mut Trident,
                     storage_accounts: &mut Self::IxAccounts,
                     program_id: Pubkey,
                     instruction_data: &Self::IxData,

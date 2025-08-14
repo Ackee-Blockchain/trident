@@ -1,16 +1,13 @@
-use arbitrary::Arbitrary;
-use arbitrary::Result;
-use arbitrary::Unstructured;
-
 use solana_sdk::account::AccountSharedData;
 use solana_sdk::account::ReadableAccount;
 use solana_sdk::clock::Epoch;
 use solana_sdk::instruction::AccountMeta;
 use solana_sdk::pubkey::Pubkey;
 
-use crate::{fuzzing::FuzzClient, types::AccountId};
+use crate::fuzzing::FuzzClient;
+use crate::types::AccountId;
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct TridentAccount {
     pub account_id: AccountId,
     account_meta: Option<AccountMeta>,
@@ -18,25 +15,8 @@ pub struct TridentAccount {
     snapshot_after: Option<SnapshotAccount>,
 }
 
-impl<'a> Arbitrary<'a> for TridentAccount {
-    fn arbitrary(u: &mut Unstructured<'a>) -> Result<Self> {
-        let mut buf = [0; std::mem::size_of::<AccountId>()];
-        u.fill_buffer(&mut buf)?;
-        Ok(Self {
-            account_id: AccountId::from_le_bytes(buf),
-            account_meta: None,
-            snapshot_before: None,
-            snapshot_after: None,
-        })
-    }
-    #[inline]
-    fn size_hint(_depth: usize) -> (usize, Option<usize>) {
-        let n = std::mem::size_of::<AccountId>();
-        (n, Some(n))
-    }
-}
-
 impl TridentAccount {
+    #[doc(hidden)]
     pub fn set_account_meta(&mut self, address: Pubkey, is_signer: bool, is_writable: bool) {
         if is_writable {
             self.account_meta = Some(AccountMeta::new(address, is_signer));
@@ -75,6 +55,7 @@ impl TridentAccount {
     pub fn is_account_meta_set(&self) -> bool {
         self.account_meta.is_some()
     }
+
     pub fn get_snapshot_before(&self) -> &SnapshotAccount {
         match &self.snapshot_before {
             Some(snapshot) => snapshot,
@@ -115,22 +96,14 @@ impl TridentAccount {
 
 impl std::fmt::Debug for TridentAccount {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "TridentAccount {{ account_id: {}, account_meta: ",
-            self.account_id
-        )?;
         match &self.account_meta {
             Some(meta) => {
-                write!(f, "{{ ")?;
-                write!(f, "address: \x1b[93m{}\x1b[0m, ", meta.pubkey)?;
-                write!(f, "is_signer: \x1b[33m{}\x1b[0m, ", meta.is_signer)?;
-                write!(f, "is_writable: \x1b[94m{}\x1b[0m", meta.is_writable)?;
-                write!(f, " }}")?;
+                write!(f, "address: {}, ", meta.pubkey)?;
+                write!(f, "is_signer: {}, ", meta.is_signer)?;
+                write!(f, "is_writable: {}", meta.is_writable)
             }
-            None => write!(f, "none")?,
+            None => write!(f, "none"),
         }
-        write!(f, " }}")
     }
 }
 
