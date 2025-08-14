@@ -48,7 +48,7 @@ workspace = true
 
 # Trident-SVM
 [dependencies.trident-svm]
-version = "0.0.4-rc.4"
+version = "0.0.4"
 
 
 [dependencies]

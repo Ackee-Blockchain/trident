@@ -11,6 +11,7 @@ on:
       - master
 
 env:
+  CARGO_TERM_COLOR: always
   SOLANA_VERSION: "v2.2.16"
   RUST_VERSION: "1.86"
 
