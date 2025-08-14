@@ -106,3 +106,19 @@ Debug crashes by analyzing specific crash files using the provided seed.
 ## `trident clean`
 
 Clean build target, additionally perform `anchor clean`.
+
+
+---
+
+## `trident server`
+
+Starts the Trident Server, in order to make it easier to visualize the fuzzing dashboard, more info in the [dashboard](../trident-advanced/dashboard/index.md) section.
+
+---
+
+
+## `trident compare`
+
+Allows you to compare two fuzzing regression results. More info in the [regression](../trident-advanced/regression/index.md) section.
+
+---
