@@ -1,0 +1,162 @@
+.md-typeset h1,
+.md-typeset h2,
+.md-typeset h3 {
+    font-weight: 700;
+}
+
+
+.md-typeset h1,
+.md-typeset h2,
+.md-typeset h3,
+.md-typeset h4 {
+    color: rgb(133, 133, 252);
+}
+
+
+:root {
+    --md-admonition-icon--important: url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M256 512a256 256 0 1 0 0-512 256 256 0 1 0 0 512zm0-384c13.3 0 24 10.7 24 24v112c0 13.3-10.7 24-24 24s-24-10.7-24-24V152c0-13.3 10.7-24 24-24zm-32 224a32 32 0 1 1 64 0 32 32 0 1 1-64 0z"/></svg>')
+}
+
+/* Bash code block specific colors */
+.language-bash {
+    --md-code-fg-color: #d4d4d4;
+    --md-code-bg-color: #1e1e1e;
+}
+
+.language-bash .o {
+    color: #d4d4d4;
+}
+
+/* Operators */
+.language-bash .nb {
+    color: #569cd6;
+}
+
+/* Built-in commands */
+.language-bash .nv {
+    color: #9cdcfe;
+}
+
+/* Variables */
+.language-bash .s2 {
+    color: #ce9178;
+}
+
+/* Strings */
+.language-bash .c1 {
+    color: #6a9955;
+}
+
+/* Comments */
+.language-bash .p {
+    color: #d4d4d4;
+}
+
+/* Punctuation */
+
+/* For slate/dark theme */
+[data-md-color-scheme="slate"] .language-bash {
+    --md-code-fg-color: #d4d4d4;
+    --md-code-bg-color: #1e1e1e;
+}
+
+[data-md-color-scheme="slate"] .language-rust {
+    --md-code-fg-color: #d4d4d4;
+    --md-code-bg-color: #1e1e1e;
+}
+
+[data-md-color-scheme="slate"] .language-rust .k {
+    color: #8b79fd;
+}
+
+/* Keywords (pub, fn, struct, etc) */
+[data-md-color-scheme="slate"] .language-rust .kc {
+    color: #8b79fd;
+}
+
+/* Keyword constants */
+[data-md-color-scheme="slate"] .language-rust .kt {
+    color: #8b79fd;
+}
+
+/* Built-in names */
+[data-md-color-scheme="slate"] .language-rust .nc {
+    color: #4ec973;
+}
+
+/* function declarations */
+[data-md-color-scheme="slate"] .language-rust .nf {
+    color: #eded58;
+}
+
+/* mut */
+[data-md-color-scheme="slate"] .language-rust .nc {
+    color: #8b79fd;
+}
+
+/* comments */
+[data-md-color-scheme="slate"] .language-rust .c1 {
+    color: #6a9955;
+}
+
+/* equal sign */
+[data-md-color-scheme="slate"] .language-rust .o {
+    color: #ffffff;
+}
+
+[data-md-color-scheme="slate"] .language-rust .n {
+    color: #e2e0e0;
+}
+
+/* Brackets */
+[data-md-color-scheme="slate"] .language-rust .p {
+    color: #ffffff;
+}
+
+
+[data-md-color-scheme="default"] .md-typeset p code {
+    background-color: #f0f0f0;
+    color: #baa9f6;
+    font-weight: 700;
+}
+
+[data-md-color-scheme="slate"] .md-typeset p code {
+    background-color: #1e1e1e;
+    color: #baa9f6;
+    font-weight: 700;
+}
+
+
+
+
+.md-grid {
+    max-width: 100%;
+}
+
+@media (min-width: 1220px) {
+    .md-main__inner {
+        margin-top: 0;
+    }
+
+    .md-sidebar {
+        height: auto;
+    }
+
+    .md-sidebar--primary {
+        border-right: 1px solid var(--md-default-fg-color--lightest);
+    }
+
+    .md-nav {
+        font-size: 16px;
+    }
+
+    .md-nav .md-nav__title {
+        display: none;
+    }
+
+    .md-nav__icon {
+        width: 1.2rem;
+        height: 1.2rem;
+        margin-top: -.1rem;
+    }
+}
