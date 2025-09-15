@@ -70,6 +70,36 @@ impl AccountsStorage {
         }
     }
 
+    pub fn get_or_create_uninitialized_account(
+        &mut self,
+        account_id: AccountId,
+        trident: &mut Trident,
+        seeds: Option<PdaSeeds>,
+    ) -> Pubkey {
+        match self.accounts.get(&account_id) {
+            Some(address) => *address,
+            None => {
+                let address = self.get_or_create_address(seeds, trident);
+                self.accounts.insert(account_id, address);
+                address
+            }
+        }
+    }
+
+    pub fn get_or_create_account_with_address(
+        &mut self,
+        account_id: AccountId,
+        address: Pubkey,
+    ) -> Pubkey {
+        match self.accounts.get(&account_id) {
+            Some(address) => *address,
+            None => {
+                self.accounts.insert(account_id, address);
+                address
+            }
+        }
+    }
+
     #[cfg(feature = "token")]
     #[allow(clippy::too_many_arguments)]
     pub fn get_or_create_token_account(
