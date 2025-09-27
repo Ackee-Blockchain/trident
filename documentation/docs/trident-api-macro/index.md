@@ -26,12 +26,12 @@ Trident Accounts attributes help to define accounts used in the fuzzing environm
 
 Transaction Hooks are used to customize what should be done before the transaction is executed, after it is executed and to check if the changes are valid with invariant checks.
 
-- [InstructionHooks](hooks/instruction-hooks.md)
+- [TransactionHooks](hooks/transaction-hooks.md)
 
 
 Instruction Hooks are used to customize instruction data and accounts if the Trident Accounts attributes are not enough.
 
-- [TransactionHooks](hooks/transaction-hooks.md)
+- [InstructionHooks](hooks/instruction-hooks.md)
 
 
 ## Trident Macros
