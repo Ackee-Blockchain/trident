@@ -1,17 +1,19 @@
 use fuzz_accounts::*;
 use trident_fuzz::fuzzing::*;
 mod fuzz_accounts;
-mod instructions;
-mod transactions;
 mod types;
-pub use transactions::*;
+use types::*;
+
+use crate::types::metaplex::{
+    InitializeInstruction, InitializeInstructionAccounts, InitializeInstructionData,
+};
 
 #[derive(FuzzTestMethods)]
 struct FuzzTest {
-    // for fuzzing
+    /// Trident client for interacting with the Solana program
     trident: Trident,
-    /// for storing fuzzing accounts
-    fuzz_accounts: FuzzAccounts,
+    /// Storage for all account addresses used in fuzz testing
+    fuzz_accounts: AccountAddresses,
 }
 
 #[flow_executor]
@@ -19,16 +21,68 @@ impl FuzzTest {
     fn new() -> Self {
         Self {
             trident: Trident::default(),
-            fuzz_accounts: FuzzAccounts::default(),
+            fuzz_accounts: AccountAddresses::default(),
         }
     }
 
     #[init]
     fn start(&mut self) {
-        let mut tx = InitializeTransaction::build(&mut self.trident, &mut self.fuzz_accounts);
+        // Perform any initialization here, this method will be executed
+        // at the start of each iteration
+
+        let signer = self.fuzz_accounts.signer.insert(&mut self.trident, None);
+
+        let mint = self.fuzz_accounts.mint.insert(&mut self.trident, None);
+
+        let metadata_account = self.fuzz_accounts.metadata_account.insert(
+            &mut self.trident,
+            Some(PdaSeeds::new(
+                &[
+                    b"metadata",
+                    pubkey!("metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s").as_ref(),
+                    mint.as_ref(),
+                ],
+                pubkey!("metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s"),
+            )),
+        );
 
         self.trident
-            .execute_transaction(&mut tx, Some("initialize"));
+            .get_client()
+            .airdrop(&signer, 10 * LAMPORTS_PER_SOL);
+
+        let ix = InitializeInstruction::data(InitializeInstructionData::new(
+            self.trident.gen_range(0..=u8::MAX),
+            self.trident.gen_string(10),
+            self.trident.gen_string(5),
+            self.trident.gen_string(25),
+        ))
+        .accounts(InitializeInstructionAccounts::new(
+            signer,
+            mint,
+            metadata_account,
+            pubkey!("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"),
+        ))
+        .instruction();
+
+        self.trident.execute(&[ix], "initialize");
+    }
+
+    #[flow]
+    fn flow1(&mut self) {
+        // Perform logic which is meant to be fuzzed
+        // This flow is selected randomly from other flows
+    }
+
+    #[flow]
+    fn flow2(&mut self) {
+        // Perform logic which is meant to be fuzzed
+        // This flow is selected randomly from other flows
+    }
+
+    #[end]
+    fn end(&mut self) {
+        // Perform any cleanup here, this method will be executed
+        // at the end of each iteration
     }
 }
 

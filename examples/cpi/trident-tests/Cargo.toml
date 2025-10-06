@@ -13,7 +13,6 @@ solana-sdk = "~2.0"
 [dependencies.trident-fuzz]
 path = "../../../crates/fuzz"
 
-
 [[bin]]
 name = "fuzz_0"
 path = "fuzz_0/test_fuzz.rs"

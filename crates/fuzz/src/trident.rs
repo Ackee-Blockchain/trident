@@ -1,7 +1,5 @@
 use rand::distributions::uniform::SampleRange;
 use rand::distributions::uniform::SampleUniform;
-use solana_sdk::account::ReadableAccount;
-use solana_sdk::account::WritableAccount;
 use solana_sdk::instruction::Instruction;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::transaction::TransactionError;
@@ -10,8 +8,8 @@ use trident_svm::prelude::solana_svm::transaction_results::TransactionExecutionR
 use trident_svm::processor::InstructionError;
 use trident_svm::trident_svm::TridentSVM;
 
+use crate::fuzz_client::FuzzClient;
 use crate::fuzzing::TridentRng;
-use crate::traits::FuzzClient;
 
 use trident_fuzz_metrics::types::Seed;
 
@@ -33,13 +31,6 @@ impl Default for Trident {
 
 /// Client related methods
 impl Trident {
-    // TODO: should be moved to the client
-    pub fn airdrop(&mut self, address: &Pubkey, amount: u64) {
-        let mut account = self.client.get_account(address).unwrap_or_default();
-
-        account.set_lamports(account.lamports() + amount);
-        self.client.set_account_custom(address, &account);
-    }
     pub fn get_client(&mut self) -> &mut impl FuzzClient {
         &mut self.client
     }

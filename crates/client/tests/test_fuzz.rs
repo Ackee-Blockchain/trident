@@ -16,7 +16,6 @@ async fn test_types_generation() {
     verify_types(&templates).await?;
 }
 
-#[ignore = "FuzzAccounts do not have deterministic order"]
 #[throws]
 #[tokio::test]
 async fn test_fuzz_accounts_generation() {

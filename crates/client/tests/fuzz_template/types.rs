@@ -21,6 +21,15 @@ pub mod additional_program {
     use super::*;
 
     // ------------------------------------------------------------------------
+    // Program ID
+    // ------------------------------------------------------------------------
+
+    /// Returns the program ID for additional_program
+    pub fn program_id() -> Pubkey {
+        pubkey!("8bPSKGoWCdAW8Hu3S1hLHPpBv8BNwse4jDyaXNrj3jWB")
+    }
+
+    // ------------------------------------------------------------------------
     // Instructions
     // ------------------------------------------------------------------------
 
@@ -43,18 +52,26 @@ pub mod additional_program {
     #[derive(Debug, Clone)]
     pub struct InitializeInstructionAccounts {}
 
+    impl InitializeInstructionAccounts {
+        pub fn new() -> Self {
+            Self {}
+        }
+    }
+
     /// Instruction data for Initialize
     #[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
     pub struct InitializeInstructionData {}
+
+    impl InitializeInstructionData {
+        pub fn new() -> Self {
+            Self {}
+        }
+    }
 
     /// Implementation for InitializeInstruction
     impl InitializeInstruction {
         fn discriminator() -> [u8; 8] {
             [175u8, 175u8, 109u8, 31u8, 13u8, 152u8, 155u8, 237u8]
-        }
-
-        fn program_id() -> Pubkey {
-            pubkey!("8bPSKGoWCdAW8Hu3S1hLHPpBv8BNwse4jDyaXNrj3jWB")
         }
 
         pub fn data(data: InitializeInstructionData) -> Self {
@@ -88,7 +105,7 @@ pub mod additional_program {
 
             self.data.serialize(&mut buffer).unwrap();
 
-            Instruction::new_with_bytes(Self::program_id(), &buffer, self.to_account_metas())
+            Instruction::new_with_bytes(program_id(), &buffer, self.to_account_metas())
         }
     }
 
@@ -102,6 +119,15 @@ pub mod additional_program {
 // ----------------------------------------------------------------------------
 pub mod idl_test {
     use super::*;
+
+    // ------------------------------------------------------------------------
+    // Program ID
+    // ------------------------------------------------------------------------
+
+    /// Returns the program ID for idl_test
+    pub fn program_id() -> Pubkey {
+        pubkey!("HtD1eaPZ1JqtxcirNtYt3aAhUMoJWZ2Ddtzu4NDZCrhN")
+    }
 
     // ------------------------------------------------------------------------
     // Instructions
@@ -162,6 +188,48 @@ pub mod idl_test {
         pub composite_account: CompositeAccountInstructionAccounts,
     }
 
+    impl ProcessCustomTypesInstructionAccounts {
+        pub fn new(
+            composite_account_nested: CompositeAccountNestedInstructionAccounts,
+
+            signer: Pubkey,
+
+            data_account_1: Pubkey,
+
+            data_account_2: Pubkey,
+
+            data_account_3: Pubkey,
+
+            data_account_4: Pubkey,
+
+            data_account_5: Pubkey,
+
+            data_account_6: Pubkey,
+
+            composite_account: CompositeAccountInstructionAccounts,
+        ) -> Self {
+            Self {
+                composite_account_nested,
+
+                signer,
+
+                data_account_1,
+
+                data_account_2,
+
+                data_account_3,
+
+                data_account_4,
+
+                data_account_5,
+
+                data_account_6,
+
+                composite_account,
+            }
+        }
+    }
+
     /// Instruction data for ProcessCustomTypes
     #[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
     pub struct ProcessCustomTypesInstructionData {
@@ -190,14 +258,64 @@ pub mod idl_test {
         pub _input_generic_struct: GenericStruct,
     }
 
+    impl ProcessCustomTypesInstructionData {
+        pub fn new(
+            _input_classic: ClassicStruct,
+
+            _input_optional: OptionalFields,
+
+            _input_tuple: TupleStruct,
+
+            _input_enum: SimpleEnum,
+
+            _input_data_enum: DataEnum,
+
+            _input_multi_data_enum: MultiDataEnum,
+
+            _input_named_fields_enum: NamedFieldsEnum,
+
+            _input_generic_enum: GenericEnum,
+
+            _input_unit_variants: UnitVariants,
+
+            _input_nested: NestedStruct,
+
+            _input_default: DefaultStruct,
+
+            _input_generic_struct: GenericStruct,
+        ) -> Self {
+            Self {
+                _input_classic,
+
+                _input_optional,
+
+                _input_tuple,
+
+                _input_enum,
+
+                _input_data_enum,
+
+                _input_multi_data_enum,
+
+                _input_named_fields_enum,
+
+                _input_generic_enum,
+
+                _input_unit_variants,
+
+                _input_nested,
+
+                _input_default,
+
+                _input_generic_struct,
+            }
+        }
+    }
+
     /// Implementation for ProcessCustomTypesInstruction
     impl ProcessCustomTypesInstruction {
         fn discriminator() -> [u8; 8] {
             [37u8, 23u8, 242u8, 88u8, 134u8, 197u8, 190u8, 108u8]
-        }
-
-        fn program_id() -> Pubkey {
-            pubkey!("HtD1eaPZ1JqtxcirNtYt3aAhUMoJWZ2Ddtzu4NDZCrhN")
         }
 
         pub fn data(data: ProcessCustomTypesInstructionData) -> Self {
@@ -277,7 +395,7 @@ pub mod idl_test {
 
             self.data.serialize(&mut buffer).unwrap();
 
-            Instruction::new_with_bytes(Self::program_id(), &buffer, self.to_account_metas())
+            Instruction::new_with_bytes(program_id(), &buffer, self.to_account_metas())
         }
     }
 
@@ -336,6 +454,48 @@ pub mod idl_test {
         pub composite_account: CompositeAccountInstructionAccounts,
     }
 
+    impl ProcessRustTypesInstructionAccounts {
+        pub fn new(
+            composite_account_nested: CompositeAccountNestedInstructionAccounts,
+
+            signer: Pubkey,
+
+            data_account_1: Pubkey,
+
+            data_account_2: Pubkey,
+
+            data_account_3: Pubkey,
+
+            data_account_4: Pubkey,
+
+            data_account_5: Pubkey,
+
+            data_account_6: Pubkey,
+
+            composite_account: CompositeAccountInstructionAccounts,
+        ) -> Self {
+            Self {
+                composite_account_nested,
+
+                signer,
+
+                data_account_1,
+
+                data_account_2,
+
+                data_account_3,
+
+                data_account_4,
+
+                data_account_5,
+
+                data_account_6,
+
+                composite_account,
+            }
+        }
+    }
+
     /// Instruction data for ProcessRustTypes
     #[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
     pub struct ProcessRustTypesInstructionData {
@@ -370,14 +530,76 @@ pub mod idl_test {
         pub _input_bool: bool,
     }
 
+    impl ProcessRustTypesInstructionData {
+        pub fn new(
+            _input_u8: u8,
+
+            _input_u16: u16,
+
+            _input_u32: u32,
+
+            _input_u64: u64,
+
+            _input_i8: i8,
+
+            _input_i16: i16,
+
+            _input_i32: i32,
+
+            _input_i64: i64,
+
+            _input_i128: i128,
+
+            _input_f32: f32,
+
+            _input_f64: f64,
+
+            _input_string: String,
+
+            _input_vec: Vec<u8>,
+
+            _input_vec_string: Vec<String>,
+
+            _input_bool: bool,
+        ) -> Self {
+            Self {
+                _input_u8,
+
+                _input_u16,
+
+                _input_u32,
+
+                _input_u64,
+
+                _input_i8,
+
+                _input_i16,
+
+                _input_i32,
+
+                _input_i64,
+
+                _input_i128,
+
+                _input_f32,
+
+                _input_f64,
+
+                _input_string,
+
+                _input_vec,
+
+                _input_vec_string,
+
+                _input_bool,
+            }
+        }
+    }
+
     /// Implementation for ProcessRustTypesInstruction
     impl ProcessRustTypesInstruction {
         fn discriminator() -> [u8; 8] {
             [74u8, 102u8, 18u8, 245u8, 253u8, 10u8, 252u8, 246u8]
-        }
-
-        fn program_id() -> Pubkey {
-            pubkey!("HtD1eaPZ1JqtxcirNtYt3aAhUMoJWZ2Ddtzu4NDZCrhN")
         }
 
         pub fn data(data: ProcessRustTypesInstructionData) -> Self {
@@ -457,7 +679,7 @@ pub mod idl_test {
 
             self.data.serialize(&mut buffer).unwrap();
 
-            Instruction::new_with_bytes(Self::program_id(), &buffer, self.to_account_metas())
+            Instruction::new_with_bytes(program_id(), &buffer, self.to_account_metas())
         }
     }
 
@@ -474,7 +696,7 @@ pub mod idl_test {
     }
 
     impl CompositeAccountNestedInstructionAccountMetas {
-        pub fn to_account_metas(&self) -> Vec<AccountMeta> {
+        fn to_account_metas(&self) -> Vec<AccountMeta> {
             let mut metas = Vec::new();
 
             metas.push(self.some_account.clone());
@@ -484,7 +706,7 @@ pub mod idl_test {
             metas
         }
 
-        pub fn set_from_accounts(&mut self, accounts: CompositeAccountNestedInstructionAccounts) {
+        fn set_from_accounts(&mut self, accounts: CompositeAccountNestedInstructionAccounts) {
             self.some_account = AccountMeta::new(accounts.some_account, false);
 
             self.nested_inner.set_from_accounts(accounts.nested_inner);
@@ -498,6 +720,16 @@ pub mod idl_test {
         pub nested_inner: NestedInnerInstructionAccounts,
     }
 
+    impl CompositeAccountNestedInstructionAccounts {
+        pub fn new(some_account: Pubkey, nested_inner: NestedInnerInstructionAccounts) -> Self {
+            Self {
+                some_account,
+
+                nested_inner,
+            }
+        }
+    }
+
     #[derive(Debug, Clone, Default)]
     pub struct NestedInnerInstructionAccountMetas {
         pub some_account: AccountMeta,
@@ -506,7 +738,7 @@ pub mod idl_test {
     }
 
     impl NestedInnerInstructionAccountMetas {
-        pub fn to_account_metas(&self) -> Vec<AccountMeta> {
+        fn to_account_metas(&self) -> Vec<AccountMeta> {
             let mut metas = Vec::new();
 
             metas.push(self.some_account.clone());
@@ -516,7 +748,7 @@ pub mod idl_test {
             metas
         }
 
-        pub fn set_from_accounts(&mut self, accounts: NestedInnerInstructionAccounts) {
+        fn set_from_accounts(&mut self, accounts: NestedInnerInstructionAccounts) {
             self.some_account = AccountMeta::new_readonly(accounts.some_account, false);
         }
     }
@@ -524,6 +756,12 @@ pub mod idl_test {
     #[derive(Debug, Clone)]
     pub struct NestedInnerInstructionAccounts {
         pub some_account: Pubkey,
+    }
+
+    impl NestedInnerInstructionAccounts {
+        pub fn new(some_account: Pubkey) -> Self {
+            Self { some_account }
+        }
     }
 
     /// Composite Account: composite_account
@@ -537,7 +775,7 @@ pub mod idl_test {
     }
 
     impl CompositeAccountInstructionAccountMetas {
-        pub fn to_account_metas(&self) -> Vec<AccountMeta> {
+        fn to_account_metas(&self) -> Vec<AccountMeta> {
             let mut metas = Vec::new();
 
             metas.push(self.some_account.clone());
@@ -549,7 +787,7 @@ pub mod idl_test {
             metas
         }
 
-        pub fn set_from_accounts(&mut self, accounts: CompositeAccountInstructionAccounts) {
+        fn set_from_accounts(&mut self, accounts: CompositeAccountInstructionAccounts) {
             self.some_account = AccountMeta::new_readonly(accounts.some_account, false);
 
             self.signer = AccountMeta::new(accounts.signer, true);
@@ -566,6 +804,18 @@ pub mod idl_test {
 
         pub data_account_1: Pubkey,
     }
+
+    impl CompositeAccountInstructionAccounts {
+        pub fn new(some_account: Pubkey, signer: Pubkey, data_account_1: Pubkey) -> Self {
+            Self {
+                some_account,
+
+                signer,
+
+                data_account_1,
+            }
+        }
+    }
 }
 
 // ============================================================================
@@ -579,7 +829,19 @@ pub struct ClassicStruct {
 
     pub field2: u16,
 
-    pub field3: TridentPubkey,
+    pub field3: Pubkey,
+}
+
+impl ClassicStruct {
+    pub fn new(field1: u8, field2: u16, field3: Pubkey) -> Self {
+        Self {
+            field1,
+
+            field2,
+
+            field3,
+        }
+    }
 }
 
 /// Custom struct: ClassicStructAccount
@@ -589,7 +851,19 @@ pub struct ClassicStructAccount {
 
     pub field2: u16,
 
-    pub field3: TridentPubkey,
+    pub field3: Pubkey,
+}
+
+impl ClassicStructAccount {
+    pub fn new(field1: u8, field2: u16, field3: Pubkey) -> Self {
+        Self {
+            field1,
+
+            field2,
+
+            field3,
+        }
+    }
 }
 
 /// Custom struct: DataAccount
@@ -622,6 +896,64 @@ pub struct DataAccount {
     pub unit_variants: UnitVariants,
 }
 
+impl DataAccount {
+    pub fn new(
+        unit_struct: UnitStruct,
+
+        tuple_struct: TupleStruct,
+
+        classic_struct: ClassicStruct,
+
+        generic_struct: GenericStruct,
+
+        optional_fields: OptionalFields,
+
+        default_struct: DefaultStruct,
+
+        nested_struct: NestedStruct,
+
+        simple_enum: SimpleEnum,
+
+        data_enum: DataEnum,
+
+        multi_data_enum: MultiDataEnum,
+
+        named_fields_enum: NamedFieldsEnum,
+
+        generic_enum: GenericEnum,
+
+        unit_variants: UnitVariants,
+    ) -> Self {
+        Self {
+            unit_struct,
+
+            tuple_struct,
+
+            classic_struct,
+
+            generic_struct,
+
+            optional_fields,
+
+            default_struct,
+
+            nested_struct,
+
+            simple_enum,
+
+            data_enum,
+
+            multi_data_enum,
+
+            named_fields_enum,
+
+            generic_enum,
+
+            unit_variants,
+        }
+    }
+}
+
 /// Custom enum: DataEnum
 #[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
 pub enum DataEnum {
@@ -631,7 +963,7 @@ pub enum DataEnum {
 
     Text(String),
 
-    Pubkey(TridentPubkey),
+    Pubkey(Pubkey),
 }
 
 /// Custom struct: DefaultStruct
@@ -641,7 +973,19 @@ pub struct DefaultStruct {
 
     pub field2: u16,
 
-    pub field3: TridentPubkey,
+    pub field3: Pubkey,
+}
+
+impl DefaultStruct {
+    pub fn new(field1: u8, field2: u16, field3: Pubkey) -> Self {
+        Self {
+            field1,
+
+            field2,
+
+            field3,
+        }
+    }
 }
 
 /// Custom enum: GenericEnum
@@ -657,7 +1001,13 @@ pub enum GenericEnum {
 pub struct GenericStruct {
     pub value: T,
 
-    pub key: TridentPubkey,
+    pub key: Pubkey,
+}
+
+impl GenericStruct {
+    pub fn new(value: T, key: Pubkey) -> Self {
+        Self { value, key }
+    }
 }
 
 /// Custom enum: MultiDataEnum
@@ -667,27 +1017,17 @@ pub enum MultiDataEnum {
 
     Triple(i32, i32, i32),
 
-    Pubkey(TridentPubkey, TridentPubkey),
+    Pubkey(Pubkey, Pubkey),
 }
 
 /// Custom enum: NamedFieldsEnum
 #[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
 pub enum NamedFieldsEnum {
-    Point {
-        x: f64,
+    Point { x: f64, y: f64 },
 
-        y: f64,
-    },
+    Circle { radius: f64 },
 
-    Circle {
-        radius: f64,
-    },
-
-    Pubkey {
-        pubkey1: TridentPubkey,
-
-        pubkey2: TridentPubkey,
-    },
+    Pubkey { pubkey1: Pubkey, pubkey2: Pubkey },
 }
 
 /// Custom struct: NestedStruct
@@ -695,13 +1035,25 @@ pub enum NamedFieldsEnum {
 pub struct NestedStruct {
     pub inner: ClassicStruct,
 
-    pub key: TridentPubkey,
+    pub key: Pubkey,
+}
+
+impl NestedStruct {
+    pub fn new(inner: ClassicStruct, key: Pubkey) -> Self {
+        Self { inner, key }
+    }
 }
 
 /// Custom struct: NestedStructAccount
 #[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
 pub struct NestedStructAccount {
     pub inner: ClassicStructAccount,
+}
+
+impl NestedStructAccount {
+    pub fn new(inner: ClassicStructAccount) -> Self {
+        Self { inner }
+    }
 }
 
 /// Custom struct: OptionalFields
@@ -711,7 +1063,19 @@ pub struct OptionalFields {
 
     pub field2: Option<u16>,
 
-    pub field3: Option<TridentPubkey>,
+    pub field3: Option<Pubkey>,
+}
+
+impl OptionalFields {
+    pub fn new(field1: Option<u8>, field2: Option<u16>, field3: Option<Pubkey>) -> Self {
+        Self {
+            field1,
+
+            field2,
+
+            field3,
+        }
+    }
 }
 
 /// Custom struct: OptionalFieldsAccount
@@ -721,7 +1085,19 @@ pub struct OptionalFieldsAccount {
 
     pub field2: Option<u16>,
 
-    pub field3: Option<TridentPubkey>,
+    pub field3: Option<Pubkey>,
+}
+
+impl OptionalFieldsAccount {
+    pub fn new(field1: Option<u8>, field2: Option<u16>, field3: Option<Pubkey>) -> Self {
+        Self {
+            field1,
+
+            field2,
+
+            field3,
+        }
+    }
 }
 
 /// Custom enum: SimpleEnum
@@ -741,7 +1117,19 @@ pub struct TupleStruct {
 
     pub field_1: u16,
 
-    pub field_2: TridentPubkey,
+    pub field_2: Pubkey,
+}
+
+impl TupleStruct {
+    pub fn new(field_0: u8, field_1: u16, field_2: Pubkey) -> Self {
+        Self {
+            field_0,
+
+            field_1,
+
+            field_2,
+        }
+    }
 }
 
 /// Custom struct: TupleStructAccount
@@ -751,7 +1139,19 @@ pub struct TupleStructAccount {
 
     pub field_1: u16,
 
-    pub field_2: TridentPubkey,
+    pub field_2: Pubkey,
+}
+
+impl TupleStructAccount {
+    pub fn new(field_0: u8, field_1: u16, field_2: Pubkey) -> Self {
+        Self {
+            field_0,
+
+            field_1,
+
+            field_2,
+        }
+    }
 }
 
 /// Custom struct: UnitStruct

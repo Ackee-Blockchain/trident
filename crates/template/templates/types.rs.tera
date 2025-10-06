@@ -22,6 +22,15 @@ pub mod {{ program.module_name }} {
     use super::*;
 
     // ------------------------------------------------------------------------
+    // Program ID
+    // ------------------------------------------------------------------------
+
+    /// Returns the program ID for {{ program.name }}
+    pub fn program_id() -> Pubkey {
+        pubkey!("{{ program.program_id }}")
+    }
+
+    // ------------------------------------------------------------------------
     // Instructions
     // ------------------------------------------------------------------------
 
@@ -63,6 +72,28 @@ pub mod {{ program.module_name }} {
     {% endfor %}
 }
 
+    impl {{ instruction.camel_name }}InstructionAccounts {
+        pub fn new(
+        {% for account in instruction.accounts %}
+        {% if not account.address %}
+        {% if account.is_composite %}
+            {{ account.name }}: {{ account.composite_type_name }}InstructionAccounts,
+        {% else %}
+            {{ account.name }}: Pubkey,
+        {% endif %}
+        {% endif %}
+        {% endfor %}
+        ) -> Self {
+            Self {
+            {% for account in instruction.accounts %}
+            {% if not account.address %}
+                {{ account.name }},
+            {% endif %}
+            {% endfor %}
+            }
+        }
+    }
+
     /// Instruction data for {{ instruction.camel_name }}
     #[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
     pub struct {{ instruction.camel_name }}InstructionData {
@@ -71,14 +102,24 @@ pub mod {{ program.module_name }} {
     {% endfor %}
 }
 
+    impl {{ instruction.camel_name }}InstructionData {
+        pub fn new(
+        {% for field in instruction.data_fields %}
+            {{ field.name }}: {{ field.rust_type }},
+        {% endfor %}
+        ) -> Self {
+            Self {
+            {% for field in instruction.data_fields %}
+                {{ field.name }},
+            {% endfor %}
+            }
+        }
+    }
+
     /// Implementation for {{ instruction.camel_name }}Instruction
     impl {{ instruction.camel_name }}Instruction {
     fn discriminator() -> [u8; 8] {
         [{% for byte in instruction.discriminator %}{{ byte }}u8{% if not loop.last %}, {% endif %}{% endfor %}]
-    }
-
-    fn program_id() -> Pubkey {
-        pubkey!("{{ instruction.program_id }}")
     }
 
     pub fn data(data: {{ instruction.camel_name }}InstructionData) -> Self {
@@ -144,7 +185,7 @@ pub mod {{ program.module_name }} {
 
         self.data.serialize(&mut buffer).unwrap();
 
-        Instruction::new_with_bytes(Self::program_id(), &buffer, self.to_account_metas())
+        Instruction::new_with_bytes(program_id(), &buffer, self.to_account_metas())
     }
 }
 
@@ -168,7 +209,7 @@ pub mod {{ program.module_name }} {
     }
 
     impl {{ composite.camel_name }}InstructionAccountMetas {
-        pub fn to_account_metas(&self) -> Vec<AccountMeta> {
+        fn to_account_metas(&self) -> Vec<AccountMeta> {
             let mut metas = Vec::new();
             {% for account in composite.accounts %}
             {% if account.is_composite %}
@@ -180,7 +221,7 @@ pub mod {{ program.module_name }} {
             metas
         }
 
-        pub fn set_from_accounts(&mut self, accounts: {{ composite.camel_name }}InstructionAccounts) {
+        fn set_from_accounts(&mut self, accounts: {{ composite.camel_name }}InstructionAccounts) {
             {% for account in composite.accounts %}
             {% if not account.address %}
             {% if account.is_composite %}
@@ -214,6 +255,28 @@ pub mod {{ program.module_name }} {
         {% endfor %}
     }
 
+    impl {{ composite.camel_name }}InstructionAccounts {
+        pub fn new(
+        {% for account in composite.accounts %}
+        {% if not account.address %}
+        {% if account.is_composite %}
+            {{ account.name }}: {{ account.composite_type_name }}InstructionAccounts,
+        {% else %}
+            {{ account.name }}: Pubkey,
+        {% endif %}
+        {% endif %}
+        {% endfor %}
+        ) -> Self {
+            Self {
+            {% for account in composite.accounts %}
+            {% if not account.address %}
+                {{ account.name }},
+            {% endif %}
+            {% endfor %}
+            }
+        }
+    }
+
 
     {% for nested_composite in composite.nested_composites %}
     #[derive(Debug, Clone, Default)]
@@ -228,7 +291,7 @@ pub mod {{ program.module_name }} {
     }
 
     impl {{ nested_composite.camel_name }}InstructionAccountMetas {
-        pub fn to_account_metas(&self) -> Vec<AccountMeta> {
+        fn to_account_metas(&self) -> Vec<AccountMeta> {
             let mut metas = Vec::new();
             {% for account in nested_composite.accounts %}
             {% if account.is_composite %}
@@ -240,7 +303,7 @@ pub mod {{ program.module_name }} {
             metas
         }
 
-        pub fn set_from_accounts(&mut self, accounts: {{ nested_composite.camel_name }}InstructionAccounts) {
+        fn set_from_accounts(&mut self, accounts: {{ nested_composite.camel_name }}InstructionAccounts) {
             {% for account in nested_composite.accounts %}
             {% if not account.address %}
             {% if account.is_composite %}
@@ -274,6 +337,28 @@ pub mod {{ program.module_name }} {
         {% endfor %}
     }
 
+    impl {{ nested_composite.camel_name }}InstructionAccounts {
+        pub fn new(
+        {% for account in nested_composite.accounts %}
+        {% if not account.address %}
+        {% if account.is_composite %}
+            {{ account.name }}: {{ account.composite_type_name }}InstructionAccounts,
+        {% else %}
+            {{ account.name }}: Pubkey,
+        {% endif %}
+        {% endif %}
+        {% endfor %}
+        ) -> Self {
+            Self {
+            {% for account in nested_composite.accounts %}
+            {% if not account.address %}
+                {{ account.name }},
+            {% endif %}
+            {% endfor %}
+            }
+        }
+    }
+
 
     {% endfor %}
     {% endfor %}
@@ -304,6 +389,34 @@ pub struct {{ custom_type.name }} {
 
 {% endif %}
 }
+
+{% if custom_type.fields %}
+impl {{ custom_type.name }} {
+    pub fn new(
+    {% if custom_type.fields.type == "named" %}
+    {% for field in custom_type.fields.fields %}
+        {{ field.name }}: {{ field.rust_type }},
+    {% endfor %}
+    {% elif custom_type.fields.type == "tuple" %}
+    {% for field in custom_type.fields.fields %}
+        field_{{ loop.index0 }}: {{ field.rust_type }},
+    {% endfor %}
+    {% endif %}
+    ) -> Self {
+        Self {
+        {% if custom_type.fields.type == "named" %}
+        {% for field in custom_type.fields.fields %}
+            {{ field.name }},
+        {% endfor %}
+        {% elif custom_type.fields.type == "tuple" %}
+        {% for field in custom_type.fields.fields %}
+            field_{{ loop.index0 }},
+        {% endfor %}
+        {% endif %}
+        }
+    }
+}
+{% endif %}
 {% elif custom_type.type == "enum" %}
 /// Custom enum: {{ custom_type.name }}
 #[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]

@@ -1,15 +1,14 @@
 use trident_fuzz::fuzzing::*;
 
-/// FuzzAccounts contains all available accounts
+/// Storage for all account addresses used in fuzz testing.
 ///
-/// You can create your own accounts by adding new fields to the struct.
+/// This struct serves as a centralized repository for account addresses,
+/// enabling their reuse across different instruction flows and test scenarios.
 ///
 /// Docs: https://ackee.xyz/trident/docs/latest/trident-api-macro/trident-types/fuzz-accounts/
 #[derive(Default)]
-pub struct FuzzAccounts {
-    pub system_program: AccountsStorage,
+pub struct AccountAddresses {
+    pub author: AddressStorage,
 
-    pub author: AccountsStorage,
-
-    pub hello_world_account: AccountsStorage,
+    pub hello_world_account: AddressStorage,
 }

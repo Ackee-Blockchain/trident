@@ -19,8 +19,6 @@ syscall-v1 = ["trident-svm/syscall-v1"]
 syscall-v2 = ["trident-svm/syscall-v2"]
 
 # Derive macros
-
-
 [dependencies.trident-derive-fuzz-test-methods]
 workspace = true
 

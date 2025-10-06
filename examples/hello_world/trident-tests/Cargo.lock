@@ -3353,7 +3353,7 @@ dependencies = [
 
 [[package]]
 name = "trident-config"
-version = "0.11.0-rc.3"
+version = "0.11.0"
 dependencies = [
  "anyhow",
  "base64 0.22.1",
@@ -3367,18 +3367,8 @@ dependencies = [
 ]
 
 [[package]]
-name = "trident-derive-accounts"
-version = "0.11.0-rc.3"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.104",
- "trident-syn",
-]
-
-[[package]]
 name = "trident-derive-flow-executor"
-version = "0.11.0-rc.3"
+version = "0.11.0"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -3388,37 +3378,7 @@ dependencies = [
 
 [[package]]
 name = "trident-derive-fuzz-test-methods"
-version = "0.11.0-rc.3"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.104",
- "trident-syn",
-]
-
-[[package]]
-name = "trident-derive-instruction"
-version = "0.11.0-rc.3"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.104",
- "trident-syn",
-]
-
-[[package]]
-name = "trident-derive-remaining-accounts"
-version = "0.11.0-rc.3"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.104",
- "trident-syn",
-]
-
-[[package]]
-name = "trident-derive-transaction"
-version = "0.11.0-rc.3"
+version = "0.11.0"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -3428,7 +3388,7 @@ dependencies = [
 
 [[package]]
 name = "trident-fuzz"
-version = "0.11.0-rc.3"
+version = "0.11.0"
 dependencies = [
  "borsh 1.5.7",
  "getrandom 0.3.3",
@@ -3443,19 +3403,15 @@ dependencies = [
  "thiserror",
  "tokio",
  "trident-config",
- "trident-derive-accounts",
  "trident-derive-flow-executor",
  "trident-derive-fuzz-test-methods",
- "trident-derive-instruction",
- "trident-derive-remaining-accounts",
- "trident-derive-transaction",
  "trident-fuzz-metrics",
  "trident-svm",
 ]
 
 [[package]]
 name = "trident-fuzz-metrics"
-version = "0.11.0-rc.3"
+version = "0.11.0"
 dependencies = [
  "hex",
  "prettytable",
@@ -3467,9 +3423,9 @@ dependencies = [
 
 [[package]]
 name = "trident-svm"
-version = "0.0.4-rc.4"
+version = "0.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b5da157a95f931badbf90cc008706ac027e2e6d49e9329725e03d2077100c6a7"
+checksum = "4f8b9d17c06bd89fe081f6c85ebf36b511f7e3cb4ed7588e06fc0e886269925b"
 dependencies = [
  "bincode",
  "log",
@@ -3491,7 +3447,7 @@ dependencies = [
 
 [[package]]
 name = "trident-syn"
-version = "0.11.0-rc.3"
+version = "0.11.0"
 dependencies = [
  "petgraph",
  "proc-macro2",

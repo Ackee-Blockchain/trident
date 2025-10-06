@@ -2,6 +2,7 @@
 
 [fuzz.metrics]
 enabled = true
+json = true
 
 
 [[fuzz.programs]]
