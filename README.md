@@ -12,7 +12,7 @@
 <p align="left">
   The first and only manually-guided fuzzing framework for Solana programs written in Rust, processing up to 12,000 tx/s. <br/>
 
-  Granted by the Solana Foundation, securing Kamino. Built by [Ackee Blockchain Security](https://ackee.xyz) — trusted auditors of Neon, and Marinade.
+  Granted by the Solana Foundation, securing Kamino.
   
   
 <p>
@@ -69,7 +69,7 @@
 - Executes **thousands of transactions per second** to stress your program at Solana speed.  
 - Models **state changes and flows** that unit tests miss.  
 - Surfaces **edge cases, overflows, and missing constraints** early in development.  
-- Built and maintained by **Ackee Blockchain Security**, trusted auditors of Lido, Safe, and Axelar.  
+- Built and maintained by **[Ackee Blockchain Security](https://ackee.xyz)**, trusted auditors of Lido, Safe, and Axelar.  
 - Supported by the **Solana Foundation**.  
 
 <br />
