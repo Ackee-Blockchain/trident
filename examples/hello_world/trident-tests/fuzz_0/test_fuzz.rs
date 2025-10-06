@@ -40,16 +40,14 @@ impl FuzzTest {
             }),
         );
 
-        self.trident
-            .get_client()
-            .airdrop(&author, 10 * LAMPORTS_PER_SOL);
+        self.trident.airdrop(&author, 10 * LAMPORTS_PER_SOL);
         let ix = InitializeFnInstruction::data(InitializeFnInstructionData::new(
             self.trident.gen_range(0..u8::MAX),
         ))
         .accounts(InitializeFnInstructionAccounts::new(author, hello_world))
         .instruction();
 
-        self.trident.execute(&[ix], "Initialize");
+        let _ = self.trident.execute(&[ix], "Initialize");
     }
 
     #[flow]

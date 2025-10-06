@@ -46,9 +46,7 @@ impl FuzzTest {
             )),
         );
 
-        self.trident
-            .get_client()
-            .airdrop(&signer, 10 * LAMPORTS_PER_SOL);
+        self.trident.airdrop(&signer, 10 * LAMPORTS_PER_SOL);
 
         let ix = InitializeInstruction::data(InitializeInstructionData::new(
             self.trident.gen_range(0..=u8::MAX),
@@ -64,7 +62,7 @@ impl FuzzTest {
         ))
         .instruction();
 
-        self.trident.execute(&[ix], "initialize");
+        let _ = self.trident.execute(&[ix], "initialize");
     }
 
     #[flow]
