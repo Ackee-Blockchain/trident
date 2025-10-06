@@ -1,22 +1,20 @@
 <p align="center">
   <a href="https://usetrident.xyz/">
     <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="https://abchprod.wpengine.com/wp-content/uploads/2024/05/Trident-Github.png?raw=true">
-      <img alt="Trident Github" src="https://abchprod.wpengine.com/wp-content/uploads/2024/05/Trident-Github.png?raw=true" width="auto">
+      <source media="(prefers-color-scheme: dark)" srcset="https://abchprod.wpengine.com/wp-content/uploads/2025/09/Trident-Github-Updated.png?raw=true">
+      <img alt="Trident Github" src="https://abchprod.wpengine.com/wp-content/uploads/2025/09/Trident-Github-Updated.png?raw=true" width="auto">
     </picture>
   </a>
 </p>
 
-<p align="left">
-  <a href="https://usetrident.xyz/">
-    <img height="100" width="100" src="https://abchprod.wpengine.com/wp-content/uploads/2024/05/Trident-Color.png" alt="Trident"/>
-  </a>
-
 # Trident
 
-
 <p align="left">
-  Rust-based Manually Guided Fuzzer to Fuzz Solana programs, designed to help you ship secure code.
+  The first and only manually-guided fuzzing framework for Solana programs written in Rust, processing up to 12,000 tx/s. <br/>
+
+  Granted by the Solana Foundation, securing Kamino. Built by [Ackee Blockchain Security](https://ackee.xyz) — trusted auditors of Neon, and Marinade.
+  
+  
 <p>
 
 <p align="left">
@@ -66,49 +64,110 @@
 
 <br />
 
+## Why Trident?
 
+- Executes **thousands of transactions per second** to stress your program at Solana speed.  
+- Models **state changes and flows** that unit tests miss.  
+- Surfaces **edge cases, overflows, and missing constraints** early in development.  
+- Built and maintained by **Ackee Blockchain Security**, trusted auditors of Lido, Safe, and Axelar.  
+- Supported by the **Solana Foundation**.  
 
-## Documentation
+<br />
 
-For documentation and guides, visit [ackee.xyz/trident/docs](https://ackee.xyz/trident/docs/).
+## Features & benefits
 
-## Installation
+- **Manually-guided fuzzer** – Define custom strategies to explore tricky code paths.  
+- **Stateful fuzzing** – Inputs are generated based on critical account state changes.  
+- **Anchor-like macros** – Write fuzz tests with familiar, clean syntax.  
+- **TridentSVM client** – Execution using Anza’s Solana SVM API.  
+- **Property-based testing** – Compare account states before and after execution.  
+- **Flow-based sequence control** – Combine multiple instructions into realistic transaction patterns.  
+- **Regression testing** – Compare fuzzing results between program versions.  
 
-Check the [Installation steps](https://ackee.xyz/trident/docs/latest/basics/installation/).
+<br />
+
+## Quick start
+
+Install via Cargo:
 
 ```shell
 cargo install trident-cli
 ```
-</p>
+
+Write your first fuzz test:
+
+```rust
+#[init]
+fn start(&mut self) {
+  // Build Initialize Transaction
+  let mut tx = InitializeTransaction::build(&mut self.trident, &mut self.fuzz_accounts);
+
+  // Execute Initialize Transaction
+  self.trident
+        .execute_transaction(&mut tx, Some("Initialize"));
+}
+
+#[flow]
+fn flow1(&mut self) {
+    // Build MoveEast Transaction
+    let mut tx = MoveEastTransaction::build(&mut self.trident, &mut self.fuzz_accounts);
+
+    // Execute MoveEast Transaction
+    self.trident.execute_transaction(&mut tx, Some("MoveEast"));
+}
+#[flow]
+fn flow2(&mut self) {
+    // Build MoveSouth Transaction
+    let mut tx = MoveSouthTransaction::build(&mut self.trident, &mut self.fuzz_accounts);
+    
+    // Execute MoveSouth Transaction
+    self.trident.execute_transaction(&mut tx, Some("MoveSouth"));
+}
+```
+
+Run it:
+
+```shell
+trident fuzz run <fuzz_test>
+```
+
+For full examples and guides, see the [documentation](https://ackee.xyz/trident/docs/latest/trident-examples/trident-examples/).
 
 <br />
 
-## Features
+## Installation
 
+Latest release: **0.11.0**
 
-### • Property-based fuzz testing a.k.a. "invariant fuzz testing"
+```shell
+cargo install trident-cli
+```
 
-### • Intuitive Anchor-like macros for streamlined testing
+<br />
 
-### • Stateful fuzz testing
+## Use cases
 
-### • High-performance [TridentSVM](https://github.com/Ackee-Blockchain/trident-svm) client powered by [Anza's SVM API](https://www.anza.xyz/blog/anzas-new-svm-api)
+- **Audit preparation** – Run fuzz campaigns before submitting your code for review.  
+- **Continuous security** – Integrate Trident into CI for ongoing regression testing.  
+- **Research & prototyping** – Generate complex attack sequences programmatically.  
 
-### • Random instruction selection with repetition a.k.a. "fuzzing flows"
+<br />
 
-### • Intuitive HTML dashboard with fuzzing results
+## Documentation
 
-### • Regression testing
+- [Getting Started](https://ackee.xyz/trident/docs/latest/#getting-started)  
+- [Advanced Customization](https://ackee.xyz/trident/docs/latest/trident-advanced/)  
+- [Examples & Pipelines](https://ackee.xyz/trident/docs/latest/trident-examples/trident-examples/)  
+- [API & Macro Reference](https://ackee.xyz/trident/docs/latest/trident-api-macro/)  
 
-
----
+<br />
 
 ## Community
 
 Check out the following places for more Trident-related content:
 
-- Follow on [Twitter/X](https://twitter.com/TridentSolana) & [Warpcast](https://warpcast.com/~/channel/trident) for project updates
-- Join the discussions on our Trident [warpcast channel](https://warpcast.com/~/channel/trident) or our [discord channel](https://discord.gg/wyBW9Q23aJ)
+- Follow on [Twitter/X](https://twitter.com/TridentSolana) for updates
+- Join the discussions on our Trident [discord channel](https://discord.gg/wyBW9Q23aJ)
 
 ## Grants
 
@@ -118,8 +177,9 @@ Solana Foundation             |  Marinade
 
 ## Contribution
 
-Thank you for your interest in contributing to Trident! Please see the [CONTRIBUTING.md](./CONTRIBUTING.md) to learn how.
+Thank you for your interest in contributing to Trident! Please see the [CONTRIBUTING.md](https://github.com/Ackee-Blockchain/trident/blob/master/CONTRIBUTING.md) to learn how.
 
 ## License
 
 This project is licensed under the [MIT license](https://github.com/Ackee-Blockchain/trident/blob/master/LICENSE).
+
