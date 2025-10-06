@@ -16,6 +16,8 @@ incremented upon a breaking change and the patch version will be incremented for
 
 **Changed**
 
+- simplify account storages to simply store only account addresses ([383](https://github.com/Ackee-Blockchain/trident/pull/383))
+
 ## [0.11.1] - 2025-10-21
 
 **Added**

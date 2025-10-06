@@ -1,14 +1,9 @@
-pub mod accounts_storage;
+pub mod address_storage;
 pub mod error;
+pub mod fuzz_client;
 pub mod fuzz_client_impl;
-pub mod traits;
-
-// pub mod trident_accounts;
-// pub mod trident_pubkey;
 
 pub mod trident_rng;
-
-pub mod types;
 
 pub mod trident;
 
@@ -35,7 +30,7 @@ pub mod fuzzing {
     pub use hex;
 
     /// Trident traits
-    pub use super::traits::FuzzClient;
+    pub use super::fuzz_client::FuzzClient;
 
     /// Trident derive
     pub use trident_derive_flow_executor::end;
@@ -53,9 +48,8 @@ pub mod fuzzing {
     pub use trident_svm::types::trident_program::TridentProgram;
 
     /// Accounts storages
-    pub use super::accounts_storage::account_storage::AccountsStorage;
-    pub use super::accounts_storage::AccountMetadata;
-    pub use super::accounts_storage::PdaSeeds;
+    pub use super::address_storage::AddressStorage;
+    pub use super::address_storage::PdaSeeds;
 
     /// Trident config
     pub use trident_config::TridentConfig;
