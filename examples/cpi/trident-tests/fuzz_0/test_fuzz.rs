@@ -1,17 +1,20 @@
 use fuzz_accounts::*;
 use trident_fuzz::fuzzing::*;
 mod fuzz_accounts;
-mod instructions;
-mod transactions;
 mod types;
-pub use transactions::*;
+use types::*;
+
+use crate::types::cpi::{
+    InitializeCallerInstruction, InitializeCallerInstructionAccounts,
+    InitializeCallerInstructionData,
+};
 
 #[derive(FuzzTestMethods)]
 struct FuzzTest {
-    // for fuzzing
+    /// Trident client for interacting with the Solana program
     trident: Trident,
-    /// for storing fuzzing accounts
-    fuzz_accounts: FuzzAccounts,
+    /// Storage for all account addresses used in fuzz testing
+    fuzz_accounts: AccountAddresses,
 }
 
 #[flow_executor]
@@ -19,16 +22,42 @@ impl FuzzTest {
     fn new() -> Self {
         Self {
             trident: Trident::default(),
-            fuzz_accounts: FuzzAccounts::default(),
+            fuzz_accounts: AccountAddresses::default(),
         }
     }
 
     #[init]
     fn start(&mut self) {
-        let mut tx = InitializeCallerTransaction::build(&mut self.trident, &mut self.fuzz_accounts);
+        // Perform any initialization here, this method will be executed
+        // at the start of each iteration
 
-        self.trident
-            .execute_transaction(&mut tx, Some("initialize_caller"));
+        let signer = self.fuzz_accounts.signer.insert(&mut self.trident, None);
+
+        let ix = InitializeCallerInstruction::data(InitializeCallerInstructionData::new(
+            self.trident.gen_range(0..u16::MAX),
+        ))
+        .accounts(InitializeCallerInstructionAccounts::new(signer))
+        .instruction();
+
+        self.trident.execute(&[ix], "initialize_caller");
+    }
+
+    #[flow]
+    fn flow1(&mut self) {
+        // Perform logic which is meant to be fuzzed
+        // This flow is selected randomly from other flows
+    }
+
+    #[flow]
+    fn flow2(&mut self) {
+        // Perform logic which is meant to be fuzzed
+        // This flow is selected randomly from other flows
+    }
+
+    #[end]
+    fn end(&mut self) {
+        // Perform any cleanup here, this method will be executed
+        // at the end of each iteration
     }
 }
 
