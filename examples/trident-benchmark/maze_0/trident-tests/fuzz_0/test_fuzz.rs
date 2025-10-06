@@ -32,7 +32,7 @@ impl FuzzTest {
 
         // Deploy through the entrypoint
         let program = TridentEntrypoint::new(maze0::ID, None, processor!(maze0));
-        trident.get_client().deploy_entrypoint(program);
+        trident.deploy_entrypoint(program);
 
         Self {
             trident,
@@ -50,9 +50,7 @@ impl FuzzTest {
             .state_author
             .insert(&mut self.trident, None);
 
-        self.trident
-            .get_client()
-            .airdrop(&state_author, 10 + LAMPORTS_PER_SOL);
+        self.trident.airdrop(&state_author, 10 + LAMPORTS_PER_SOL);
 
         let state = self.fuzz_accounts.state.insert(
             &mut self.trident,
@@ -66,7 +64,7 @@ impl FuzzTest {
             .accounts(InitializeInstructionAccounts::new(state_author, state))
             .instruction();
 
-        self.trident.execute(&[init], "Initialize");
+        let _ = self.trident.execute(&[init], "Initialize");
     }
 
     #[flow]
@@ -89,7 +87,7 @@ impl FuzzTest {
         .accounts(MoveNorthInstructionAccounts::new(state))
         .instruction();
 
-        self.trident.execute(&[move_north], "MoveNorth");
+        let _ = self.trident.execute(&[move_north], "MoveNorth");
     }
 
     #[flow]
@@ -112,7 +110,7 @@ impl FuzzTest {
         .accounts(MoveSouthInstructionAccounts::new(state))
         .instruction();
 
-        self.trident.execute(&[move_north], "MoveSouth");
+        let _ = self.trident.execute(&[move_north], "MoveSouth");
     }
 
     #[flow]
@@ -135,7 +133,7 @@ impl FuzzTest {
         .accounts(MoveEastInstructionAccounts::new(state))
         .instruction();
 
-        self.trident.execute(&[move_north], "MoveEast");
+        let _ = self.trident.execute(&[move_north], "MoveEast");
     }
 
     #[flow]
@@ -158,7 +156,7 @@ impl FuzzTest {
         .accounts(MoveWestInstructionAccounts::new(state))
         .instruction();
 
-        self.trident.execute(&[move_north], "MoveWest");
+        let _ = self.trident.execute(&[move_north], "MoveWest");
     }
 
     #[end]

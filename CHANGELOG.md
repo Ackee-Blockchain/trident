@@ -16,6 +16,7 @@ incremented upon a breaking change and the patch version will be incremented for
 
 **Changed**
 
+- FuzzClient trait removed and client methods moved directly to Trident struct ([386](https://github.com/Ackee-Blockchain/trident/pull/386))
 - simplify account storages to simply store only account addresses ([383](https://github.com/Ackee-Blockchain/trident/pull/383))
 
 ## [0.11.1] - 2025-10-21
