@@ -6,10 +6,10 @@ use types::*;
 
 #[derive(FuzzTestMethods)]
 struct FuzzTest {
-    /// for fuzzing
+    /// Trident client for interacting with the Solana program
     trident: Trident,
-    /// for storing fuzzing accounts
-    fuzz_accounts: FuzzAccounts,
+    /// Storage for all account addresses used in fuzz testing
+    fuzz_accounts: AccountAddresses,
 }
 
 #[flow_executor]
@@ -17,31 +17,31 @@ impl FuzzTest {
     fn new() -> Self {
         Self {
             trident: Trident::default(),
-            fuzz_accounts: FuzzAccounts::default(),
+            fuzz_accounts: AccountAddresses::default(),
         }
     }
 
     #[init]
     fn start(&mut self) {
-        // perform any initialization here, this method will be executed
-        // at start of each iteration
+        // Perform any initialization here, this method will be executed
+        // at the start of each iteration
     }
 
     #[flow]
     fn flow1(&mut self) {
-        // perform logic which is meant to be fuzzed
-        // this flow is selected randomly from other flows
+        // Perform logic which is meant to be fuzzed
+        // This flow is selected randomly from other flows
     }
 
     #[flow]
     fn flow2(&mut self) {
-        // perform logic which is meant to be fuzzed
-        // this flow is selected randomly from other flows
+        // Perform logic which is meant to be fuzzed
+        // This flow is selected randomly from other flows
     }
 
     #[end]
     fn end(&mut self) {
-        // perform any cleaning here, this method will be executed
+        // Perform any cleanup here, this method will be executed
         // at the end of each iteration
     }
 }
