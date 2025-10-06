@@ -1,11 +1,7 @@
 pub mod address_storage;
 pub mod error;
-pub mod fuzz_client;
-pub mod fuzz_client_impl;
-
-pub mod trident_rng;
-
 pub mod trident;
+pub mod trident_rng;
 
 pub mod fuzzing {
     /// solana_sdk
@@ -28,9 +24,6 @@ pub mod fuzzing {
     /// Trident RNG
     pub use super::trident_rng::TridentRng;
     pub use hex;
-
-    /// Trident traits
-    pub use super::fuzz_client::FuzzClient;
 
     /// Trident derive
     pub use trident_derive_flow_executor::end;
