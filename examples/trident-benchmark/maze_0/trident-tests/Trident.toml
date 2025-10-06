@@ -2,3 +2,5 @@
 
 [fuzz.metrics]
 enabled = true
+json = true
+dashboard=true
