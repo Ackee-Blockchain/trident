@@ -11,6 +11,12 @@ mod client;
 mod metrics;
 mod random;
 mod seed;
+#[cfg(feature = "stake")]
+mod stake;
+#[cfg(feature = "token")]
+mod token;
+#[cfg(feature = "vote")]
+mod vote;
 
 pub struct Trident {
     pub(crate) client: TridentSVM,
