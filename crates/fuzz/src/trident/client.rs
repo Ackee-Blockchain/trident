@@ -18,11 +18,6 @@ use solana_sdk::sysvar::Sysvar;
 use trident_svm::types::trident_entrypoint::TridentEntrypoint;
 use trident_svm::types::trident_program::TridentProgram;
 
-#[cfg(feature = "stake")]
-use solana_sdk::clock::Epoch;
-#[cfg(feature = "stake")]
-use solana_stake_program::stake_state::Lockup;
-
 impl Trident {
     pub fn execute(
         &mut self,
@@ -129,219 +124,6 @@ impl Trident {
         self.set_account_custom(address, &account);
     }
 
-    #[cfg(feature = "token")]
-    pub fn create_mint(
-        &mut self,
-        mint_address: &Pubkey,
-        decimals: u8,
-        owner: &Pubkey,
-        freeze_authority: Option<&Pubkey>,
-    ) -> solana_sdk::transaction::Result<()> {
-        let ix = spl_token::instruction::initialize_mint2(
-            &spl_token::ID,
-            mint_address,
-            owner,
-            freeze_authority,
-            decimals,
-        )
-        .unwrap();
-
-        let processing_data = self.process_instructions(&[ix]);
-
-        // NOTE: for now we just expect that one transaction was executed
-        let tx_result = &processing_data.execution_results[0];
-
-        self.handle_tx_result(tx_result, "Creating Mint Account", &[ix])
-    }
-
-    #[cfg(feature = "token")]
-    pub fn create_token_account(
-        &mut self,
-        token_account_address: Pubkey,
-        mint: Pubkey,
-        owner: Pubkey,
-    ) -> solana_sdk::transaction::Result<()> {
-        let ix = spl_token::instruction::initialize_account3(
-            &spl_token::ID,
-            &token_account_address,
-            &mint,
-            &owner,
-        )
-        .unwrap();
-
-        let processing_data = self.process_instructions(&[ix]);
-
-        // NOTE: for now we just expect that one transaction was executed
-        let tx_result = &processing_data.execution_results[0];
-
-        self.handle_tx_result(tx_result, "Creating Token Account", &[ix])
-    }
-
-    #[cfg(feature = "token")]
-    pub fn mint_to(
-        &mut self,
-        token_account_address: &Pubkey,
-        mint_address: &Pubkey,
-        mint_authority: &Pubkey,
-        amount: u64,
-    ) -> solana_sdk::transaction::Result<()> {
-        let ix = spl_token::instruction::mint_to(
-            &spl_token::ID,
-            mint_address,
-            token_account_address,
-            mint_authority,
-            &[],
-            amount,
-        )
-        .unwrap();
-
-        let processing_data = self.process_instructions(&[ix]);
-
-        // NOTE: for now we just expect that one transaction was executed
-        let tx_result = &processing_data.execution_results[0];
-
-        self.handle_tx_result(tx_result, "Minting to Token Account", &[ix])
-    }
-
-    #[cfg(feature = "stake")]
-    pub fn create_delegated_account(
-        &mut self,
-        address: Pubkey,
-        voter_pubkey: Pubkey,
-        staker: Pubkey,
-        withdrawer: Pubkey,
-        stake: u64,
-        activation_epoch: Epoch,
-        deactivation_epoch: Option<Epoch>,
-        lockup: Option<Lockup>,
-    ) {
-        use solana_sdk::native_token::LAMPORTS_PER_SOL;
-        use solana_sdk::program_pack::Pack;
-        use solana_sdk::rent::Rent;
-        use solana_sdk::stake::stake_flags::StakeFlags;
-        use solana_stake_program::stake_state::Authorized;
-        use solana_stake_program::stake_state::Delegation;
-        use solana_stake_program::stake_state::Meta;
-        use solana_stake_program::stake_state::Stake;
-        use solana_stake_program::stake_state::StakeStateV2;
-
-        let rent = Rent::default();
-        let rent_exempt_lamports = rent.minimum_balance(StakeStateV2::size_of());
-        let minimum_delegation = LAMPORTS_PER_SOL; // TODO: a way to get minimum delegation with feature set?
-        let minimum_lamports = rent_exempt_lamports.saturating_add(minimum_delegation);
-
-        let stake_state = StakeStateV2::Stake(
-            Meta {
-                authorized: Authorized { staker, withdrawer },
-                lockup: lockup.unwrap_or_default(),
-                rent_exempt_reserve: rent_exempt_lamports,
-            },
-            Stake {
-                delegation: Delegation {
-                    stake,
-                    activation_epoch,
-                    voter_pubkey,
-                    deactivation_epoch: if let Some(epoch) = deactivation_epoch {
-                        epoch
-                    } else {
-                        u64::MAX
-                    },
-                    ..Delegation::default()
-                },
-                ..Stake::default()
-            },
-            StakeFlags::default(),
-        );
-        let account = AccountSharedData::new_data_with_space(
-            if stake > minimum_lamports {
-                stake
-            } else {
-                minimum_lamports
-            },
-            &stake_state,
-            StakeStateV2::size_of(),
-            &solana_sdk::stake::program::ID,
-        )
-        .unwrap();
-
-        self.set_account_custom(&address, &account);
-    }
-
-    #[cfg(feature = "stake")]
-    pub fn create_initialized_account(
-        &mut self,
-        address: Pubkey,
-        staker: Pubkey,
-        withdrawer: Pubkey,
-        lockup: Option<Lockup>,
-    ) {
-        use solana_sdk::program_pack::Pack;
-        use solana_sdk::rent::Rent;
-        use solana_stake_program::stake_state::Authorized;
-        use solana_stake_program::stake_state::Meta;
-        use solana_stake_program::stake_state::StakeStateV2;
-
-        let rent = Rent::default();
-        let rent_exempt_lamports = rent.minimum_balance(StakeStateV2::size_of());
-
-        let stake_state = StakeStateV2::Initialized(Meta {
-            authorized: Authorized { staker, withdrawer },
-            lockup: lockup.unwrap_or_default(),
-            rent_exempt_reserve: rent_exempt_lamports,
-        });
-        let account = AccountSharedData::new_data_with_space(
-            rent_exempt_lamports,
-            &stake_state,
-            StakeStateV2::size_of(),
-            &solana_sdk::stake::program::ID,
-        )
-        .unwrap();
-        self.set_account_custom(&address, &account);
-    }
-
-    #[cfg(feature = "vote")]
-    pub fn create_vote_account(
-        &mut self,
-        address: Pubkey,
-        node_pubkey: &Pubkey,
-        authorized_voter: &Pubkey,
-        authorized_withdrawer: &Pubkey,
-        commission: u8,
-        clock: &Clock,
-    ) {
-        use solana_sdk::program_pack::Pack;
-        use solana_sdk::rent::Rent;
-        use solana_sdk::vote::state::VoteInit;
-        use solana_sdk::vote::state::VoteState;
-        use solana_sdk::vote::state::VoteStateVersions;
-
-        let rent = Rent::default();
-        let lamports = rent.minimum_balance(VoteState::size_of());
-        let mut account = AccountSharedData::new(
-            lamports,
-            VoteState::size_of(),
-            &solana_sdk::vote::program::ID,
-        );
-
-        let vote_state = VoteState::new(
-            &VoteInit {
-                node_pubkey: *node_pubkey,
-                authorized_voter: *authorized_voter,
-                authorized_withdrawer: *authorized_withdrawer,
-                commission,
-            },
-            clock,
-        );
-
-        VoteState::serialize(
-            &VoteStateVersions::Current(Box::new(vote_state)),
-            account.data_as_mut_slice(),
-        )
-        .unwrap();
-
-        self.set_account_custom(&address, &account);
-    }
-
     fn handle_tx_result(
         &mut self,
         tx_result: &TransactionExecutionResult,
@@ -423,6 +205,47 @@ impl Trident {
             TransactionExecutionResult::NotExecuted(transaction_error) => {
                 Err(transaction_error.clone())
             }
+        }
+    }
+
+    #[allow(dead_code)]
+    pub(crate) fn create_account(
+        &mut self,
+        address: &Pubkey,
+        from: &Pubkey,
+        space: usize,
+        owner: &Pubkey,
+    ) -> Vec<Instruction> {
+        let account = self.client.get_account(address).unwrap_or_default();
+        let rent = solana_sdk::rent::Rent::default();
+        if account.lamports() > 0 {
+            let mut instructions = vec![];
+            let lamports_required = rent.minimum_balance(space);
+
+            let remaining_lamports = lamports_required.saturating_sub(account.lamports());
+
+            if remaining_lamports > 0 {
+                let transfer =
+                    solana_sdk::system_instruction::transfer(from, address, remaining_lamports);
+                instructions.push(transfer);
+            }
+
+            let allocate = solana_sdk::system_instruction::allocate(address, space as u64);
+            instructions.push(allocate);
+
+            let assign = solana_sdk::system_instruction::assign(address, owner);
+            instructions.push(assign);
+
+            instructions
+        } else {
+            let ix = solana_sdk::system_instruction::create_account(
+                from,
+                address,
+                rent.minimum_balance(space),
+                space as u64,
+                owner,
+            );
+            vec![ix]
         }
     }
 }
