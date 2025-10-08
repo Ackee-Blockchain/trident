@@ -4,7 +4,6 @@ use solana_sdk::pubkey::Pubkey;
 use crate::trident::Trident;
 
 impl Trident {
-    // #[cfg(feature = "token")]
     pub fn create_mint(
         &mut self,
         mint_address: &Pubkey,
@@ -16,11 +15,11 @@ impl Trident {
             mint_address,
             owner,
             spl_token_interface::state::Mint::LEN,
-            &spl_token::ID,
+            &spl_token_interface::ID,
         );
 
-        let ix_2 = spl_token::instruction::initialize_mint2(
-            &spl_token::ID,
+        let ix_2 = spl_token_interface::instruction::initialize_mint2(
+            &spl_token_interface::ID,
             mint_address,
             owner,
             freeze_authority,
@@ -32,7 +31,6 @@ impl Trident {
         self.execute(&create_account_instructions, "Creating Mint Account")
     }
 
-    // #[cfg(feature = "token")]
     pub fn create_token_account(
         &mut self,
         token_account_address: &Pubkey,
@@ -42,11 +40,11 @@ impl Trident {
         let mut create_account_instructions = self.create_account(
             token_account_address,
             owner,
-            spl_token::state::Account::LEN,
-            &spl_token::ID,
+            spl_token_interface::state::Account::LEN,
+            &spl_token_interface::ID,
         );
-        let ix = spl_token::instruction::initialize_account3(
-            &spl_token::ID,
+        let ix = spl_token_interface::instruction::initialize_account3(
+            &spl_token_interface::ID,
             token_account_address,
             mint,
             owner,
@@ -58,7 +56,6 @@ impl Trident {
         self.execute(&create_account_instructions, "Creating Token Account")
     }
 
-    // #[cfg(feature = "token")]
     pub fn mint_to(
         &mut self,
         token_account_address: &Pubkey,
@@ -66,8 +63,8 @@ impl Trident {
         mint_authority: &Pubkey,
         amount: u64,
     ) -> solana_sdk::transaction::Result<()> {
-        let ix = spl_token::instruction::mint_to(
-            &spl_token::ID,
+        let ix = spl_token_interface::instruction::mint_to(
+            &spl_token_interface::ID,
             mint_address,
             token_account_address,
             mint_authority,
