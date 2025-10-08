@@ -7,7 +7,6 @@ use solana_sdk::account::WritableAccount;
 use solana_sdk::clock::Clock;
 
 impl Trident {
-    // #[cfg(feature = "vote")]
     pub fn create_vote_account(
         &mut self,
         address: Pubkey,

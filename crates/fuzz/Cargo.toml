@@ -10,12 +10,12 @@ readme = { workspace = true }
 
 
 [features]
-all = ["vote", "stake", "token"]
+all = ["vote", "stake", "token", "token-2022"]
 vote = ["dep:solana-vote-program"]
-stake = ["dep:solana-stake-program"]
-token = ["dep:spl-token"]
-syscalls = ["syscall-v1", "syscall-v2"]
-syscall-v1 = ["trident-svm/syscall-v1"]
+stake = ["dep:solana-stake-interface"]
+token = ["dep:spl-token-interface"]
+token-2022 = ["dep:spl-token-2022-interface"]
+syscalls = ["syscall-v2"]
 syscall-v2 = ["trident-svm/syscall-v2"]
 
 # Derive macros
@@ -35,8 +35,8 @@ workspace = true
 
 # Trident-SVM
 [dependencies.trident-svm]
-version = "0.0.4"
-
+git = "https://github.com/Ackee-Blockchain/trident-svm"
+branch = "solana-2.3"
 
 [dependencies]
 
@@ -44,10 +44,10 @@ version = "0.0.4"
 solana-sdk = { workspace = true }
 
 # Solana additonal programs
-solana-vote-program = { version = "~2.0", optional = true }
-solana-stake-program = { version = "~2.0", optional = true }
-spl-token = { version = "5", features = ["no-entrypoint"], optional = true }
-
+solana-vote-program = { version = "2",optional = true}
+solana-stake-interface = { version = "1",optional = true}
+spl-token-interface = { version = "1",optional = true}
+spl-token-2022-interface = { version = "1",optional = true} # TODO: placeholder, support in the future
 
 # Misc
 thiserror = "1"

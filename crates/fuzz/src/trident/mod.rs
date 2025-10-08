@@ -1,9 +1,8 @@
 use trident_config::TridentConfig;
 use trident_fuzz_metrics::TridentFuzzingData;
-use trident_svm::{
-    trident_svm::TridentSVM,
-    types::{trident_account::TridentAccountSharedData, trident_program::TridentProgram},
-};
+use trident_svm::trident_svm::TridentSVM;
+use trident_svm::types::trident_account::TridentAccountSharedData;
+use trident_svm::types::trident_program::TridentProgram;
 
 use crate::fuzzing::TridentRng;
 
@@ -15,6 +14,8 @@ mod seed;
 mod stake;
 #[cfg(feature = "token")]
 mod token;
+#[cfg(feature = "token-2022")]
+mod token2022;
 #[cfg(feature = "vote")]
 mod vote;
 

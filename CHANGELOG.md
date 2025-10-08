@@ -16,6 +16,7 @@ incremented upon a breaking change and the patch version will be incremented for
 
 **Changed**
 
+- Support for general solana-sdk version 2.3 and higher ([388](https://github.com/Ackee-Blockchain/trident/pull/388))
 - FuzzClient trait removed and client methods moved directly to Trident struct ([386](https://github.com/Ackee-Blockchain/trident/pull/386))
 - simplify account storages to simply store only account addresses ([383](https://github.com/Ackee-Blockchain/trident/pull/383))
 

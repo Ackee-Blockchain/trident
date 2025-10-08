@@ -1,7 +1,7 @@
 use solana_sdk::instruction::Instruction;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::transaction::TransactionError;
-use trident_svm::prelude::solana_svm::transaction_results::TransactionExecutionResult;
+use trident_svm::prelude::solana_svm::transaction_processing_result::TransactionProcessingResult;
 use trident_svm::processor::InstructionError;
 
 use crate::trident::Trident;
@@ -14,7 +14,7 @@ use solana_sdk::hash::Hash;
 use solana_sdk::signer::Signer;
 use solana_sdk::sysvar::Sysvar;
 
-#[cfg(any(feature = "syscall-v1", feature = "syscall-v2"))]
+#[cfg(feature = "syscall-v2")]
 use trident_svm::types::trident_entrypoint::TridentEntrypoint;
 use trident_svm::types::trident_program::TridentProgram;
 
@@ -40,12 +40,12 @@ impl Trident {
         let processing_data = self.process_instructions(instructions);
 
         // NOTE: for now we just expect that one transaction was executed
-        let tx_result = &processing_data.execution_results[0];
+        let tx_result = &processing_data.processing_results[0];
 
         self.handle_tx_result(tx_result, transaction_name, instructions)
     }
 
-    #[cfg(any(feature = "syscall-v1", feature = "syscall-v2"))]
+    #[cfg(feature = "syscall-v2")]
     pub fn deploy_entrypoint(&mut self, _program: TridentEntrypoint) {
         self.client.deploy_entrypoint_program(&_program);
     }
@@ -126,7 +126,7 @@ impl Trident {
 
     fn handle_tx_result(
         &mut self,
-        tx_result: &TransactionExecutionResult,
+        tx_result: &TransactionProcessingResult,
         transaction_name: &str,
         instructions: &[Instruction],
     ) -> solana_sdk::transaction::Result<()> {
@@ -134,77 +134,73 @@ impl Trident {
         let fuzzing_debug = std::env::var("TRIDENT_FUZZ_DEBUG");
 
         match tx_result {
-            TransactionExecutionResult::Executed {
-                details,
-                programs_modified_by_tx: _,
-            } => match &details.status {
-                Ok(_) => {
-                    // Record successful execution
-                    if fuzzing_metrics.is_ok() {
-                        self.fuzzing_data
-                            .add_successful_transaction(transaction_name);
-                    }
-                    Ok(())
-                }
-                Err(transaction_error) => {
-                    if let TransactionError::InstructionError(_error_code, instruction_error) =
-                        &transaction_error
-                    {
-                        match instruction_error {
-                            InstructionError::ProgramFailedToComplete => {
-                                if fuzzing_metrics.is_ok() {
-                                    if fuzzing_debug.is_ok() {
-                                        trident_svm::prelude::trident_svm_log::log_message(
-                                            "TRANSACTION PANICKED",
-                                            trident_svm::prelude::Level::Error,
+            Ok(result) => match result {
+                trident_svm::prelude::solana_svm::transaction_processing_result::ProcessedTransaction::Executed(executed_transaction) => match &executed_transaction.execution_details.status {
+                    Ok(_) => {
+                        // Record successful execution
+                        if fuzzing_metrics.is_ok() {
+                            self.fuzzing_data
+                                .add_successful_transaction(transaction_name);
+                        }
+                        Ok(())
+                    },
+                    Err(transaction_error) => {
+                        if let TransactionError::InstructionError(_error_code, instruction_error) =
+                            &transaction_error
+                        {
+                            match instruction_error {
+                                InstructionError::ProgramFailedToComplete => {
+                                    if fuzzing_metrics.is_ok() {
+                                        if fuzzing_debug.is_ok() {
+                                            trident_svm::prelude::trident_svm_log::log_message(
+                                                "TRANSACTION PANICKED",
+                                                trident_svm::prelude::Level::Error,
+                                            );
+                                        }
+                                        let rng = self.rng.get_seed();
+                                        // TODO format instructions
+                                        let tx = format!("{:#?}", instructions);
+                                        self.fuzzing_data.add_transaction_panicked(
+                                            transaction_name,
+                                            rng,
+                                            instruction_error.to_string(),
+                                            executed_transaction.execution_details.log_messages.clone(),
+                                            tx,
                                         );
                                     }
-                                    let rng = self.rng.get_seed();
-
-                                    // TODO format instructions
-                                    let tx = format!("{:#?}", instructions);
-
-                                    self.fuzzing_data.add_transaction_panicked(
-                                        transaction_name,
-                                        rng,
-                                        instruction_error.to_string(),
-                                        details.log_messages.clone(),
-                                        tx,
-                                    );
+                                }
+                                InstructionError::Custom(error_code) => {
+                                    if fuzzing_metrics.is_ok() {
+                                        self.fuzzing_data.add_custom_instruction_error(
+                                            transaction_name,
+                                            error_code,
+                                            executed_transaction.execution_details.log_messages.clone(),
+                                        );
+                                    }
+                                }
+                                _ => {
+                                    if fuzzing_metrics.is_ok() {
+                                        self.fuzzing_data.add_failed_transaction(
+                                            transaction_name,
+                                            instruction_error.to_string(),
+                                            executed_transaction.execution_details.log_messages.clone(),
+                                        );
+                                    }
                                 }
                             }
-                            InstructionError::Custom(error_code) => {
-                                if fuzzing_metrics.is_ok() {
-                                    self.fuzzing_data.add_custom_instruction_error(
-                                        transaction_name,
-                                        error_code,
-                                        details.log_messages.clone(),
-                                    );
-                                }
-                            }
-                            _ => {
-                                if fuzzing_metrics.is_ok() {
-                                    self.fuzzing_data.add_failed_transaction(
-                                        transaction_name,
-                                        instruction_error.to_string(),
-                                        details.log_messages.clone(),
-                                    );
-                                }
-                            }
+                        } else if fuzzing_metrics.is_ok() {
+                            self.fuzzing_data.add_failed_transaction(
+                                transaction_name,
+                                transaction_error.to_string(),
+                                executed_transaction.execution_details.log_messages.clone(),
+                            );
                         }
-                    } else if fuzzing_metrics.is_ok() {
-                        self.fuzzing_data.add_failed_transaction(
-                            transaction_name,
-                            transaction_error.to_string(),
-                            details.log_messages.clone(),
-                        );
-                    }
-                    Err(transaction_error.clone())
-                }
+                        Err(transaction_error.clone())
+                    },
+                },
+                trident_svm::prelude::solana_svm::transaction_processing_result::ProcessedTransaction::FeesOnly(_) => todo!(),
             },
-            TransactionExecutionResult::NotExecuted(transaction_error) => {
-                Err(transaction_error.clone())
-            }
+            Err(transaction_error) => Err(transaction_error.clone()),
         }
     }
 
