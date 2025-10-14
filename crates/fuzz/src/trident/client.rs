@@ -244,4 +244,7 @@ impl Trident {
             vec![ix]
         }
     }
+    pub fn transfer(&mut self, from: &Pubkey, to: &Pubkey, amount: u64) -> Instruction {
+        solana_sdk::system_instruction::transfer(from, to, amount)
+    }
 }

@@ -11,6 +11,7 @@ incremented upon a breaking change and the patch version will be incremented for
 ## [dev] - Unreleased
 
 **Added**
+- add support for Token 2022 program ([391](https://github.com/Ackee-Blockchain/trident/pull/391))
 
 **Removed**
 

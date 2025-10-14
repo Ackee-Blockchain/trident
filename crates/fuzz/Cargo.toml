@@ -10,11 +10,11 @@ readme = { workspace = true }
 
 
 [features]
-all = ["vote", "stake", "token", "token-2022"]
+all = ["vote", "stake"]
 vote = ["dep:solana-vote-program"]
 stake = ["dep:solana-stake-interface"]
 token = ["dep:spl-token-interface"]
-token-2022 = ["dep:spl-token-2022-interface"]
+token2022 = ["dep:spl-token-2022-interface","dep:spl-token-metadata-interface","dep:spl-token-group-interface"]
 syscalls = ["syscall-v2"]
 syscall-v2 = ["trident-svm/syscall-v2"]
 
@@ -47,7 +47,10 @@ solana-sdk = { workspace = true }
 solana-vote-program = { version = "2",optional = true}
 solana-stake-interface = { version = "1",optional = true}
 spl-token-interface = { version = "1",optional = true}
-spl-token-2022-interface = { version = "1",optional = true} # TODO: placeholder, support in the future
+spl-token-2022-interface = { version = "1",optional = true}
+spl-token-metadata-interface = {version = "0.7",optional = true}
+spl-token-group-interface = {version = "0.6",optional = true}
+spl-pod = "*"
 
 # Misc
 thiserror = "1"

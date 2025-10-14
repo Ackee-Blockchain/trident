@@ -65,6 +65,20 @@ pub mod fuzzing {
     pub use reqwest;
     pub use tokio;
 
+    // Token 2022
+    #[cfg(feature = "token2022")]
+    pub use super::trident::AccountExtension;
+    #[cfg(feature = "token2022")]
+    pub use super::trident::MintExtension;
+    #[cfg(feature = "token2022")]
+    pub use super::trident::MintExtensionData;
+    #[cfg(feature = "token2022")]
+    pub use super::trident::MintWithExtensions;
+    #[cfg(feature = "token2022")]
+    pub use super::trident::TokenAccountExtensionData;
+    #[cfg(feature = "token2022")]
+    pub use super::trident::TokenAccountWithExtensions;
+
     extern "C" {
         pub fn __llvm_profile_set_filename(filename: *const i8);
         pub fn __llvm_profile_write_file() -> i32;
