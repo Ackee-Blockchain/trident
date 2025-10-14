@@ -13,8 +13,7 @@ readme = { workspace = true }
 all = ["vote", "stake"]
 vote = ["dep:solana-vote-program"]
 stake = ["dep:solana-stake-interface"]
-token = ["dep:spl-token-interface"]
-token2022 = ["dep:spl-token-2022-interface","dep:spl-token-metadata-interface","dep:spl-token-group-interface"]
+token = ["dep:spl-token-interface","dep:spl-token-2022-interface","dep:spl-token-metadata-interface","dep:spl-token-group-interface","dep:spl-associated-token-account-interface"]
 syscalls = ["syscall-v2"]
 syscall-v2 = ["trident-svm/syscall-v2"]
 
@@ -50,7 +49,8 @@ spl-token-interface = { version = "1",optional = true}
 spl-token-2022-interface = { version = "1",optional = true}
 spl-token-metadata-interface = {version = "0.7",optional = true}
 spl-token-group-interface = {version = "0.6",optional = true}
-spl-pod = "*"
+spl-associated-token-account-interface = {version = "1",optional = true}
+spl-pod = "0.5"
 
 # Misc
 thiserror = "1"
