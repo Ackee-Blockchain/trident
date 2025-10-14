@@ -1,0 +1,7 @@
+[fuzz.metrics]
+enabled = true
+
+[[fuzz.programs]]
+address = "icbQHAzqtdyR4yaGvNQYfceoBKJKQmMqTxscqSSdgS3"
+program = "../target/deploy/token.so"
+ 
