@@ -44,6 +44,9 @@ jobs:
           - name: "Metaplex CPI"
             path: "examples/metaplex"
             cache-key: "metaplex"
+          - name: "Token"
+            path: "examples/token"
+            cache-key: "token"
     
     steps:
       - uses: actions/checkout@v3
