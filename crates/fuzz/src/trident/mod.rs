@@ -13,21 +13,9 @@ mod seed;
 #[cfg(feature = "stake")]
 mod stake;
 #[cfg(feature = "token")]
-mod token;
-#[cfg(feature = "token2022")]
-mod token2022;
-#[cfg(feature = "token2022")]
-pub use token2022::AccountExtension;
-#[cfg(feature = "token2022")]
-pub use token2022::MintExtension;
-#[cfg(feature = "token2022")]
-pub use token2022::MintExtensionData;
-#[cfg(feature = "token2022")]
-pub use token2022::MintWithExtensions;
-#[cfg(feature = "token2022")]
-pub use token2022::TokenAccountExtensionData;
-#[cfg(feature = "token2022")]
-pub use token2022::TokenAccountWithExtensions;
+pub mod token;
+#[cfg(feature = "token")]
+pub mod token2022;
 #[cfg(feature = "vote")]
 mod vote;
 

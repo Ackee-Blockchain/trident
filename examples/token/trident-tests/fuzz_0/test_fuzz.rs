@@ -747,25 +747,22 @@ impl FuzzTest {
 
         assert!(res.is_ok(), "Mint to failed: {}", res.err().unwrap());
 
-        let token_account2022_2 = self
-            .fuzz_accounts
-            .token_account2022
-            .insert(&mut self.trident, None);
+        let associated_token_account = self
+            .trident
+            .create_associated_token_account_2022(
+                &mint2022,
+                &author2022,
+                &[AccountExtension::ImmutableOwner, AccountExtension::CpiGuard],
+            )
+            .map_err(|e| eprintln!("Associated token account creation failed: {}", e))
+            .unwrap();
 
-        let res = self.trident.create_token_account_2022(
-            &token_account2022_2,
-            &mint2022,
-            &author2022,
-            &[AccountExtension::ImmutableOwner, AccountExtension::CpiGuard],
-        );
+        self.fuzz_accounts
+            .author2022
+            .insert_with_address(associated_token_account);
 
-        assert!(
-            res.is_ok(),
-            "TokenAccount creation failed: {}",
-            res.err().unwrap()
-        );
-
-        let token_account_2022_with_extensions = self.trident.get_account(&token_account2022_2);
+        let token_account_2022_with_extensions =
+            self.trident.get_account(&associated_token_account);
 
         let res = self
             .trident
@@ -776,7 +773,7 @@ impl FuzzTest {
 
         let res = self.trident.transfer_checked_token_2022(
             &token_account2022_1,
-            &token_account2022_2,
+            &associated_token_account,
             &mint2022,
             &author2022,
             &[],
@@ -790,7 +787,8 @@ impl FuzzTest {
             res.err().unwrap()
         );
 
-        let token_account_2022_with_extensions = self.trident.get_account(&token_account2022_2);
+        let token_account_2022_with_extensions =
+            self.trident.get_account(&associated_token_account);
 
         let res = self
             .trident
