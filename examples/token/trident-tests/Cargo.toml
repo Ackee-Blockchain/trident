@@ -11,7 +11,7 @@ borsh = "1.5.3"
 
 [dependencies.trident-fuzz]
 path = "../../../crates/fuzz"
-features = ["token2022"]
+features = ["token"]
 
 [[bin]]
 name = "fuzz_0"

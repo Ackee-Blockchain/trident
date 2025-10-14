@@ -75,4 +75,28 @@ impl Trident {
 
         self.execute(&[ix], "Minting to Token Account")
     }
+    pub fn create_associated_token_account(
+        &mut self,
+        mint: &Pubkey,
+        owner: &Pubkey,
+    ) -> solana_sdk::transaction::Result<Pubkey> {
+        let address = spl_associated_token_account_interface::address::get_associated_token_address(
+            owner, mint,
+        );
+
+        let ix =
+            spl_associated_token_account_interface::instruction::create_associated_token_account(
+                owner,
+                owner,
+                mint,
+                &spl_token_interface::ID,
+            );
+
+        let res = self.execute(&[ix], "Creating Associated Token Account");
+
+        match res {
+            Ok(_) => Ok(address),
+            Err(e) => Err(e),
+        }
+    }
 }

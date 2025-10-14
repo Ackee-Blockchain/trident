@@ -15,12 +15,12 @@ use spl_token_2022_interface::extension::StateWithExtensions;
 use spl_token_2022_interface::state::Account;
 use spl_token_2022_interface::state::Mint;
 
-use crate::trident::AccountExtension;
-use crate::trident::MintExtension;
-use crate::trident::MintExtensionData;
-use crate::trident::MintWithExtensions;
-use crate::trident::TokenAccountExtensionData;
-use crate::trident::TokenAccountWithExtensions;
+use crate::trident::token2022::AccountExtension;
+use crate::trident::token2022::MintExtension;
+use crate::trident::token2022::MintExtensionData;
+use crate::trident::token2022::MintWithExtensions;
+use crate::trident::token2022::TokenAccountExtensionData;
+use crate::trident::token2022::TokenAccountWithExtensions;
 use crate::trident::Trident;
 
 /// Default message for creating a Token 2022 mint without extensions
@@ -915,5 +915,105 @@ impl Trident {
         .unwrap();
 
         self.execute(&[ix], TRANSFER_CHECKED_MESSAGE)
+    }
+
+    /// Creates an associated Token 2022 account with specified extensions
+    ///
+    /// This function uses the associated token account program to handle initial funding,
+    /// account creation, and any mint-required extensions automatically. It then reallocates
+    /// space and initializes any additional user-requested extensions.
+    ///
+    /// The associated token account program automatically handles extensions required by the mint
+    /// (such as NonTransferableAccount for NonTransferable mints), so you only need to specify
+    /// additional extensions you want to add.
+    ///
+    /// # Arguments
+    ///
+    /// * `mint` - The mint this account will hold tokens for
+    /// * `owner` - The owner of the token account
+    /// * `extensions` - Array of additional extensions to enable on the account
+    ///
+    /// # Returns
+    ///
+    /// Returns the address of the created associated token account if successful,
+    /// or a transaction error if the operation fails.
+    pub fn create_associated_token_account_2022(
+        &mut self,
+        mint: &Pubkey,
+        owner: &Pubkey,
+        extensions: &[AccountExtension],
+    ) -> solana_sdk::transaction::Result<Pubkey> {
+        let address = spl_associated_token_account_interface::address::get_associated_token_address_with_program_id(
+            owner, mint, &spl_token_2022_interface::ID,
+        );
+
+        let mut instructions = Vec::new();
+
+        // Create the basic associated token account first
+        let create_ix =
+            spl_associated_token_account_interface::instruction::create_associated_token_account(
+                owner,
+                owner,
+                mint,
+                &spl_token_2022_interface::ID, // Use Token 2022 program ID
+            );
+        instructions.push(create_ix);
+
+        // If we have extensions, we need to reallocate and initialize them
+        if !extensions.is_empty() {
+            // Collect user-requested extension types only
+            let extension_types: Vec<ExtensionType> = extensions
+                .iter()
+                .map(|ext| match ext {
+                    AccountExtension::ImmutableOwner => ExtensionType::ImmutableOwner,
+                    AccountExtension::MemoTransfer { .. } => ExtensionType::MemoTransfer,
+                    AccountExtension::CpiGuard => ExtensionType::CpiGuard,
+                })
+                .collect();
+
+            // Reallocate the account to accommodate extensions
+            let reallocate_ix = spl_token_2022_interface::instruction::reallocate(
+                &spl_token_2022_interface::ID,
+                &address,
+                owner, // payer (owner pays for reallocation)
+                owner, // owner
+                &[],   // signer_pubkeys (empty for single signature)
+                &extension_types,
+            )
+            .unwrap();
+            instructions.push(reallocate_ix);
+
+            // Initialize post-account extensions (like MemoTransfer, CpiGuard)
+            self.initialize_post_account_extensions(&address, owner, extensions, &mut instructions);
+        }
+
+        let message = if extensions.is_empty() {
+            "Creating Associated Token 2022 Account".to_string()
+        } else {
+            let extension_names: Vec<String> = extensions
+                .iter()
+                .map(|ext| match ext {
+                    AccountExtension::ImmutableOwner => {
+                        format!("{:?}", ExtensionType::ImmutableOwner)
+                    }
+                    AccountExtension::MemoTransfer { .. } => {
+                        format!("{:?}", ExtensionType::MemoTransfer)
+                    }
+                    AccountExtension::CpiGuard => format!("{:?}", ExtensionType::CpiGuard),
+                })
+                .collect();
+
+            format!(
+                "Creating Associated Token 2022 Account with Extensions: [{}]",
+                extension_names.join(", ")
+            )
+        };
+
+        let res = self.execute(&instructions, &message);
+
+        match res {
+            Ok(_) => Ok(address),
+            Err(e) => Err(e),
+        }
     }
 }
