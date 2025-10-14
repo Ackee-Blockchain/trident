@@ -43,6 +43,10 @@ impl AddressStorage {
         address
     }
 
+    pub fn insert_with_address(&mut self, address: Pubkey) {
+        self.addresses.push(address);
+    }
+
     pub fn get(&self, trident: &mut Trident) -> Pubkey {
         let accounts_num = self.addresses.len();
 
