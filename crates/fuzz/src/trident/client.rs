@@ -1,3 +1,4 @@
+use borsh::BorshDeserialize;
 use solana_sdk::instruction::Instruction;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::transaction::TransactionError;
@@ -91,6 +92,24 @@ impl Trident {
 
     pub fn get_account(&mut self, key: &Pubkey) -> AccountSharedData {
         trident_svm::trident_svm::TridentSVM::get_account(&self.client, key).unwrap_or_default()
+    }
+    pub fn get_account_with_type<T: BorshDeserialize>(
+        &mut self,
+        key: &Pubkey,
+        discriminator_size: usize,
+    ) -> Option<T> {
+        let account = self.get_account(key);
+        let data = account.data();
+
+        if data.len() > discriminator_size {
+            T::deserialize(&mut &data[discriminator_size..]).ok()
+        } else {
+            None
+        }
+    }
+
+    pub fn get_current_timestamp(&self) -> i64 {
+        self.get_sysvar::<Clock>().unix_timestamp
     }
 
     pub fn get_last_blockhash(&self) -> Hash {

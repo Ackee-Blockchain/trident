@@ -41,13 +41,23 @@ impl FuzzTest {
         );
 
         self.trident.airdrop(&author, 10 * LAMPORTS_PER_SOL);
-        let ix = InitializeFnInstruction::data(InitializeFnInstructionData::new(
-            self.trident.gen_range(0..u8::MAX),
-        ))
-        .accounts(InitializeFnInstructionAccounts::new(author, hello_world))
-        .instruction();
 
-        let _ = self.trident.execute(&[ix], "Initialize");
+        let input = self.trident.gen_range(0..u8::MAX);
+
+        let ix = InitializeFnInstruction::data(InitializeFnInstructionData::new(input))
+            .accounts(InitializeFnInstructionAccounts::new(author, hello_world))
+            .instruction();
+
+        let res = self.trident.execute(&[ix], "Initialize");
+
+        if res.is_ok() {
+            let hello_world_account = self
+                .trident
+                .get_account_with_type::<crate::types::StoreHelloWorld>(&hello_world, 8);
+            if let Some(hello_world_account) = hello_world_account {
+                assert!(hello_world_account.input == input);
+            }
+        }
     }
 
     #[flow]
