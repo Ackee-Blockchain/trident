@@ -24,20 +24,6 @@ Key features:
 
 You have two options for displaying coverage data: generate an HTML report for browser viewing, or generate a JSON report for VS Code integration.
 
-### HTML Report
-
-1. Set `format = "html"` in the [Trident manifest](../../trident-manifest/index.md#fuzzing-coverage) before running the fuzz test
-2. Run the fuzz test
-3. After the fuzz test finishes, the HTML report will be stored in the `<fuzz-test-name>-coverage-report` folder
-4. Open the HTML report in your browser
-
-### VS Code Extension
-
-1. Set `format = "json"` in the [Trident manifest](../../trident-manifest/index.md#fuzzing-coverage) before running the fuzz test
-2. Run the fuzz test
-3. Install the [Solana VS Code extension](https://marketplace.visualstudio.com/items?itemName=AckeeBlockchain.solana)
-4. Run the VS Code command `Solana: Show Code Coverage` and select the "Load generated JSON report" option
-
 ### Live Coverage Updates
 
 For real-time coverage monitoring during fuzzing:
@@ -48,3 +34,17 @@ For real-time coverage monitoring during fuzzing:
 4. Choose one of these options:
     - **Automatic**: Set `attach_extension = true` in the [Trident manifest](../../trident-manifest/index.md#fuzzing-coverage) to automatically show live updates while the fuzz test is running
     - **Manual**: Use the command `Solana: Show Code Coverage` and select the "Attach to active fuzzing session" option
+
+### Post-Session Coverage Analysis
+
+1. Set `format = "json"` in the [Trident manifest](../../trident-manifest/index.md#fuzzing-coverage) before running the fuzz test
+2. Run the fuzz test
+3. Install the [Solana VS Code extension](https://marketplace.visualstudio.com/items?itemName=AckeeBlockchain.solana)
+4. Run the VS Code command `Solana: Show Code Coverage` and select the "Load generated JSON report" option
+
+### HTML Report
+
+1. Set `format = "html"` in the [Trident manifest](../../trident-manifest/index.md#fuzzing-coverage) before running the fuzz test
+2. Run the fuzz test
+3. After the fuzz test finishes, the HTML report will be stored in the `<fuzz-test-name>-coverage-report` folder
+4. Open the HTML report in your browser

@@ -38,11 +38,11 @@ enabled = true
 
 ```bash
 [fuzz.coverage]
-enable = false
-server_port = 58432
-loopcount = 0
-format = "json"
-attach_extension = false
+enable = true               # default: false
+server_port = 58432         # default: 58432
+loopcount = 5               # default: 0
+format = "json"             # default: "json"
+attach_extension = true     # default: false
 ```
 
 The coverage configuration enables code coverage analysis during fuzzing sessions, providing insights into which parts of your program are being tested.
