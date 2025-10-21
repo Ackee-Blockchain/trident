@@ -217,7 +217,7 @@ impl Trident {
                         Err(transaction_error.clone())
                     },
                 },
-                trident_svm::prelude::solana_svm::transaction_processing_result::ProcessedTransaction::FeesOnly(_) => todo!(),
+                trident_svm::prelude::solana_svm::transaction_processing_result::ProcessedTransaction::FeesOnly(data) => panic!("Fees only transaction not supported yet: {:?}", data),
             },
             Err(transaction_error) => Err(transaction_error.clone()),
         }

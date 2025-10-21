@@ -47,6 +47,7 @@ pub mod fuzzing {
     /// Trident config
     pub use trident_config::TridentConfig;
 
+    pub use super::trident::FuzzTestExecutor;
     /// Trident
     pub use super::trident::Trident;
     pub use trident_fuzz_metrics::TridentFuzzingData;

@@ -7,3 +7,10 @@ enabled = true
 [[fuzz.programs]]
 address = "5e554BrmQN7a2nbKrSUUxP8PMbq55rMntnkoCPmwr3Aq"
 program = "../target/deploy/maze1.so"
+
+
+[fuzz.coverage]
+enable = true
+loopcount = 5
+format = "json"
+attach_extension = true

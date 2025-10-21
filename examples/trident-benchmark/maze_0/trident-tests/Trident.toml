@@ -4,3 +4,10 @@
 enabled = true
 json = true
 dashboard=true
+
+
+[fuzz.coverage]
+enable = true
+loopcount = 5
+format = "json"
+attach_extension = true
