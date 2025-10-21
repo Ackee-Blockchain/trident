@@ -13,7 +13,7 @@ resolver = "1"
 
 
 [workspace.package]
-version = "0.11.0"
+version = "0.11.1"
 edition = "2021"
 authors = ["Ackee Blockchain Security"]
 repository = "https://github.com/Ackee-Blockchain/trident"
@@ -24,21 +24,21 @@ readme = "./README.md"
 
 [workspace.dependencies]
 # Internal Trident crates
-trident-cli = { path = "crates/cli", version = "0.11.0" }
-trident-client = { path = "crates/client", version = "0.11.0" }
-trident-config = { path = "crates/config", version = "0.11.0" }
-trident-fuzz = { path = "crates/fuzz", version = "0.11.0" }
-trident-syn = { path = "crates/syn", version = "0.11.0" }
-trident-template = { path = "crates/template", version = "0.11.0" }
-trident-fuzz-metrics = { path = "crates/metrics", version = "0.11.0" }
+trident-cli = { path = "crates/cli", version = "0.11.1" }
+trident-client = { path = "crates/client", version = "0.11.1" }
+trident-config = { path = "crates/config", version = "0.11.1" }
+trident-fuzz = { path = "crates/fuzz", version = "0.11.1" }
+trident-syn = { path = "crates/syn", version = "0.11.1" }
+trident-template = { path = "crates/template", version = "0.11.1" }
+trident-fuzz-metrics = { path = "crates/metrics", version = "0.11.1" }
 
 # Derive macros
-trident-derive-accounts = { path = "crates/fuzz/derive/accounts", version = "0.11.0" }
-trident-derive-flow-executor = { path = "crates/fuzz/derive/flow_executor", version = "0.11.0" }
-trident-derive-fuzz-test-methods = { path = "crates/fuzz/derive/fuzz_test_methods", version = "0.11.0" }
-trident-derive-instruction = { path = "crates/fuzz/derive/instruction", version = "0.11.0" }
-trident-derive-remaining-accounts = { path = "crates/fuzz/derive/remaining_accounts", version = "0.11.0" }
-trident-derive-transaction = { path = "crates/fuzz/derive/transaction", version = "0.11.0" }
+trident-derive-accounts = { path = "crates/fuzz/derive/accounts", version = "0.11.1" }
+trident-derive-flow-executor = { path = "crates/fuzz/derive/flow_executor", version = "0.11.1" }
+trident-derive-fuzz-test-methods = { path = "crates/fuzz/derive/fuzz_test_methods", version = "0.11.1" }
+trident-derive-instruction = { path = "crates/fuzz/derive/instruction", version = "0.11.1" }
+trident-derive-remaining-accounts = { path = "crates/fuzz/derive/remaining_accounts", version = "0.11.1" }
+trident-derive-transaction = { path = "crates/fuzz/derive/transaction", version = "0.11.1" }
 
 # External dependencies
 solana-sdk = "~2.0"

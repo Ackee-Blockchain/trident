@@ -18,8 +18,8 @@ pub(crate) fn resolve_path(filename: &str) -> PathBuf {
     }
 }
 
-/// Tries to find the root directory with the `Anchor.toml` file.
-/// Throws an error when there is no directory with the `Anchor.toml` file
+/// Tries to find the root directory with the `Trident.toml` file.
+/// Throws an error when there is no directory with the `Trident.toml` file
 pub fn discover_root() -> Result<PathBuf, Error> {
     let current_dir = env::current_dir()?;
     let mut dir = Some(current_dir.as_path());
