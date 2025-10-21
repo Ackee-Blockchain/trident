@@ -16,6 +16,16 @@ incremented upon a breaking change and the patch version will be incremented for
 
 **Changed**
 
+## [0.11.1] - 2025-10-21
+
+**Added**
+
+**Removed**
+
+- Removed lld linker ([394](https://github.com/Ackee-Blockchain/trident/pull/394))
+
+**Changed**
+
 
 ## [0.11.0] - 2025-08-14
 

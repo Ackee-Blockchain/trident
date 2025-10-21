@@ -137,7 +137,7 @@ For full examples and guides, see the [documentation](https://ackee.xyz/trident/
 
 ## Installation
 
-Latest release: **0.11.0**
+Latest release: **0.11.1**
 
 ```shell
 cargo install trident-cli
