@@ -7,6 +7,7 @@ use trident_svm::types::trident_program::TridentProgram;
 use crate::fuzzing::TridentRng;
 
 mod client;
+pub mod flow_executor;
 mod metrics;
 mod random;
 mod seed;

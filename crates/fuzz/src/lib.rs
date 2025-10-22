@@ -48,6 +48,7 @@ pub mod fuzzing {
     pub use trident_config::TridentConfig;
 
     /// Trident
+    pub use super::trident::flow_executor::FlowExecutor;
     pub use super::trident::Trident;
     pub use trident_fuzz_metrics::TridentFuzzingData;
 
