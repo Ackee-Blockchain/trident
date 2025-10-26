@@ -50,7 +50,7 @@ impl AddressStorage {
     pub fn get(&self, trident: &mut Trident) -> Pubkey {
         let accounts_num = self.addresses.len();
 
-        let account_id = trident.gen_range(0..accounts_num);
+        let account_id = trident.random_from_range(0..accounts_num);
         self.addresses[account_id]
     }
 
@@ -67,10 +67,10 @@ impl AddressStorage {
                 if let Some(pubkey) = derive_pda(seeds.seeds, &seeds.program_id) {
                     pubkey
                 } else {
-                    trident.gen_pubkey()
+                    trident.random_pubkey()
                 }
             }
-            None => trident.gen_pubkey(),
+            None => trident.random_pubkey(),
         }
     }
 }

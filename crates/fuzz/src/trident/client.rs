@@ -52,7 +52,7 @@ impl TransactionResult {
 }
 
 impl Trident {
-    pub fn execute(
+    pub fn process_transaction(
         &mut self,
         instructions: &[Instruction],
         transaction_name: &str,

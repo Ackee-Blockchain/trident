@@ -34,12 +34,12 @@ impl FuzzTest {
         let signer = self.fuzz_accounts.signer.insert(&mut self.trident, None);
 
         let ix = InitializeCallerInstruction::data(InitializeCallerInstructionData::new(
-            self.trident.gen_range(0..u16::MAX),
+            self.trident.random_from_range(0..u16::MAX),
         ))
         .accounts(InitializeCallerInstructionAccounts::new(signer))
         .instruction();
 
-        let _ = self.trident.execute(&[ix], "initialize_caller");
+        let _ = self.trident.process_transaction(&[ix], "initialize_caller");
     }
 
     #[flow]

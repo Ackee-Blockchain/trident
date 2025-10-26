@@ -4810,7 +4810,7 @@ dependencies = [
  "solana-log-collector",
  "solana-program-runtime",
  "solana-sdk-ids",
- "solana-zk-sdk 2.3.13",
+ "solana-zk-sdk",
 ]
 
 [[package]]
@@ -4818,42 +4818,6 @@ name = "solana-zk-sdk"
 version = "2.3.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "97b9fc6ec37d16d0dccff708ed1dd6ea9ba61796700c3bb7c3b401973f10f63b"
-dependencies = [
- "aes-gcm-siv",
- "base64 0.22.1",
- "bincode",
- "bytemuck",
- "bytemuck_derive",
- "curve25519-dalek 4.1.3",
- "itertools 0.12.1",
- "js-sys",
- "merlin",
- "num-derive",
- "num-traits",
- "rand 0.8.5",
- "serde",
- "serde_derive",
- "serde_json",
- "sha3",
- "solana-derivation-path",
- "solana-instruction",
- "solana-pubkey",
- "solana-sdk-ids",
- "solana-seed-derivable",
- "solana-seed-phrase",
- "solana-signature",
- "solana-signer",
- "subtle",
- "thiserror 2.0.17",
- "wasm-bindgen",
- "zeroize",
-]
-
-[[package]]
-name = "solana-zk-sdk"
-version = "3.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5dffbd0b7537f4249d69b74c632f8eac1d2726572022791f9ead65a67d3f6905"
 dependencies = [
  "aes-gcm-siv",
  "base64 0.22.1",
@@ -4949,19 +4913,20 @@ dependencies = [
 
 [[package]]
 name = "spl-pod"
-version = "0.6.0"
+version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2e3fd93444b7db9eb3465b1c98af4bbb35445bd36f6db8323db835a500c41f45"
+checksum = "d994afaf86b779104b4a95ba9ca75b8ced3fdb17ee934e38cb69e72afbe17799"
 dependencies = [
  "bytemuck",
  "bytemuck_derive",
  "num-derive",
  "num-traits",
- "num_enum",
+ "solana-decode-error",
+ "solana-msg",
  "solana-program-error",
  "solana-program-option",
  "solana-pubkey",
- "solana-zk-sdk 3.0.0",
+ "solana-zk-sdk",
  "thiserror 2.0.17",
 ]
 
@@ -5317,7 +5282,7 @@ dependencies = [
 
 [[package]]
 name = "trident-config"
-version = "0.11.0"
+version = "0.11.1"
 dependencies = [
  "anyhow",
  "base64 0.22.1",
@@ -5332,7 +5297,7 @@ dependencies = [
 
 [[package]]
 name = "trident-derive-flow-executor"
-version = "0.11.0"
+version = "0.11.1"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -5342,7 +5307,7 @@ dependencies = [
 
 [[package]]
 name = "trident-derive-fuzz-test-methods"
-version = "0.11.0"
+version = "0.11.1"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -5352,7 +5317,7 @@ dependencies = [
 
 [[package]]
 name = "trident-fuzz"
-version = "0.11.0"
+version = "0.11.1"
 dependencies = [
  "borsh 1.5.7",
  "getrandom 0.3.3",
@@ -5376,7 +5341,7 @@ dependencies = [
 
 [[package]]
 name = "trident-fuzz-metrics"
-version = "0.11.0"
+version = "0.11.1"
 dependencies = [
  "hex",
  "prettytable",
@@ -5427,7 +5392,7 @@ dependencies = [
 
 [[package]]
 name = "trident-syn"
-version = "0.11.0"
+version = "0.11.1"
 dependencies = [
  "petgraph",
  "proc-macro2",
