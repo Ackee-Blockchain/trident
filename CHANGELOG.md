@@ -11,12 +11,14 @@ incremented upon a breaking change and the patch version will be incremented for
 ## [dev] - Unreleased
 
 **Added**
+
 - add support for Token 2022 program ([391](https://github.com/Ackee-Blockchain/trident/pull/391))
 
 **Removed**
 
 **Changed**
 
+- Added custom TransactionResult containing result and logs of the transaction ([399](https://github.com/Ackee-Blockchain/trident/pull/399))
 - Support for general solana-sdk version 2.3 and higher ([388](https://github.com/Ackee-Blockchain/trident/pull/388))
 - FuzzClient trait removed and client methods moved directly to Trident struct ([386](https://github.com/Ackee-Blockchain/trident/pull/386))
 - simplify account storages to simply store only account addresses ([383](https://github.com/Ackee-Blockchain/trident/pull/383))

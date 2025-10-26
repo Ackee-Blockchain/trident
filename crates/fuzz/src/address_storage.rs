@@ -57,6 +57,9 @@ impl AddressStorage {
     pub fn is_empty(&self) -> bool {
         self.addresses.is_empty()
     }
+    pub fn len(&self) -> usize {
+        self.addresses.len()
+    }
 
     fn get_or_create_address(&self, seeds: Option<PdaSeeds>, trident: &mut Trident) -> Pubkey {
         match seeds {
