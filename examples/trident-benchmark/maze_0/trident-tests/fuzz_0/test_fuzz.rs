@@ -64,7 +64,7 @@ impl FuzzTest {
             .accounts(InitializeInstructionAccounts::new(state_author, state))
             .instruction();
 
-        let _ = self.trident.execute(&[init], "Initialize");
+        let _ = self.trident.process_transaction(&[init], "Initialize");
     }
 
     #[flow]
@@ -75,19 +75,19 @@ impl FuzzTest {
         let state = self.fuzz_accounts.state.get(&mut self.trident);
 
         let move_north = maze::MoveNorthInstruction::data(MoveNorthInstructionData::new(
-            self.trident.gen_range(0..u64::MAX),
-            self.trident.gen_range(0..u64::MAX),
-            self.trident.gen_range(0..u64::MAX),
-            self.trident.gen_range(0..u64::MAX),
-            self.trident.gen_range(0..u64::MAX),
-            self.trident.gen_range(0..u64::MAX),
-            self.trident.gen_range(0..u64::MAX),
-            self.trident.gen_range(0..u64::MAX),
+            self.trident.random_from_range(0..u64::MAX),
+            self.trident.random_from_range(0..u64::MAX),
+            self.trident.random_from_range(0..u64::MAX),
+            self.trident.random_from_range(0..u64::MAX),
+            self.trident.random_from_range(0..u64::MAX),
+            self.trident.random_from_range(0..u64::MAX),
+            self.trident.random_from_range(0..u64::MAX),
+            self.trident.random_from_range(0..u64::MAX),
         ))
         .accounts(MoveNorthInstructionAccounts::new(state))
         .instruction();
 
-        let _ = self.trident.execute(&[move_north], "MoveNorth");
+        let _ = self.trident.process_transaction(&[move_north], "MoveNorth");
     }
 
     #[flow]
@@ -98,19 +98,19 @@ impl FuzzTest {
         let state = self.fuzz_accounts.state.get(&mut self.trident);
 
         let move_north = maze::MoveSouthInstruction::data(MoveSouthInstructionData::new(
-            self.trident.gen_range(0..u64::MAX),
-            self.trident.gen_range(0..u64::MAX),
-            self.trident.gen_range(0..u64::MAX),
-            self.trident.gen_range(0..u64::MAX),
-            self.trident.gen_range(0..u64::MAX),
-            self.trident.gen_range(0..u64::MAX),
-            self.trident.gen_range(0..u64::MAX),
-            self.trident.gen_range(0..u64::MAX),
+            self.trident.random_from_range(0..u64::MAX),
+            self.trident.random_from_range(0..u64::MAX),
+            self.trident.random_from_range(0..u64::MAX),
+            self.trident.random_from_range(0..u64::MAX),
+            self.trident.random_from_range(0..u64::MAX),
+            self.trident.random_from_range(0..u64::MAX),
+            self.trident.random_from_range(0..u64::MAX),
+            self.trident.random_from_range(0..u64::MAX),
         ))
         .accounts(MoveSouthInstructionAccounts::new(state))
         .instruction();
 
-        let _ = self.trident.execute(&[move_north], "MoveSouth");
+        let _ = self.trident.process_transaction(&[move_north], "MoveSouth");
     }
 
     #[flow]
@@ -121,19 +121,19 @@ impl FuzzTest {
         let state = self.fuzz_accounts.state.get(&mut self.trident);
 
         let move_north = maze::MoveEastInstruction::data(MoveEastInstructionData::new(
-            self.trident.gen_range(0..u64::MAX),
-            self.trident.gen_range(0..u64::MAX),
-            self.trident.gen_range(0..u64::MAX),
-            self.trident.gen_range(0..u64::MAX),
-            self.trident.gen_range(0..u64::MAX),
-            self.trident.gen_range(0..u64::MAX),
-            self.trident.gen_range(0..u64::MAX),
-            self.trident.gen_range(0..u64::MAX),
+            self.trident.random_from_range(0..u64::MAX),
+            self.trident.random_from_range(0..u64::MAX),
+            self.trident.random_from_range(0..u64::MAX),
+            self.trident.random_from_range(0..u64::MAX),
+            self.trident.random_from_range(0..u64::MAX),
+            self.trident.random_from_range(0..u64::MAX),
+            self.trident.random_from_range(0..u64::MAX),
+            self.trident.random_from_range(0..u64::MAX),
         ))
         .accounts(MoveEastInstructionAccounts::new(state))
         .instruction();
 
-        let _ = self.trident.execute(&[move_north], "MoveEast");
+        let _ = self.trident.process_transaction(&[move_north], "MoveEast");
     }
 
     #[flow]
@@ -144,19 +144,19 @@ impl FuzzTest {
         let state = self.fuzz_accounts.state.get(&mut self.trident);
 
         let move_north = maze::MoveWestInstruction::data(MoveWestInstructionData::new(
-            self.trident.gen_range(0..u64::MAX),
-            self.trident.gen_range(0..u64::MAX),
-            self.trident.gen_range(0..u64::MAX),
-            self.trident.gen_range(0..u64::MAX),
-            self.trident.gen_range(0..u64::MAX),
-            self.trident.gen_range(0..u64::MAX),
-            self.trident.gen_range(0..u64::MAX),
-            self.trident.gen_range(0..u64::MAX),
+            self.trident.random_from_range(0..u64::MAX),
+            self.trident.random_from_range(0..u64::MAX),
+            self.trident.random_from_range(0..u64::MAX),
+            self.trident.random_from_range(0..u64::MAX),
+            self.trident.random_from_range(0..u64::MAX),
+            self.trident.random_from_range(0..u64::MAX),
+            self.trident.random_from_range(0..u64::MAX),
+            self.trident.random_from_range(0..u64::MAX),
         ))
         .accounts(MoveWestInstructionAccounts::new(state))
         .instruction();
 
-        let _ = self.trident.execute(&[move_north], "MoveWest");
+        let _ = self.trident.process_transaction(&[move_north], "MoveWest");
     }
 
     #[end]
