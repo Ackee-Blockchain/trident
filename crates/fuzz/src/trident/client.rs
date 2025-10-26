@@ -19,12 +19,44 @@ use solana_sdk::sysvar::Sysvar;
 use trident_svm::types::trident_entrypoint::TridentEntrypoint;
 use trident_svm::types::trident_program::TridentProgram;
 
+pub struct TransactionResult {
+    transaction_result: solana_sdk::transaction::Result<()>,
+    transaction_logs: Vec<String>,
+}
+
+impl TransactionResult {
+    fn new(
+        transaction_result: solana_sdk::transaction::Result<()>,
+        transaction_logs: Vec<String>,
+    ) -> Self {
+        Self {
+            transaction_result,
+            transaction_logs,
+        }
+    }
+
+    pub fn is_success(&self) -> bool {
+        self.transaction_result.is_ok()
+    }
+
+    pub fn is_failure(&self) -> bool {
+        self.transaction_result.is_err()
+    }
+
+    pub fn logs(&self) -> &[String] {
+        &self.transaction_logs
+    }
+    pub fn get_result(&self) -> &solana_sdk::transaction::Result<()> {
+        &self.transaction_result
+    }
+}
+
 impl Trident {
     pub fn execute(
         &mut self,
         instructions: &[Instruction],
         transaction_name: &str,
-    ) -> solana_sdk::transaction::Result<()> {
+    ) -> TransactionResult {
         let fuzzing_metrics = std::env::var("FUZZING_METRICS");
         let fuzzing_debug = std::env::var("TRIDENT_FUZZ_DEBUG");
 
@@ -148,7 +180,7 @@ impl Trident {
         tx_result: &TransactionProcessingResult,
         transaction_name: &str,
         instructions: &[Instruction],
-    ) -> solana_sdk::transaction::Result<()> {
+    ) -> TransactionResult {
         let fuzzing_metrics = std::env::var("FUZZING_METRICS");
         let fuzzing_debug = std::env::var("TRIDENT_FUZZ_DEBUG");
 
@@ -161,7 +193,7 @@ impl Trident {
                             self.fuzzing_data
                                 .add_successful_transaction(transaction_name);
                         }
-                        Ok(())
+                        TransactionResult::new(Ok(()), executed_transaction.execution_details.log_messages.clone().unwrap_or_default())
                     },
                     Err(transaction_error) => {
                         if let TransactionError::InstructionError(_error_code, instruction_error) =
@@ -214,12 +246,12 @@ impl Trident {
                                 executed_transaction.execution_details.log_messages.clone(),
                             );
                         }
-                        Err(transaction_error.clone())
+                        TransactionResult::new(Err(transaction_error.clone()), executed_transaction.execution_details.log_messages.clone().unwrap_or_default())
                     },
                 },
                 trident_svm::prelude::solana_svm::transaction_processing_result::ProcessedTransaction::FeesOnly(_) => todo!(),
             },
-            Err(transaction_error) => Err(transaction_error.clone()),
+            Err(transaction_error) => TransactionResult::new(Err(transaction_error.clone()), vec![]),
         }
     }
 

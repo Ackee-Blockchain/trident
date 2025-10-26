@@ -1,6 +1,7 @@
 use solana_sdk::program_pack::Pack;
 use solana_sdk::pubkey::Pubkey;
 
+use crate::trident::client::TransactionResult;
 use crate::trident::Trident;
 
 impl Trident {
@@ -10,7 +11,7 @@ impl Trident {
         decimals: u8,
         owner: &Pubkey,
         freeze_authority: Option<&Pubkey>,
-    ) -> solana_sdk::transaction::Result<()> {
+    ) -> TransactionResult {
         let mut create_account_instructions = self.create_account(
             mint_address,
             owner,
@@ -36,7 +37,7 @@ impl Trident {
         token_account_address: &Pubkey,
         mint: &Pubkey,
         owner: &Pubkey,
-    ) -> solana_sdk::transaction::Result<()> {
+    ) -> TransactionResult {
         let mut create_account_instructions = self.create_account(
             token_account_address,
             owner,
@@ -62,7 +63,7 @@ impl Trident {
         mint_address: &Pubkey,
         mint_authority: &Pubkey,
         amount: u64,
-    ) -> solana_sdk::transaction::Result<()> {
+    ) -> TransactionResult {
         let ix = spl_token_interface::instruction::mint_to(
             &spl_token_interface::ID,
             mint_address,
@@ -79,11 +80,7 @@ impl Trident {
         &mut self,
         mint: &Pubkey,
         owner: &Pubkey,
-    ) -> solana_sdk::transaction::Result<Pubkey> {
-        let address = spl_associated_token_account_interface::address::get_associated_token_address(
-            owner, mint,
-        );
-
+    ) -> TransactionResult {
         let ix =
             spl_associated_token_account_interface::instruction::create_associated_token_account(
                 owner,
@@ -92,11 +89,16 @@ impl Trident {
                 &spl_token_interface::ID,
             );
 
-        let res = self.execute(&[ix], "Creating Associated Token Account");
-
-        match res {
-            Ok(_) => Ok(address),
-            Err(e) => Err(e),
-        }
+        self.execute(&[ix], "Creating Associated Token Account")
+    }
+    pub fn get_associated_token_address(
+        &self,
+        mint: &Pubkey,
+        owner: &Pubkey,
+        program_id: &Pubkey,
+    ) -> Pubkey {
+        spl_associated_token_account_interface::address::get_associated_token_address_with_program_id(
+            owner, mint, program_id,
+        )
     }
 }

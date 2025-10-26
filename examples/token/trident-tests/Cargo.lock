@@ -1667,15 +1667,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "itertools"
-version = "0.14.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2b192c782037fadd9cfa75548310488aabdbf3d2da73885b31bd0abd03351285"
-dependencies = [
- "either",
-]
-
-[[package]]
 name = "itoa"
 version = "1.0.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5487,7 +5478,7 @@ dependencies = [
 
 [[package]]
 name = "trident-config"
-version = "0.11.0"
+version = "0.11.1"
 dependencies = [
  "anyhow",
  "base64 0.22.1",
@@ -5502,7 +5493,7 @@ dependencies = [
 
 [[package]]
 name = "trident-derive-flow-executor"
-version = "0.11.0"
+version = "0.11.1"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -5512,7 +5503,7 @@ dependencies = [
 
 [[package]]
 name = "trident-derive-fuzz-test-methods"
-version = "0.11.0"
+version = "0.11.1"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -5522,13 +5513,13 @@ dependencies = [
 
 [[package]]
 name = "trident-fuzz"
-version = "0.11.0"
+version = "0.11.1"
 dependencies = [
  "borsh 1.5.7",
  "getrandom 0.3.4",
  "hex",
  "indicatif",
- "itertools 0.14.0",
+ "itertools 0.10.5",
  "rand 0.8.5",
  "reqwest 0.11.27",
  "serde",
@@ -5551,7 +5542,7 @@ dependencies = [
 
 [[package]]
 name = "trident-fuzz-metrics"
-version = "0.11.0"
+version = "0.11.1"
 dependencies = [
  "hex",
  "prettytable",
@@ -5602,7 +5593,7 @@ dependencies = [
 
 [[package]]
 name = "trident-syn"
-version = "0.11.0"
+version = "0.11.1"
 dependencies = [
  "petgraph",
  "proc-macro2",
