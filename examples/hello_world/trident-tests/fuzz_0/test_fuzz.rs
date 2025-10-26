@@ -42,15 +42,15 @@ impl FuzzTest {
 
         self.trident.airdrop(&author, 10 * LAMPORTS_PER_SOL);
 
-        let input = self.trident.gen_range(0..u8::MAX);
+        let input = self.trident.random_from_range(0..u8::MAX);
 
         let ix = InitializeFnInstruction::data(InitializeFnInstructionData::new(input))
             .accounts(InitializeFnInstructionAccounts::new(author, hello_world))
             .instruction();
 
-        let res = self.trident.execute(&[ix], "Initialize");
+        let res = self.trident.process_transaction(&[ix], "Initialize");
 
-        if res.is_ok() {
+        if res.is_success() {
             let hello_world_account = self
                 .trident
                 .get_account_with_type::<crate::types::StoreHelloWorld>(&hello_world, 8);

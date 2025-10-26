@@ -49,10 +49,10 @@ impl FuzzTest {
         self.trident.airdrop(&signer, 10 * LAMPORTS_PER_SOL);
 
         let ix = InitializeInstruction::data(InitializeInstructionData::new(
-            self.trident.gen_range(0..=u8::MAX),
-            self.trident.gen_string(10),
-            self.trident.gen_string(5),
-            self.trident.gen_string(25),
+            self.trident.random_from_range(0..=u8::MAX),
+            self.trident.random_string(10),
+            self.trident.random_string(5),
+            self.trident.random_string(25),
         ))
         .accounts(InitializeInstructionAccounts::new(
             signer,
@@ -62,7 +62,7 @@ impl FuzzTest {
         ))
         .instruction();
 
-        let _ = self.trident.execute(&[ix], "initialize");
+        let _ = self.trident.process_transaction(&[ix], "initialize");
     }
 
     #[flow]

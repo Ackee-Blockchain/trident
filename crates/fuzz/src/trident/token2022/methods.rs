@@ -59,7 +59,7 @@ impl Trident {
     /// # Returns
     ///
     /// Returns `Ok(())` if successful, or a transaction error if the operation fails.
-    pub fn create_mint_2022(
+    pub fn initialize_mint_2022(
         &mut self,
         mint_address: &Pubkey,
         decimals: u8,
@@ -231,7 +231,7 @@ impl Trident {
             )
         };
 
-        self.execute(&instructions, &message)
+        self.process_transaction(&instructions, &message)
     }
 
     /// Initialize mint extensions that must be set before the mint is created
@@ -559,7 +559,7 @@ impl Trident {
     /// # Returns
     ///
     /// Returns `Ok(())` if successful, or a transaction error if the operation fails.
-    pub fn create_token_account_2022(
+    pub fn initialize_token_account_2022(
         &mut self,
         token_account_address: &Pubkey,
         mint: &Pubkey,
@@ -642,7 +642,7 @@ impl Trident {
             )
         };
 
-        self.execute(&instructions, &message)
+        self.process_transaction(&instructions, &message)
     }
 
     /// Mints tokens to a Token 2022 account
@@ -674,7 +674,7 @@ impl Trident {
         )
         .unwrap();
 
-        self.execute(&[ix], MINT_TO_MESSAGE)
+        self.process_transaction(&[ix], MINT_TO_MESSAGE)
     }
 
     /// Deserializes a Token 2022 mint account with all its extensions
@@ -895,7 +895,7 @@ impl Trident {
     ///
     /// Returns `Ok(())` if successful, or a transaction error if the operation fails.
     #[allow(clippy::too_many_arguments)]
-    pub fn transfer_checked_token_2022(
+    pub fn transfer_checked(
         &mut self,
         source: &Pubkey,
         destination: &Pubkey,
@@ -917,7 +917,7 @@ impl Trident {
         )
         .unwrap();
 
-        self.execute(&[ix], TRANSFER_CHECKED_MESSAGE)
+        self.process_transaction(&[ix], TRANSFER_CHECKED_MESSAGE)
     }
 
     /// Creates an associated Token 2022 account with specified extensions
@@ -940,7 +940,7 @@ impl Trident {
     ///
     /// Returns the address of the created associated token account if successful,
     /// or a transaction error if the operation fails.
-    pub fn create_associated_token_account_2022(
+    pub fn initialize_associated_token_account_2022(
         &mut self,
         mint: &Pubkey,
         owner: &Pubkey,
@@ -1012,6 +1012,6 @@ impl Trident {
             )
         };
 
-        self.execute(&instructions, &message)
+        self.process_transaction(&instructions, &message)
     }
 }

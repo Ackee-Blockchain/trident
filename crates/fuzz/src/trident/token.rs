@@ -5,7 +5,7 @@ use crate::trident::client::TransactionResult;
 use crate::trident::Trident;
 
 impl Trident {
-    pub fn create_mint(
+    pub fn initialize_mint(
         &mut self,
         mint_address: &Pubkey,
         decimals: u8,
@@ -29,10 +29,10 @@ impl Trident {
         .unwrap();
         create_account_instructions.push(ix_2);
 
-        self.execute(&create_account_instructions, "Creating Mint Account")
+        self.process_transaction(&create_account_instructions, "Creating Mint Account")
     }
 
-    pub fn create_token_account(
+    pub fn initialize_token_account(
         &mut self,
         token_account_address: &Pubkey,
         mint: &Pubkey,
@@ -54,7 +54,7 @@ impl Trident {
 
         create_account_instructions.push(ix);
 
-        self.execute(&create_account_instructions, "Creating Token Account")
+        self.process_transaction(&create_account_instructions, "Creating Token Account")
     }
 
     pub fn mint_to(
@@ -74,9 +74,9 @@ impl Trident {
         )
         .unwrap();
 
-        self.execute(&[ix], "Minting to Token Account")
+        self.process_transaction(&[ix], "Minting to Token Account")
     }
-    pub fn create_associated_token_account(
+    pub fn initialize_associated_token_account(
         &mut self,
         mint: &Pubkey,
         owner: &Pubkey,
@@ -89,7 +89,7 @@ impl Trident {
                 &spl_token_interface::ID,
             );
 
-        self.execute(&[ix], "Creating Associated Token Account")
+        self.process_transaction(&[ix], "Creating Associated Token Account")
     }
     pub fn get_associated_token_address(
         &self,
