@@ -15,6 +15,7 @@ use spl_token_2022_interface::extension::StateWithExtensions;
 use spl_token_2022_interface::state::Account;
 use spl_token_2022_interface::state::Mint;
 
+use crate::trident::client::TransactionResult;
 use crate::trident::token2022::AccountExtension;
 use crate::trident::token2022::MintExtension;
 use crate::trident::token2022::MintExtensionData;
@@ -65,7 +66,7 @@ impl Trident {
         mint_authority: &Pubkey,
         freeze_authority: Option<&Pubkey>,
         extensions: &[MintExtension],
-    ) -> solana_sdk::transaction::Result<()> {
+    ) -> TransactionResult {
         let mut extension_types: Vec<ExtensionType> = Vec::new();
         let mut rent_top_ups: Vec<usize> = Vec::new();
         let mut extension_names: Vec<String> = Vec::new();
@@ -564,7 +565,7 @@ impl Trident {
         mint: &Pubkey,
         owner: &Pubkey,
         extensions: &[AccountExtension],
-    ) -> solana_sdk::transaction::Result<()> {
+    ) -> TransactionResult {
         let mint_account = self.get_account(mint);
         let state_with_extensions = StateWithExtensions::<Mint>::unpack(mint_account.data())
             .expect("Mint account does not exist");
@@ -662,7 +663,7 @@ impl Trident {
         mint_address: &Pubkey,
         mint_authority: &Pubkey,
         amount: u64,
-    ) -> solana_sdk::transaction::Result<()> {
+    ) -> TransactionResult {
         let ix = spl_token_2022_interface::instruction::mint_to(
             &spl_token_2022_interface::ID,
             mint_address,
@@ -686,11 +687,12 @@ impl Trident {
     ///
     /// Returns a `MintWithExtensions` containing the mint data and all extensions,
     /// or an error if deserialization fails.
-    pub fn deserialize_mint_2022(
-        &self,
-        account: &AccountSharedData,
+    pub fn get_mint_2022(
+        &mut self,
+        account: Pubkey,
     ) -> Result<MintWithExtensions, Box<dyn std::error::Error>> {
-        let state_with_extensions = StateWithExtensions::<Mint>::unpack(account.data())?;
+        let account_data = self.get_account(&account);
+        let state_with_extensions = StateWithExtensions::<Mint>::unpack(account_data.data())?;
         let extension_types = state_with_extensions.get_extension_types()?;
 
         let mut extensions = Vec::new();
@@ -807,11 +809,12 @@ impl Trident {
     ///
     /// Returns a `TokenAccountWithExtensions` containing the account data and all extensions,
     /// or an error if deserialization fails.
-    pub fn deserialize_token_account_2022(
-        &self,
-        account: &AccountSharedData,
+    pub fn get_token_account_2022(
+        &mut self,
+        account: Pubkey,
     ) -> Result<TokenAccountWithExtensions, Box<dyn std::error::Error>> {
-        let state_with_extensions = StateWithExtensions::<Account>::unpack(account.data())?;
+        let account_data = self.get_account(&account);
+        let state_with_extensions = StateWithExtensions::<Account>::unpack(account_data.data())?;
         let extension_types = state_with_extensions.get_extension_types()?;
 
         let mut extensions = Vec::new();
@@ -901,7 +904,7 @@ impl Trident {
         signers: &[&Pubkey],
         amount: u64,
         decimals: u8,
-    ) -> solana_sdk::transaction::Result<()> {
+    ) -> TransactionResult {
         let ix = spl_token_2022_interface::instruction::transfer_checked(
             &spl_token_2022_interface::ID,
             source,
@@ -942,7 +945,7 @@ impl Trident {
         mint: &Pubkey,
         owner: &Pubkey,
         extensions: &[AccountExtension],
-    ) -> solana_sdk::transaction::Result<Pubkey> {
+    ) -> TransactionResult {
         let address = spl_associated_token_account_interface::address::get_associated_token_address_with_program_id(
             owner, mint, &spl_token_2022_interface::ID,
         );
@@ -1009,11 +1012,6 @@ impl Trident {
             )
         };
 
-        let res = self.execute(&instructions, &message);
-
-        match res {
-            Ok(_) => Ok(address),
-            Err(e) => Err(e),
-        }
+        self.execute(&instructions, &message)
     }
 }

@@ -46,17 +46,15 @@ impl FuzzTest {
             .create_mint_2022(&mint2022, 7, &author2022, None, &[]);
 
         assert!(
-            res.is_ok(),
-            "Empty extensions failed: {}",
-            res.err().unwrap()
+            res.is_success(),
+            "Empty extensions failed: {:#?}",
+            res.get_result()
         );
-
-        let mint_2022_with_extensions = self.trident.get_account(&mint2022);
 
         let res = self
             .trident
-            .deserialize_mint_2022(&mint_2022_with_extensions)
-            .unwrap();
+            .get_mint_2022(mint2022)
+            .expect("Failed to get mint");
 
         assert!(res.extensions.is_empty());
         assert!(res.mint.freeze_authority.is_none());
@@ -88,17 +86,15 @@ impl FuzzTest {
         );
 
         assert!(
-            res.is_ok(),
-            "Pausable extension failed: {}",
-            res.err().unwrap()
+            res.is_success(),
+            "Pausable extension failed: {:#?}",
+            res.get_result()
         );
-
-        let mint_2022_with_extensions = self.trident.get_account(&mint2022);
 
         let res = self
             .trident
-            .deserialize_mint_2022(&mint_2022_with_extensions)
-            .unwrap();
+            .get_mint_2022(mint2022)
+            .expect("Failed to get mint");
 
         assert!(res.extensions.len() == 1);
     }
@@ -128,17 +124,15 @@ impl FuzzTest {
         );
 
         assert!(
-            res.is_ok(),
-            "ScaledUiAmount extension failed: {}",
-            res.err().unwrap()
+            res.is_success(),
+            "ScaledUiAmount extension failed: {:#?}",
+            res.get_result()
         );
-
-        let mint_2022_with_extensions = self.trident.get_account(&mint2022);
 
         let res = self
             .trident
-            .deserialize_mint_2022(&mint_2022_with_extensions)
-            .unwrap();
+            .get_mint_2022(mint2022)
+            .expect("Failed to get mint");
 
         assert!(res.extensions.len() == 1);
     }
@@ -180,17 +174,15 @@ impl FuzzTest {
         );
 
         assert!(
-            res.is_ok(),
-            "MetadataPointer + TokenMetadata extensions failed: {}",
-            res.err().unwrap()
+            res.is_success(),
+            "MetadataPointer + TokenMetadata extensions failed: {:#?}",
+            res.get_result()
         );
-
-        let mint_2022_with_extensions = self.trident.get_account(&mint2022);
 
         let res = self
             .trident
-            .deserialize_mint_2022(&mint_2022_with_extensions)
-            .unwrap();
+            .get_mint_2022(mint2022)
+            .expect("Failed to get mint");
 
         assert!(res.extensions.len() == 2);
         assert!(res.mint.decimals == 5);
@@ -225,17 +217,15 @@ impl FuzzTest {
         );
 
         assert!(
-            res.is_ok(),
-            "TransferFeeConfig extension failed: {}",
-            res.err().unwrap()
+            res.is_success(),
+            "TransferFeeConfig extension failed: {:#?}",
+            res.get_result()
         );
-
-        let mint_2022_with_extensions = self.trident.get_account(&mint2022);
 
         let res = self
             .trident
-            .deserialize_mint_2022(&mint_2022_with_extensions)
-            .unwrap();
+            .get_mint_2022(mint2022)
+            .expect("Failed to get mint");
 
         assert!(res.extensions.len() == 1);
     }
@@ -264,17 +254,15 @@ impl FuzzTest {
         );
 
         assert!(
-            res.is_ok(),
-            "MintCloseAuthority extension failed: {}",
-            res.err().unwrap()
+            res.is_success(),
+            "MintCloseAuthority extension failed: {:#?}",
+            res.get_result()
         );
-
-        let mint_2022_with_extensions = self.trident.get_account(&mint2022);
 
         let res = self
             .trident
-            .deserialize_mint_2022(&mint_2022_with_extensions)
-            .unwrap();
+            .get_mint_2022(mint2022)
+            .expect("Failed to get mint");
 
         assert!(res.extensions.len() == 1);
     }
@@ -305,17 +293,15 @@ impl FuzzTest {
         );
 
         assert!(
-            res.is_ok(),
-            "InterestBearingConfig extension failed: {}",
-            res.err().unwrap()
+            res.is_success(),
+            "InterestBearingConfig extension failed: {:#?}",
+            res.get_result()
         );
-
-        let mint_2022_with_extensions = self.trident.get_account(&mint2022);
 
         let res = self
             .trident
-            .deserialize_mint_2022(&mint_2022_with_extensions)
-            .unwrap();
+            .get_mint_2022(mint2022)
+            .expect("Failed to get mint");
 
         assert!(res.extensions.len() == 1);
     }
@@ -343,17 +329,15 @@ impl FuzzTest {
         );
 
         assert!(
-            res.is_ok(),
-            "NonTransferable extension failed: {}",
-            res.err().unwrap()
+            res.is_success(),
+            "NonTransferable extension failed: {:#?}",
+            res.get_result()
         );
-
-        let mint_2022_with_extensions = self.trident.get_account(&mint2022);
 
         let res = self
             .trident
-            .deserialize_mint_2022(&mint_2022_with_extensions)
-            .unwrap();
+            .get_mint_2022(mint2022)
+            .expect("Failed to get mint");
 
         assert!(res.extensions.len() == 1);
     }
@@ -382,17 +366,15 @@ impl FuzzTest {
         );
 
         assert!(
-            res.is_ok(),
-            "PermanentDelegate extension failed: {}",
-            res.err().unwrap()
+            res.is_success(),
+            "PermanentDelegate extension failed: {:#?}",
+            res.get_result()
         );
-
-        let mint_2022_with_extensions = self.trident.get_account(&mint2022);
 
         let res = self
             .trident
-            .deserialize_mint_2022(&mint_2022_with_extensions)
-            .unwrap();
+            .get_mint_2022(mint2022)
+            .expect("Failed to get mint");
 
         assert!(res.extensions.len() == 1);
     }
@@ -422,17 +404,15 @@ impl FuzzTest {
         );
 
         assert!(
-            res.is_ok(),
-            "TransferHook extension failed: {}",
-            res.err().unwrap()
+            res.is_success(),
+            "TransferHook extension failed: {:#?}",
+            res.get_result()
         );
-
-        let mint_2022_with_extensions = self.trident.get_account(&mint2022);
 
         let res = self
             .trident
-            .deserialize_mint_2022(&mint_2022_with_extensions)
-            .unwrap();
+            .get_mint_2022(mint2022)
+            .expect("Failed to get mint");
 
         assert!(res.extensions.len() == 1);
     }
@@ -469,17 +449,15 @@ impl FuzzTest {
         );
 
         assert!(
-            res.is_ok(),
-            "TransferFeeConfig + Pausable extension failed: {}",
-            res.err().unwrap()
+            res.is_success(),
+            "TransferFeeConfig + Pausable extension failed: {:#?}",
+            res.get_result()
         );
-
-        let mint_2022_with_extensions = self.trident.get_account(&mint2022);
 
         let res = self
             .trident
-            .deserialize_mint_2022(&mint_2022_with_extensions)
-            .unwrap();
+            .get_mint_2022(mint2022)
+            .expect("Failed to get mint");
 
         assert!(res.extensions.len() == 2);
     }
@@ -526,17 +504,15 @@ impl FuzzTest {
         );
 
         assert!(
-            res.is_ok(),
-            "TransferFeeConfig + MetadataPointer + TokenMetadata extension failed: {}",
-            res.err().unwrap()
+            res.is_success(),
+            "TransferFeeConfig + MetadataPointer + TokenMetadata extension failed: {:#?}",
+            res.get_result()
         );
-
-        let mint_2022_with_extensions = self.trident.get_account(&mint2022);
 
         let res = self
             .trident
-            .deserialize_mint_2022(&mint_2022_with_extensions)
-            .unwrap();
+            .get_mint_2022(mint2022)
+            .expect("Failed to get mint");
 
         assert!(res.extensions.len() == 3);
     }
@@ -574,17 +550,15 @@ impl FuzzTest {
         );
 
         assert!(
-            res.is_ok(),
-            "GroupPointer + TokenGroup extension failed: {}",
-            res.err().unwrap()
+            res.is_success(),
+            "GroupPointer + TokenGroup extension failed: {:#?}",
+            res.get_result()
         );
-
-        let mint_2022_with_extensions = self.trident.get_account(&mint2022);
 
         let res = self
             .trident
-            .deserialize_mint_2022(&mint_2022_with_extensions)
-            .unwrap();
+            .get_mint_2022(mint2022)
+            .expect("Failed to get mint");
 
         assert!(res.extensions.len() == 2);
 
@@ -613,17 +587,15 @@ impl FuzzTest {
         );
 
         assert!(
-            res.is_ok(),
-            "GroupMemberPointer + TokenGroupMember extension failed: {}",
-            res.err().unwrap()
+            res.is_success(),
+            "GroupMemberPointer + TokenGroupMember extension failed: {:#?}",
+            res.get_result()
         );
-
-        let mint_2022_with_extensions = self.trident.get_account(&group_member_mint2022);
 
         let res = self
             .trident
-            .deserialize_mint_2022(&mint_2022_with_extensions)
-            .unwrap();
+            .get_mint_2022(group_member_mint2022)
+            .expect("Failed to get mint");
 
         assert!(res.extensions.len() == 2);
     }
@@ -691,17 +663,15 @@ impl FuzzTest {
         );
 
         assert!(
-            res.is_ok(),
-            "GroupPointer + TokenGroup + MetadataPointer + TokenMetadata + Pausable + TransferFeeConfig + ScaledUiAmount + MintCloseAuthority extension failed: {}",
-            res.err().unwrap()
+            res.is_success(),
+            "GroupPointer + TokenGroup + MetadataPointer + TokenMetadata + Pausable + TransferFeeConfig + ScaledUiAmount + MintCloseAuthority extension failed: {:#?}",
+            res.get_result()
         );
-
-        let mint_2022_with_extensions = self.trident.get_account(&mint2022);
 
         let res = self
             .trident
-            .deserialize_mint_2022(&mint_2022_with_extensions)
-            .unwrap();
+            .get_mint_2022(mint2022)
+            .expect("Failed to get mint");
 
         assert!(res.extensions.len() == 9);
 
@@ -724,16 +694,14 @@ impl FuzzTest {
         );
 
         assert!(
-            res.is_ok(),
-            "TokenAccount creation failed: {}",
-            res.err().unwrap()
+            res.is_success(),
+            "TokenAccount creation failed: {:#?}",
+            res.get_result()
         );
-
-        let token_account_2022_with_extensions = self.trident.get_account(&token_account2022_1);
 
         let res = self
             .trident
-            .deserialize_token_account_2022(&token_account_2022_with_extensions)
+            .get_token_account_2022(token_account2022_1)
             .unwrap();
 
         assert!(res.extensions.len() == 5);
@@ -745,28 +713,33 @@ impl FuzzTest {
             1000000000000000000,
         );
 
-        assert!(res.is_ok(), "Mint to failed: {}", res.err().unwrap());
+        assert!(res.is_success(), "Mint to failed: {:#?}", res.get_result());
 
-        let associated_token_account = self
-            .trident
-            .create_associated_token_account_2022(
-                &mint2022,
-                &author2022,
-                &[AccountExtension::ImmutableOwner, AccountExtension::CpiGuard],
-            )
-            .map_err(|e| eprintln!("Associated token account creation failed: {}", e))
-            .unwrap();
+        let res = self.trident.create_associated_token_account_2022(
+            &mint2022,
+            &author2022,
+            &[AccountExtension::ImmutableOwner, AccountExtension::CpiGuard],
+        );
+
+        assert!(
+            res.is_success(),
+            "Associated token account creation failed: {:#?}",
+            res.get_result()
+        );
+
+        let associated_token_account = self.trident.get_associated_token_address(
+            &mint2022,
+            &author2022,
+            &pubkey!("TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"),
+        );
 
         self.fuzz_accounts
             .author2022
             .insert_with_address(associated_token_account);
 
-        let token_account_2022_with_extensions =
-            self.trident.get_account(&associated_token_account);
-
         let res = self
             .trident
-            .deserialize_token_account_2022(&token_account_2022_with_extensions)
+            .get_token_account_2022(associated_token_account)
             .unwrap();
 
         assert!(res.extensions.len() == 4);
@@ -782,17 +755,14 @@ impl FuzzTest {
         );
 
         assert!(
-            res.is_ok(),
-            "Transfer checked token failed: {}",
-            res.err().unwrap()
+            res.is_success(),
+            "Transfer checked token failed: {:#?}",
+            res.get_result()
         );
-
-        let token_account_2022_with_extensions =
-            self.trident.get_account(&associated_token_account);
 
         let res = self
             .trident
-            .deserialize_token_account_2022(&token_account_2022_with_extensions)
+            .get_token_account_2022(associated_token_account)
             .unwrap();
 
         assert!(res.account.amount == 999999999999999900);
