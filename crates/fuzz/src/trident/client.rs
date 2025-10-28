@@ -39,7 +39,7 @@ impl TransactionResult {
         self.transaction_result.is_ok()
     }
 
-    pub fn is_failure(&self) -> bool {
+    pub fn is_error(&self) -> bool {
         self.transaction_result.is_err()
     }
 
@@ -48,6 +48,21 @@ impl TransactionResult {
     }
     pub fn get_result(&self) -> &solana_sdk::transaction::Result<()> {
         &self.transaction_result
+    }
+    pub fn get_custom_error_code(&self) -> Option<u32> {
+        self.transaction_result
+            .as_ref()
+            .err()
+            .and_then(|result| match result {
+                TransactionError::InstructionError(
+                    _error_code,
+                    InstructionError::Custom(error_code),
+                ) => Some(*error_code),
+                _ => None,
+            })
+    }
+    pub fn is_custom_error_with_code(&self, error_code: u32) -> bool {
+        self.get_custom_error_code() == Some(error_code)
     }
 }
 
