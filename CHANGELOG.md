@@ -16,6 +16,8 @@ incremented upon a breaking change and the patch version will be incremented for
 
 **Removed**
 
+- Removed invariants logging from all metrics as invariants are now simple assertions ([401](https://github.com/Ackee-Blockchain/trident/pull/401))
+
 **Changed**
 
 - Added custom TransactionResult containing result and logs of the transaction ([399](https://github.com/Ackee-Blockchain/trident/pull/399))
