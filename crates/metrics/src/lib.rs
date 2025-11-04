@@ -50,17 +50,6 @@ impl TridentFuzzingData {
             .add_failed_transaction(transaction_name, error, logs);
     }
 
-    pub fn add_failed_invariant(
-        &mut self,
-        transaction_name: &str,
-        seed: &Seed,
-        error: String,
-        transaction_inputs: String,
-    ) {
-        self.metrics
-            .add_failed_invariant(transaction_name, seed, error, transaction_inputs);
-    }
-
     pub fn add_transaction_panicked(
         &mut self,
         transaction_name: &str,
@@ -213,10 +202,6 @@ impl TridentFuzzingData {
                 stats.transaction_failed.into(),
             );
             instruction_data.insert(
-                "transactions_failed_invariant".to_string(),
-                stats.transaction_failed_invariant.into(),
-            );
-            instruction_data.insert(
                 "transactions_panicked".to_string(),
                 stats.transaction_panicked.into(),
             );
@@ -225,8 +210,6 @@ impl TridentFuzzingData {
             let transactions_errors = stats.transactions_errors.to_dashboard_format();
             let custom_instruction_errors = stats.custom_instruction_errors.to_dashboard_format();
             let transactions_panics = stats.transactions_panics.to_dashboard_format();
-            let transactions_invariant_fails =
-                stats.transactions_invariant_fails.to_dashboard_format();
 
             instruction_data.insert("transactions_errors".to_string(), transactions_errors);
             instruction_data.insert(
@@ -234,10 +217,6 @@ impl TridentFuzzingData {
                 custom_instruction_errors,
             );
             instruction_data.insert("transactions_panics".to_string(), transactions_panics);
-            instruction_data.insert(
-                "transactions_invariant_fails".to_string(),
-                transactions_invariant_fails,
-            );
 
             instructions.insert(transaction_name.clone(), instruction_data.into());
         }
