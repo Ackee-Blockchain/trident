@@ -35,6 +35,19 @@ For real-time coverage monitoring during fuzzing:
     - **Automatic**: Set `attach_extension = true` in the [Trident manifest](../../trident-manifest/index.md#fuzzing-coverage) to automatically show live updates while the fuzz test is running
     - **Manual**: Use the command `Solana: Show Code Coverage` and select the "Attach to active fuzzing session" option
 
+??? note "Multiple editor instances and live updates"
+
+    Each code editor instance (for example, every VS Code window) runs a background coverage server that listens for Trident updates on its own TCP port. The port is displayed in a notification when the Solana extension starts and can always be checked in the Output panel (View → Output), channel "Solana Extension".
+
+    If you have multiple editor windows, point Trident to the correct instance by setting the port in your `Trident.toml`:
+
+    ```toml
+    [fuzz.coverage]
+    server_port = 58432  # set this to the port shown by the target editor
+    ```
+
+    After changing the port, re-run the fuzz test. For live updates to work, ensure `format = "json"`, `loopcount > 0`, and optionally `attach_extension = true` in the coverage configuration.
+
 ### Post-Session Coverage Analysis
 
 1. Set `format = "json"` in the [Trident manifest](../../trident-manifest/index.md#fuzzing-coverage) before running the fuzz test
