@@ -1,22 +1,23 @@
-# Writing fuzz test
+# Writing Fuzz Tests
 
-Trident is Manually Guided fuzzing framework for Solana programs.
+Trident is a manually guided fuzzing framework for Solana programs.
 
-In order to start fuzzing, you need to guide the fuzzer by specifying what are the expected inputs to instruction or the expected sequences of instructions to execute.
+To start fuzzing effectively, you need to guide the fuzzer by specifying the expected inputs to instructions and the expected sequences of instructions to execute.
 
-**Why is this important?**
+## Why Manual Guidance is Important
 
-Letting the fuzzer to generate completely random instruction inputs and completely random sequences of instruction would lead in most case 
+Allowing the fuzzer to generate completely random instruction inputs and sequences would lead to:
 
-- to transaction failures, which would mean the fuzzer is not properly fuzzing the logic within the program; and
-- executing irrelevant random instruction sequences, which would again lead to transaction failures.
+- **Transaction failures** - The fuzzer wouldn't properly test the logic within your program
+- **Irrelevant sequences** - Random instruction sequences would cause transaction failures instead of meaningful testing
 
+## Guide the Fuzzer
 
-## Guide the fuzzer
+Learn how to properly configure your fuzz tests:
 
-Start with properly configuring different types of instruction inputs:
+- [Constructing Instructions](./construction-instructions.md) - How to build and execute instructions in your tests
+- [Fuzzing Flows](./fuzzing-flows.md) - How to define instruction sequences and execution patterns
 
-- [Instruction Data](./instruction-data.md)
-- [Instruction Accounts](./instruction-accounts.md)
-- [Fuzzing Flows](./fuzzing-flows.md)
-- (Optional) [Remaining Accounts](./remaining-accounts.md)
+!!! tip "Start Simple"
+
+    Begin with basic instruction construction and gradually add more complex flows as you become familiar with the framework.

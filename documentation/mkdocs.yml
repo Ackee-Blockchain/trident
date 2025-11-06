@@ -16,52 +16,36 @@ nav:
       - basics/get-help.md
   - Start Fuzzing:
       - start-fuzzing/index.md
-      - Writting Fuzz Test:
+      - Writing Fuzz Test:
           - start-fuzzing/writting-fuzz-test/index.md
-          - start-fuzzing/writting-fuzz-test/instruction-data.md
-          - start-fuzzing/writting-fuzz-test/instruction-accounts.md
+          - start-fuzzing/writting-fuzz-test/construction-instructions.md
           - start-fuzzing/writting-fuzz-test/fuzzing-flows.md
-          - start-fuzzing/writting-fuzz-test/remaining-accounts.md
       - Executing Fuzz Test:
           - start-fuzzing/executing-fuzz-test/index.md
   - Advanced Customization:
       - trident-advanced/index.md
-      - Transaction Hooks:
-          - trident-advanced/trident-transactions/transaction-hooks/index.md
-          - trident-advanced/trident-transactions/transaction-hooks/pre-post-execution.md
-          - trident-advanced/trident-transactions/transaction-hooks/invariant-check.md
-          - trident-advanced/trident-transactions/transaction-hooks/error-handler.md
-          - trident-advanced/trident-transactions/transaction-hooks/typed-accounts.md
-      - Multi-Instruction Transactions:
-          - trident-advanced/trident-transactions/multi-instruction-transactions/index.md
-      - Code Coverage:
-          - trident-advanced/code-coverage/index.md
-      - Dashboard:
-          - trident-advanced/dashboard/index.md
-      - Regression Testing:
-          - trident-advanced/regression/index.md
-  - API & Macro Reference:
-      - trident-api-macro/index.md
-      - Trident:
-          - trident-api-macro/trident/trident.md
-      - Fuzz Client:
-          - trident-api-macro/trident-fuzz-client/fuzz-client-trait.md
-      - Hooks:
-          - trident-api-macro/hooks/instruction-hooks.md
-          - trident-api-macro/hooks/transaction-hooks.md
-      - Account Attributes:
-          - trident-api-macro/attributes-for-accounts/account-attributes.md
-      - Trident Macros:
-          - trident-api-macro/trident-macros/trident-transaction.md
-          - trident-api-macro/trident-macros/trident-instruction.md
-          - trident-api-macro/trident-macros/trident-accounts.md
-          - trident-api-macro/trident-macros/trident-remaining-accounts.md
-          - trident-api-macro/trident-macros/trident-flow-executor.md
-      - Trident Types:
-          - trident-api-macro/trident-types/fuzz-accounts.md
-          - trident-api-macro/trident-types/trident-account.md
-          - trident-api-macro/trident-types/trident-pubkey.md
-          - trident-api-macro/trident-types/custom-types.md
+      - Testing & Validation:
+          - Invariants and Assertions:
+            - trident-advanced/invariants-assertions/index.md
+          - Multi-Instruction Transactions:
+            - trident-advanced/multi-instruction-transactions/index.md
+      - Analysis & Visualization:
+          - Code Coverage:
+            - trident-advanced/code-coverage/index.md
+          - Dashboard:
+            - trident-advanced/dashboard/index.md
+          - Regression Testing:
+            - trident-advanced/regression/index.md
+  - Trident API Reference:
+      - trident-api/index.md
+      - trident-api/account-management.md
+      - trident-api/time-clock.md
+      - trident-api/random-generation.md
+      - trident-api/metrics-regression.md
+      - trident-api/spl-token.md
+      - trident-api/token-2022.md
+      - trident-api/vote-program.md
+      - trident-api/stake-program.md
   - Trident Manifest:
       - trident-manifest/index.md
   - TridentSVM:

@@ -7,3 +7,4 @@ mkdocs-material
 mkdocs-macros-plugin
 cairosvg
 Pillow
+click==8.2.1
