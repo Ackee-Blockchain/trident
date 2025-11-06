@@ -78,7 +78,9 @@ A bigger range results in more random account addresses being fuzzed.
 ```rust
 #[derive(TridentAccounts)]
 pub struct ExampleAccounts {
-    #[account(storage::name = owner)]
+    #[account(
+        storage::account_id = (0..10)
+    )]
     pub owner: TridentAccount,
 }
 ```
