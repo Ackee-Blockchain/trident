@@ -2,11 +2,10 @@
 
 This section contains advanced customization options for Trident.
 
-## Transaction-related
+## Testing & Validation
 
-- [Transaction Hooks](./trident-transactions/transaction-hooks/index.md) - Add custom logic to the transaction execution process
-- [Multi-Instruction Transactions](./trident-transactions/multi-instruction-transactions/index.md) - Execute multiple instructions in a single transaction
-
+- [Invariants and Assertions](./invariants-assertions/index.md) - Validate program behavior with custom invariants and assertions
+- [Multi-Instruction Transactions](./multi-instruction-transactions/index.md) - Execute multiple instructions in a single transaction
 
 ## Analysis & Visualization
 

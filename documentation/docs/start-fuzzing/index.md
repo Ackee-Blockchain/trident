@@ -1,37 +1,52 @@
 # Start Fuzzing
 
-To start writing fuzz tests, you need to initialize Trident in your Anchor-based workspace.
+Trident helps you create comprehensive fuzz tests for your Solana programs. This section guides you through the complete process from initialization to execution.
+
+## Quick Start
+
+### 1. Initialize Trident
+
+To start writing fuzz tests, initialize Trident in your Anchor-based workspace:
 
 ```bash
 trident init
 ```
 
-If you have already initialized Trident, you can add a new fuzz test using:
+### 2. Add a Fuzz Test
+
+If you have already initialized Trident, add a new fuzz test:
 
 ```bash
 trident fuzz add
 ```
 
-Trident creates a new fuzz test template in the `trident-tests` directory, with the following structure:
+### 3. Project Structure
+
+Trident creates a new fuzz test template in the `trident-tests` directory:
 
 ```bash
 project-root
 ├── trident-tests
-│   ├── fuzz_0 # particular fuzz test
-│   │   ├── instructions # instructions folder
-│   │   ├── transactions # transactions folder
-│   │   ├── test_fuzz.rs # the binary target of your fuzz test
-│   │   ├── types.rs # the types of your fuzz test
-│   │   └── fuzz_instructions.rs # the definition of your fuzz test
-│   ├── fuzz_1
-│   ├── fuzz_X # possible multiple fuzz tests
-│   ├── fuzzing # compilations and crashes folder
-│   ├── Cargo.toml
-│   └── Trident.toml
+│   ├── .fuzz-artifacts         # Fuzzing artifacts (dashboard, metrics, etc.)
+│   ├── fuzz_0                  # Your first fuzz test
+│   │   ├── test_fuzz.rs        # Main fuzz test logic
+│   │   ├── fuzz_accounts.rs    # Account addresses storage
+│   │   └── types.rs            # IDL-like generated types
+│   ├── fuzz_1                  # Additional fuzz tests
+│   ├── fuzz_X                  # Multiple fuzz tests supported
+│   ├── fuzzing                 # Compilation and crash artifacts
+│   ├── Cargo.toml              # Rust dependencies
+│   └── Trident.toml            # Trident configuration
 └── ...
 ```
 
+## Next Steps
 
-`Instructions` folder contains the `instructions` that can be used in the fuzz test.
+Now that you have the basic structure set up, learn how to:
 
-`Transactions` folder contains the `transactions` that will be used during the fuzzing, each transaction can contain `one` or `multiple instructions`, based on the developer's choice. By default there is only one instruction in each transaction.
+1. **[Write Fuzz Tests](./writting-fuzz-test/)** - Learn how to construct instructions and define fuzzing flows
+2. **[Execute Fuzz Tests](./executing-fuzz-test/)** - Run your fuzz tests and analyze results
+
+!!! tip "Start Simple"
+
+    Begin with a single fuzz test to understand the workflow, then expand to multiple test scenarios as needed.
