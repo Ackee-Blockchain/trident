@@ -10,10 +10,25 @@ readme = { workspace = true }
 
 
 [features]
-all = ["vote", "stake"]
+## Features for all programs
+all = ["vote", "stake", "token"]
+
+## Features for vote program
 vote = ["dep:solana-vote-program"]
+
+## Features for stake program
 stake = ["dep:solana-stake-interface"]
-token = ["dep:spl-token-interface","dep:spl-token-2022-interface","dep:spl-token-metadata-interface","dep:spl-token-group-interface","dep:spl-associated-token-account-interface"]
+
+## Features for token program
+token = [
+    "dep:spl-token-interface",
+    "dep:spl-token-2022-interface",
+    "dep:spl-token-metadata-interface",
+    "dep:spl-token-group-interface",
+    "dep:spl-associated-token-account-interface"
+]
+
+## Features for syscalls
 syscalls = ["syscall-v2"]
 syscall-v2 = ["trident-svm/syscall-v2"]
 
@@ -42,9 +57,13 @@ branch = "solana-2.3"
 # Solana
 solana-sdk = { workspace = true }
 
-# Solana additonal programs
+# Solana vote program
 solana-vote-program = { version = "2",optional = true}
+
+# Stake features
 solana-stake-interface = { version = "1",optional = true}
+
+# Token features
 spl-token-interface = { version = "1",optional = true}
 spl-token-2022-interface = { version = "1",optional = true}
 spl-token-metadata-interface = {version = "0.7",optional = true}

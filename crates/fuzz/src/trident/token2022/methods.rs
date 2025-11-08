@@ -3,7 +3,6 @@
 //! This module provides comprehensive support for SPL Token 2022 program,
 //! including all extensions and proper initialization order handling.
 
-use solana_sdk::account::AccountSharedData;
 use solana_sdk::account::ReadableAccount;
 use solana_sdk::program_pack::Pack;
 use solana_sdk::pubkey::Pubkey;
@@ -15,13 +14,13 @@ use spl_token_2022_interface::extension::StateWithExtensions;
 use spl_token_2022_interface::state::Account;
 use spl_token_2022_interface::state::Mint;
 
-use crate::trident::client::TransactionResult;
 use crate::trident::token2022::AccountExtension;
 use crate::trident::token2022::MintExtension;
 use crate::trident::token2022::MintExtensionData;
 use crate::trident::token2022::MintWithExtensions;
 use crate::trident::token2022::TokenAccountExtensionData;
 use crate::trident::token2022::TokenAccountWithExtensions;
+use crate::trident::transaction_result::TransactionResult;
 use crate::trident::Trident;
 
 /// Default message for creating a Token 2022 mint without extensions
@@ -196,7 +195,9 @@ impl Trident {
 
             if current_balance < required_rent {
                 let top_up = required_rent.saturating_sub(current_balance);
-                instructions.push(self.transfer(mint_authority, mint_address, top_up));
+                let top_up_ix =
+                    solana_sdk::system_instruction::transfer(mint_authority, mint_address, top_up);
+                instructions.push(top_up_ix);
             }
         }
 

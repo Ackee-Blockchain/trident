@@ -4,21 +4,38 @@ use trident_svm::trident_svm::TridentSVM;
 use trident_svm::types::trident_account::TridentAccountSharedData;
 use trident_svm::types::trident_program::TridentProgram;
 
-use crate::fuzzing::TridentRng;
+use crate::trident_rng::TridentRng;
 
 mod client;
 pub mod flow_executor;
+mod system;
+mod transaction_result;
+
 mod metrics;
 mod random;
 mod seed;
 #[cfg(feature = "stake")]
 mod stake;
 #[cfg(feature = "token")]
-pub mod token;
+mod token;
 #[cfg(feature = "token")]
-pub mod token2022;
+mod token2022;
 #[cfg(feature = "vote")]
 mod vote;
+
+// Re-export token2022 types
+#[cfg(feature = "token")]
+pub use token2022::AccountExtension;
+#[cfg(feature = "token")]
+pub use token2022::MintExtension;
+#[cfg(feature = "token")]
+pub use token2022::MintExtensionData;
+#[cfg(feature = "token")]
+pub use token2022::MintWithExtensions;
+#[cfg(feature = "token")]
+pub use token2022::TokenAccountExtensionData;
+#[cfg(feature = "token")]
+pub use token2022::TokenAccountWithExtensions;
 
 pub struct Trident {
     pub(crate) client: TridentSVM,
