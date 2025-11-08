@@ -44,8 +44,8 @@ project-root
 
 Now that you have the basic structure set up, learn how to:
 
-1. **[Write Fuzz Tests](./writting-fuzz-test/)** - Learn how to construct instructions and define fuzzing flows
-2. **[Execute Fuzz Tests](./executing-fuzz-test/)** - Run your fuzz tests and analyze results
+1. **[Write Fuzz Tests](./writting-fuzz-test/index.md)** - Learn how to construct instructions and define fuzzing flows
+2. **[Execute Fuzz Tests](./executing-fuzz-test/index.md)** - Run your fuzz tests and analyze results
 
 !!! tip "Start Simple"
 

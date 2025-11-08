@@ -91,4 +91,4 @@ fn token_mint_invariant(
 }
 ```
 
-For more complex examples and patterns, see the [Trident Examples](../../trident-examples/index.md) page.
+For more complex examples and patterns, see the [Trident Examples](../../trident-examples/trident-examples.md) page.
