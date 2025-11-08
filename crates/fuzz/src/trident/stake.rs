@@ -1,96 +1,77 @@
 use solana_sdk::pubkey::Pubkey;
 use solana_stake_interface::state::Authorized;
 use solana_stake_interface::state::Lockup;
-use solana_stake_interface::state::StakeStateV2;
 
 use crate::trident::transaction_result::TransactionResult;
 use crate::trident::Trident;
 
 impl Trident {
-    // pub fn create_delegated_account(
-    //     &mut self,
-    //     address: Pubkey,
-    //     voter_pubkey: Pubkey,
-    //     staker: Pubkey,
-    //     withdrawer: Pubkey,
-    //     stake: u64,
-    //     activation_epoch: Epoch,
-    //     deactivation_epoch: Option<Epoch>,
-    //     lockup: Option<Lockup>,
-    // ) {
-    //     use solana_sdk::native_token::LAMPORTS_PER_SOL;
-    //     use solana_sdk::program_pack::Pack;
-    //     use solana_sdk::rent::Rent;
-    //     use solana_sdk::stake::stake_flags::StakeFlags;
-    //     use solana_stake_program::stake_state::Authorized;
-    //     use solana_stake_program::stake_state::Delegation;
-    //     use solana_stake_program::stake_state::Meta;
-    //     use solana_stake_program::stake_state::Stake;
-    //     use solana_stake_program::stake_state::StakeStateV2;
+    /// Creates and delegates a stake account in a single transaction
+    ///
+    /// This method creates a new stake account and immediately delegates it to the specified
+    /// vote account, combining both operations into a single transaction.
+    ///
+    /// # Arguments
+    /// * `from_pubkey` - The public key of the account funding the stake account creation
+    /// * `stake_pubkey` - The public key of the stake account to create
+    /// * `vote_pubkey` - The public key of the vote account to delegate to
+    /// * `authorized` - The authorized staker and withdrawer authorities
+    /// * `lockup` - The lockup configuration for the stake account
+    /// * `lamports` - The number of lamports to transfer to the stake account
+    ///
+    /// # Returns
+    /// A `TransactionResult` indicating success or failure of the account creation and delegation
+    pub fn create_and_delegate_account(
+        &mut self,
+        from_pubkey: &Pubkey,
+        stake_pubkey: &Pubkey,
+        vote_pubkey: &Pubkey,
+        authorized: &Authorized,
+        lockup: Lockup,
+        lamports: u64,
+    ) -> TransactionResult {
+        let create_and_delegate =
+            solana_stake_interface::instruction::create_account_and_delegate_stake(
+                from_pubkey,
+                stake_pubkey,
+                vote_pubkey,
+                authorized,
+                &lockup,
+                lamports,
+            );
+        self.process_transaction(&create_and_delegate, "Creating and Delegating Account")
+    }
 
-    //     let rent = Rent::default();
-    //     let rent_exempt_lamports = rent.minimum_balance(StakeStateV2::size_of());
-    //     let minimum_delegation = LAMPORTS_PER_SOL; // TODO: a way to get minimum delegation with feature set?
-    //     let minimum_lamports = rent_exempt_lamports.saturating_add(minimum_delegation);
-
-    //     let stake_state = StakeStateV2::Stake(
-    //         Meta {
-    //             authorized: Authorized { staker, withdrawer },
-    //             lockup: lockup.unwrap_or_default(),
-    //             rent_exempt_reserve: rent_exempt_lamports,
-    //         },
-    //         Stake {
-    //             delegation: Delegation {
-    //                 stake,
-    //                 activation_epoch,
-    //                 voter_pubkey,
-    //                 deactivation_epoch: if let Some(epoch) = deactivation_epoch {
-    //                     epoch
-    //                 } else {
-    //                     u64::MAX
-    //                 },
-    //                 ..Delegation::default()
-    //             },
-    //             ..Stake::default()
-    //         },
-    //         StakeFlags::default(),
-    //     );
-    //     let account = AccountSharedData::new_data_with_space(
-    //         if stake > minimum_lamports {
-    //             stake
-    //         } else {
-    //             minimum_lamports
-    //         },
-    //         &stake_state,
-    //         StakeStateV2::size_of(),
-    //         &solana_sdk::stake::program::ID,
-    //     )
-    //     .unwrap();
-
-    //     self.set_account_custom(&address, &account);
-    // }
-
+    /// Creates and initializes a stake account without delegation
+    ///
+    /// This method creates a new stake account with the specified authorities and lockup
+    /// configuration, but does not delegate it to any vote account.
+    ///
+    /// # Arguments
+    /// * `from_pubkey` - The public key of the account funding the stake account creation
+    /// * `stake_pubkey` - The public key of the stake account to create
+    /// * `authorized` - The authorized staker and withdrawer authorities
+    /// * `lockup` - The lockup configuration for the stake account
+    /// * `lamports` - The number of lamports to transfer to the stake account
+    ///
+    /// # Returns
+    /// A `TransactionResult` indicating success or failure of the account creation
     pub fn create_initialized_account(
         &mut self,
-        address: Pubkey,
-        staker: Pubkey,
+        from_pubkey: &Pubkey,
+        stake_pubkey: &Pubkey,
+        authorized: &Authorized,
         lockup: Lockup,
+        lamports: u64,
     ) -> TransactionResult {
-        let mut create_account_instructions = self.create_account(
-            &address,
-            &staker,
-            StakeStateV2::size_of(),
-            &solana_stake_interface::program::ID,
-        );
-
-        let initialize = solana_stake_interface::instruction::initialize(
-            &address,
-            &Authorized::auto(&staker),
+        let create_account = solana_stake_interface::instruction::create_account(
+            from_pubkey,
+            stake_pubkey,
+            authorized,
             &lockup,
+            lamports,
         );
 
-        create_account_instructions.push(initialize);
-
-        self.process_transaction(&create_account_instructions, "Creating Initialized Account")
+        self.process_transaction(&create_account, "Creating Initialized Account")
     }
 }

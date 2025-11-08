@@ -15,28 +15,70 @@ The Stake Program methods provide functionality for working with Solana's stake 
 
 ### `create_initialized_account`
 
-Creates and initializes a stake account with the specified configuration.
+Creates and initializes a stake account without delegation.
 
 ```rust
 pub fn create_initialized_account(
     &mut self,
-    address: Pubkey,
-    staker: Pubkey,
+    from_pubkey: &Pubkey,
+    stake_pubkey: &Pubkey,
+    authorized: &Authorized,
     lockup: Lockup,
-) -> solana_sdk::transaction::Result<()>
+    lamports: u64,
+) -> TransactionResult
 ```
 
 **Parameters:**
 
-- `address` - The public key for the stake account
-- `staker` - The authority that can manage the stake account
+- `from_pubkey` - The public key of the account funding the stake account creation
+- `stake_pubkey` - The public key of the stake account to create
+- `authorized` - The authorized staker and withdrawer authorities
 - `lockup` - The lockup configuration for the stake account
+- `lamports` - The number of lamports to transfer to the stake account
 
-**Returns:** `Result<()>` indicating success or failure.
+**Returns:** A `TransactionResult` indicating success or failure of the account creation.
 
 **Description:** Creates a stake account that can be used to delegate SOL to validators for earning staking rewards.
 
+### `create_and_delegate_account`
+
+Creates and delegates a stake account in a single transaction.
+
+```rust
+pub fn create_and_delegate_account(
+    &mut self,
+    from_pubkey: &Pubkey,
+    stake_pubkey: &Pubkey,
+    vote_pubkey: &Pubkey,
+    authorized: &Authorized,
+    lockup: Lockup,
+    lamports: u64,
+) -> TransactionResult
+```
+
+**Parameters:**
+
+- `from_pubkey` - The public key of the account funding the stake account creation
+- `stake_pubkey` - The public key of the stake account to create
+- `vote_pubkey` - The public key of the vote account to delegate to
+- `authorized` - The authorized staker and withdrawer authorities
+- `lockup` - The lockup configuration for the stake account
+- `lamports` - The number of lamports to transfer to the stake account
+
+**Returns:** A `TransactionResult` indicating success or failure of the account creation and delegation.
+
+**Description:** Creates a new stake account and immediately delegates it to the specified vote account, combining both operations into a single transaction.
+
 ---
+
+## Configuration Types
+
+### Authorized Structure
+
+The `Authorized` struct contains:
+
+- **staker** - The public key authorized to manage staking operations
+- **withdrawer** - The public key authorized to withdraw from the account
 
 ## Lockup Configuration
 
@@ -59,56 +101,50 @@ Stake accounts progress through several states:
 
 ```rust
 use trident_fuzz::*;
-use solana_stake_interface::state::Lockup;
+use solana_stake_interface::state::{Authorized, Lockup};
 
 #[flow]
 fn test_stake_account_creation(&mut self) {
+    let from_pubkey = self.payer().pubkey();
     let stake_account = self.random_pubkey();
-    let staker = self.payer().pubkey();
+    let vote_account = self.random_pubkey();
+    let lamports = 1_000_000_000; // 1 SOL
+    
+    // Create authorized authorities
+    let authorized = Authorized {
+        staker: from_pubkey,
+        withdrawer: from_pubkey,
+    };
     
     // Create lockup configuration
     let lockup = Lockup {
         unix_timestamp: 0, // No timestamp lockup
         epoch: 0,          // No epoch lockup
-        custodian: staker, // Staker is also custodian
+        custodian: from_pubkey, // Payer is also custodian
     };
     
     // Create initialized stake account
     let result = self.create_initialized_account(
-        stake_account,
-        staker,
+        &from_pubkey,
+        &stake_account,
+        &authorized,
         lockup,
+        lamports,
     );
-    assert!(result.is_ok());
+    assert!(result.is_success());
     
-    // Verify the account was created
-    let account_data = self.get_account(&stake_account);
-    assert!(account_data.lamports() > 0);
-    assert_eq!(account_data.owner(), &solana_stake_interface::program::ID);
+    // Or create and delegate in one transaction
+    let delegated_stake = self.random_pubkey();
+    let delegate_result = self.create_and_delegate_account(
+        &from_pubkey,
+        &delegated_stake,
+        &vote_account,
+        &authorized,
+        lockup,
+        lamports,
+    );
+    assert!(delegate_result.is_success());
 }
 ```
 
-## Commented Out Methods
-
-### `create_delegated_account` (TODO)
-
-```rust
-// pub fn create_delegated_account(
-//     &mut self,
-//     address: Pubkey,
-//     voter_pubkey: Pubkey,
-//     staker: Pubkey,
-//     withdrawer: Pubkey,
-//     stake: u64,
-//     activation_epoch: Epoch,
-//     deactivation_epoch: Option<Epoch>,
-//     lockup: Option<Lockup>,
-// )
-```
-
-**Status:** TODO - This method is commented out in the source code and not yet implemented.
-
-**Description:** Would create a stake account that is already delegated to a validator with the specified delegation parameters.
-
----
 
