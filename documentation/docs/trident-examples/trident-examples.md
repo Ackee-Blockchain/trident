@@ -42,6 +42,15 @@ hide:
     [Trident Benchmark](https://github.com/Ackee-Blockchain/trident/tree/develop/examples/trident-benchmark)
 
 
+-   :material-google-analytics:{ .lg .middle } __SPL Token and Token 2022__
+
+    ---
+
+    Examples of using SPL Token and Token 2022 with Trident.
+
+
+    [SPL Token and Token 2022](https://github.com/Ackee-Blockchain/trident/tree/develop/examples/token)
+
 
 -   :material-hand-wave:{ .lg .middle } __Fuzzing Pipeline__
 

@@ -54,7 +54,7 @@ When running fuzz tests, Trident will:
 
 - **[Commands Reference](../../basics/commands.md)** - Complete command options and debugging features
 - **[Trident Manifest](../../trident-manifest/index.md)** - Configuration options through `Trident.toml`
-- **[Advanced Customization](../../trident-advanced/)** - Advanced features and customization options
+- **[Advanced Customization](../../trident-advanced/index.md)** - Advanced features and customization options
 
 !!! tip "Debugging Tips"
 

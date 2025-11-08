@@ -79,19 +79,19 @@ pub fn airdrop(&mut self, address: &Pubkey, amount: u64)
 
 ### `transfer`
 
-Creates a system transfer instruction.
+Transfers SOL from one account to another by creating and executing a system program transfer instruction.
 
 ```rust
-pub fn transfer(&mut self, from: &Pubkey, to: &Pubkey, amount: u64) -> Instruction
+pub fn transfer(&mut self, from: &Pubkey, to: &Pubkey, amount: u64) -> TransactionResult
 ```
 
 **Parameters:**
 
-- `from` - Source account for the transfer
-- `to` - Destination account for the transfer
-- `amount` - Amount of lamports to transfer
+- `from` - The public key of the account to transfer from
+- `to` - The public key of the account to transfer to
+- `amount` - The number of lamports to transfer
 
-**Returns:** System transfer instruction.
+**Returns:** A `TransactionResult` indicating success or failure of the transfer.
 
 ---
 
@@ -139,9 +139,8 @@ fn test_account_management(&mut self) {
     let account_data = self.get_account(&user_account);
     assert_eq!(account_data.lamports(), amount);
     
-    // Create a transfer instruction
-    let transfer_ix = self.transfer(&user_account, &token_account, 500);
-    let result = self.process_transaction(&[transfer_ix], "Transfer Test");
+    // Execute a transfer and check the result
+    let result = self.transfer(&user_account, &token_account, 500);
     assert!(result.is_success());
     
     // Get account with specific type (example with a custom struct)

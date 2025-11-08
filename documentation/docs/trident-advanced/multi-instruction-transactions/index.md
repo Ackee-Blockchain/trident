@@ -38,4 +38,4 @@ impl FuzzTest {
 - **Complex Workflows**: Test instruction sequences that depend on each other
 - **State Consistency**: Ensure related operations maintain program invariants
 
-For more complex examples and patterns, see the [Trident Examples](../../trident-examples/index.md) page.
+For more complex examples and patterns, see the [Trident Examples](../../trident-examples/trident-examples.md) page.
