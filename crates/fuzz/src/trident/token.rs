@@ -1,10 +1,23 @@
 use solana_sdk::program_pack::Pack;
 use solana_sdk::pubkey::Pubkey;
 
-use crate::trident::client::TransactionResult;
+use crate::trident::transaction_result::TransactionResult;
 use crate::trident::Trident;
 
 impl Trident {
+    /// Initializes a new SPL Token mint
+    ///
+    /// Creates and initializes a new token mint with the specified parameters.
+    /// This involves creating the account and then initializing it as a mint.
+    ///
+    /// # Arguments
+    /// * `mint_address` - The public key where the mint will be created
+    /// * `decimals` - Number of decimal places for the token (0-9)
+    /// * `owner` - The mint authority who can mint new tokens
+    /// * `freeze_authority` - Optional authority who can freeze token accounts
+    ///
+    /// # Returns
+    /// A `TransactionResult` indicating success or failure of the mint creation
     pub fn initialize_mint(
         &mut self,
         mint_address: &Pubkey,
@@ -32,6 +45,18 @@ impl Trident {
         self.process_transaction(&create_account_instructions, "Creating Mint Account")
     }
 
+    /// Initializes a new SPL Token account
+    ///
+    /// Creates and initializes a new token account that can hold tokens
+    /// of the specified mint type.
+    ///
+    /// # Arguments
+    /// * `token_account_address` - The public key where the token account will be created
+    /// * `mint` - The mint that this account will hold tokens for
+    /// * `owner` - The owner of the token account
+    ///
+    /// # Returns
+    /// A `TransactionResult` indicating success or failure of the account creation
     pub fn initialize_token_account(
         &mut self,
         token_account_address: &Pubkey,
@@ -57,6 +82,19 @@ impl Trident {
         self.process_transaction(&create_account_instructions, "Creating Token Account")
     }
 
+    /// Mints tokens to a specified token account
+    ///
+    /// Creates new tokens and adds them to the specified token account.
+    /// The mint authority must sign this transaction.
+    ///
+    /// # Arguments
+    /// * `token_account_address` - The token account to mint tokens to
+    /// * `mint_address` - The mint to create tokens from
+    /// * `mint_authority` - The authority allowed to mint tokens
+    /// * `amount` - The number of tokens to mint (in base units)
+    ///
+    /// # Returns
+    /// A `TransactionResult` indicating success or failure of the mint operation
     pub fn mint_to(
         &mut self,
         token_account_address: &Pubkey,
@@ -76,6 +114,17 @@ impl Trident {
 
         self.process_transaction(&[ix], "Minting to Token Account")
     }
+    /// Creates an Associated Token Account (ATA)
+    ///
+    /// Creates an associated token account for the given mint and owner.
+    /// The ATA address is deterministically derived from the mint and owner.
+    ///
+    /// # Arguments
+    /// * `mint` - The mint that the ATA will hold tokens for
+    /// * `owner` - The owner of the ATA
+    ///
+    /// # Returns
+    /// A `TransactionResult` indicating success or failure of the ATA creation
     pub fn initialize_associated_token_account(
         &mut self,
         mint: &Pubkey,
@@ -91,6 +140,18 @@ impl Trident {
 
         self.process_transaction(&[ix], "Creating Associated Token Account")
     }
+    /// Gets the Associated Token Account address for a mint and owner
+    ///
+    /// Calculates the deterministic address of an Associated Token Account
+    /// without creating it. This is useful for finding existing ATAs.
+    ///
+    /// # Arguments
+    /// * `mint` - The mint public key
+    /// * `owner` - The owner public key
+    /// * `program_id` - The token program ID (usually spl_token::ID)
+    ///
+    /// # Returns
+    /// The public key of the associated token account
     pub fn get_associated_token_address(
         &self,
         mint: &Pubkey,

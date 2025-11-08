@@ -3,6 +3,7 @@ use solana_stake_interface::state::Authorized;
 use solana_stake_interface::state::Lockup;
 use solana_stake_interface::state::StakeStateV2;
 
+use crate::trident::transaction_result::TransactionResult;
 use crate::trident::Trident;
 
 impl Trident {
@@ -74,7 +75,7 @@ impl Trident {
         address: Pubkey,
         staker: Pubkey,
         lockup: Lockup,
-    ) -> solana_sdk::transaction::Result<()> {
+    ) -> TransactionResult {
         let mut create_account_instructions = self.create_account(
             &address,
             &staker,
@@ -90,6 +91,6 @@ impl Trident {
 
         create_account_instructions.push(initialize);
 
-        self.execute(&create_account_instructions, "Creating Initialized Account")
+        self.process_transaction(&create_account_instructions, "Creating Initialized Account")
     }
 }
