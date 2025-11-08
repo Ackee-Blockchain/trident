@@ -11,10 +11,10 @@ readme = { workspace = true }
 
 [features]
 ## Features for all programs
-all = ["vote", "stake", "token"]
+all = ["token", "vote", "stake"]
 
 ## Features for vote program
-vote = ["dep:solana-vote-program"]
+vote = ["dep:solana-vote-interface"]
 
 ## Features for stake program
 stake = ["dep:solana-stake-interface"]
@@ -58,7 +58,7 @@ branch = "solana-2.3"
 solana-sdk = { workspace = true }
 
 # Solana vote program
-solana-vote-program = { version = "2",optional = true}
+solana-vote-interface = { version = "2",optional = true}
 
 # Stake features
 solana-stake-interface = { version = "1",optional = true}
