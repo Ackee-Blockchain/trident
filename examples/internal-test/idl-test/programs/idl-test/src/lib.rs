@@ -8,6 +8,8 @@ use crate::types::*;
 
 declare_id!("HtD1eaPZ1JqtxcirNtYt3aAhUMoJWZ2Ddtzu4NDZCrhN");
 
+pub const DEPLOYER_ADDRESS: Pubkey = pubkey!("HtD1eaPZ1JqtxcirNtYt3aAhUMoJWZ2Ddtzu4NDZCrhN");
+
 #[program]
 pub mod idl_test {
     use super::*;
@@ -93,4 +95,9 @@ pub struct NestedInnerInitialize<'info> {
     /// CHECK: we test here
     pub some_account: AccountInfo<'info>,
     pub system_program: Program<'info, System>,
+    #[account(
+        mut,
+        address = crate::DEPLOYER_ADDRESS
+    )]
+    pub deployer: Signer<'info>,
 }

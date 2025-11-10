@@ -150,7 +150,11 @@ pub mod {{ program.module_name }} {
         {% endif %}
         {% endif %}
         {% else %}
-        {% if account.is_writable %}
+        {% if account.is_writable and account.is_signer %}
+        self.accounts.{{ account.name }} = AccountMeta::new(pubkey!("{{ account.address }}"), true);
+        {% elif account.is_signer %}
+        self.accounts.{{ account.name }} = AccountMeta::new_readonly(pubkey!("{{ account.address }}"), true);
+        {% elif account.is_writable %}
         self.accounts.{{ account.name }} = AccountMeta::new(pubkey!("{{ account.address }}"), false);
         {% else %}
         self.accounts.{{ account.name }} = AccountMeta::new_readonly(pubkey!("{{ account.address }}"), false);
@@ -237,6 +241,20 @@ pub mod {{ program.module_name }} {
             self.{{ account.name }} = AccountMeta::new_readonly(accounts.{{ account.name }}, false);
             {% endif %}
             {% endif %}
+            {% else %}
+            {% if account.is_composite %}
+            self.{{ account.name }}.set_from_accounts(accounts.{{ account.name }});
+            {% else %}
+            {% if account.is_writable and account.is_signer %}
+            self.{{ account.name }} = AccountMeta::new(pubkey!("{{ account.address }}"), true);
+            {% elif account.is_signer %}
+            self.{{ account.name }} = AccountMeta::new_readonly(pubkey!("{{ account.address }}"), true);
+            {% elif account.is_writable %}
+            self.{{ account.name }} = AccountMeta::new(pubkey!("{{ account.address }}"), false);
+            {% else %}
+            self.{{ account.name }} = AccountMeta::new_readonly(pubkey!("{{ account.address }}"), false);
+            {% endif %}
+            {% endif %}
             {% endif %}
             {% endfor %}
         }
@@ -317,6 +335,20 @@ pub mod {{ program.module_name }} {
             self.{{ account.name }} = AccountMeta::new(accounts.{{ account.name }}, false);
             {% else %}
             self.{{ account.name }} = AccountMeta::new_readonly(accounts.{{ account.name }}, false);
+            {% endif %}
+            {% endif %}
+            {% else %}
+            {% if account.is_composite %}
+            self.{{ account.name }}.set_from_accounts(accounts.{{ account.name }});
+            {% else %}
+            {% if account.is_writable and account.is_signer %}
+            self.{{ account.name }} = AccountMeta::new(pubkey!("{{ account.address }}"), true);
+            {% elif account.is_signer %}
+            self.{{ account.name }} = AccountMeta::new_readonly(pubkey!("{{ account.address }}"), true);
+            {% elif account.is_writable %}
+            self.{{ account.name }} = AccountMeta::new(pubkey!("{{ account.address }}"), false);
+            {% else %}
+            self.{{ account.name }} = AccountMeta::new_readonly(pubkey!("{{ account.address }}"), false);
             {% endif %}
             {% endif %}
             {% endif %}

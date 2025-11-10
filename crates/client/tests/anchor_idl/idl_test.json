@@ -36,6 +36,12 @@
                 {
                   "name": "system_program",
                   "address": "11111111111111111111111111111111"
+                },
+                {
+                  "name": "deployer",
+                  "writable": true,
+                  "signer": true,
+                  "address": "HtD1eaPZ1JqtxcirNtYt3aAhUMoJWZ2Ddtzu4NDZCrhN"
                 }
               ]
             }
@@ -221,6 +227,12 @@
                 {
                   "name": "system_program",
                   "address": "11111111111111111111111111111111"
+                },
+                {
+                  "name": "deployer",
+                  "writable": true,
+                  "signer": true,
+                  "address": "HtD1eaPZ1JqtxcirNtYt3aAhUMoJWZ2Ddtzu4NDZCrhN"
                 }
               ]
             }
