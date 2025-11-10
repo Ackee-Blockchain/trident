@@ -16,6 +16,8 @@ pub struct AccountAddresses {
 
     pub system_program: AddressStorage,
 
+    pub deployer: AddressStorage,
+
     pub signer: AddressStorage,
 
     pub data_account_1: AddressStorage,

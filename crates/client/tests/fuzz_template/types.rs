@@ -735,6 +735,8 @@ pub mod idl_test {
         pub some_account: AccountMeta,
 
         pub system_program: AccountMeta,
+
+        pub deployer: AccountMeta,
     }
 
     impl NestedInnerInstructionAccountMetas {
@@ -745,11 +747,21 @@ pub mod idl_test {
 
             metas.push(self.system_program.clone());
 
+            metas.push(self.deployer.clone());
+
             metas
         }
 
         fn set_from_accounts(&mut self, accounts: NestedInnerInstructionAccounts) {
             self.some_account = AccountMeta::new_readonly(accounts.some_account, false);
+
+            self.system_program =
+                AccountMeta::new_readonly(pubkey!("11111111111111111111111111111111"), false);
+
+            self.deployer = AccountMeta::new(
+                pubkey!("HtD1eaPZ1JqtxcirNtYt3aAhUMoJWZ2Ddtzu4NDZCrhN"),
+                true,
+            );
         }
     }
 
