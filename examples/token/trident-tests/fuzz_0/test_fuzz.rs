@@ -25,12 +25,18 @@ impl FuzzTest {
     fn start(&mut self) {
         // Perform any initialization here, this method will be executed
         // at the start of each iteration
+
+        let payer = self.fuzz_accounts.payer.insert(&mut self.trident, None);
+
+        self.trident.airdrop(&payer, 150 * LAMPORTS_PER_SOL);
     }
 
     #[flow]
     fn empty_extensions(&mut self) {
         // Perform logic which is meant to be fuzzed
         // This flow is selected randomly from other flows
+
+        let payer = self.fuzz_accounts.payer.get(&mut self.trident);
 
         let author2022 = self
             .fuzz_accounts
@@ -43,7 +49,7 @@ impl FuzzTest {
 
         let res = self
             .trident
-            .initialize_mint_2022(&mint2022, 7, &author2022, None, &[]);
+            .initialize_mint_2022(&payer, &mint2022, 7, &author2022, None, &[]);
 
         assert!(
             res.is_success(),
@@ -67,6 +73,8 @@ impl FuzzTest {
         // Perform logic which is meant to be fuzzed
         // This flow is selected randomly from other flows
 
+        let payer = self.fuzz_accounts.payer.get(&mut self.trident);
+
         let author2022 = self
             .fuzz_accounts
             .author2022
@@ -76,6 +84,7 @@ impl FuzzTest {
 
         self.trident.airdrop(&author2022, 10 * LAMPORTS_PER_SOL);
         let res = self.trident.initialize_mint_2022(
+            &payer,
             &mint2022,
             5,
             &author2022,
@@ -104,6 +113,8 @@ impl FuzzTest {
         // Perform logic which is meant to be fuzzed
         // This flow is selected randomly from other flows
 
+        let payer = self.fuzz_accounts.payer.get(&mut self.trident);
+
         let author2022 = self
             .fuzz_accounts
             .author2022
@@ -113,6 +124,7 @@ impl FuzzTest {
 
         self.trident.airdrop(&author2022, 10 * LAMPORTS_PER_SOL);
         let res = self.trident.initialize_mint_2022(
+            &payer,
             &mint2022,
             5,
             &author2022,
@@ -142,6 +154,8 @@ impl FuzzTest {
         // Perform logic which is meant to be fuzzed
         // This flow is selected randomly from other flows
 
+        let payer = self.fuzz_accounts.payer.get(&mut self.trident);
+
         let author2022 = self
             .fuzz_accounts
             .author2022
@@ -152,6 +166,7 @@ impl FuzzTest {
         self.trident.airdrop(&author2022, 10 * LAMPORTS_PER_SOL);
 
         let res = self.trident.initialize_mint_2022(
+            &payer,
             &mint2022,
             5,
             &author2022,
@@ -195,6 +210,8 @@ impl FuzzTest {
         // Perform logic which is meant to be fuzzed
         // This flow is selected randomly from other flows
 
+        let payer = self.fuzz_accounts.payer.get(&mut self.trident);
+
         let author2022 = self
             .fuzz_accounts
             .author2022
@@ -204,6 +221,7 @@ impl FuzzTest {
 
         self.trident.airdrop(&author2022, 10 * LAMPORTS_PER_SOL);
         let res = self.trident.initialize_mint_2022(
+            &payer,
             &mint2022,
             5,
             &author2022,
@@ -235,6 +253,8 @@ impl FuzzTest {
         // Perform logic which is meant to be fuzzed
         // This flow is selected randomly from other flows
 
+        let payer = self.fuzz_accounts.payer.get(&mut self.trident);
+
         let author2022 = self
             .fuzz_accounts
             .author2022
@@ -244,6 +264,7 @@ impl FuzzTest {
 
         self.trident.airdrop(&author2022, 10 * LAMPORTS_PER_SOL);
         let res = self.trident.initialize_mint_2022(
+            &payer,
             &mint2022,
             5,
             &author2022,
@@ -272,6 +293,8 @@ impl FuzzTest {
         // Perform logic which is meant to be fuzzed
         // This flow is selected randomly from other flows
 
+        let payer = self.fuzz_accounts.payer.get(&mut self.trident);
+
         let author2022 = self
             .fuzz_accounts
             .author2022
@@ -282,6 +305,7 @@ impl FuzzTest {
         self.trident.airdrop(&author2022, 10 * LAMPORTS_PER_SOL);
 
         let res = self.trident.initialize_mint_2022(
+            &payer,
             &mint2022,
             5,
             &author2022,
@@ -311,6 +335,8 @@ impl FuzzTest {
         // Perform logic which is meant to be fuzzed
         // This flow is selected randomly from other flows
 
+        let payer = self.fuzz_accounts.payer.get(&mut self.trident);
+
         let author2022 = self
             .fuzz_accounts
             .author2022
@@ -321,6 +347,7 @@ impl FuzzTest {
         self.trident.airdrop(&author2022, 10 * LAMPORTS_PER_SOL);
 
         let res = self.trident.initialize_mint_2022(
+            &payer,
             &mint2022,
             5,
             &author2022,
@@ -347,6 +374,8 @@ impl FuzzTest {
         // Perform logic which is meant to be fuzzed
         // This flow is selected randomly from other flows
 
+        let payer = self.fuzz_accounts.payer.get(&mut self.trident);
+
         let author2022 = self
             .fuzz_accounts
             .author2022
@@ -356,6 +385,7 @@ impl FuzzTest {
 
         self.trident.airdrop(&author2022, 10 * LAMPORTS_PER_SOL);
         let res = self.trident.initialize_mint_2022(
+            &payer,
             &mint2022,
             5,
             &author2022,
@@ -384,6 +414,8 @@ impl FuzzTest {
         // Perform logic which is meant to be fuzzed
         // This flow is selected randomly from other flows
 
+        let payer = self.fuzz_accounts.payer.get(&mut self.trident);
+
         let author2022 = self
             .fuzz_accounts
             .author2022
@@ -393,6 +425,7 @@ impl FuzzTest {
 
         self.trident.airdrop(&author2022, 10 * LAMPORTS_PER_SOL);
         let res = self.trident.initialize_mint_2022(
+            &payer,
             &mint2022,
             5,
             &author2022,
@@ -422,6 +455,8 @@ impl FuzzTest {
         // Perform logic which is meant to be fuzzed
         // This flow is selected randomly from other flows
 
+        let payer = self.fuzz_accounts.payer.get(&mut self.trident);
+
         let author2022 = self
             .fuzz_accounts
             .author2022
@@ -431,6 +466,7 @@ impl FuzzTest {
 
         self.trident.airdrop(&author2022, 10 * LAMPORTS_PER_SOL);
         let res = self.trident.initialize_mint_2022(
+            &payer,
             &mint2022,
             5,
             &author2022,
@@ -467,6 +503,8 @@ impl FuzzTest {
         // Perform logic which is meant to be fuzzed
         // This flow is selected randomly from other flows
 
+        let payer = self.fuzz_accounts.payer.get(&mut self.trident);
+
         let author2022 = self
             .fuzz_accounts
             .author2022
@@ -476,6 +514,7 @@ impl FuzzTest {
 
         self.trident.airdrop(&author2022, 10 * LAMPORTS_PER_SOL);
         let res = self.trident.initialize_mint_2022(
+            &payer,
             &mint2022,
             5,
             &author2022,
@@ -522,6 +561,8 @@ impl FuzzTest {
         // Perform logic which is meant to be fuzzed
         // This flow is selected randomly from other flows
 
+        let payer = self.fuzz_accounts.payer.get(&mut self.trident);
+
         let author2022 = self
             .fuzz_accounts
             .author2022
@@ -532,6 +573,7 @@ impl FuzzTest {
         // ===== GROUP MINT CREATION =====
         self.trident.airdrop(&author2022, 10 * LAMPORTS_PER_SOL);
         let res = self.trident.initialize_mint_2022(
+            &payer,
             &mint2022,
             5,
             &author2022,
@@ -570,6 +612,7 @@ impl FuzzTest {
             .insert(&mut self.trident, None);
 
         let res = self.trident.initialize_mint_2022(
+            &payer,
             &group_member_mint2022,
             5,
             &author2022,
@@ -605,6 +648,8 @@ impl FuzzTest {
         // Perform logic which is meant to be fuzzed
         // This flow is selected randomly from other flows
 
+        let payer = self.fuzz_accounts.payer.get(&mut self.trident);
+
         let author2022 = self
             .fuzz_accounts
             .author2022
@@ -615,6 +660,7 @@ impl FuzzTest {
         self.trident.airdrop(&author2022, 20 * LAMPORTS_PER_SOL);
 
         let res = self.trident.initialize_mint_2022(
+            &payer,
             &mint2022,
             5,
             &author2022,
@@ -681,6 +727,7 @@ impl FuzzTest {
             .insert(&mut self.trident, None);
 
         let res = self.trident.initialize_token_account_2022(
+            &payer,
             &token_account2022_1,
             &mint2022,
             &author2022,
@@ -716,6 +763,7 @@ impl FuzzTest {
         assert!(res.is_success(), "Mint to failed: {:#?}", res.get_result());
 
         let res = self.trident.initialize_associated_token_account_2022(
+            &payer,
             &mint2022,
             &author2022,
             &[AccountExtension::ImmutableOwner, AccountExtension::CpiGuard],

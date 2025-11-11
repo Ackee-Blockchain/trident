@@ -20,6 +20,7 @@ impl Trident {
     /// A `TransactionResult` indicating success or failure of the mint creation
     pub fn initialize_mint(
         &mut self,
+        payer: &Pubkey,
         mint_address: &Pubkey,
         decimals: u8,
         owner: &Pubkey,
@@ -27,7 +28,7 @@ impl Trident {
     ) -> TransactionResult {
         let mut create_account_instructions = self.create_account(
             mint_address,
-            owner,
+            payer,
             spl_token_interface::state::Mint::LEN,
             &spl_token_interface::ID,
         );
@@ -59,13 +60,14 @@ impl Trident {
     /// A `TransactionResult` indicating success or failure of the account creation
     pub fn initialize_token_account(
         &mut self,
+        payer: &Pubkey,
         token_account_address: &Pubkey,
         mint: &Pubkey,
         owner: &Pubkey,
     ) -> TransactionResult {
         let mut create_account_instructions = self.create_account(
             token_account_address,
-            owner,
+            payer,
             spl_token_interface::state::Account::LEN,
             &spl_token_interface::ID,
         );
@@ -127,12 +129,13 @@ impl Trident {
     /// A `TransactionResult` indicating success or failure of the ATA creation
     pub fn initialize_associated_token_account(
         &mut self,
+        payer: &Pubkey,
         mint: &Pubkey,
         owner: &Pubkey,
     ) -> TransactionResult {
         let ix =
             spl_associated_token_account_interface::instruction::create_associated_token_account(
-                owner,
+                payer,
                 owner,
                 mint,
                 &spl_token_interface::ID,
