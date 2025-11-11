@@ -60,6 +60,7 @@ impl Trident {
     /// Returns `Ok(())` if successful, or a transaction error if the operation fails.
     pub fn initialize_mint_2022(
         &mut self,
+        payer: &Pubkey,
         mint_address: &Pubkey,
         decimals: u8,
         mint_authority: &Pubkey,
@@ -182,7 +183,7 @@ impl Trident {
 
         let mut instructions = self.create_account(
             mint_address,
-            mint_authority,
+            payer,
             mint_space,
             &spl_token_2022_interface::ID,
         );
@@ -196,7 +197,7 @@ impl Trident {
             if current_balance < required_rent {
                 let top_up = required_rent.saturating_sub(current_balance);
                 let top_up_ix =
-                    solana_sdk::system_instruction::transfer(mint_authority, mint_address, top_up);
+                    solana_sdk::system_instruction::transfer(payer, mint_address, top_up);
                 instructions.push(top_up_ix);
             }
         }
@@ -562,6 +563,7 @@ impl Trident {
     /// Returns `Ok(())` if successful, or a transaction error if the operation fails.
     pub fn initialize_token_account_2022(
         &mut self,
+        payer: &Pubkey,
         token_account_address: &Pubkey,
         mint: &Pubkey,
         owner: &Pubkey,
@@ -604,7 +606,7 @@ impl Trident {
 
         let mut instructions = self.create_account(
             token_account_address,
-            owner,
+            payer,
             account_space,
             &spl_token_2022_interface::ID,
         );
@@ -943,6 +945,7 @@ impl Trident {
     /// or a transaction error if the operation fails.
     pub fn initialize_associated_token_account_2022(
         &mut self,
+        payer: &Pubkey,
         mint: &Pubkey,
         owner: &Pubkey,
         extensions: &[AccountExtension],
@@ -956,7 +959,7 @@ impl Trident {
         // Create the basic associated token account first
         let create_ix =
             spl_associated_token_account_interface::instruction::create_associated_token_account(
-                owner,
+                payer,
                 owner,
                 mint,
                 &spl_token_2022_interface::ID, // Use Token 2022 program ID
@@ -979,7 +982,7 @@ impl Trident {
             let reallocate_ix = spl_token_2022_interface::instruction::reallocate(
                 &spl_token_2022_interface::ID,
                 &address,
-                owner, // payer (owner pays for reallocation)
+                payer, // payer (pays for reallocation)
                 owner, // owner
                 &[],   // signer_pubkeys (empty for single signature)
                 &extension_types,

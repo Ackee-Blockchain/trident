@@ -20,6 +20,7 @@ Creates and initializes a Token 2022 mint with specified extensions.
 ```rust
 pub fn initialize_mint_2022(
     &mut self,
+    payer: &Pubkey,
     mint_address: &Pubkey,
     decimals: u8,
     mint_authority: &Pubkey,
@@ -30,6 +31,7 @@ pub fn initialize_mint_2022(
 
 **Parameters:**
 
+- `payer` - The payer covering the rent
 - `mint_address` - The public key for the new mint
 - `decimals` - Number of decimal places for the token
 - `mint_authority` - Authority that can mint new tokens
@@ -78,6 +80,7 @@ Creates and initializes a Token 2022 token account with specified extensions.
 ```rust
 pub fn initialize_token_account_2022(
     &mut self,
+    payer: &Pubkey,
     token_account_address: &Pubkey,
     mint: &Pubkey,
     owner: &Pubkey,
@@ -87,6 +90,7 @@ pub fn initialize_token_account_2022(
 
 **Parameters:**
 
+- `payer` - The payer covering the rent
 - `token_account_address` - The public key for the new token account
 - `mint` - The mint this account will hold tokens for
 - `owner` - The owner of the token account
@@ -105,6 +109,7 @@ Creates an associated Token 2022 account with specified extensions.
 ```rust
 pub fn initialize_associated_token_account_2022(
     &mut self,
+    payer: &Pubkey,
     mint: &Pubkey,
     owner: &Pubkey,
     extensions: &[AccountExtension],
@@ -113,6 +118,7 @@ pub fn initialize_associated_token_account_2022(
 
 **Parameters:**
 
+- `payer` - The payer covering the rent
 - `mint` - The mint this account will hold tokens for
 - `owner` - The owner of the token account
 - `extensions` - Array of additional extensions to enable on the account

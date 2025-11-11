@@ -12,4 +12,7 @@ pub struct AccountAddresses {
     pub mint2022: AddressStorage,
     pub group_member_mint2022: AddressStorage,
     pub token_account2022: AddressStorage,
+
+    // Just for paying fees and rent
+    pub payer: AddressStorage,
 }

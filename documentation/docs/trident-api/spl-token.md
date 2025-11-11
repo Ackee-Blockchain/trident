@@ -20,6 +20,7 @@ Creates and initializes a new SPL Token mint.
 ```rust
 pub fn initialize_mint(
     &mut self,
+    payer: &Pubkey,
     mint_address: &Pubkey,
     decimals: u8,
     owner: &Pubkey,
@@ -29,6 +30,7 @@ pub fn initialize_mint(
 
 **Parameters:**
 
+- `payer` - The payer covering the rent
 - `mint_address` - The public key for the new mint account
 - `decimals` - Number of decimal places for the token
 - `owner` - The mint authority that can mint new tokens
@@ -76,6 +78,7 @@ Creates and initializes a new SPL Token account.
 ```rust
 pub fn initialize_token_account(
     &mut self,
+    payer: &Pubkey,
     token_account_address: &Pubkey,
     mint: &Pubkey,
     owner: &Pubkey,
@@ -84,6 +87,7 @@ pub fn initialize_token_account(
 
 **Parameters:**
 
+- `payer` - The payer covering the rent
 - `token_account_address` - The public key for the new token account
 - `mint` - The mint this account will hold tokens for
 - `owner` - The owner of the token account
@@ -101,6 +105,7 @@ Creates an associated token account for a given mint and owner.
 ```rust
 pub fn initialize_associated_token_account(
     &mut self,
+    payer: &Pubkey,
     mint: &Pubkey,
     owner: &Pubkey,
 ) -> TransactionResult
@@ -108,6 +113,7 @@ pub fn initialize_associated_token_account(
 
 **Parameters:**
 
+- `payer` - The payer covering the rent
 - `mint` - The mint for the associated token account
 - `owner` - The owner of the associated token account
 
