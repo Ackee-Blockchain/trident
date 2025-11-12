@@ -65,4 +65,19 @@ impl Trident {
     pub fn random_bytes(&mut self, bytes: &mut [u8]) {
         self.rng.fill_bytes(bytes);
     }
+
+    /// Generates a random boolean value
+    ///
+    /// Creates a random boolean value, useful for testing with boolean inputs.
+    ///
+    /// # Returns
+    /// A random boolean value
+    ///
+    /// # Example
+    /// ```rust, ignore
+    /// let random_bool = trident.random_bool();
+    /// ```
+    pub fn random_bool(&mut self) -> bool {
+        self.rng.gen_bool()
+    }
 }

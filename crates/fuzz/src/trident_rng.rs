@@ -83,4 +83,8 @@ impl TridentRng {
     pub(crate) fn fill_bytes(&mut self, bytes: &mut [u8]) {
         self.rng.fill_bytes(bytes);
     }
+
+    pub(crate) fn gen_bool(&mut self) -> bool {
+        self.rng.gen_bool(0.5)
+    }
 }

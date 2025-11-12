@@ -121,6 +121,62 @@ pub fn get_sysvar<T: Sysvar>(&self) -> T
 
 ---
 
+### `get_program_data_address_v3`
+
+Derives the program data address for an upgradeable program.
+
+```rust
+pub fn get_program_data_address_v3(&self, program_address: &Pubkey) -> Pubkey
+```
+
+**Parameters:**
+
+- `program_address` - The public key of the upgradeable program
+
+**Returns:** The derived program data address (PDA).
+
+**Description:** Finds the program data account address for an upgradeable BPF loader program. This is useful when you need to access or verify the program data account associated with an upgradeable program.
+
+---
+
+### `create_program_address`
+
+Creates a program address (PDA) from seeds and a program ID.
+
+```rust
+pub fn create_program_address(&self, seeds: &[&[u8]], program_id: &Pubkey) -> Option<Pubkey>
+```
+
+**Parameters:**
+
+- `seeds` - Array of seed byte slices used to derive the address
+- `program_id` - The program ID to use for derivation
+
+**Returns:** Some(Pubkey) if the seeds produce a valid PDA, None otherwise.
+
+**Description:** Attempts to create a valid program-derived address using the provided seeds and program ID. Unlike `find_program_address`, this does not search for a valid bump seed and will return None if the provided seeds don't produce a valid PDA.
+
+---
+
+### `find_program_address`
+
+Finds a valid program address (PDA) and its bump seed.
+
+```rust
+pub fn find_program_address(&self, seeds: &[&[u8]], program_id: &Pubkey) -> (Pubkey, u8)
+```
+
+**Parameters:**
+
+- `seeds` - Array of seed byte slices used to derive the address
+- `program_id` - The program ID to use for derivation
+
+**Returns:** A tuple containing the derived PDA and the bump seed used to generate it.
+
+**Description:** Searches for a valid program-derived address by trying different bump seeds (starting from 255 and counting down) until a valid PDA is found. This is the canonical way to derive PDAs in Solana programs.
+
+---
+
 ## Example Usage
 
 ```rust
@@ -156,6 +212,24 @@ fn test_account_management(&mut self) {
     // Get the default payer for transactions
     let payer = self.payer();
     println!("Payer pubkey: {}", payer.pubkey());
+    
+    // Work with Program Derived Addresses (PDAs)
+    let program_id = Pubkey::new_unique();
+    
+    // Find a PDA with automatic bump seed discovery
+    let seeds = &[b"my-seed", user_account.as_ref()];
+    let (pda, bump) = self.find_program_address(seeds, &program_id);
+    println!("Found PDA: {} with bump: {}", pda, bump);
+    
+    // Create a PDA with a known bump seed
+    let seeds_with_bump = &[b"my-seed", user_account.as_ref(), &[bump]];
+    if let Some(pda_verified) = self.create_program_address(seeds_with_bump, &program_id) {
+        assert_eq!(pda, pda_verified);
+    }
+    
+    // Get program data address for an upgradeable program
+    let program_data_addr = self.get_program_data_address_v3(&program_id);
+    let program_data = self.get_account(&program_data_addr);
 }
 
 // Example custom account data structure
