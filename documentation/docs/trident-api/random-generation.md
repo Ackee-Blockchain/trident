@@ -73,6 +73,20 @@ pub fn random_bytes(&mut self, bytes: &mut [u8])
 
 ---
 
+### `random_bool`
+
+Generates a random boolean value.
+
+```rust
+pub fn random_bool(&mut self) -> bool
+```
+
+**Returns:** A random boolean value.
+
+**Description:** Creates a random boolean value with 50% probability for true or false, useful for testing conditional logic and feature flags.
+
+---
+
 ## Example Usage
 
 ```rust
@@ -100,6 +114,10 @@ fn test_token_operations_with_random_data(&mut self) {
     // Generate random binary data
     let mut seed_data = [0u8; 32];
     self.random_bytes(&mut seed_data);
+    
+    // Generate random boolean values for feature flags
+    let is_enabled = self.random_bool();
+    let should_freeze = self.random_bool();
     
     // Use all the random data in your program testing
     // ... your program instructions with random inputs ...

@@ -266,6 +266,71 @@ impl Trident {
         self.set_account_custom(address, &account);
     }
 
+    /// Derives the program data address for an upgradeable program
+    ///
+    /// This method finds the program data account address for an upgradeable BPF loader program
+    /// by deriving a Program Derived Address (PDA) using the program's address as a seed.
+    ///
+    /// # Arguments
+    /// * `program_address` - The public key of the upgradeable program
+    ///
+    /// # Returns
+    /// The derived program data address (PDA)
+    pub fn get_program_data_address_v3(&self, program_address: &Pubkey) -> Pubkey {
+        Pubkey::find_program_address(
+            &[program_address.as_ref()],
+            &solana_sdk::bpf_loader_upgradeable::ID,
+        )
+        .0
+    }
+
+    /// Creates a program address (PDA) from seeds and a program ID
+    ///
+    /// This method attempts to create a valid program-derived address using the provided
+    /// seeds and program ID. Unlike `find_program_address`, this does not search for a
+    /// valid bump seed and will return None if the provided seeds don't produce a valid PDA.
+    ///
+    /// # Arguments
+    /// * `seeds` - Array of seed byte slices used to derive the address
+    /// * `program_id` - The program ID to use for derivation
+    ///
+    /// # Returns
+    /// Some(Pubkey) if the seeds produce a valid PDA, None otherwise
+    ///
+    /// # Example
+    /// ```rust,ignore
+    /// let seeds = &[b"my-seed", &[bump_seed]];
+    /// if let Some(pda) = trident.create_program_address(seeds, &program_id) {
+    ///     println!("Created PDA: {}", pda);
+    /// }
+    /// ```
+    pub fn create_program_address(&self, seeds: &[&[u8]], program_id: &Pubkey) -> Option<Pubkey> {
+        Pubkey::create_program_address(seeds, program_id).ok()
+    }
+
+    /// Finds a valid program address (PDA) and its bump seed
+    ///
+    /// This method searches for a valid program-derived address by trying different bump
+    /// seeds (starting from 255 and counting down) until a valid PDA is found. This is the
+    /// canonical way to derive PDAs in Solana programs.
+    ///
+    /// # Arguments
+    /// * `seeds` - Array of seed byte slices used to derive the address
+    /// * `program_id` - The program ID to use for derivation
+    ///
+    /// # Returns
+    /// A tuple containing the derived PDA and the bump seed used to generate it
+    ///
+    /// # Example
+    /// ```rust,ignore
+    /// let seeds = &[b"my-seed", user_pubkey.as_ref()];
+    /// let (pda, bump) = trident.find_program_address(seeds, &program_id);
+    /// println!("Found PDA: {} with bump: {}", pda, bump);
+    /// ```
+    pub fn find_program_address(&self, seeds: &[&[u8]], program_id: &Pubkey) -> (Pubkey, u8) {
+        Pubkey::find_program_address(seeds, program_id)
+    }
+
     fn handle_tx_result(
         &mut self,
         tx_result: &TransactionProcessingResult,
