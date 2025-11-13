@@ -42,6 +42,7 @@ nav:
       - trident-api/time-clock.md
       - trident-api/random-generation.md
       - trident-api/metrics-regression.md
+      - trident-api/system-program.md
       - trident-api/spl-token.md
       - trident-api/token-2022.md
       - trident-api/vote-program.md

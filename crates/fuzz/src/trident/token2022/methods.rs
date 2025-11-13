@@ -170,7 +170,7 @@ impl Trident {
 
         let total_rent_top_up = rent_top_ups.iter().sum::<usize>();
 
-        let mut instructions = self.create_account(
+        let mut instructions = self.create_account_internal(
             mint_address,
             payer,
             mint_space,
@@ -585,7 +585,7 @@ impl Trident {
         let account_space = ExtensionType::try_calculate_account_len::<Account>(&extension_types)
             .unwrap_or(Account::LEN);
 
-        let mut instructions = self.create_account(
+        let mut instructions = self.create_account_internal(
             token_account_address,
             payer,
             account_space,
