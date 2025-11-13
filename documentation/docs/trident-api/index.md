@@ -88,7 +88,12 @@ pub fn get_last_blockhash(&self) -> Hash
 - **[Random Generation](./random-generation.md)** - Generate random data for comprehensive fuzz testing
 - **[Metrics & Regression](./metrics-regression.md)** - Collect metrics and track account states for regression testing
 
+### Native Program Methods
+
+- **[System Program Methods](./system-program.md)** - Account creation, allocation, assignment, and SOL transfers
+
 ### Feature-Gated Methods
+
 - **[SPL Token Methods](./spl-token.md)** - Available with `token` feature
 - **[Token 2022 Methods](./token-2022.md)** - Available with `token` feature  
 - **[Vote Program Methods](./vote-program.md)** - Available with `vote` feature

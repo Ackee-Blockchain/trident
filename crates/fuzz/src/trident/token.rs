@@ -27,7 +27,7 @@ impl Trident {
         owner: &Pubkey,
         freeze_authority: Option<&Pubkey>,
     ) -> Vec<Instruction> {
-        let mut create_account_instructions = self.create_account(
+        let mut create_account_instructions = self.create_account_internal(
             mint_address,
             payer,
             spl_token_interface::state::Mint::LEN,
@@ -67,7 +67,7 @@ impl Trident {
         mint: &Pubkey,
         owner: &Pubkey,
     ) -> Vec<Instruction> {
-        let mut create_account_instructions = self.create_account(
+        let mut create_account_instructions = self.create_account_internal(
             token_account_address,
             payer,
             spl_token_interface::state::Account::LEN,
