@@ -26,7 +26,7 @@ let ix = InitializeFnInstruction::data(InitializeFnInstructionData::new(input))
     .instruction();
 
 // Execute transaction
-let res = self.trident.process_transaction(&[ix], "Initialize");
+let res = self.trident.process_transaction(&[ix], Some("Initialize"));
 ```
 
 !!! warning "Available Types"

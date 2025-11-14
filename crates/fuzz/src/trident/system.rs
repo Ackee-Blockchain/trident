@@ -2,7 +2,6 @@ use solana_sdk::account::ReadableAccount;
 use solana_sdk::instruction::Instruction;
 use solana_sdk::pubkey::Pubkey;
 
-use crate::trident::transaction_result::TransactionResult;
 use crate::trident::Trident;
 
 impl Trident {
@@ -47,10 +46,10 @@ impl Trident {
             vec![ix]
         }
     }
-    /// Transfers SOL from one account to another
+    /// Creates an instruction to transfer SOL from one account to another
     ///
-    /// This method creates and executes a system program transfer instruction
-    /// to move the specified amount of lamports from the source to destination account.
+    /// Generates a system program transfer instruction to move the specified amount
+    /// of lamports from the source to destination account.
     ///
     /// # Arguments
     /// * `from` - The public key of the account to transfer from
@@ -58,9 +57,8 @@ impl Trident {
     /// * `amount` - The number of lamports to transfer
     ///
     /// # Returns
-    /// A `TransactionResult` indicating success or failure of the transfer
-    pub fn transfer(&mut self, from: &Pubkey, to: &Pubkey, amount: u64) -> TransactionResult {
-        let ix = solana_sdk::system_instruction::transfer(from, to, amount);
-        self.process_transaction(&[ix], "Transfer")
+    /// An instruction that needs to be executed with `process_transaction`
+    pub fn transfer(&mut self, from: &Pubkey, to: &Pubkey, amount: u64) -> Instruction {
+        solana_sdk::system_instruction::transfer(from, to, amount)
     }
 }

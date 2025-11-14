@@ -39,7 +39,9 @@ impl FuzzTest {
         .accounts(InitializeCallerInstructionAccounts::new(signer))
         .instruction();
 
-        let _ = self.trident.process_transaction(&[ix], "initialize_caller");
+        let _ = self
+            .trident
+            .process_transaction(&[ix], Some("initialize_caller"));
     }
 
     #[flow]

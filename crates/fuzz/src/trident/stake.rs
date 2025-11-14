@@ -1,15 +1,15 @@
+use solana_sdk::instruction::Instruction;
 use solana_sdk::pubkey::Pubkey;
 use solana_stake_interface::state::Authorized;
 use solana_stake_interface::state::Lockup;
 
-use crate::trident::transaction_result::TransactionResult;
 use crate::trident::Trident;
 
 impl Trident {
-    /// Creates and delegates a stake account in a single transaction
+    /// Creates instructions to create and delegate a stake account
     ///
-    /// This method creates a new stake account and immediately delegates it to the specified
-    /// vote account, combining both operations into a single transaction.
+    /// Generates instructions to create a new stake account and immediately delegate it to the specified
+    /// vote account, combining both operations.
     ///
     /// # Arguments
     /// * `from_pubkey` - The public key of the account funding the stake account creation
@@ -20,7 +20,7 @@ impl Trident {
     /// * `lamports` - The number of lamports to transfer to the stake account
     ///
     /// # Returns
-    /// A `TransactionResult` indicating success or failure of the account creation and delegation
+    /// A vector of instructions that need to be executed with `process_transaction`
     pub fn create_and_delegate_account(
         &mut self,
         from_pubkey: &Pubkey,
@@ -29,22 +29,20 @@ impl Trident {
         authorized: &Authorized,
         lockup: Lockup,
         lamports: u64,
-    ) -> TransactionResult {
-        let create_and_delegate =
-            solana_stake_interface::instruction::create_account_and_delegate_stake(
-                from_pubkey,
-                stake_pubkey,
-                vote_pubkey,
-                authorized,
-                &lockup,
-                lamports,
-            );
-        self.process_transaction(&create_and_delegate, "Creating and Delegating Account")
+    ) -> Vec<Instruction> {
+        solana_stake_interface::instruction::create_account_and_delegate_stake(
+            from_pubkey,
+            stake_pubkey,
+            vote_pubkey,
+            authorized,
+            &lockup,
+            lamports,
+        )
     }
 
-    /// Creates and initializes a stake account without delegation
+    /// Creates instructions to initialize a stake account without delegation
     ///
-    /// This method creates a new stake account with the specified authorities and lockup
+    /// Generates instructions to create a new stake account with the specified authorities and lockup
     /// configuration, but does not delegate it to any vote account.
     ///
     /// # Arguments
@@ -55,7 +53,7 @@ impl Trident {
     /// * `lamports` - The number of lamports to transfer to the stake account
     ///
     /// # Returns
-    /// A `TransactionResult` indicating success or failure of the account creation
+    /// A vector of instructions that need to be executed with `process_transaction`
     pub fn create_initialized_account(
         &mut self,
         from_pubkey: &Pubkey,
@@ -63,15 +61,13 @@ impl Trident {
         authorized: &Authorized,
         lockup: Lockup,
         lamports: u64,
-    ) -> TransactionResult {
-        let create_account = solana_stake_interface::instruction::create_account(
+    ) -> Vec<Instruction> {
+        solana_stake_interface::instruction::create_account(
             from_pubkey,
             stake_pubkey,
             authorized,
             &lockup,
             lamports,
-        );
-
-        self.process_transaction(&create_account, "Creating Initialized Account")
+        )
     }
 }

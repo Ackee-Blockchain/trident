@@ -19,7 +19,7 @@ Trident enables regression testing by allowing you to specify which accounts sho
             let account = self.fuzz_accounts.target_account.insert(&mut self.trident, None);
             
             let instruction = create_initialize_instruction(account);
-            let result = self.trident.process_transaction(&[instruction], "initialize");
+            let result = self.trident.process_transaction(&[instruction], Some("initialize"));
             
             if result.is_success() {
                 // Add the account to regression tracking

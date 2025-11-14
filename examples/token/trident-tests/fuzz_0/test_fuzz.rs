@@ -47,9 +47,13 @@ impl FuzzTest {
 
         self.trident.airdrop(&author2022, 10 * LAMPORTS_PER_SOL);
 
-        let res = self
+        let ixs = self
             .trident
             .initialize_mint_2022(&payer, &mint2022, 7, &author2022, None, &[]);
+
+        let res = self
+            .trident
+            .process_transaction(&ixs, Some("Empty extensions"));
 
         assert!(
             res.is_success(),
@@ -83,7 +87,7 @@ impl FuzzTest {
         let mint2022 = self.fuzz_accounts.mint2022.insert(&mut self.trident, None);
 
         self.trident.airdrop(&author2022, 10 * LAMPORTS_PER_SOL);
-        let res = self.trident.initialize_mint_2022(
+        let ixs = self.trident.initialize_mint_2022(
             &payer,
             &mint2022,
             5,
@@ -93,6 +97,10 @@ impl FuzzTest {
                 authority: author2022,
             }],
         );
+
+        let res = self
+            .trident
+            .process_transaction(&ixs, Some("Pausable extension"));
 
         assert!(
             res.is_success(),
@@ -123,7 +131,7 @@ impl FuzzTest {
         let mint2022 = self.fuzz_accounts.mint2022.insert(&mut self.trident, None);
 
         self.trident.airdrop(&author2022, 10 * LAMPORTS_PER_SOL);
-        let res = self.trident.initialize_mint_2022(
+        let ixs = self.trident.initialize_mint_2022(
             &payer,
             &mint2022,
             5,
@@ -134,6 +142,10 @@ impl FuzzTest {
                 multiplier: 1.0,
             }],
         );
+
+        let res = self
+            .trident
+            .process_transaction(&ixs, Some("ScaledUiAmount extension"));
 
         assert!(
             res.is_success(),
@@ -165,7 +177,7 @@ impl FuzzTest {
 
         self.trident.airdrop(&author2022, 10 * LAMPORTS_PER_SOL);
 
-        let res = self.trident.initialize_mint_2022(
+        let ixs = self.trident.initialize_mint_2022(
             &payer,
             &mint2022,
             5,
@@ -187,6 +199,10 @@ impl FuzzTest {
                 },
             ],
         );
+
+        let res = self
+            .trident
+            .process_transaction(&ixs, Some("MetadataPointer + TokenMetadata extensions"));
 
         assert!(
             res.is_success(),
@@ -220,7 +236,7 @@ impl FuzzTest {
         let mint2022 = self.fuzz_accounts.mint2022.insert(&mut self.trident, None);
 
         self.trident.airdrop(&author2022, 10 * LAMPORTS_PER_SOL);
-        let res = self.trident.initialize_mint_2022(
+        let ixs = self.trident.initialize_mint_2022(
             &payer,
             &mint2022,
             5,
@@ -233,6 +249,10 @@ impl FuzzTest {
                 maximum_fee: 100,
             }],
         );
+
+        let res = self
+            .trident
+            .process_transaction(&ixs, Some("TransferFeeConfig extension"));
 
         assert!(
             res.is_success(),
@@ -263,7 +283,7 @@ impl FuzzTest {
         let mint2022 = self.fuzz_accounts.mint2022.insert(&mut self.trident, None);
 
         self.trident.airdrop(&author2022, 10 * LAMPORTS_PER_SOL);
-        let res = self.trident.initialize_mint_2022(
+        let ixs = self.trident.initialize_mint_2022(
             &payer,
             &mint2022,
             5,
@@ -273,6 +293,10 @@ impl FuzzTest {
                 close_authority: Some(author2022),
             }],
         );
+
+        let res = self
+            .trident
+            .process_transaction(&ixs, Some("MintCloseAuthority extension"));
 
         assert!(
             res.is_success(),
@@ -304,7 +328,7 @@ impl FuzzTest {
 
         self.trident.airdrop(&author2022, 10 * LAMPORTS_PER_SOL);
 
-        let res = self.trident.initialize_mint_2022(
+        let ixs = self.trident.initialize_mint_2022(
             &payer,
             &mint2022,
             5,
@@ -315,6 +339,10 @@ impl FuzzTest {
                 rate: 100,
             }],
         );
+
+        let res = self
+            .trident
+            .process_transaction(&ixs, Some("InterestBearingConfig extension"));
 
         assert!(
             res.is_success(),
@@ -346,7 +374,7 @@ impl FuzzTest {
 
         self.trident.airdrop(&author2022, 10 * LAMPORTS_PER_SOL);
 
-        let res = self.trident.initialize_mint_2022(
+        let ixs = self.trident.initialize_mint_2022(
             &payer,
             &mint2022,
             5,
@@ -354,6 +382,10 @@ impl FuzzTest {
             None,
             &[MintExtension::NonTransferable {}],
         );
+
+        let res = self
+            .trident
+            .process_transaction(&ixs, Some("NonTransferable extension"));
 
         assert!(
             res.is_success(),
@@ -384,7 +416,7 @@ impl FuzzTest {
         let mint2022 = self.fuzz_accounts.mint2022.insert(&mut self.trident, None);
 
         self.trident.airdrop(&author2022, 10 * LAMPORTS_PER_SOL);
-        let res = self.trident.initialize_mint_2022(
+        let ixs = self.trident.initialize_mint_2022(
             &payer,
             &mint2022,
             5,
@@ -394,6 +426,10 @@ impl FuzzTest {
                 delegate: author2022,
             }],
         );
+
+        let res = self
+            .trident
+            .process_transaction(&ixs, Some("PermanentDelegate extension"));
 
         assert!(
             res.is_success(),
@@ -424,7 +460,7 @@ impl FuzzTest {
         let mint2022 = self.fuzz_accounts.mint2022.insert(&mut self.trident, None);
 
         self.trident.airdrop(&author2022, 10 * LAMPORTS_PER_SOL);
-        let res = self.trident.initialize_mint_2022(
+        let ixs = self.trident.initialize_mint_2022(
             &payer,
             &mint2022,
             5,
@@ -435,6 +471,10 @@ impl FuzzTest {
                 program_id: Some(mint2022),
             }],
         );
+
+        let res = self
+            .trident
+            .process_transaction(&ixs, Some("TransferHook extension"));
 
         assert!(
             res.is_success(),
@@ -465,7 +505,7 @@ impl FuzzTest {
         let mint2022 = self.fuzz_accounts.mint2022.insert(&mut self.trident, None);
 
         self.trident.airdrop(&author2022, 10 * LAMPORTS_PER_SOL);
-        let res = self.trident.initialize_mint_2022(
+        let ixs = self.trident.initialize_mint_2022(
             &payer,
             &mint2022,
             5,
@@ -483,6 +523,10 @@ impl FuzzTest {
                 },
             ],
         );
+
+        let res = self
+            .trident
+            .process_transaction(&ixs, Some("TransferFeeConfig + Pausable extension"));
 
         assert!(
             res.is_success(),
@@ -513,7 +557,7 @@ impl FuzzTest {
         let mint2022 = self.fuzz_accounts.mint2022.insert(&mut self.trident, None);
 
         self.trident.airdrop(&author2022, 10 * LAMPORTS_PER_SOL);
-        let res = self.trident.initialize_mint_2022(
+        let ixs = self.trident.initialize_mint_2022(
             &payer,
             &mint2022,
             5,
@@ -540,6 +584,11 @@ impl FuzzTest {
                     metadata: mint2022,
                 },
             ],
+        );
+
+        let res = self.trident.process_transaction(
+            &ixs,
+            Some("TransferFeeConfig + MetadataPointer + TokenMetadata extension"),
         );
 
         assert!(
@@ -572,7 +621,7 @@ impl FuzzTest {
 
         // ===== GROUP MINT CREATION =====
         self.trident.airdrop(&author2022, 10 * LAMPORTS_PER_SOL);
-        let res = self.trident.initialize_mint_2022(
+        let ixs = self.trident.initialize_mint_2022(
             &payer,
             &mint2022,
             5,
@@ -590,6 +639,10 @@ impl FuzzTest {
                 },
             ],
         );
+
+        let res = self
+            .trident
+            .process_transaction(&ixs, Some("GroupPointer + TokenGroup extension"));
 
         assert!(
             res.is_success(),
@@ -611,7 +664,7 @@ impl FuzzTest {
             .group_member_mint2022
             .insert(&mut self.trident, None);
 
-        let res = self.trident.initialize_mint_2022(
+        let ixs = self.trident.initialize_mint_2022(
             &payer,
             &group_member_mint2022,
             5,
@@ -627,6 +680,11 @@ impl FuzzTest {
                     group_update_authority: author2022,
                 },
             ],
+        );
+
+        let res = self.trident.process_transaction(
+            &ixs,
+            Some("GroupMemberPointer + TokenGroupMember extension"),
         );
 
         assert!(
@@ -659,7 +717,7 @@ impl FuzzTest {
 
         self.trident.airdrop(&author2022, 20 * LAMPORTS_PER_SOL);
 
-        let res = self.trident.initialize_mint_2022(
+        let ixs = self.trident.initialize_mint_2022(
             &payer,
             &mint2022,
             5,
@@ -708,6 +766,10 @@ impl FuzzTest {
             ],
         );
 
+        let res = self
+            .trident
+            .process_transaction(&ixs, Some("Multiple extensions"));
+
         assert!(
             res.is_success(),
             "GroupPointer + TokenGroup + MetadataPointer + TokenMetadata + Pausable + TransferFeeConfig + ScaledUiAmount + MintCloseAuthority extension failed: {:#?}",
@@ -726,7 +788,7 @@ impl FuzzTest {
             .token_account2022
             .insert(&mut self.trident, None);
 
-        let res = self.trident.initialize_token_account_2022(
+        let ixs = self.trident.initialize_token_account_2022(
             &payer,
             &token_account2022_1,
             &mint2022,
@@ -738,6 +800,11 @@ impl FuzzTest {
                     require_incoming_transfer_memos: true,
                 },
             ],
+        );
+
+        let res = self.trident.process_transaction(
+            &ixs,
+            Some("ImmutableOwner + CpiGuard + MemoTransfer extension"),
         );
 
         assert!(
@@ -753,21 +820,27 @@ impl FuzzTest {
 
         assert!(res.extensions.len() == 5);
 
-        let res = self.trident.mint_to_2022(
+        let ix = self.trident.mint_to_2022(
             &token_account2022_1,
             &mint2022,
             &author2022,
             1000000000000000000,
         );
 
+        let res = self.trident.process_transaction(&[ix], Some("Mint to"));
+
         assert!(res.is_success(), "Mint to failed: {:#?}", res.get_result());
 
-        let res = self.trident.initialize_associated_token_account_2022(
+        let ixs = self.trident.initialize_associated_token_account_2022(
             &payer,
             &mint2022,
             &author2022,
             &[AccountExtension::ImmutableOwner, AccountExtension::CpiGuard],
         );
+
+        let res = self
+            .trident
+            .process_transaction(&ixs, Some("ImmutableOwner + CpiGuard extension"));
 
         assert!(
             res.is_success(),
@@ -792,7 +865,7 @@ impl FuzzTest {
 
         assert!(res.extensions.len() == 4);
 
-        let res = self.trident.transfer_checked(
+        let ix = self.trident.transfer_checked(
             &token_account2022_1,
             &associated_token_account,
             &mint2022,
@@ -801,6 +874,10 @@ impl FuzzTest {
             1000000000000000000,
             5,
         );
+
+        let res = self
+            .trident
+            .process_transaction(&[ix], Some("Transfer checked token"));
 
         assert!(
             res.is_success(),

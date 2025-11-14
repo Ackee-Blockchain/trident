@@ -27,7 +27,7 @@ impl FuzzTest {
         
         // Execute the transaction
         let instruction = create_transfer_instruction(account, 100);
-        let result = self.trident.process_transaction(&[instruction], "transfer");
+        let result = self.trident.process_transaction(&[instruction], Some("transfer"));
         
         // Validate the result
         if result.is_success() {

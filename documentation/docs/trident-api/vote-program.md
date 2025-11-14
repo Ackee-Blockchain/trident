@@ -15,7 +15,7 @@ The Vote Program methods provide functionality for working with Solana's vote pr
 
 ### `initialize_vote_account`
 
-Creates and initializes a vote account with the specified configuration.
+Creates instructions to initialize a vote account with the specified configuration.
 
 ```rust
 pub fn initialize_vote_account(
@@ -27,7 +27,7 @@ pub fn initialize_vote_account(
     authorized_withdrawer: &Pubkey,
     commission: u8,
     lamports: u64,
-) -> TransactionResult
+) -> Vec<Instruction>
 ```
 
 **Parameters:**
@@ -40,9 +40,9 @@ pub fn initialize_vote_account(
 - `commission` - The commission percentage (0-100)
 - `lamports` - The number of lamports to transfer to the vote account
 
-**Returns:** A `TransactionResult` indicating success or failure of the vote account creation.
+**Returns:** A vector of instructions that need to be executed with `process_transaction`.
 
-**Description:** Creates a vote account for a validator with the specified configuration including voting authorities and commission rate.
+**Description:** Generates instructions to create a vote account for a validator with the specified configuration including voting authorities and commission rate.
 
 ---
 
@@ -62,7 +62,7 @@ fn test_vote_account_creation(&mut self) {
     let lamports = 1_000_000_000; // 1 SOL
     
     // Initialize vote account
-    let result = self.initialize_vote_account(
+    let instructions = self.initialize_vote_account(
         &from_pubkey,
         &vote_account,
         &node_pubkey,
@@ -71,6 +71,7 @@ fn test_vote_account_creation(&mut self) {
         commission,
         lamports,
     );
+    let result = self.process_transaction(&instructions, Some("initialize_vote"));
     
     // Verify the transaction was successful
     assert!(result.is_success());

@@ -64,7 +64,9 @@ impl FuzzTest {
             .accounts(InitializeInstructionAccounts::new(state_author, state))
             .instruction();
 
-        let _ = self.trident.process_transaction(&[init], "Initialize");
+        let _ = self
+            .trident
+            .process_transaction(&[init], Some("Initialize"));
     }
 
     #[flow]
@@ -87,7 +89,9 @@ impl FuzzTest {
         .accounts(MoveNorthInstructionAccounts::new(state))
         .instruction();
 
-        let _ = self.trident.process_transaction(&[move_north], "MoveNorth");
+        let _ = self
+            .trident
+            .process_transaction(&[move_north], Some("MoveNorth"));
     }
 
     #[flow]
@@ -110,7 +114,9 @@ impl FuzzTest {
         .accounts(MoveSouthInstructionAccounts::new(state))
         .instruction();
 
-        let _ = self.trident.process_transaction(&[move_north], "MoveSouth");
+        let _ = self
+            .trident
+            .process_transaction(&[move_north], Some("MoveSouth"));
     }
 
     #[flow]
@@ -133,7 +139,9 @@ impl FuzzTest {
         .accounts(MoveEastInstructionAccounts::new(state))
         .instruction();
 
-        let _ = self.trident.process_transaction(&[move_north], "MoveEast");
+        let _ = self
+            .trident
+            .process_transaction(&[move_north], Some("MoveEast"));
     }
 
     #[flow]
@@ -156,7 +164,9 @@ impl FuzzTest {
         .accounts(MoveWestInstructionAccounts::new(state))
         .instruction();
 
-        let _ = self.trident.process_transaction(&[move_north], "MoveWest");
+        let _ = self
+            .trident
+            .process_transaction(&[move_north], Some("MoveWest"));
     }
 
     #[end]
