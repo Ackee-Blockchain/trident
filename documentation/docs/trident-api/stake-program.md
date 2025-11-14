@@ -15,7 +15,7 @@ The Stake Program methods provide functionality for working with Solana's stake 
 
 ### `create_initialized_account`
 
-Creates and initializes a stake account without delegation.
+Creates instructions to initialize a stake account without delegation.
 
 ```rust
 pub fn create_initialized_account(
@@ -25,7 +25,7 @@ pub fn create_initialized_account(
     authorized: &Authorized,
     lockup: Lockup,
     lamports: u64,
-) -> TransactionResult
+) -> Vec<Instruction>
 ```
 
 **Parameters:**
@@ -36,13 +36,13 @@ pub fn create_initialized_account(
 - `lockup` - The lockup configuration for the stake account
 - `lamports` - The number of lamports to transfer to the stake account
 
-**Returns:** A `TransactionResult` indicating success or failure of the account creation.
+**Returns:** A vector of instructions that need to be executed with `process_transaction`.
 
-**Description:** Creates a stake account that can be used to delegate SOL to validators for earning staking rewards.
+**Description:** Generates instructions to create a stake account that can be used to delegate SOL to validators for earning staking rewards.
 
 ### `create_and_delegate_account`
 
-Creates and delegates a stake account in a single transaction.
+Creates instructions to create and delegate a stake account.
 
 ```rust
 pub fn create_and_delegate_account(
@@ -53,7 +53,7 @@ pub fn create_and_delegate_account(
     authorized: &Authorized,
     lockup: Lockup,
     lamports: u64,
-) -> TransactionResult
+) -> Vec<Instruction>
 ```
 
 **Parameters:**
@@ -65,9 +65,9 @@ pub fn create_and_delegate_account(
 - `lockup` - The lockup configuration for the stake account
 - `lamports` - The number of lamports to transfer to the stake account
 
-**Returns:** A `TransactionResult` indicating success or failure of the account creation and delegation.
+**Returns:** A vector of instructions that need to be executed with `process_transaction`.
 
-**Description:** Creates a new stake account and immediately delegates it to the specified vote account, combining both operations into a single transaction.
+**Description:** Generates instructions to create a new stake account and immediately delegate it to the specified vote account, combining both operations.
 
 ---
 
@@ -124,18 +124,19 @@ fn test_stake_account_creation(&mut self) {
     };
     
     // Create initialized stake account
-    let result = self.create_initialized_account(
+    let instructions = self.create_initialized_account(
         &from_pubkey,
         &stake_account,
         &authorized,
         lockup,
         lamports,
     );
+    let result = self.process_transaction(&instructions, Some("create_stake"));
     assert!(result.is_success());
     
     // Or create and delegate in one transaction
     let delegated_stake = self.random_pubkey();
-    let delegate_result = self.create_and_delegate_account(
+    let instructions = self.create_and_delegate_account(
         &from_pubkey,
         &delegated_stake,
         &vote_account,
@@ -143,7 +144,8 @@ fn test_stake_account_creation(&mut self) {
         lockup,
         lamports,
     );
-    assert!(delegate_result.is_success());
+    let result = self.process_transaction(&instructions, Some("create_and_delegate"));
+    assert!(result.is_success());
 }
 ```
 

@@ -20,18 +20,18 @@ Processes a transaction with the given instructions and returns the result with 
 pub fn process_transaction(
     &mut self,
     instructions: &[Instruction],
-    transaction_name: &str,
+    log_as: Option<&str>,
 ) -> TransactionResult
 ```
 
 **Parameters:**
 
 - `instructions` - Array of instructions to execute in the transaction
-- `transaction_name` - Name for the transaction (used in metrics and logging)
+- `log_as` - Optional name for the transaction (used in metrics and logging). If `None`, the transaction will not be logged.
 
 **Returns:** `TransactionResult` containing success/failure status and transaction logs.
 
-**Description:** Executes a transaction containing one or more instructions and returns the results. Use this to test your program's instructions with various inputs.
+**Description:** Executes a transaction containing one or more instructions and returns the results. Use this to test your program's instructions with various inputs. Provide a transaction name to enable metrics collection and logging for that transaction.
 
 ---
 
@@ -113,11 +113,14 @@ fn basic_fuzz_example(&mut self) {
     let amount = self.random_from_range(1..1000u64);
     let recipient = self.random_pubkey();
     
-    // Create and execute transaction
+    // Create and execute transaction with logging
     let transfer_ix = self.transfer(&self.payer().pubkey(), &recipient, amount);
-    let result = self.process_transaction(&[transfer_ix], "Transfer Test");
+    let result = self.process_transaction(&[transfer_ix], Some("Transfer Test"));
     
     // Verify results
     assert!(result.is_success());
+    
+    // Or execute without logging (pass None)
+    let result = self.process_transaction(&[transfer_ix], None);
 }
 ```

@@ -44,7 +44,7 @@ impl FuzzTest {
         let random_value = self.trident.random_from_range(1..1000);
         
         let instruction = create_instruction(random_value);
-        let result = self.trident.process_transaction(&[instruction], "example");
+        let result = self.trident.process_transaction(&[instruction], Some("example"));
         
         // Track the random value in dashboard metrics
         self.trident.add_histogram_metric("random_values", random_value as f64);

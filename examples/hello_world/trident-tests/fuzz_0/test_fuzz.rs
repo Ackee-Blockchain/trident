@@ -48,7 +48,7 @@ impl FuzzTest {
             .accounts(InitializeFnInstructionAccounts::new(author, hello_world))
             .instruction();
 
-        let res = self.trident.process_transaction(&[ix], "Initialize");
+        let res = self.trident.process_transaction(&[ix], Some("Initialize"));
 
         if res.is_success() {
             let hello_world_account = self

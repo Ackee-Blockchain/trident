@@ -15,7 +15,7 @@ The Token 2022 methods provide comprehensive support for the SPL Token 2022 prog
 
 ### `initialize_mint_2022`
 
-Creates and initializes a Token 2022 mint with specified extensions.
+Creates instructions to initialize a Token 2022 mint with specified extensions.
 
 ```rust
 pub fn initialize_mint_2022(
@@ -26,7 +26,7 @@ pub fn initialize_mint_2022(
     mint_authority: &Pubkey,
     freeze_authority: Option<&Pubkey>,
     extensions: &[MintExtension],
-) -> TransactionResult
+) -> Vec<Instruction>
 ```
 
 **Parameters:**
@@ -38,15 +38,15 @@ pub fn initialize_mint_2022(
 - `freeze_authority` - Optional authority that can freeze accounts
 - `extensions` - Array of extensions to enable on the mint
 
-**Returns:** `TransactionResult` indicating success or failure.
+**Returns:** A vector of instructions that need to be executed with `process_transaction`.
 
-**Description:** Creates a Token 2022 mint with the specified extensions enabled. You can combine multiple extensions to create mints with advanced functionality like transfer fees, interest-bearing tokens, or metadata.
+**Description:** Generates instructions to create a Token 2022 mint with the specified extensions enabled. You can combine multiple extensions to create mints with advanced functionality like transfer fees, interest-bearing tokens, or metadata.
 
 ---
 
 ### `mint_to_2022`
 
-Mints tokens to a Token 2022 account.
+Creates an instruction to mint tokens to a Token 2022 account.
 
 ```rust
 pub fn mint_to_2022(
@@ -55,7 +55,7 @@ pub fn mint_to_2022(
     mint_address: &Pubkey,
     mint_authority: &Pubkey,
     amount: u64,
-) -> TransactionResult
+) -> Instruction
 ```
 
 **Parameters:**
@@ -65,9 +65,9 @@ pub fn mint_to_2022(
 - `mint_authority` - The authority allowed to mint tokens
 - `amount` - The number of tokens to mint (in base units)
 
-**Returns:** `TransactionResult` indicating success or failure.
+**Returns:** An instruction that needs to be executed with `process_transaction`.
 
-**Description:** Mints the specified amount of tokens to the target Token 2022 account.
+**Description:** Generates an instruction to mint the specified amount of tokens to the target Token 2022 account.
 
 ---
 
@@ -75,7 +75,7 @@ pub fn mint_to_2022(
 
 ### `initialize_token_account_2022`
 
-Creates and initializes a Token 2022 token account with specified extensions.
+Creates instructions to initialize a Token 2022 token account with specified extensions.
 
 ```rust
 pub fn initialize_token_account_2022(
@@ -85,7 +85,7 @@ pub fn initialize_token_account_2022(
     mint: &Pubkey,
     owner: &Pubkey,
     extensions: &[AccountExtension],
-) -> TransactionResult
+) -> Vec<Instruction>
 ```
 
 **Parameters:**
@@ -96,15 +96,15 @@ pub fn initialize_token_account_2022(
 - `owner` - The owner of the token account
 - `extensions` - Array of extensions to enable on the account
 
-**Returns:** `TransactionResult` indicating success or failure.
+**Returns:** A vector of instructions that need to be executed with `process_transaction`.
 
-**Description:** Creates a Token 2022 account with the specified extensions enabled. Extensions like immutable owner, memo transfers, or CPI guard can be added to enhance account security and functionality.
+**Description:** Generates instructions to create a Token 2022 account with the specified extensions enabled. Extensions like immutable owner, memo transfers, or CPI guard can be added to enhance account security and functionality.
 
 ---
 
 ### `initialize_associated_token_account_2022`
 
-Creates an associated Token 2022 account with specified extensions.
+Creates instructions to initialize an associated Token 2022 account with specified extensions.
 
 ```rust
 pub fn initialize_associated_token_account_2022(
@@ -113,7 +113,7 @@ pub fn initialize_associated_token_account_2022(
     mint: &Pubkey,
     owner: &Pubkey,
     extensions: &[AccountExtension],
-) -> TransactionResult
+) -> Vec<Instruction>
 ```
 
 **Parameters:**
@@ -123,9 +123,9 @@ pub fn initialize_associated_token_account_2022(
 - `owner` - The owner of the token account
 - `extensions` - Array of additional extensions to enable on the account
 
-**Returns:** `TransactionResult` indicating success or failure.
+**Returns:** A vector of instructions that need to be executed with `process_transaction`.
 
-**Description:** Creates an associated Token 2022 account with additional extensions. The account is automatically funded and any mint-required extensions are included, plus any additional extensions you specify.
+**Description:** Generates instructions to create an associated Token 2022 account with additional extensions. The account is automatically funded and any mint-required extensions are included, plus any additional extensions you specify.
 
 ---
 
@@ -133,7 +133,7 @@ pub fn initialize_associated_token_account_2022(
 
 ### `transfer_checked`
 
-Transfers tokens between Token 2022 accounts with amount and decimals verification.
+Creates an instruction to transfer tokens between Token 2022 accounts with amount and decimals verification.
 
 ```rust
 pub fn transfer_checked(
@@ -145,7 +145,7 @@ pub fn transfer_checked(
     signers: &[&Pubkey],
     amount: u64,
     decimals: u8,
-) -> TransactionResult
+) -> Instruction
 ```
 
 **Parameters:**
@@ -158,9 +158,9 @@ pub fn transfer_checked(
 - `amount` - The number of tokens to transfer (in base units)
 - `decimals` - The number of decimals for the mint (for verification)
 
-**Returns:** `TransactionResult` indicating success or failure.
+**Returns:** An instruction that needs to be executed with `process_transaction`.
 
-**Description:** Transfers tokens between accounts with built-in verification of amount and decimals to prevent transfer errors.
+**Description:** Generates an instruction to transfer tokens between accounts with built-in verification of amount and decimals to prevent transfer errors.
 
 ---
 
@@ -258,13 +258,15 @@ fn test_token_2022_operations(&mut self) {
         }
     ];
     
-    let result = self.initialize_mint_2022(
+    let instructions = self.initialize_mint_2022(
+        &owner,
         &mint_keypair,
         6, // 6 decimals
         &owner,
         Some(&owner), // freeze authority
         &extensions,
     );
+    let result = self.process_transaction(&instructions, Some("initialize_mint_2022"));
     assert!(result.is_success());
     
     // Create token account with memo transfer extension
@@ -274,11 +276,13 @@ fn test_token_2022_operations(&mut self) {
         }
     ];
     
-    let result = self.initialize_associated_token_account_2022(
+    let instructions = self.initialize_associated_token_account_2022(
+        &owner,
         &mint_keypair,
         &owner,
         &account_extensions,
     );
+    let result = self.process_transaction(&instructions, Some("create_ata_2022"));
     assert!(result.is_success());
     
     // Get mint data with extensions

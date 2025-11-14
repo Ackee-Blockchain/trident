@@ -1,23 +1,24 @@
+use solana_sdk::instruction::Instruction;
 use solana_sdk::program_pack::Pack;
 use solana_sdk::pubkey::Pubkey;
 
-use crate::trident::transaction_result::TransactionResult;
 use crate::trident::Trident;
 
 impl Trident {
-    /// Initializes a new SPL Token mint
+    /// Creates instructions to initialize a new SPL Token mint
     ///
-    /// Creates and initializes a new token mint with the specified parameters.
+    /// Generates instructions to create and initialize a new token mint with the specified parameters.
     /// This involves creating the account and then initializing it as a mint.
     ///
     /// # Arguments
+    /// * `payer` - The payer covering the rent
     /// * `mint_address` - The public key where the mint will be created
     /// * `decimals` - Number of decimal places for the token (0-9)
     /// * `owner` - The mint authority who can mint new tokens
     /// * `freeze_authority` - Optional authority who can freeze token accounts
     ///
     /// # Returns
-    /// A `TransactionResult` indicating success or failure of the mint creation
+    /// A vector of instructions that need to be executed with `process_transaction`
     pub fn initialize_mint(
         &mut self,
         payer: &Pubkey,
@@ -25,7 +26,7 @@ impl Trident {
         decimals: u8,
         owner: &Pubkey,
         freeze_authority: Option<&Pubkey>,
-    ) -> TransactionResult {
+    ) -> Vec<Instruction> {
         let mut create_account_instructions = self.create_account(
             mint_address,
             payer,
@@ -43,28 +44,29 @@ impl Trident {
         .unwrap();
         create_account_instructions.push(ix_2);
 
-        self.process_transaction(&create_account_instructions, "Creating Mint Account")
+        create_account_instructions
     }
 
-    /// Initializes a new SPL Token account
+    /// Creates instructions to initialize a new SPL Token account
     ///
-    /// Creates and initializes a new token account that can hold tokens
+    /// Generates instructions to create and initialize a new token account that can hold tokens
     /// of the specified mint type.
     ///
     /// # Arguments
+    /// * `payer` - The payer covering the rent
     /// * `token_account_address` - The public key where the token account will be created
     /// * `mint` - The mint that this account will hold tokens for
     /// * `owner` - The owner of the token account
     ///
     /// # Returns
-    /// A `TransactionResult` indicating success or failure of the account creation
+    /// A vector of instructions that need to be executed with `process_transaction`
     pub fn initialize_token_account(
         &mut self,
         payer: &Pubkey,
         token_account_address: &Pubkey,
         mint: &Pubkey,
         owner: &Pubkey,
-    ) -> TransactionResult {
+    ) -> Vec<Instruction> {
         let mut create_account_instructions = self.create_account(
             token_account_address,
             payer,
@@ -81,12 +83,12 @@ impl Trident {
 
         create_account_instructions.push(ix);
 
-        self.process_transaction(&create_account_instructions, "Creating Token Account")
+        create_account_instructions
     }
 
-    /// Mints tokens to a specified token account
+    /// Creates an instruction to mint tokens to a specified token account
     ///
-    /// Creates new tokens and adds them to the specified token account.
+    /// Generates an instruction to create new tokens and add them to the specified token account.
     /// The mint authority must sign this transaction.
     ///
     /// # Arguments
@@ -96,15 +98,15 @@ impl Trident {
     /// * `amount` - The number of tokens to mint (in base units)
     ///
     /// # Returns
-    /// A `TransactionResult` indicating success or failure of the mint operation
+    /// An instruction that needs to be executed with `process_transaction`
     pub fn mint_to(
         &mut self,
         token_account_address: &Pubkey,
         mint_address: &Pubkey,
         mint_authority: &Pubkey,
         amount: u64,
-    ) -> TransactionResult {
-        let ix = spl_token_interface::instruction::mint_to(
+    ) -> Instruction {
+        spl_token_interface::instruction::mint_to(
             &spl_token_interface::ID,
             mint_address,
             token_account_address,
@@ -112,36 +114,32 @@ impl Trident {
             &[],
             amount,
         )
-        .unwrap();
-
-        self.process_transaction(&[ix], "Minting to Token Account")
+        .unwrap()
     }
-    /// Creates an Associated Token Account (ATA)
+    /// Creates an instruction to initialize an Associated Token Account (ATA)
     ///
-    /// Creates an associated token account for the given mint and owner.
+    /// Generates an instruction to create an associated token account for the given mint and owner.
     /// The ATA address is deterministically derived from the mint and owner.
     ///
     /// # Arguments
+    /// * `payer` - The payer covering the rent
     /// * `mint` - The mint that the ATA will hold tokens for
     /// * `owner` - The owner of the ATA
     ///
     /// # Returns
-    /// A `TransactionResult` indicating success or failure of the ATA creation
+    /// An instruction that needs to be executed with `process_transaction`
     pub fn initialize_associated_token_account(
         &mut self,
         payer: &Pubkey,
         mint: &Pubkey,
         owner: &Pubkey,
-    ) -> TransactionResult {
-        let ix =
-            spl_associated_token_account_interface::instruction::create_associated_token_account(
-                payer,
-                owner,
-                mint,
-                &spl_token_interface::ID,
-            );
-
-        self.process_transaction(&[ix], "Creating Associated Token Account")
+    ) -> Instruction {
+        spl_associated_token_account_interface::instruction::create_associated_token_account(
+            payer,
+            owner,
+            mint,
+            &spl_token_interface::ID,
+        )
     }
     /// Gets the Associated Token Account address for a mint and owner
     ///

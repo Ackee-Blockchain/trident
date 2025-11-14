@@ -1,13 +1,13 @@
+use solana_sdk::instruction::Instruction;
 use solana_sdk::pubkey::Pubkey;
 
-use crate::trident::transaction_result::TransactionResult;
 use crate::trident::Trident;
 
 impl Trident {
-    /// Creates and initializes a vote account with the specified configuration
+    /// Creates instructions to initialize a vote account with the specified configuration
     ///
-    /// This method creates and executes a vote account initialization transaction
-    /// with the provided validator configuration and authorities.
+    /// Generates instructions to create and initialize a vote account with the provided
+    /// validator configuration and authorities.
     ///
     /// # Arguments
     /// * `from_pubkey` - The public key of the account to create the vote account from
@@ -19,7 +19,7 @@ impl Trident {
     /// * `lamports` - The number of lamports to transfer to the vote account
     ///
     /// # Returns
-    /// A `TransactionResult` indicating success or failure of the vote account creation
+    /// A vector of instructions that need to be executed with `process_transaction`
     #[allow(clippy::too_many_arguments)]
     pub fn initialize_vote_account(
         &mut self,
@@ -30,7 +30,7 @@ impl Trident {
         authorized_withdrawer: &Pubkey,
         commission: u8,
         lamports: u64,
-    ) -> TransactionResult {
+    ) -> Vec<Instruction> {
         let config = solana_vote_interface::instruction::CreateVoteAccountConfig::default();
 
         let vote_init = solana_vote_interface::state::VoteInit {
@@ -39,14 +39,12 @@ impl Trident {
             authorized_withdrawer: *authorized_withdrawer,
             commission,
         };
-        let ix = solana_vote_interface::instruction::create_account_with_config(
+        solana_vote_interface::instruction::create_account_with_config(
             from_pubkey,
             vote_pubkey,
             &vote_init,
             lamports,
             config,
-        );
-
-        self.process_transaction(&ix, "Initializing Vote Account")
+        )
     }
 }

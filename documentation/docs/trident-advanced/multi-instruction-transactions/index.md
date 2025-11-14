@@ -17,7 +17,7 @@ impl FuzzTest {
         // Execute multiple instructions in a single transaction
         let result = self.trident.process_transaction(
             &[instruction1, instruction2], 
-            "multi_instruction_transaction"
+            Some("multi_instruction_transaction")
         );
         
         // Handle the result and perform assertions

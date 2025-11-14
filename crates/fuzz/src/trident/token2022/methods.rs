@@ -4,6 +4,7 @@
 //! including all extensions and proper initialization order handling.
 
 use solana_sdk::account::ReadableAccount;
+use solana_sdk::instruction::Instruction;
 use solana_sdk::program_pack::Pack;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::rent::Rent;
@@ -20,20 +21,7 @@ use crate::trident::token2022::MintExtensionData;
 use crate::trident::token2022::MintWithExtensions;
 use crate::trident::token2022::TokenAccountExtensionData;
 use crate::trident::token2022::TokenAccountWithExtensions;
-use crate::trident::transaction_result::TransactionResult;
 use crate::trident::Trident;
-
-/// Default message for creating a Token 2022 mint without extensions
-const CREATE_MINT_MESSAGE: &str = "Creating Token 2022 Mint";
-
-/// Default message for creating a Token 2022 account without extensions
-const CREATE_ACCOUNT_MESSAGE: &str = "Creating Token 2022 Account";
-
-/// Message for minting tokens to an account
-const MINT_TO_MESSAGE: &str = "Minting to Token 2022 Account";
-
-/// Message for transferring tokens to an account
-const TRANSFER_CHECKED_MESSAGE: &str = "Transferring tokens to Token 2022 Account";
 
 /// Account state values for DefaultAccountState extension
 const ACCOUNT_STATE_UNINITIALIZED: u8 = 0;
@@ -41,14 +29,15 @@ const ACCOUNT_STATE_INITIALIZED: u8 = 1;
 const ACCOUNT_STATE_FROZEN: u8 = 2;
 
 impl Trident {
-    /// Creates a Token 2022 mint with specified extensions
+    /// Creates instructions to initialize a Token 2022 mint with specified extensions
     ///
-    /// This function handles the proper initialization order for all extensions,
+    /// Generates instructions with the proper initialization order for all extensions,
     /// ensuring that pre-mint extensions are initialized before the mint itself,
     /// and post-mint extensions are initialized afterward.
     ///
     /// # Arguments
     ///
+    /// * `payer` - The payer covering the rent
     /// * `mint_address` - The public key for the new mint
     /// * `decimals` - Number of decimal places for the token
     /// * `mint_authority` - Authority that can mint new tokens
@@ -57,7 +46,7 @@ impl Trident {
     ///
     /// # Returns
     ///
-    /// Returns `Ok(())` if successful, or a transaction error if the operation fails.
+    /// A vector of instructions that need to be executed with `process_transaction`
     pub fn initialize_mint_2022(
         &mut self,
         payer: &Pubkey,
@@ -66,7 +55,7 @@ impl Trident {
         mint_authority: &Pubkey,
         freeze_authority: Option<&Pubkey>,
         extensions: &[MintExtension],
-    ) -> TransactionResult {
+    ) -> Vec<Instruction> {
         let mut extension_types: Vec<ExtensionType> = Vec::new();
         let mut rent_top_ups: Vec<usize> = Vec::new();
         let mut extension_names: Vec<String> = Vec::new();
@@ -224,16 +213,7 @@ impl Trident {
             &mut instructions,
         );
 
-        let message = if extension_names.is_empty() {
-            CREATE_MINT_MESSAGE.to_string()
-        } else {
-            format!(
-                "Creating Token 2022 Mint with Extensions: [{}]",
-                extension_names.join(", ")
-            )
-        };
-
-        self.process_transaction(&instructions, &message)
+        instructions
     }
 
     /// Initialize mint extensions that must be set before the mint is created
@@ -545,14 +525,15 @@ impl Trident {
         }
     }
 
-    /// Creates a Token 2022 token account with specified extensions
+    /// Creates instructions to initialize a Token 2022 token account with specified extensions
     ///
-    /// This function handles the proper initialization order for all extensions,
+    /// Generates instructions with the proper initialization order for all extensions,
     /// ensuring that pre-account extensions are initialized before the account itself,
     /// and post-account extensions are initialized afterward.
     ///
     /// # Arguments
     ///
+    /// * `payer` - The payer covering the rent
     /// * `token_account_address` - The public key for the new token account
     /// * `mint` - The mint this account will hold tokens for
     /// * `owner` - The owner of the token account
@@ -560,7 +541,7 @@ impl Trident {
     ///
     /// # Returns
     ///
-    /// Returns `Ok(())` if successful, or a transaction error if the operation fails.
+    /// A vector of instructions that need to be executed with `process_transaction`
     pub fn initialize_token_account_2022(
         &mut self,
         payer: &Pubkey,
@@ -568,7 +549,7 @@ impl Trident {
         mint: &Pubkey,
         owner: &Pubkey,
         extensions: &[AccountExtension],
-    ) -> TransactionResult {
+    ) -> Vec<Instruction> {
         let mint_account = self.get_account(mint);
         let state_with_extensions = StateWithExtensions::<Mint>::unpack(mint_account.data())
             .expect("Mint account does not exist");
@@ -636,19 +617,10 @@ impl Trident {
             &mut instructions,
         );
 
-        let message = if extension_names.is_empty() {
-            CREATE_ACCOUNT_MESSAGE.to_string()
-        } else {
-            format!(
-                "Creating Token 2022 Account with Extensions: [{}]",
-                extension_names.join(", ")
-            )
-        };
-
-        self.process_transaction(&instructions, &message)
+        instructions
     }
 
-    /// Mints tokens to a Token 2022 account
+    /// Creates an instruction to mint tokens to a Token 2022 account
     ///
     /// # Arguments
     ///
@@ -659,15 +631,15 @@ impl Trident {
     ///
     /// # Returns
     ///
-    /// Returns `Ok(())` if successful, or a transaction error if the operation fails.
+    /// An instruction that needs to be executed with `process_transaction`
     pub fn mint_to_2022(
         &mut self,
         token_account_address: &Pubkey,
         mint_address: &Pubkey,
         mint_authority: &Pubkey,
         amount: u64,
-    ) -> TransactionResult {
-        let ix = spl_token_2022_interface::instruction::mint_to(
+    ) -> Instruction {
+        spl_token_2022_interface::instruction::mint_to(
             &spl_token_2022_interface::ID,
             mint_address,
             token_account_address,
@@ -675,9 +647,7 @@ impl Trident {
             &[],
             amount,
         )
-        .unwrap();
-
-        self.process_transaction(&[ix], MINT_TO_MESSAGE)
+        .unwrap()
     }
 
     /// Deserializes a Token 2022 mint account with all its extensions
@@ -879,9 +849,9 @@ impl Trident {
         })
     }
 
-    /// Transfers tokens between Token 2022 accounts with amount and decimals verification
+    /// Creates an instruction to transfer tokens between Token 2022 accounts with verification
     ///
-    /// This function performs a checked transfer, verifying both the amount and decimals
+    /// Generates a checked transfer instruction that verifies both the amount and decimals
     /// to prevent errors due to incorrect decimal places.
     ///
     /// # Arguments
@@ -896,7 +866,7 @@ impl Trident {
     ///
     /// # Returns
     ///
-    /// Returns `Ok(())` if successful, or a transaction error if the operation fails.
+    /// An instruction that needs to be executed with `process_transaction`
     #[allow(clippy::too_many_arguments)]
     pub fn transfer_checked(
         &mut self,
@@ -907,8 +877,8 @@ impl Trident {
         signers: &[&Pubkey],
         amount: u64,
         decimals: u8,
-    ) -> TransactionResult {
-        let ix = spl_token_2022_interface::instruction::transfer_checked(
+    ) -> Instruction {
+        spl_token_2022_interface::instruction::transfer_checked(
             &spl_token_2022_interface::ID,
             source,
             mint,
@@ -918,14 +888,12 @@ impl Trident {
             amount,
             decimals,
         )
-        .unwrap();
-
-        self.process_transaction(&[ix], TRANSFER_CHECKED_MESSAGE)
+        .unwrap()
     }
 
-    /// Creates an associated Token 2022 account with specified extensions
+    /// Creates instructions to initialize an associated Token 2022 account with specified extensions
     ///
-    /// This function uses the associated token account program to handle initial funding,
+    /// Generates instructions using the associated token account program to handle initial funding,
     /// account creation, and any mint-required extensions automatically. It then reallocates
     /// space and initializes any additional user-requested extensions.
     ///
@@ -935,21 +903,21 @@ impl Trident {
     ///
     /// # Arguments
     ///
+    /// * `payer` - The payer covering the rent
     /// * `mint` - The mint this account will hold tokens for
     /// * `owner` - The owner of the token account
     /// * `extensions` - Array of additional extensions to enable on the account
     ///
     /// # Returns
     ///
-    /// Returns the address of the created associated token account if successful,
-    /// or a transaction error if the operation fails.
+    /// A vector of instructions that need to be executed with `process_transaction`
     pub fn initialize_associated_token_account_2022(
         &mut self,
         payer: &Pubkey,
         mint: &Pubkey,
         owner: &Pubkey,
         extensions: &[AccountExtension],
-    ) -> TransactionResult {
+    ) -> Vec<Instruction> {
         let address = spl_associated_token_account_interface::address::get_associated_token_address_with_program_id(
             owner, mint, &spl_token_2022_interface::ID,
         );
@@ -994,28 +962,6 @@ impl Trident {
             self.initialize_post_account_extensions(&address, owner, extensions, &mut instructions);
         }
 
-        let message = if extensions.is_empty() {
-            "Creating Associated Token 2022 Account".to_string()
-        } else {
-            let extension_names: Vec<String> = extensions
-                .iter()
-                .map(|ext| match ext {
-                    AccountExtension::ImmutableOwner => {
-                        format!("{:?}", ExtensionType::ImmutableOwner)
-                    }
-                    AccountExtension::MemoTransfer { .. } => {
-                        format!("{:?}", ExtensionType::MemoTransfer)
-                    }
-                    AccountExtension::CpiGuard => format!("{:?}", ExtensionType::CpiGuard),
-                })
-                .collect();
-
-            format!(
-                "Creating Associated Token 2022 Account with Extensions: [{}]",
-                extension_names.join(", ")
-            )
-        };
-
-        self.process_transaction(&instructions, &message)
+        instructions
     }
 }

@@ -62,7 +62,7 @@ impl FuzzTest {
         ))
         .instruction();
 
-        let _ = self.trident.process_transaction(&[ix], "initialize");
+        let _ = self.trident.process_transaction(&[ix], Some("initialize"));
     }
 
     #[flow]

@@ -15,7 +15,7 @@ The SPL Token methods provide convenient functions for working with SPL Token pr
 
 ### `initialize_mint`
 
-Creates and initializes a new SPL Token mint.
+Creates instructions to initialize a new SPL Token mint.
 
 ```rust
 pub fn initialize_mint(
@@ -25,7 +25,7 @@ pub fn initialize_mint(
     decimals: u8,
     owner: &Pubkey,
     freeze_authority: Option<&Pubkey>,
-) -> TransactionResult
+) -> Vec<Instruction>
 ```
 
 **Parameters:**
@@ -36,15 +36,15 @@ pub fn initialize_mint(
 - `owner` - The mint authority that can mint new tokens
 - `freeze_authority` - Optional authority that can freeze token accounts
 
-**Returns:** `TransactionResult` indicating success or failure.
+**Returns:** A vector of instructions that need to be executed with `process_transaction`.
 
-**Description:** Creates a new SPL Token mint that can be used to mint tokens with the specified decimal precision and authorities.
+**Description:** Generates instructions to create a new SPL Token mint that can be used to mint tokens with the specified decimal precision and authorities.
 
 ---
 
 ### `mint_to`
 
-Mints tokens to a specified token account.
+Creates an instruction to mint tokens to a specified token account.
 
 ```rust
 pub fn mint_to(
@@ -53,7 +53,7 @@ pub fn mint_to(
     mint_address: &Pubkey,
     mint_authority: &Pubkey,
     amount: u64,
-) -> TransactionResult
+) -> Instruction
 ```
 
 **Parameters:**
@@ -63,9 +63,9 @@ pub fn mint_to(
 - `mint_authority` - The authority allowed to mint tokens
 - `amount` - The number of tokens to mint (in base units)
 
-**Returns:** `TransactionResult` indicating success or failure.
+**Returns:** An instruction that needs to be executed with `process_transaction`.
 
-**Description:** Creates new tokens and adds them to the specified token account.
+**Description:** Generates an instruction to create new tokens and add them to the specified token account.
 
 ---
 
@@ -73,7 +73,7 @@ pub fn mint_to(
 
 ### `initialize_token_account`
 
-Creates and initializes a new SPL Token account.
+Creates instructions to initialize a new SPL Token account.
 
 ```rust
 pub fn initialize_token_account(
@@ -82,7 +82,7 @@ pub fn initialize_token_account(
     token_account_address: &Pubkey,
     mint: &Pubkey,
     owner: &Pubkey,
-) -> TransactionResult
+) -> Vec<Instruction>
 ```
 
 **Parameters:**
@@ -92,15 +92,15 @@ pub fn initialize_token_account(
 - `mint` - The mint this account will hold tokens for
 - `owner` - The owner of the token account
 
-**Returns:** `TransactionResult` indicating success or failure.
+**Returns:** A vector of instructions that need to be executed with `process_transaction`.
 
-**Description:** Creates a new token account that can hold tokens from the specified mint for the given owner.
+**Description:** Generates instructions to create a new token account that can hold tokens from the specified mint for the given owner.
 
 ---
 
 ### `initialize_associated_token_account`
 
-Creates an associated token account for a given mint and owner.
+Creates an instruction to initialize an associated token account for a given mint and owner.
 
 ```rust
 pub fn initialize_associated_token_account(
@@ -108,7 +108,7 @@ pub fn initialize_associated_token_account(
     payer: &Pubkey,
     mint: &Pubkey,
     owner: &Pubkey,
-) -> TransactionResult
+) -> Instruction
 ```
 
 **Parameters:**
@@ -117,9 +117,9 @@ pub fn initialize_associated_token_account(
 - `mint` - The mint for the associated token account
 - `owner` - The owner of the associated token account
 
-**Returns:** `TransactionResult` indicating success or failure.
+**Returns:** An instruction that needs to be executed with `process_transaction`.
 
-**Description:** Creates an associated token account - a deterministic token account address derived from the owner and mint.
+**Description:** Generates an instruction to create an associated token account - a deterministic token account address derived from the owner and mint.
 
 ---
 
@@ -161,19 +161,23 @@ fn test_token_operations(&mut self) {
     let owner = self.payer().pubkey();
     
     // Initialize a mint
-    let result = self.initialize_mint(
+    let instructions = self.initialize_mint(
+        &owner,
         &mint_keypair,
         6, // 6 decimals
         &owner,
         Some(&owner), // freeze authority
     );
+    let result = self.process_transaction(&instructions, Some("initialize_mint"));
     assert!(result.is_success());
     
     // Create associated token account
-    let result = self.initialize_associated_token_account(
+    let ix = self.initialize_associated_token_account(
+        &owner,
         &mint_keypair,
         &owner,
     );
+    let result = self.process_transaction(&[ix], Some("create_ata"));
     assert!(result.is_success());
     
     // Get the associated token account address
@@ -184,12 +188,13 @@ fn test_token_operations(&mut self) {
     );
     
     // Mint some tokens
-    let result = self.mint_to(
+    let ix = self.mint_to(
         &token_account,
         &mint_keypair,
         &owner,
         1_000_000, // 1 token with 6 decimals
     );
+    let result = self.process_transaction(&[ix], Some("mint_to"));
     assert!(result.is_success());
 }
 ```
