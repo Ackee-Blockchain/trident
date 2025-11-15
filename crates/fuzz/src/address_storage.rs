@@ -1,4 +1,5 @@
 use solana_sdk::pubkey::Pubkey;
+use solana_sdk::signer::Signer;
 
 use crate::trident::Trident;
 
@@ -67,10 +68,16 @@ impl AddressStorage {
                 if let Some(pubkey) = derive_pda(seeds.seeds, &seeds.program_id) {
                     pubkey
                 } else {
-                    trident.random_pubkey()
+                    let mut secret = [0; 32];
+                    trident.random_bytes(&mut secret);
+                    solana_sdk::signer::keypair::Keypair::new_from_array(secret).pubkey()
                 }
             }
-            None => trident.random_pubkey(),
+            None => {
+                let mut secret = [0; 32];
+                trident.random_bytes(&mut secret);
+                solana_sdk::signer::keypair::Keypair::new_from_array(secret).pubkey()
+            }
         }
     }
 }
