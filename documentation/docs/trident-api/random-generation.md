@@ -87,6 +87,20 @@ pub fn random_bool(&mut self) -> bool
 
 ---
 
+### `random_keypair`
+
+Generates a random Solana keypair.
+
+```rust
+pub fn random_keypair(&mut self) -> Keypair
+```
+
+**Returns:** A randomly generated Ed25519 keypair.
+
+**Description:** Creates a cryptographically secure random Ed25519 keypair, useful for generating test signers, authority accounts, and testing signature verification.
+
+---
+
 ## Example Usage
 
 ```rust
@@ -97,6 +111,10 @@ fn test_token_operations_with_random_data(&mut self) {
     // Generate random account addresses
     let user_account = self.random_pubkey();
     let mint_account = self.random_pubkey();
+    
+    // Generate random keypairs for signers and authorities
+    let authority = self.random_keypair();
+    let signer = self.random_keypair();
     
     // Generate random amounts for financial operations
     let transfer_amount = self.random_from_range(1..1_000_000u64);

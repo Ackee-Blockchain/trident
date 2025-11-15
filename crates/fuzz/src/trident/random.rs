@@ -1,6 +1,7 @@
 use rand::distributions::uniform::SampleRange;
 use rand::distributions::uniform::SampleUniform;
 use solana_sdk::pubkey::Pubkey;
+use solana_sdk::signature::Keypair;
 
 use crate::trident::Trident;
 
@@ -79,5 +80,23 @@ impl Trident {
     /// ```
     pub fn random_bool(&mut self) -> bool {
         self.rng.gen_bool()
+    }
+
+    /// Generates a random Solana keypair
+    ///
+    /// Creates a cryptographically secure random Ed25519 keypair,
+    /// useful for generating test signers, authority accounts, and
+    /// testing signature verification.
+    ///
+    /// # Returns
+    /// A randomly generated Keypair with a valid public/private key pair
+    ///
+    /// # Example
+    /// ```rust, ignore
+    /// let signer = trident.random_keypair();
+    /// let authority = trident.random_keypair();
+    /// ```
+    pub fn random_keypair(&mut self) -> Keypair {
+        self.rng.gen_keypair()
     }
 }
