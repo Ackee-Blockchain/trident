@@ -23,4 +23,8 @@ impl Trident {
     pub(crate) fn get_fuzzing_data(&self) -> TridentFuzzingData {
         self.fuzzing_data.clone()
     }
+
+    pub(crate) fn get_current_seed(&self) -> Seed {
+        self.rng.get_seed()
+    }
 }
