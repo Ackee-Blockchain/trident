@@ -1,11 +1,17 @@
-use std::panic::{catch_unwind, AssertUnwindSafe};
+use std::panic::catch_unwind;
+use std::panic::AssertUnwindSafe;
+use std::sync::atomic::AtomicBool;
+use std::sync::atomic::Ordering;
+use std::sync::Arc;
 use std::thread;
 use std::time::Instant;
 use trident_fuzz_metrics::TridentFuzzingData;
 
 use crate::trident::Trident;
 
-// Store panic location (only accessed on panic)
+// Thread-local storage for panic location information.
+// When a panic occurs, the panic handler stores the location here so we can retrieve it
+// after catching the panic with catch_unwind.
 thread_local! {
     static PANIC_LOCATION: std::cell::Cell<Option<String>> = const { std::cell::Cell::new(None) };
 }
@@ -27,6 +33,7 @@ mod config {
     pub const ENV_FUZZ_DEBUG: &str = "TRIDENT_FUZZ_DEBUG";
     pub const ENV_FUZZ_SEED: &str = "TRIDENT_FUZZ_SEED";
     pub const ENV_FUZZING_METRICS: &str = "FUZZING_METRICS";
+    pub const ENV_WITH_EXIT_CODE: &str = "TRIDENT_WITH_EXIT_CODE";
 }
 
 /// Trait for executing fuzzing flows in the Trident framework
@@ -76,24 +83,32 @@ pub trait FlowExecutor: Send + 'static + Sized {
     /// * `iterations` - Total number of fuzzing iterations to run
     /// * `flow_calls_per_iteration` - Number of flow calls per iteration
     fn fuzz(iterations: u64, flow_calls_per_iteration: u64) {
+        // Setup panic handler to capture location information when panics occur
         Self::setup_panic_handler();
 
+        // Debug mode: run single iteration with provided seed (for reproducing specific failures)
         if std::env::var(config::ENV_FUZZ_DEBUG).is_ok() {
             println!("Debug mode detected: Running single iteration with provided seed");
             Self::fuzz_single_threaded(1, flow_calls_per_iteration);
             return;
         }
+
+        // Get or generate master seed for reproducible fuzzing
         let master_seed = Self::get_or_generate_master_seed();
+
+        // Determine number of threads to use (limited by available parallelism and iteration count)
         let num_threads = thread::available_parallelism()
             .map(|n| n.get())
             .unwrap_or(1)
             .min(iterations as usize);
 
+        // Use single-threaded mode if we only have one thread or one iteration
         if num_threads <= 1 || iterations <= 1 {
             Self::fuzz_single_threaded(iterations, flow_calls_per_iteration);
             return;
         }
 
+        // Use parallel mode for better performance with multiple threads
         Self::fuzz_parallel(
             iterations,
             flow_calls_per_iteration,
@@ -102,20 +117,78 @@ pub trait FlowExecutor: Send + 'static + Sized {
         );
     }
 
+    /// Sets up a global panic handler that captures panic location information.
+    /// This allows us to retrieve the file, line, and column where a panic occurred
+    /// even after catching it with catch_unwind.
     fn setup_panic_handler() {
         std::panic::set_hook(Box::new(|info| {
-            // Store location in thread-local storage
             let location = info
                 .location()
                 .map(|loc| format!("{}:{}:{}", loc.file(), loc.line(), loc.column()))
                 .unwrap_or_else(|| "unknown".to_string());
 
-            PANIC_LOCATION.with(|loc| {
-                loc.set(Some(location));
+            PANIC_LOCATION.with(|cell| {
+                cell.set(Some(location));
             });
         }));
     }
 
+    /// Extracts the panic message from a panic payload.
+    /// Panics can have either &str or String payloads, so we handle both cases.
+    fn extract_panic_message(panic_err: &Box<dyn std::any::Any + Send>) -> String {
+        panic_err
+            .downcast_ref::<&str>()
+            .map(|s| s.to_string())
+            .or_else(|| panic_err.downcast_ref::<String>().cloned())
+            .unwrap_or_else(|| "unknown panic".to_string())
+    }
+
+    /// Handles a caught panic by logging it and updating the panic tracking flag.
+    /// Returns the formatted panic message for display.
+    fn handle_panic(
+        panic_err: &Box<dyn std::any::Any + Send>,
+        fuzzer: &mut Self,
+        panic_occurred: Option<&Arc<AtomicBool>>,
+    ) -> String {
+        // Mark that a panic occurred (for exit code handling)
+        if let Some(flag) = panic_occurred {
+            flag.store(true, Ordering::Relaxed);
+        }
+
+        // Extract panic details
+        let message = Self::extract_panic_message(panic_err);
+        let location =
+            PANIC_LOCATION.with(|cell| cell.take().unwrap_or_else(|| "unknown".to_string()));
+        let seed = hex::encode(fuzzer.trident_mut().get_current_seed());
+
+        format!(
+            "Assertion failed at {}: {} (seed: {})",
+            location, message, seed
+        )
+    }
+
+    /// Determines the exit code based on panic status and configuration.
+    /// Returns 99 if with_exit_code is enabled and panics occurred, otherwise uses metrics exit code.
+    fn determine_exit_code(
+        with_exit_code: bool,
+        panic_occurred: bool,
+        fuzzing_data: &TridentFuzzingData,
+    ) -> i32 {
+        if with_exit_code {
+            // When exit code mode is enabled, return 99 if any panics occurred
+            if panic_occurred || fuzzing_data.get_exit_code() != 0 {
+                99
+            } else {
+                0
+            }
+        } else {
+            // Otherwise, use the exit code from metrics (which may be 0 or 99)
+            fuzzing_data.get_exit_code()
+        }
+    }
+
+    /// Gets the master seed from environment variable or generates a random one.
+    /// The master seed is used to initialize all fuzzer instances for reproducible runs.
     fn get_or_generate_master_seed() -> [u8; config::SEED_SIZE] {
         if let Ok(seed_hex) = std::env::var(config::ENV_FUZZ_SEED) {
             Self::parse_hex_seed(&seed_hex)
@@ -124,6 +197,8 @@ pub trait FlowExecutor: Send + 'static + Sized {
         }
     }
 
+    /// Parses a hex-encoded seed string into a byte array.
+    /// Validates that the seed is exactly the required size.
     fn parse_hex_seed(seed_hex: &str) -> [u8; config::SEED_SIZE] {
         let seed_bytes = hex::decode(seed_hex)
             .unwrap_or_else(|_| panic!("Invalid hex string in seed: {}", seed_hex));
@@ -142,6 +217,7 @@ pub trait FlowExecutor: Send + 'static + Sized {
         seed
     }
 
+    /// Generates a cryptographically secure random seed.
     fn generate_random_seed() -> [u8; config::SEED_SIZE] {
         let mut seed = [0u8; config::SEED_SIZE];
         if let Err(err) = getrandom::fill(&mut seed) {
@@ -150,6 +226,7 @@ pub trait FlowExecutor: Send + 'static + Sized {
         seed
     }
 
+    /// Outputs fuzzing metrics (JSON, dashboard, etc.) if metrics are enabled.
     fn output_metrics_if_enabled(fuzzing_data: &TridentFuzzingData) {
         if std::env::var(config::ENV_FUZZING_METRICS).is_ok() {
             if let Err(e) = fuzzing_data.generate() {
@@ -158,11 +235,15 @@ pub trait FlowExecutor: Send + 'static + Sized {
         }
     }
 
+    /// Executes fuzzing in a single thread.
+    /// This is used for debug mode, small iteration counts, or when only one thread is available.
     fn fuzz_single_threaded(iterations: u64, flow_calls_per_iteration: u64) {
         let mut fuzzer = Self::new();
         let is_debug_mode = std::env::var(config::ENV_FUZZ_DEBUG).is_ok();
+        let with_exit_code = std::env::var(config::ENV_WITH_EXIT_CODE).is_ok();
+        let mut panic_occurred = false; // Simple bool since we're single-threaded
 
-        // Set debug seed if in debug mode
+        // Configure debug seed if in debug mode
         if is_debug_mode {
             let debug_seed_hex = std::env::var(config::ENV_FUZZ_DEBUG).unwrap();
             let debug_seed = Self::parse_hex_seed(&debug_seed_hex);
@@ -170,12 +251,11 @@ pub trait FlowExecutor: Send + 'static + Sized {
             fuzzer.trident_mut().set_master_seed_for_debug(debug_seed);
         }
 
-        let total_flow_calls = iterations * flow_calls_per_iteration;
-
-        // Setup progress bar (skip in debug mode)
+        // Setup progress bar (disabled in debug mode for cleaner output)
         let pb = if is_debug_mode {
             None
         } else {
+            let total_flow_calls = iterations * flow_calls_per_iteration;
             let pb = indicatif::ProgressBar::new(total_flow_calls);
             pb.set_style(
                 indicatif::ProgressStyle::with_template(
@@ -191,31 +271,19 @@ pub trait FlowExecutor: Send + 'static + Sized {
             Some(pb)
         };
 
-        // Main fuzzing loop
+        // Main fuzzing loop: execute flows, catch panics, and track progress
         for i in 0..iterations {
-            // Only catch panic from execute_flows
+            // Catch panics from user code (assertions, invariants, etc.)
             let panic_result = catch_unwind(AssertUnwindSafe(|| {
                 let _ = fuzzer.execute_flows(flow_calls_per_iteration);
             }));
 
-            // If panic occurred, print location, message, and seed
+            // Handle any panics that occurred
             if let Err(panic_err) = panic_result {
-                let message = panic_err
-                    .downcast_ref::<&str>()
-                    .map(|s| s.to_string())
-                    .or_else(|| panic_err.downcast_ref::<String>().cloned())
-                    .unwrap_or_else(|| "unknown panic".to_string());
+                panic_occurred = true;
+                let panic_msg = Self::handle_panic(&panic_err, &mut fuzzer, None);
 
-                let location =
-                    PANIC_LOCATION.with(|loc| loc.take().unwrap_or_else(|| "unknown".to_string()));
-
-                let seed = hex::encode(fuzzer.trident_mut().get_current_seed());
-
-                let panic_msg = format!(
-                    "Assertion failed at {}: {} (seed: {})",
-                    location, message, seed
-                );
-
+                // Display panic message via progress bar or stderr
                 if let Some(ref pb) = pb {
                     pb.println(panic_msg);
                 } else {
@@ -223,26 +291,39 @@ pub trait FlowExecutor: Send + 'static + Sized {
                 }
             }
 
+            // Prepare for next iteration
             fuzzer.trident_mut().next_iteration();
             fuzzer.reset_fuzz_accounts();
 
             // Handle coverage profiling if enabled
             Self::handle_coverage_if_enabled(&mut fuzzer, i + 1);
 
+            // Update progress bar
             if let Some(ref pb) = pb {
                 pb.inc(flow_calls_per_iteration);
                 pb.set_message(format!("Iteration {}/{} completed", i + 1, iterations));
             }
         }
 
+        // Finalize progress bar
         if let Some(pb) = pb {
             pb.finish_with_message("Fuzzing completed!");
         }
 
+        // Generate metrics if enabled
         let fuzzing_data = fuzzer.trident_mut().get_fuzzing_data();
         Self::output_metrics_if_enabled(&fuzzing_data);
+
+        // Exit with appropriate code if exit code mode is enabled
+        if with_exit_code {
+            let exit_code =
+                Self::determine_exit_code(with_exit_code, panic_occurred, &fuzzing_data);
+            std::process::exit(exit_code);
+        }
     }
 
+    /// Executes fuzzing across multiple threads for better performance.
+    /// Each thread runs a subset of iterations with its own fuzzer instance.
     fn fuzz_parallel(
         iterations: u64,
         flow_calls_per_iteration: u64,
@@ -251,10 +332,10 @@ pub trait FlowExecutor: Send + 'static + Sized {
     ) {
         let iterations_per_thread = iterations / num_threads as u64;
         let total_flow_calls = iterations * flow_calls_per_iteration;
+        let with_exit_code = std::env::var(config::ENV_WITH_EXIT_CODE).is_ok();
+        let panic_occurred = Arc::new(AtomicBool::new(false)); // Shared across threads
 
-        let mut handles = Vec::new();
-
-        // Create progress bar for overall status
+        // Setup shared progress bar
         let main_pb = indicatif::ProgressBar::new(total_flow_calls);
         main_pb.set_style(
             indicatif::ProgressStyle::with_template(
@@ -268,129 +349,148 @@ pub trait FlowExecutor: Send + 'static + Sized {
             num_threads, iterations, flow_calls_per_iteration
         ));
 
+        // Spawn worker threads
+        let mut handles = Vec::new();
         for thread_id in 0..num_threads {
             let thread_iterations = iterations_per_thread;
-
             if thread_iterations == 0 {
-                continue;
+                continue; // Skip threads with no work
             }
 
             let main_pb_clone = main_pb.clone();
+            let panic_occurred_clone = panic_occurred.clone();
             let handle = thread::spawn(move || -> TridentFuzzingData {
-                let mut fuzzer = Self::new();
-                fuzzer
-                    .trident_mut()
-                    .set_master_seed_and_thread_id(master_seed, thread_id);
-
-                // Progress update tracking
-                let mut last_update = Instant::now();
-                let mut local_counter = 0u64;
-
-                for i in 0..thread_iterations {
-                    // Only catch panic from execute_flows
-                    let panic_result = catch_unwind(AssertUnwindSafe(|| {
-                        let _ = fuzzer.execute_flows(flow_calls_per_iteration);
-                    }));
-
-                    // If panic occurred, print location, message, and seed using progress bar
-                    if let Err(panic_err) = panic_result {
-                        let message = panic_err
-                            .downcast_ref::<&str>()
-                            .map(|s| s.to_string())
-                            .or_else(|| panic_err.downcast_ref::<String>().cloned())
-                            .unwrap_or_else(|| "unknown panic".to_string());
-
-                        let location = PANIC_LOCATION
-                            .with(|loc| loc.take().unwrap_or_else(|| "unknown".to_string()));
-
-                        let seed = hex::encode(fuzzer.trident_mut().get_current_seed());
-
-                        main_pb_clone.println(format!(
-                            "Assertion failed at {}: {} (seed: {})",
-                            location, message, seed
-                        ));
-                    }
-
-                    fuzzer.trident_mut().next_iteration();
-                    fuzzer.reset_fuzz_accounts();
-
-                    // Handle coverage profiling if enabled (only thread 0 to avoid duplicates)
-                    if thread_id == 0 {
-                        Self::handle_coverage_if_enabled(&mut fuzzer, i + 1);
-                    }
-
-                    local_counter += flow_calls_per_iteration;
-
-                    // Update progress bars with granularity control
-                    let should_update = local_counter >= config::PROGRESS_UPDATE_INTERVAL
-                        || last_update.elapsed() >= config::PROGRESS_UPDATE_DURATION
-                        || i == thread_iterations - 1; // Always update on last iteration
-
-                    if should_update {
-                        main_pb_clone.inc(local_counter);
-                        local_counter = 0;
-                        last_update = Instant::now();
-                    }
-                }
-
-                // Ensure final update
-                if local_counter > 0 {
-                    main_pb_clone.inc(local_counter);
-                }
-
-                fuzzer.trident_mut().get_fuzzing_data()
+                Self::run_thread_workload(
+                    master_seed,
+                    thread_id,
+                    thread_iterations,
+                    flow_calls_per_iteration,
+                    main_pb_clone,
+                    panic_occurred_clone,
+                )
             });
 
             handles.push(handle);
         }
 
+        // Collect results from all threads
         let mut fuzzing_data = TridentFuzzingData::with_master_seed(master_seed);
-
-        // Collect metrics from all threads
-        // Since we catch panics inside threads, join should always succeed
         for handle in handles {
             match handle.join() {
                 Ok(thread_metrics) => {
                     fuzzing_data._merge(thread_metrics);
                 }
                 Err(err) => {
-                    // This should rarely happen now since we catch panics inside threads
-                    // But if the thread itself fails (not user code), we still handle it gracefully
+                    // This should rarely happen since we catch panics inside threads
+                    // Only occurs if the thread itself crashes (not user code)
                     eprintln!("Warning: Thread failed to join (not a fuzz test panic)");
                     if let Some(s) = err.downcast_ref::<&str>() {
                         eprintln!("  Message: {}", s);
                     } else if let Some(s) = err.downcast_ref::<String>() {
                         eprintln!("  Message: {}", s);
                     }
-                    // Continue with other threads - don't panic here
+                    // Continue processing other threads
                 }
             }
         }
 
         main_pb.finish_with_message("Parallel fuzzing completed!");
 
-        let exit_code = fuzzing_data.get_exit_code();
+        // Determine and set exit code
+        let exit_code = Self::determine_exit_code(
+            with_exit_code,
+            panic_occurred.load(Ordering::Relaxed),
+            &fuzzing_data,
+        );
+
         Self::output_metrics_if_enabled(&fuzzing_data);
         println!("MASTER SEED used: {:?}", &hex::encode(master_seed));
 
         std::process::exit(exit_code);
     }
 
+    /// Runs the fuzzing workload for a single thread.
+    /// This is extracted to reduce complexity in fuzz_parallel.
+    fn run_thread_workload(
+        master_seed: [u8; 32],
+        thread_id: usize,
+        thread_iterations: u64,
+        flow_calls_per_iteration: u64,
+        progress_bar: indicatif::ProgressBar,
+        panic_occurred: Arc<AtomicBool>,
+    ) -> TridentFuzzingData {
+        let mut fuzzer = Self::new();
+        fuzzer
+            .trident_mut()
+            .set_master_seed_and_thread_id(master_seed, thread_id);
+
+        // Track progress updates to avoid excessive bar updates
+        let mut last_update = Instant::now();
+        let mut local_counter = 0u64;
+
+        // Execute iterations for this thread
+        for i in 0..thread_iterations {
+            // Catch panics from user code (assertions, invariants, etc.)
+            let panic_result = catch_unwind(AssertUnwindSafe(|| {
+                let _ = fuzzer.execute_flows(flow_calls_per_iteration);
+            }));
+
+            // Handle any panics that occurred
+            if let Err(panic_err) = panic_result {
+                let panic_msg = Self::handle_panic(&panic_err, &mut fuzzer, Some(&panic_occurred));
+                progress_bar.println(panic_msg);
+            }
+
+            // Prepare for next iteration
+            fuzzer.trident_mut().next_iteration();
+            fuzzer.reset_fuzz_accounts();
+
+            // Handle coverage profiling (only thread 0 to avoid duplicate work)
+            if thread_id == 0 {
+                Self::handle_coverage_if_enabled(&mut fuzzer, i + 1);
+            }
+
+            // Batch progress updates for performance
+            local_counter += flow_calls_per_iteration;
+            let should_update = local_counter >= config::PROGRESS_UPDATE_INTERVAL
+                || last_update.elapsed() >= config::PROGRESS_UPDATE_DURATION
+                || i == thread_iterations - 1; // Always update on last iteration
+
+            if should_update {
+                progress_bar.inc(local_counter);
+                local_counter = 0;
+                last_update = Instant::now();
+            }
+        }
+
+        // Ensure any remaining progress is reported
+        if local_counter > 0 {
+            progress_bar.inc(local_counter);
+        }
+
+        fuzzer.trident_mut().get_fuzzing_data()
+    }
+
+    /// Handles LLVM coverage collection if coverage profiling is enabled.
+    /// Coverage is collected periodically based on FUZZER_LOOPCOUNT environment variable.
     fn handle_coverage_if_enabled(fuzzer: &mut Self, current_iteration: u64) {
         let loopcount = std::env::var("FUZZER_LOOPCOUNT")
             .ok()
             .and_then(|val| val.parse::<u64>().ok())
             .unwrap_or(0);
 
+        // Collect coverage at specified intervals
         if loopcount > 0 && current_iteration > 0 && current_iteration % loopcount == 0 {
-            // Call the macro-generated LLVM method
+            // Call the macro-generated LLVM method to write coverage data
             fuzzer.handle_llvm_coverage(current_iteration);
 
-            // Notify extension to update coverage decorations
+            // Notify VS Code extension to update coverage decorations
             Self::notify_coverage_extension();
         }
     }
 
+    /// Notifies the VS Code coverage extension to update coverage decorations.
+    /// This runs in a background thread to avoid blocking fuzzing execution.
     fn notify_coverage_extension() {
         let coverage_server_port =
             std::env::var("COVERAGE_SERVER_PORT").unwrap_or_else(|_| "58432".to_string());
