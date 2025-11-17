@@ -166,45 +166,14 @@ pub fn transfer_checked(
 
 ## Account Inspection Methods
 
-### `get_mint_2022`
+!!! note "Use Unified Methods"
 
-Deserializes a Token 2022 mint account with all its extensions.
+    For inspecting token accounts and mints, use the unified methods from the [SPL Token API](./spl-token.md):
+    
+    - `get_token_account` - Works with both SPL Token and Token 2022 accounts
+    - `get_mint` - Works with both SPL Token and Token 2022 mints
 
-```rust
-pub fn get_mint_2022(
-    &mut self,
-    account: Pubkey,
-) -> Result<MintWithExtensions, Box<dyn std::error::Error>>
-```
-
-**Parameters:**
-
-- `account` - The mint account to deserialize
-
-**Returns:** `MintWithExtensions` containing the mint data and all extensions, or an error if deserialization fails.
-
-**Description:** Gets the mint data and all its extensions from a Token 2022 mint account for inspection in your tests.
-
----
-
-### `get_token_account_2022`
-
-Deserializes a Token 2022 token account with all its extensions.
-
-```rust
-pub fn get_token_account_2022(
-    &mut self,
-    account: Pubkey,
-) -> Result<TokenAccountWithExtensions, Box<dyn std::error::Error>>
-```
-
-**Parameters:**
-
-- `account` - The token account to deserialize
-
-**Returns:** `TokenAccountWithExtensions` containing the account data and all extensions, or an error if deserialization fails.
-
-**Description:** Gets the account data and all its extensions from a Token 2022 token account for inspection in your tests.
+    These methods automatically detect the token program and deserialize all extensions for Token 2022 accounts.
 
 ---
 
@@ -286,7 +255,7 @@ fn test_token_2022_operations(&mut self) {
     assert!(result.is_success());
     
     // Get mint data with extensions
-    let mint_data = self.get_mint_2022(mint_keypair).unwrap();
+    let mint_data = self.get_mint(mint_keypair).unwrap();
     println!("Mint has {} extensions", mint_data.extensions.len());
 }
 ```
