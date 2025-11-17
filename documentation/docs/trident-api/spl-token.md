@@ -123,6 +123,50 @@ pub fn initialize_associated_token_account(
 
 ---
 
+## Account Inspection Methods
+
+### `get_token_account`
+
+Deserializes a token account (SPL Token or Token 2022) with all its extensions.
+
+```rust
+pub fn get_token_account(
+    &mut self,
+    account: Pubkey,
+) -> Result<TokenAccountWithExtensions, ProgramError>
+```
+
+**Parameters:**
+
+- `account` - The public key of the token account to deserialize
+
+**Returns:** `TokenAccountWithExtensions` containing the account data and all extensions, or an error if deserialization fails.
+
+**Description:** Works with both SPL Token and Token 2022 accounts. For Token 2022 accounts, all extensions are deserialized and included in the result. This is the recommended method for inspecting token accounts regardless of which token program they use.
+
+---
+
+### `get_mint`
+
+Deserializes a mint account (SPL Token or Token 2022) with all its extensions.
+
+```rust
+pub fn get_mint(
+    &mut self,
+    account: Pubkey,
+) -> Result<MintWithExtensions, ProgramError>
+```
+
+**Parameters:**
+
+- `account` - The public key of the mint account to deserialize
+
+**Returns:** `MintWithExtensions` containing the mint data and all extensions, or an error if deserialization fails.
+
+**Description:** Works with both SPL Token and Token 2022 mints. For Token 2022 mints, all extensions are deserialized and included in the result. This is the recommended method for inspecting mint accounts regardless of which token program they use.
+
+---
+
 ## Utility Methods
 
 ### `get_associated_token_address`
@@ -196,5 +240,13 @@ fn test_token_operations(&mut self) {
     );
     let result = self.process_transaction(&[ix], Some("mint_to"));
     assert!(result.is_success());
+    
+    // Inspect the mint account
+    let mint_data = self.get_mint(mint_keypair).unwrap();
+    println!("Mint decimals: {}", mint_data.mint.decimals);
+    
+    // Inspect the token account
+    let account_data = self.get_token_account(token_account).unwrap();
+    println!("Token balance: {}", account_data.account.amount);
 }
 ```

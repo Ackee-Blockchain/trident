@@ -61,10 +61,7 @@ impl FuzzTest {
             res.get_result()
         );
 
-        let res = self
-            .trident
-            .get_mint_2022(mint2022)
-            .expect("Failed to get mint");
+        let res = self.trident.get_mint(mint2022).expect("Failed to get mint");
 
         assert!(res.extensions.is_empty());
         assert!(res.mint.freeze_authority.is_none());
@@ -108,10 +105,7 @@ impl FuzzTest {
             res.get_result()
         );
 
-        let res = self
-            .trident
-            .get_mint_2022(mint2022)
-            .expect("Failed to get mint");
+        let res = self.trident.get_mint(mint2022).expect("Failed to get mint");
 
         assert!(res.extensions.len() == 1);
     }
@@ -153,10 +147,7 @@ impl FuzzTest {
             res.get_result()
         );
 
-        let res = self
-            .trident
-            .get_mint_2022(mint2022)
-            .expect("Failed to get mint");
+        let res = self.trident.get_mint(mint2022).expect("Failed to get mint");
 
         assert!(res.extensions.len() == 1);
     }
@@ -210,10 +201,7 @@ impl FuzzTest {
             res.get_result()
         );
 
-        let res = self
-            .trident
-            .get_mint_2022(mint2022)
-            .expect("Failed to get mint");
+        let res = self.trident.get_mint(mint2022).expect("Failed to get mint");
 
         assert!(res.extensions.len() == 2);
         assert!(res.mint.decimals == 5);
@@ -260,10 +248,7 @@ impl FuzzTest {
             res.get_result()
         );
 
-        let res = self
-            .trident
-            .get_mint_2022(mint2022)
-            .expect("Failed to get mint");
+        let res = self.trident.get_mint(mint2022).expect("Failed to get mint");
 
         assert!(res.extensions.len() == 1);
     }
@@ -304,10 +289,7 @@ impl FuzzTest {
             res.get_result()
         );
 
-        let res = self
-            .trident
-            .get_mint_2022(mint2022)
-            .expect("Failed to get mint");
+        let res = self.trident.get_mint(mint2022).expect("Failed to get mint");
 
         assert!(res.extensions.len() == 1);
     }
@@ -350,10 +332,7 @@ impl FuzzTest {
             res.get_result()
         );
 
-        let res = self
-            .trident
-            .get_mint_2022(mint2022)
-            .expect("Failed to get mint");
+        let res = self.trident.get_mint(mint2022).expect("Failed to get mint");
 
         assert!(res.extensions.len() == 1);
     }
@@ -393,10 +372,7 @@ impl FuzzTest {
             res.get_result()
         );
 
-        let res = self
-            .trident
-            .get_mint_2022(mint2022)
-            .expect("Failed to get mint");
+        let res = self.trident.get_mint(mint2022).expect("Failed to get mint");
 
         assert!(res.extensions.len() == 1);
     }
@@ -437,10 +413,7 @@ impl FuzzTest {
             res.get_result()
         );
 
-        let res = self
-            .trident
-            .get_mint_2022(mint2022)
-            .expect("Failed to get mint");
+        let res = self.trident.get_mint(mint2022).expect("Failed to get mint");
 
         assert!(res.extensions.len() == 1);
     }
@@ -482,10 +455,7 @@ impl FuzzTest {
             res.get_result()
         );
 
-        let res = self
-            .trident
-            .get_mint_2022(mint2022)
-            .expect("Failed to get mint");
+        let res = self.trident.get_mint(mint2022).expect("Failed to get mint");
 
         assert!(res.extensions.len() == 1);
     }
@@ -534,10 +504,7 @@ impl FuzzTest {
             res.get_result()
         );
 
-        let res = self
-            .trident
-            .get_mint_2022(mint2022)
-            .expect("Failed to get mint");
+        let res = self.trident.get_mint(mint2022).expect("Failed to get mint");
 
         assert!(res.extensions.len() == 2);
     }
@@ -597,10 +564,7 @@ impl FuzzTest {
             res.get_result()
         );
 
-        let res = self
-            .trident
-            .get_mint_2022(mint2022)
-            .expect("Failed to get mint");
+        let res = self.trident.get_mint(mint2022).expect("Failed to get mint");
 
         assert!(res.extensions.len() == 3);
     }
@@ -650,10 +614,7 @@ impl FuzzTest {
             res.get_result()
         );
 
-        let res = self
-            .trident
-            .get_mint_2022(mint2022)
-            .expect("Failed to get mint");
+        let res = self.trident.get_mint(mint2022).expect("Failed to get mint");
 
         assert!(res.extensions.len() == 2);
 
@@ -695,7 +656,7 @@ impl FuzzTest {
 
         let res = self
             .trident
-            .get_mint_2022(group_member_mint2022)
+            .get_mint(group_member_mint2022)
             .expect("Failed to get mint");
 
         assert!(res.extensions.len() == 2);
@@ -776,10 +737,7 @@ impl FuzzTest {
             res.get_result()
         );
 
-        let res = self
-            .trident
-            .get_mint_2022(mint2022)
-            .expect("Failed to get mint");
+        let res = self.trident.get_mint(mint2022).expect("Failed to get mint");
 
         assert!(res.extensions.len() == 9);
 
@@ -813,10 +771,7 @@ impl FuzzTest {
             res.get_result()
         );
 
-        let res = self
-            .trident
-            .get_token_account_2022(token_account2022_1)
-            .unwrap();
+        let res = self.trident.get_token_account(token_account2022_1).unwrap();
 
         assert!(res.extensions.len() == 5);
 
@@ -860,7 +815,7 @@ impl FuzzTest {
 
         let res = self
             .trident
-            .get_token_account_2022(associated_token_account)
+            .get_token_account(associated_token_account)
             .unwrap();
 
         assert!(res.extensions.len() == 4);
@@ -887,10 +842,102 @@ impl FuzzTest {
 
         let res = self
             .trident
-            .get_token_account_2022(associated_token_account)
+            .get_token_account(associated_token_account)
             .unwrap();
 
         assert!(res.account.amount == 999999999999999900);
+    }
+
+    #[flow]
+    fn legacy_token_program(&mut self) {
+        // Perform logic which is meant to be fuzzed
+        // This flow is selected randomly from other flows
+
+        let payer = self.fuzz_accounts.payer.get(&mut self.trident);
+
+        self.trident.airdrop(&payer, 10 * LAMPORTS_PER_SOL);
+
+        let author = self.fuzz_accounts.author.insert(&mut self.trident, None);
+
+        let mint = self.fuzz_accounts.mint.insert(&mut self.trident, None);
+
+        let ixs = self
+            .trident
+            .initialize_mint(&payer, &mint, 5, &author, None);
+
+        let res = self
+            .trident
+            .process_transaction(&ixs, Some("Initialize SPL token mint"));
+
+        assert!(
+            res.is_success(),
+            "Initialize mint failed: {:#?}",
+            res.get_result()
+        );
+
+        let mint_data = self.trident.get_mint(mint).expect("Failed to get mint");
+
+        assert!(mint_data.mint.is_initialized);
+        assert!(mint_data.mint.decimals == 5);
+        assert!(mint_data.mint.supply == 0);
+        assert!(mint_data.mint.freeze_authority.is_none());
+        assert!(mint_data.extensions.is_empty());
+
+        let token_account = self
+            .fuzz_accounts
+            .token_account
+            .insert(&mut self.trident, None);
+
+        let ixs = self
+            .trident
+            .initialize_token_account(&payer, &token_account, &mint, &author);
+
+        let res = self
+            .trident
+            .process_transaction(&ixs, Some("Initialize SPL token token account"));
+
+        assert!(
+            res.is_success(),
+            "Initialize token account failed: {:#?}",
+            res.get_result()
+        );
+
+        let res = self.trident.get_token_account(token_account).unwrap();
+
+        assert!(res.extensions.is_empty());
+        assert!(res.account.amount == 0);
+        assert!(res.account.mint == mint);
+        assert!(res.account.owner == author);
+
+        let ix = self
+            .trident
+            .initialize_associated_token_account(&payer, &mint, &author);
+
+        let res = self
+            .trident
+            .process_transaction(&[ix], Some("Initialize associated SPL token account"));
+
+        assert!(
+            res.is_success(),
+            "Create associated token account failed: {:#?}",
+            res.get_result()
+        );
+
+        let associated_token_account = self.trident.get_associated_token_address(
+            &mint,
+            &author,
+            &pubkey!("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"),
+        );
+
+        let res = self
+            .trident
+            .get_token_account(associated_token_account)
+            .unwrap();
+
+        assert!(res.extensions.is_empty());
+        assert!(res.account.amount == 0);
+        assert!(res.account.mint == mint);
+        assert!(res.account.owner == author);
     }
 
     #[end]

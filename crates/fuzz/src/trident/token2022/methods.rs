@@ -5,6 +5,7 @@
 
 use solana_sdk::account::ReadableAccount;
 use solana_sdk::instruction::Instruction;
+use solana_sdk::program_error::ProgramError;
 use solana_sdk::program_pack::Pack;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::rent::Rent;
@@ -650,205 +651,6 @@ impl Trident {
         .unwrap()
     }
 
-    /// Deserializes a Token 2022 mint account with all its extensions
-    ///
-    /// # Arguments
-    ///
-    /// * `account` - The account data to deserialize
-    ///
-    /// # Returns
-    ///
-    /// Returns a `MintWithExtensions` containing the mint data and all extensions,
-    /// or an error if deserialization fails.
-    pub fn get_mint_2022(
-        &mut self,
-        account: Pubkey,
-    ) -> Result<MintWithExtensions, Box<dyn std::error::Error>> {
-        let account_data = self.get_account(&account);
-        let state_with_extensions = StateWithExtensions::<Mint>::unpack(account_data.data())?;
-        let extension_types = state_with_extensions.get_extension_types()?;
-
-        let mut extensions = Vec::new();
-
-        for ext_type in &extension_types {
-            match ext_type {
-                ExtensionType::TransferFeeConfig => {
-                    if let Ok(config) = state_with_extensions.get_extension::<spl_token_2022_interface::extension::transfer_fee::TransferFeeConfig>() {
-                        extensions.push(MintExtensionData::TransferFeeConfig(*config));
-                    }
-                },
-                ExtensionType::MintCloseAuthority => {
-                    if let Ok(config) = state_with_extensions.get_extension::<spl_token_2022_interface::extension::mint_close_authority::MintCloseAuthority>() {
-                        extensions.push(MintExtensionData::MintCloseAuthority(*config));
-                    }
-                },
-                // ExtensionType::ConfidentialTransferMint => {
-                //     // TODO: Confidential transfer mint deserialization
-                // }
-                ExtensionType::DefaultAccountState => {
-                    if let Ok(config) = state_with_extensions.get_extension::<spl_token_2022_interface::extension::default_account_state::DefaultAccountState>() {
-                        extensions.push(MintExtensionData::DefaultAccountState(*config));
-                    }
-                },
-                ExtensionType::NonTransferable => {
-                    if let Ok(config) = state_with_extensions.get_extension::<spl_token_2022_interface::extension::non_transferable::NonTransferable>() {
-                        extensions.push(MintExtensionData::NonTransferable(*config));
-                    }
-                },
-                ExtensionType::InterestBearingConfig => {
-                    if let Ok(config) = state_with_extensions.get_extension::<spl_token_2022_interface::extension::interest_bearing_mint::InterestBearingConfig>() {
-                        extensions.push(MintExtensionData::InterestBearingConfig(*config));
-                    }
-                },
-                ExtensionType::PermanentDelegate => {
-                    if let Ok(config) = state_with_extensions.get_extension::<spl_token_2022_interface::extension::permanent_delegate::PermanentDelegate>() {
-                        extensions.push(MintExtensionData::PermanentDelegate(*config));
-                    }
-                },
-                ExtensionType::TransferHook => {
-                    if let Ok(config) = state_with_extensions.get_extension::<spl_token_2022_interface::extension::transfer_hook::TransferHook>() {
-                        extensions.push(MintExtensionData::TransferHook(*config));
-                    }
-                },
-                // ExtensionType::ConfidentialTransferFeeConfig => {
-                //     if let Ok(config) = state_with_extensions.get_extension::<spl_token_2022_interface::extension::confidential_transfer_fee::ConfidentialTransferFeeConfig>() {
-                //         extensions.push(MintExtensionData::ConfidentialTransferFeeConfig(*config));
-                //     }
-                // }
-                ExtensionType::MetadataPointer => {
-                    if let Ok(config) = state_with_extensions.get_extension::<spl_token_2022_interface::extension::metadata_pointer::MetadataPointer>() {
-                        extensions.push(MintExtensionData::MetadataPointer(*config));
-                    }
-                },
-                ExtensionType::GroupPointer => {
-                    if let Ok(config) = state_with_extensions.get_extension::<spl_token_2022_interface::extension::group_pointer::GroupPointer>() {
-                        extensions.push(MintExtensionData::GroupPointer(*config));
-                    }
-                },
-                ExtensionType::GroupMemberPointer => {
-                    if let Ok(config) = state_with_extensions.get_extension::<spl_token_2022_interface::extension::group_member_pointer::GroupMemberPointer>() {
-                        extensions.push(MintExtensionData::GroupMemberPointer(*config));
-                    }
-                },
-                // ExtensionType::ConfidentialMintBurn => {
-                //     if let Ok(config) = state_with_extensions.get_extension::<spl_token_2022_interface::extension::confidential_mint_burn::ConfidentialMintBurn>() {
-                //         extensions.push(MintExtensionData::ConfidentialMintBurn(*config));
-                //     }
-                // }
-                ExtensionType::ScaledUiAmount => {
-                    if let Ok(config) = state_with_extensions.get_extension::<spl_token_2022_interface::extension::scaled_ui_amount::ScaledUiAmountConfig>() {
-                        extensions.push(MintExtensionData::ScaledUiAmount(*config));
-                    }
-                },
-                ExtensionType::Pausable => {
-                    if let Ok(config) = state_with_extensions.get_extension::<spl_token_2022_interface::extension::pausable::PausableConfig>() {
-                        extensions.push(MintExtensionData::Pausable(*config));
-                    }
-                },
-                ExtensionType::TokenMetadata => {
-                    if let Ok(metadata) = state_with_extensions.get_variable_len_extension::<spl_token_metadata_interface::state::TokenMetadata>() {
-                        extensions.push(MintExtensionData::TokenMetadata(metadata));
-                    }
-                },
-                ExtensionType::TokenGroup => {
-                    if let Ok(config) = state_with_extensions.get_extension::<spl_token_group_interface::state::TokenGroup>() {
-                        extensions.push(MintExtensionData::TokenGroup(*config));
-                    }
-                },
-                ExtensionType::TokenGroupMember => {
-                    if let Ok(config) = state_with_extensions.get_extension::<spl_token_group_interface::state::TokenGroupMember>() {
-                        extensions.push(MintExtensionData::TokenGroupMember(*config));
-                    }
-                },
-                _ => {
-                    extensions.push(MintExtensionData::Unknown(*ext_type));
-                }
-            }
-        }
-
-        Ok(MintWithExtensions {
-            mint: state_with_extensions.base,
-            extensions,
-        })
-    }
-
-    /// Deserializes a Token 2022 token account with all its extensions
-    ///
-    /// # Arguments
-    ///
-    /// * `account` - The account data to deserialize
-    ///
-    /// # Returns
-    ///
-    /// Returns a `TokenAccountWithExtensions` containing the account data and all extensions,
-    /// or an error if deserialization fails.
-    pub fn get_token_account_2022(
-        &mut self,
-        account: Pubkey,
-    ) -> Result<TokenAccountWithExtensions, Box<dyn std::error::Error>> {
-        let account_data = self.get_account(&account);
-        let state_with_extensions = StateWithExtensions::<Account>::unpack(account_data.data())?;
-        let extension_types = state_with_extensions.get_extension_types()?;
-
-        let mut extensions = Vec::new();
-
-        for ext_type in &extension_types {
-            match ext_type {
-                ExtensionType::ImmutableOwner => {
-                    if let Ok(config) = state_with_extensions.get_extension::<spl_token_2022_interface::extension::immutable_owner::ImmutableOwner>() {
-                        extensions.push(TokenAccountExtensionData::ImmutableOwner(*config));
-                    }
-                },
-                ExtensionType::TransferFeeAmount => {
-                    if let Ok(config) = state_with_extensions.get_extension::<spl_token_2022_interface::extension::transfer_fee::TransferFeeAmount>() {
-                        extensions.push(TokenAccountExtensionData::TransferFeeAmount(*config));
-                    }
-                },
-                // ExtensionType::ConfidentialTransferAccount => {
-                //     // TODO: Confidential transfer account deserialization
-                // }
-                ExtensionType::MemoTransfer => {
-                    if let Ok(config) = state_with_extensions.get_extension::<spl_token_2022_interface::extension::memo_transfer::MemoTransfer>() {
-                        extensions.push(TokenAccountExtensionData::MemoTransfer(*config));
-                    }
-                },
-                ExtensionType::NonTransferableAccount => {
-                    if let Ok(config) = state_with_extensions.get_extension::<spl_token_2022_interface::extension::non_transferable::NonTransferableAccount>() {
-                        extensions.push(TokenAccountExtensionData::NonTransferableAccount(*config));
-                    }
-                },
-                ExtensionType::TransferHookAccount => {
-                    if let Ok(config) = state_with_extensions.get_extension::<spl_token_2022_interface::extension::transfer_hook::TransferHookAccount>() {
-                        extensions.push(TokenAccountExtensionData::TransferHookAccount(*config));
-                    }
-                },
-                ExtensionType::CpiGuard => {
-                    if let Ok(config) = state_with_extensions.get_extension::<spl_token_2022_interface::extension::cpi_guard::CpiGuard>() {
-                        extensions.push(TokenAccountExtensionData::CpiGuard(*config));
-                    }
-                },
-                // ExtensionType::ConfidentialTransferFeeAmount => {
-                //     if let Ok(config) = state_with_extensions.get_extension::<spl_token_2022_interface::extension::confidential_transfer_fee::ConfidentialTransferFeeAmount>() {
-                //         extensions.push(TokenAccountExtensionData::ConfidentialTransferFeeAmount(*config));
-                //     }
-                // }
-                ExtensionType::PausableAccount => {
-                    if let Ok(config) = state_with_extensions.get_extension::<spl_token_2022_interface::extension::pausable::PausableAccount>() {
-                        extensions.push(TokenAccountExtensionData::PausableAccount(*config));
-                    }
-                },
-                _ => {
-                    extensions.push(TokenAccountExtensionData::Unknown(*ext_type));
-                }
-            }
-        }
-
-        Ok(TokenAccountWithExtensions {
-            account: state_with_extensions.base,
-            extensions,
-        })
-    }
-
     /// Creates an instruction to transfer tokens between Token 2022 accounts with verification
     ///
     /// Generates a checked transfer instruction that verifies both the amount and decimals
@@ -963,5 +765,182 @@ impl Trident {
         }
 
         instructions
+    }
+
+    pub(crate) fn get_token_account_2022(
+        &mut self,
+        account_data: &[u8],
+    ) -> Result<TokenAccountWithExtensions, ProgramError> {
+        let state_with_extensions = StateWithExtensions::<Account>::unpack(account_data)?;
+        let extension_types = state_with_extensions.get_extension_types()?;
+
+        let mut extensions = Vec::new();
+
+        for ext_type in &extension_types {
+            match ext_type {
+                ExtensionType::ImmutableOwner => {
+                    if let Ok(config) = state_with_extensions.get_extension::<spl_token_2022_interface::extension::immutable_owner::ImmutableOwner>() {
+                        extensions.push(TokenAccountExtensionData::ImmutableOwner(*config));
+                    }
+                },
+                ExtensionType::TransferFeeAmount => {
+                    if let Ok(config) = state_with_extensions.get_extension::<spl_token_2022_interface::extension::transfer_fee::TransferFeeAmount>() {
+                        extensions.push(TokenAccountExtensionData::TransferFeeAmount(*config));
+                    }
+                },
+                // ExtensionType::ConfidentialTransferAccount => {
+                //     // TODO: Confidential transfer account deserialization
+                // }
+                ExtensionType::MemoTransfer => {
+                    if let Ok(config) = state_with_extensions.get_extension::<spl_token_2022_interface::extension::memo_transfer::MemoTransfer>() {
+                        extensions.push(TokenAccountExtensionData::MemoTransfer(*config));
+                    }
+                },
+                ExtensionType::NonTransferableAccount => {
+                    if let Ok(config) = state_with_extensions.get_extension::<spl_token_2022_interface::extension::non_transferable::NonTransferableAccount>() {
+                        extensions.push(TokenAccountExtensionData::NonTransferableAccount(*config));
+                    }
+                },
+                ExtensionType::TransferHookAccount => {
+                    if let Ok(config) = state_with_extensions.get_extension::<spl_token_2022_interface::extension::transfer_hook::TransferHookAccount>() {
+                        extensions.push(TokenAccountExtensionData::TransferHookAccount(*config));
+                    }
+                },
+                ExtensionType::CpiGuard => {
+                    if let Ok(config) = state_with_extensions.get_extension::<spl_token_2022_interface::extension::cpi_guard::CpiGuard>() {
+                        extensions.push(TokenAccountExtensionData::CpiGuard(*config));
+                    }
+                },
+                // ExtensionType::ConfidentialTransferFeeAmount => {
+                //     if let Ok(config) = state_with_extensions.get_extension::<spl_token_2022_interface::extension::confidential_transfer_fee::ConfidentialTransferFeeAmount>() {
+                //         extensions.push(TokenAccountExtensionData::ConfidentialTransferFeeAmount(*config));
+                //     }
+                // }
+                ExtensionType::PausableAccount => {
+                    if let Ok(config) = state_with_extensions.get_extension::<spl_token_2022_interface::extension::pausable::PausableAccount>() {
+                        extensions.push(TokenAccountExtensionData::PausableAccount(*config));
+                    }
+                },
+                _ => {
+                    extensions.push(TokenAccountExtensionData::Unknown(*ext_type));
+                }
+            }
+        }
+
+        Ok(TokenAccountWithExtensions {
+            account: state_with_extensions.base,
+            extensions,
+        })
+    }
+
+    pub(crate) fn get_mint_2022(
+        &mut self,
+        account_data: &[u8],
+    ) -> Result<MintWithExtensions, ProgramError> {
+        let state_with_extensions = StateWithExtensions::<Mint>::unpack(account_data)?;
+        let extension_types = state_with_extensions.get_extension_types()?;
+
+        let mut extensions = Vec::new();
+
+        for ext_type in &extension_types {
+            match ext_type {
+                ExtensionType::TransferFeeConfig => {
+                    if let Ok(config) = state_with_extensions.get_extension::<spl_token_2022_interface::extension::transfer_fee::TransferFeeConfig>() {
+                        extensions.push(MintExtensionData::TransferFeeConfig(*config));
+                    }
+                },
+                ExtensionType::MintCloseAuthority => {
+                    if let Ok(config) = state_with_extensions.get_extension::<spl_token_2022_interface::extension::mint_close_authority::MintCloseAuthority>() {
+                        extensions.push(MintExtensionData::MintCloseAuthority(*config));
+                    }
+                },
+                // ExtensionType::ConfidentialTransferMint => {
+                //     // TODO: Confidential transfer mint deserialization
+                // }
+                ExtensionType::DefaultAccountState => {
+                    if let Ok(config) = state_with_extensions.get_extension::<spl_token_2022_interface::extension::default_account_state::DefaultAccountState>() {
+                        extensions.push(MintExtensionData::DefaultAccountState(*config));
+                    }
+                },
+                ExtensionType::NonTransferable => {
+                    if let Ok(config) = state_with_extensions.get_extension::<spl_token_2022_interface::extension::non_transferable::NonTransferable>() {
+                        extensions.push(MintExtensionData::NonTransferable(*config));
+                    }
+                },
+                ExtensionType::InterestBearingConfig => {
+                    if let Ok(config) = state_with_extensions.get_extension::<spl_token_2022_interface::extension::interest_bearing_mint::InterestBearingConfig>() {
+                        extensions.push(MintExtensionData::InterestBearingConfig(*config));
+                    }
+                },
+                ExtensionType::PermanentDelegate => {
+                    if let Ok(config) = state_with_extensions.get_extension::<spl_token_2022_interface::extension::permanent_delegate::PermanentDelegate>() {
+                        extensions.push(MintExtensionData::PermanentDelegate(*config));
+                    }
+                },
+                ExtensionType::TransferHook => {
+                    if let Ok(config) = state_with_extensions.get_extension::<spl_token_2022_interface::extension::transfer_hook::TransferHook>() {
+                        extensions.push(MintExtensionData::TransferHook(*config));
+                    }
+                },
+                // ExtensionType::ConfidentialTransferFeeConfig => {
+                //     if let Ok(config) = state_with_extensions.get_extension::<spl_token_2022_interface::extension::confidential_transfer_fee::ConfidentialTransferFeeConfig>() {
+                //         extensions.push(MintExtensionData::ConfidentialTransferFeeConfig(*config));
+                //     }
+                // }
+                ExtensionType::MetadataPointer => {
+                    if let Ok(config) = state_with_extensions.get_extension::<spl_token_2022_interface::extension::metadata_pointer::MetadataPointer>() {
+                        extensions.push(MintExtensionData::MetadataPointer(*config));
+                    }
+                },
+                ExtensionType::GroupPointer => {
+                    if let Ok(config) = state_with_extensions.get_extension::<spl_token_2022_interface::extension::group_pointer::GroupPointer>() {
+                        extensions.push(MintExtensionData::GroupPointer(*config));
+                    }
+                },
+                ExtensionType::GroupMemberPointer => {
+                    if let Ok(config) = state_with_extensions.get_extension::<spl_token_2022_interface::extension::group_member_pointer::GroupMemberPointer>() {
+                        extensions.push(MintExtensionData::GroupMemberPointer(*config));
+                    }
+                },
+                // ExtensionType::ConfidentialMintBurn => {
+                //     if let Ok(config) = state_with_extensions.get_extension::<spl_token_2022_interface::extension::confidential_mint_burn::ConfidentialMintBurn>() {
+                //         extensions.push(MintExtensionData::ConfidentialMintBurn(*config));
+                //     }
+                // }
+                ExtensionType::ScaledUiAmount => {
+                    if let Ok(config) = state_with_extensions.get_extension::<spl_token_2022_interface::extension::scaled_ui_amount::ScaledUiAmountConfig>() {
+                        extensions.push(MintExtensionData::ScaledUiAmount(*config));
+                    }
+                },
+                ExtensionType::Pausable => {
+                    if let Ok(config) = state_with_extensions.get_extension::<spl_token_2022_interface::extension::pausable::PausableConfig>() {
+                        extensions.push(MintExtensionData::Pausable(*config));
+                    }
+                },
+                ExtensionType::TokenMetadata => {
+                    if let Ok(metadata) = state_with_extensions.get_variable_len_extension::<spl_token_metadata_interface::state::TokenMetadata>() {
+                        extensions.push(MintExtensionData::TokenMetadata(metadata));
+                    }
+                },
+                ExtensionType::TokenGroup => {
+                    if let Ok(config) = state_with_extensions.get_extension::<spl_token_group_interface::state::TokenGroup>() {
+                        extensions.push(MintExtensionData::TokenGroup(*config));
+                    }
+                },
+                ExtensionType::TokenGroupMember => {
+                    if let Ok(config) = state_with_extensions.get_extension::<spl_token_group_interface::state::TokenGroupMember>() {
+                        extensions.push(MintExtensionData::TokenGroupMember(*config));
+                    }
+                },
+                _ => {
+                    extensions.push(MintExtensionData::Unknown(*ext_type));
+                }
+            }
+        }
+
+        Ok(MintWithExtensions {
+            mint: state_with_extensions.base,
+            extensions,
+        })
     }
 }

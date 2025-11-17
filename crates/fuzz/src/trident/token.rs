@@ -1,7 +1,11 @@
+use solana_sdk::account::ReadableAccount;
 use solana_sdk::instruction::Instruction;
+use solana_sdk::program_error::ProgramError;
 use solana_sdk::program_pack::Pack;
 use solana_sdk::pubkey::Pubkey;
 
+use crate::trident::token2022::MintWithExtensions;
+use crate::trident::token2022::TokenAccountWithExtensions;
 use crate::trident::Trident;
 
 impl Trident {
@@ -162,5 +166,56 @@ impl Trident {
         spl_associated_token_account_interface::address::get_associated_token_address_with_program_id(
             owner, mint, program_id,
         )
+    }
+
+    /// Deserializes a token account (SPL Token or Token 2022) with all its extensions
+    ///
+    /// Works with both SPL Token and Token 2022 accounts. For Token 2022 accounts,
+    /// all extensions are deserialized and included in the result.
+    ///
+    /// # Arguments
+    ///
+    /// * `account` - The public key of the token account to deserialize
+    ///
+    /// # Returns
+    ///
+    /// Returns a `TokenAccountWithExtensions` containing the account data and all extensions,
+    /// or an error if deserialization fails or the account is not owned by a token program.
+    pub fn get_token_account(
+        &mut self,
+        account: Pubkey,
+    ) -> Result<TokenAccountWithExtensions, ProgramError> {
+        let account_data = self.get_account(&account);
+        if account_data.owner() != &spl_token_2022_interface::ID
+            && account_data.owner() != &spl_token_interface::ID
+        {
+            Err(ProgramError::InvalidAccountOwner)
+        } else {
+            self.get_token_account_2022(account_data.data())
+        }
+    }
+
+    /// Deserializes a mint account (SPL Token or Token 2022) with all its extensions
+    ///
+    /// Works with both SPL Token and Token 2022 mints. For Token 2022 mints,
+    /// all extensions are deserialized and included in the result.
+    ///
+    /// # Arguments
+    ///
+    /// * `account` - The public key of the mint account to deserialize
+    ///
+    /// # Returns
+    ///
+    /// Returns a `MintWithExtensions` containing the mint data and all extensions,
+    /// or an error if deserialization fails or the account is not owned by a token program.
+    pub fn get_mint(&mut self, account: Pubkey) -> Result<MintWithExtensions, ProgramError> {
+        let account_data = self.get_account(&account);
+        if account_data.owner() != &spl_token_2022_interface::ID
+            && account_data.owner() != &spl_token_interface::ID
+        {
+            Err(ProgramError::InvalidAccountOwner)
+        } else {
+            self.get_mint_2022(account_data.data())
+        }
     }
 }
