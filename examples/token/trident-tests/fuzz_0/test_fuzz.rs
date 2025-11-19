@@ -36,7 +36,11 @@ impl FuzzTest {
         // Perform logic which is meant to be fuzzed
         // This flow is selected randomly from other flows
 
-        let payer = self.fuzz_accounts.payer.get(&mut self.trident);
+        let payer = self
+            .fuzz_accounts
+            .payer
+            .get(&mut self.trident)
+            .expect("Storage empty");
 
         let author2022 = self
             .fuzz_accounts
@@ -74,7 +78,11 @@ impl FuzzTest {
         // Perform logic which is meant to be fuzzed
         // This flow is selected randomly from other flows
 
-        let payer = self.fuzz_accounts.payer.get(&mut self.trident);
+        let payer = self
+            .fuzz_accounts
+            .payer
+            .get(&mut self.trident)
+            .expect("Storage empty");
 
         let author2022 = self
             .fuzz_accounts
@@ -115,7 +123,11 @@ impl FuzzTest {
         // Perform logic which is meant to be fuzzed
         // This flow is selected randomly from other flows
 
-        let payer = self.fuzz_accounts.payer.get(&mut self.trident);
+        let payer = self
+            .fuzz_accounts
+            .payer
+            .get(&mut self.trident)
+            .expect("Storage empty");
 
         let author2022 = self
             .fuzz_accounts
@@ -157,7 +169,11 @@ impl FuzzTest {
         // Perform logic which is meant to be fuzzed
         // This flow is selected randomly from other flows
 
-        let payer = self.fuzz_accounts.payer.get(&mut self.trident);
+        let payer = self
+            .fuzz_accounts
+            .payer
+            .get(&mut self.trident)
+            .expect("Storage empty");
 
         let author2022 = self
             .fuzz_accounts
@@ -214,7 +230,11 @@ impl FuzzTest {
         // Perform logic which is meant to be fuzzed
         // This flow is selected randomly from other flows
 
-        let payer = self.fuzz_accounts.payer.get(&mut self.trident);
+        let payer = self
+            .fuzz_accounts
+            .payer
+            .get(&mut self.trident)
+            .expect("Storage empty");
 
         let author2022 = self
             .fuzz_accounts
@@ -258,7 +278,11 @@ impl FuzzTest {
         // Perform logic which is meant to be fuzzed
         // This flow is selected randomly from other flows
 
-        let payer = self.fuzz_accounts.payer.get(&mut self.trident);
+        let payer = self
+            .fuzz_accounts
+            .payer
+            .get(&mut self.trident)
+            .expect("Storage empty");
 
         let author2022 = self
             .fuzz_accounts
@@ -299,7 +323,11 @@ impl FuzzTest {
         // Perform logic which is meant to be fuzzed
         // This flow is selected randomly from other flows
 
-        let payer = self.fuzz_accounts.payer.get(&mut self.trident);
+        let payer = self
+            .fuzz_accounts
+            .payer
+            .get(&mut self.trident)
+            .expect("Storage empty");
 
         let author2022 = self
             .fuzz_accounts
@@ -342,7 +370,11 @@ impl FuzzTest {
         // Perform logic which is meant to be fuzzed
         // This flow is selected randomly from other flows
 
-        let payer = self.fuzz_accounts.payer.get(&mut self.trident);
+        let payer = self
+            .fuzz_accounts
+            .payer
+            .get(&mut self.trident)
+            .expect("Storage empty");
 
         let author2022 = self
             .fuzz_accounts
@@ -382,7 +414,11 @@ impl FuzzTest {
         // Perform logic which is meant to be fuzzed
         // This flow is selected randomly from other flows
 
-        let payer = self.fuzz_accounts.payer.get(&mut self.trident);
+        let payer = self
+            .fuzz_accounts
+            .payer
+            .get(&mut self.trident)
+            .expect("Storage empty");
 
         let author2022 = self
             .fuzz_accounts
@@ -423,7 +459,11 @@ impl FuzzTest {
         // Perform logic which is meant to be fuzzed
         // This flow is selected randomly from other flows
 
-        let payer = self.fuzz_accounts.payer.get(&mut self.trident);
+        let payer = self
+            .fuzz_accounts
+            .payer
+            .get(&mut self.trident)
+            .expect("Storage empty");
 
         let author2022 = self
             .fuzz_accounts
@@ -465,7 +505,11 @@ impl FuzzTest {
         // Perform logic which is meant to be fuzzed
         // This flow is selected randomly from other flows
 
-        let payer = self.fuzz_accounts.payer.get(&mut self.trident);
+        let payer = self
+            .fuzz_accounts
+            .payer
+            .get(&mut self.trident)
+            .expect("Storage empty");
 
         let author2022 = self
             .fuzz_accounts
@@ -514,7 +558,11 @@ impl FuzzTest {
         // Perform logic which is meant to be fuzzed
         // This flow is selected randomly from other flows
 
-        let payer = self.fuzz_accounts.payer.get(&mut self.trident);
+        let payer = self
+            .fuzz_accounts
+            .payer
+            .get(&mut self.trident)
+            .expect("Storage empty");
 
         let author2022 = self
             .fuzz_accounts
@@ -574,7 +622,11 @@ impl FuzzTest {
         // Perform logic which is meant to be fuzzed
         // This flow is selected randomly from other flows
 
-        let payer = self.fuzz_accounts.payer.get(&mut self.trident);
+        let payer = self
+            .fuzz_accounts
+            .payer
+            .get(&mut self.trident)
+            .expect("Storage empty");
 
         let author2022 = self
             .fuzz_accounts
@@ -667,7 +719,11 @@ impl FuzzTest {
         // Perform logic which is meant to be fuzzed
         // This flow is selected randomly from other flows
 
-        let payer = self.fuzz_accounts.payer.get(&mut self.trident);
+        let payer = self
+            .fuzz_accounts
+            .payer
+            .get(&mut self.trident)
+            .expect("Storage empty");
 
         let author2022 = self
             .fuzz_accounts
@@ -853,7 +909,11 @@ impl FuzzTest {
         // Perform logic which is meant to be fuzzed
         // This flow is selected randomly from other flows
 
-        let payer = self.fuzz_accounts.payer.get(&mut self.trident);
+        let payer = self
+            .fuzz_accounts
+            .payer
+            .get(&mut self.trident)
+            .expect("Storage empty");
 
         self.trident.airdrop(&payer, 10 * LAMPORTS_PER_SOL);
 

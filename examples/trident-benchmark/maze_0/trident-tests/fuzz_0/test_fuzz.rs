@@ -74,7 +74,11 @@ impl FuzzTest {
         // perform logic which is meant to be fuzzed
         // this flow is selected randomly from other flows
 
-        let state = self.fuzz_accounts.state.get(&mut self.trident);
+        let state = self
+            .fuzz_accounts
+            .state
+            .get(&mut self.trident)
+            .expect("Storage empty");
 
         let move_north = maze::MoveNorthInstruction::data(MoveNorthInstructionData::new(
             self.trident.random_from_range(0..u64::MAX),
@@ -99,7 +103,11 @@ impl FuzzTest {
         // perform logic which is meant to be fuzzed
         // this flow is selected randomly from other flows
 
-        let state = self.fuzz_accounts.state.get(&mut self.trident);
+        let state = self
+            .fuzz_accounts
+            .state
+            .get(&mut self.trident)
+            .expect("Storage empty");
 
         let move_north = maze::MoveSouthInstruction::data(MoveSouthInstructionData::new(
             self.trident.random_from_range(0..u64::MAX),
@@ -124,7 +132,11 @@ impl FuzzTest {
         // perform logic which is meant to be fuzzed
         // this flow is selected randomly from other flows
 
-        let state = self.fuzz_accounts.state.get(&mut self.trident);
+        let state = self
+            .fuzz_accounts
+            .state
+            .get(&mut self.trident)
+            .expect("Storage empty");
 
         let move_north = maze::MoveEastInstruction::data(MoveEastInstructionData::new(
             self.trident.random_from_range(0..u64::MAX),
@@ -149,7 +161,11 @@ impl FuzzTest {
         // perform logic which is meant to be fuzzed
         // this flow is selected randomly from other flows
 
-        let state = self.fuzz_accounts.state.get(&mut self.trident);
+        let state = self
+            .fuzz_accounts
+            .state
+            .get(&mut self.trident)
+            .expect("Storage empty");
 
         let move_north = maze::MoveWestInstruction::data(MoveWestInstructionData::new(
             self.trident.random_from_range(0..u64::MAX),

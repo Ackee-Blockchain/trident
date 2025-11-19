@@ -105,15 +105,72 @@ impl AddressStorage {
     /// * `trident` - The Trident instance for random number generation
     ///
     /// # Returns
-    /// A randomly selected address from storage
+    /// * `Some(Pubkey)` - A randomly selected address from storage
+    /// * `None` - If the storage is empty
+    pub fn get(&self, trident: &mut Trident) -> Option<Pubkey> {
+        if self.is_empty() {
+            return None;
+        }
+        let accounts_num = self.addresses.len();
+        let account_id = trident.random_from_range(0..accounts_num);
+        Some(self.addresses[account_id])
+    }
+
+    /// Retrieves a random address from storage, excluding specified addresses
     ///
-    /// # Panics
-    /// Panics if the storage is empty
-    pub fn get(&self, trident: &mut Trident) -> Pubkey {
+    /// Randomly selects one of the stored addresses using Trident's RNG, ensuring
+    /// the selected address is not in the exclusion list. This is useful for fuzzing
+    /// operations that need distinct accounts (e.g., sender and receiver must be different).
+    ///
+    /// # Arguments
+    /// * `trident` - The Trident instance for random number generation
+    /// * `except_addresses` - Slice of addresses to exclude from selection
+    ///
+    /// # Returns
+    /// * `Some(Pubkey)` - A randomly selected address that is not in the exclusion list
+    /// * `None` - If storage is empty or all addresses are in the exclusion list
+    ///
+    /// # Examples
+    /// ```ignore
+    /// let sender = storage.get(&mut trident)?;
+    /// // Get a different address for receiver
+    /// let receiver = storage.get_except(&mut trident, &[sender])?;
+    /// ```
+    pub fn get_except(&self, trident: &mut Trident, except_addresses: &[Pubkey]) -> Option<Pubkey> {
+        if self.is_empty() {
+            return None;
+        }
+
         let accounts_num = self.addresses.len();
 
-        let account_id = trident.random_from_range(0..accounts_num);
-        self.addresses[account_id]
+        // If all addresses would be excluded, return None
+        if except_addresses.len() >= accounts_num {
+            let all_excluded = self
+                .addresses
+                .iter()
+                .all(|addr| except_addresses.contains(addr));
+            if all_excluded {
+                return None;
+            }
+        }
+
+        // Try to find a valid address by random sampling
+        // We try up to accounts_num times to find a non-excluded address
+        for _ in 0..accounts_num {
+            let account_id = trident.random_from_range(0..accounts_num);
+            let candidate = self.addresses[account_id];
+
+            if !except_addresses.contains(&candidate) {
+                return Some(candidate);
+            }
+        }
+
+        // Fallback: if random sampling failed, do a linear search
+        // This should rarely happen but ensures we return a valid address if one exists
+        self.addresses
+            .iter()
+            .find(|addr| !except_addresses.contains(addr))
+            .copied()
     }
 
     /// Checks if the storage is empty

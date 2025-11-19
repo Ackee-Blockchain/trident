@@ -53,20 +53,41 @@ pub fn insert_with_address(&mut self, address: Pubkey)
 Retrieves a random address from storage.
 
 ```rust
-pub fn get(&self, trident: &mut Trident) -> Pubkey
+pub fn get(&self, trident: &mut Trident) -> Option<Pubkey>
 ```
 
 **Parameters:**
 
 - `trident` - The Trident instance for random number generation
 
-**Returns:** A randomly selected address from storage.
+**Returns:**
+
+- `Some(Pubkey)` - A randomly selected address from storage
+- `None` - If the storage is empty
 
 **Description:** Randomly selects one of the stored addresses using Trident's RNG. This is useful for fuzzing operations that need to work with previously created accounts.
 
-!!! warning "Empty Storage"
+---
 
-    This method will panic if the storage is empty. Always check with `is_empty()` before calling `get()` if you're unsure whether addresses have been stored.
+### `get_except`
+
+Retrieves a random address from storage, excluding specified addresses.
+
+```rust
+pub fn get_except(&self, trident: &mut Trident, except_addresses: &[Pubkey]) -> Option<Pubkey>
+```
+
+**Parameters:**
+
+- `trident` - The Trident instance for random number generation
+- `except_addresses` - Slice of addresses to exclude from selection
+
+**Returns:**
+
+- `Some(Pubkey)` - A randomly selected address that is not in the exclusion list
+- `None` - If storage is empty or all addresses are in the exclusion list
+
+**Description:** Randomly selects one of the stored addresses using Trident's RNG, ensuring the selected address is not in the exclusion list. This is particularly useful for fuzzing operations that require distinct accounts, such as transfers where the sender and receiver must be different addresses.
 
 ---
 
@@ -195,45 +216,3 @@ fn test_pda_storage(&mut self) {
     assert!(result.is_success());
 }
 ```
-
-```rust
-use trident_fuzz::*;
-use trident_fuzz::address_storage::{AddressStorage, PdaSeeds};
-
-#[flow]
-fn test_combined_address_management(&mut self) {
-    let program_id = Pubkey::new_unique();
-    
-    // Mix of random addresses and PDAs
-    for i in 0..10 {
-        if i % 2 == 0 {
-            // Create random address
-            self.fuzz_accounts.all_accounts.insert(self, None);
-        } else {
-            // Create PDA
-            let seeds = PdaSeeds::new(
-                &[b"account", &[i as u8]],
-                program_id
-            );
-            self.fuzz_accounts.all_accounts.insert(self, Some(seeds));
-        }
-    }
-    
-    // Perform random operations on random accounts
-    for _ in 0..20 {
-        let account1 = self.fuzz_accounts.all_accounts.get(self);
-        let account2 = self.fuzz_accounts.all_accounts.get(self);
-        let amount = self.random_from_range(100..1000u64);
-        
-        // Ensure accounts have lamports
-        self.airdrop(&account1, 10_000);
-        
-        // Random transfer between accounts
-        let ix = self.transfer(&account1, &account2, amount);
-        self.process_transaction(&[ix], Some("random_transfer"));
-    }
-}
-```
-
-
-
