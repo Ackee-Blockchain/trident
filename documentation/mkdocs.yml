@@ -47,6 +47,8 @@ nav:
       - trident-api/token-2022.md
       - trident-api/vote-program.md
       - trident-api/stake-program.md
+      - Address Storage:
+        - trident-api/address-storage/index.md
   - Trident Manifest:
       - trident-manifest/index.md
   - TridentSVM:
