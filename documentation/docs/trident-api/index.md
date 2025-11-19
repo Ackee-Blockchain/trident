@@ -83,6 +83,7 @@ pub fn get_last_blockhash(&self) -> Hash
 ## Method Categories
 
 ### Specialized Method Groups
+
 - **[Account Management](./account-management.md)** - Account data retrieval, manipulation, and lamport management
 - **[Time & Clock](./time-clock.md)** - Time manipulation and clock-related operations for testing time-dependent logic
 - **[Random Generation](./random-generation.md)** - Generate random data for comprehensive fuzz testing

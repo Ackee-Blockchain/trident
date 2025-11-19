@@ -59,65 +59,50 @@ impl Trident {
     ) -> Vec<Instruction> {
         let mut extension_types: Vec<ExtensionType> = Vec::new();
         let mut rent_top_ups: Vec<usize> = Vec::new();
-        let mut extension_names: Vec<String> = Vec::new();
 
         for ext in extensions {
             match ext {
                 // MintExtension::ConfidentialTransferMint { .. } => {
                 //     extension_types.push(ExtensionType::ConfidentialTransferMint);
-                //     extension_names.push(format!("{:?}", ExtensionType::ConfidentialTransferMint));
                 // }
                 // MintExtension::ConfidentialMintBurn => {
                 //     extension_types.push(ExtensionType::ConfidentialMintBurn);
-                //     extension_names.push(format!("{:?}", ExtensionType::ConfidentialMintBurn));
                 // }
                 MintExtension::TransferFeeConfig { .. } => {
                     extension_types.push(ExtensionType::TransferFeeConfig);
-                    extension_names.push(format!("{:?}", ExtensionType::TransferFeeConfig));
                 }
                 MintExtension::MintCloseAuthority { .. } => {
                     extension_types.push(ExtensionType::MintCloseAuthority);
-                    extension_names.push(format!("{:?}", ExtensionType::MintCloseAuthority));
                 }
                 MintExtension::InterestBearingConfig { .. } => {
                     extension_types.push(ExtensionType::InterestBearingConfig);
-                    extension_names.push(format!("{:?}", ExtensionType::InterestBearingConfig));
                 }
                 MintExtension::NonTransferable => {
                     extension_types.push(ExtensionType::NonTransferable);
-                    extension_names.push(format!("{:?}", ExtensionType::NonTransferable));
                 }
                 MintExtension::PermanentDelegate { .. } => {
                     extension_types.push(ExtensionType::PermanentDelegate);
-                    extension_names.push(format!("{:?}", ExtensionType::PermanentDelegate));
                 }
                 MintExtension::TransferHook { .. } => {
                     extension_types.push(ExtensionType::TransferHook);
-                    extension_names.push(format!("{:?}", ExtensionType::TransferHook));
                 }
                 MintExtension::MetadataPointer { .. } => {
                     extension_types.push(ExtensionType::MetadataPointer);
-                    extension_names.push(format!("{:?}", ExtensionType::MetadataPointer));
                 }
                 MintExtension::GroupPointer { .. } => {
                     extension_types.push(ExtensionType::GroupPointer);
-                    extension_names.push(format!("{:?}", ExtensionType::GroupPointer));
                 }
                 MintExtension::GroupMemberPointer { .. } => {
                     extension_types.push(ExtensionType::GroupMemberPointer);
-                    extension_names.push(format!("{:?}", ExtensionType::GroupMemberPointer));
                 }
                 MintExtension::ScaledUiAmount { .. } => {
                     extension_types.push(ExtensionType::ScaledUiAmount);
-                    extension_names.push(format!("{:?}", ExtensionType::ScaledUiAmount));
                 }
                 MintExtension::Pausable { .. } => {
                     extension_types.push(ExtensionType::Pausable);
-                    extension_names.push(format!("{:?}", ExtensionType::Pausable));
                 }
                 MintExtension::DefaultAccountState { .. } => {
                     extension_types.push(ExtensionType::DefaultAccountState);
-                    extension_names.push(format!("{:?}", ExtensionType::DefaultAccountState));
                 }
                 MintExtension::TokenMetadata {
                     mint,
@@ -142,15 +127,12 @@ impl Trident {
                         let metadata_len = token_metadata.tlv_size_of().unwrap();
                         rent_top_ups.push(metadata_len);
                     }
-
-                    extension_names.push(format!("{:?}", ExtensionType::TokenMetadata));
                 }
                 MintExtension::TokenGroup { .. } => {
                     let token_group_len = ExtensionType::try_calculate_account_len::<Mint>(&[
                         ExtensionType::TokenGroup,
                     ])
                     .unwrap_or_default();
-                    extension_names.push(format!("{:?}", ExtensionType::TokenGroup));
                     rent_top_ups.push(token_group_len);
                 }
                 MintExtension::TokenGroupMember { .. } => {
@@ -159,7 +141,6 @@ impl Trident {
                             ExtensionType::TokenGroupMember,
                         ])
                         .unwrap_or_default();
-                    extension_names.push(format!("{:?}", ExtensionType::TokenGroupMember));
                     rent_top_ups.push(token_group_member_len);
                 }
             }
@@ -560,24 +541,13 @@ impl Trident {
         let required_extensions =
             ExtensionType::get_required_init_account_extensions(&mint_extension_types);
 
-        let mut extension_names: Vec<String> = Vec::default();
-
         // Collect extension types and names for space calculation and logging
         let extension_types: Vec<ExtensionType> = extensions
             .iter()
             .map(|ext| match ext {
-                AccountExtension::ImmutableOwner => {
-                    extension_names.push(format!("{:?}", ExtensionType::ImmutableOwner));
-                    ExtensionType::ImmutableOwner
-                }
-                AccountExtension::MemoTransfer { .. } => {
-                    extension_names.push(format!("{:?}", ExtensionType::MemoTransfer));
-                    ExtensionType::MemoTransfer
-                }
-                AccountExtension::CpiGuard => {
-                    extension_names.push(format!("{:?}", ExtensionType::CpiGuard));
-                    ExtensionType::CpiGuard
-                }
+                AccountExtension::ImmutableOwner => ExtensionType::ImmutableOwner,
+                AccountExtension::MemoTransfer { .. } => ExtensionType::MemoTransfer,
+                AccountExtension::CpiGuard => ExtensionType::CpiGuard,
             })
             .chain(required_extensions)
             .collect();
