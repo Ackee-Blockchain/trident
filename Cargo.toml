@@ -6,6 +6,7 @@ members = [
     "crates/fuzz",
     "crates/syn",
     "crates/template",
+    "crates/fuzz/stubsv2",
 ]
 exclude = ["examples/"]
 resolver = "1"
@@ -23,7 +24,7 @@ readme = "./README.md"
 
 [workspace.dependencies]
 # Solana
-solana-sdk = "2.2"
+solana-sdk = "2.1"
 
 # ARBITRARY
 arbitrary = { version = "1.3.0", features = ["derive"] }

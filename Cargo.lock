@@ -2855,6 +2855,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "94143f37725109f92c262ed2cf5e59bce7498c01bcc1502d7b9afe439a4e9f49"
 
 [[package]]
+name = "scroll"
+version = "0.11.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "04c565b551bafbef4157586fa379538366e4385d42082f255bfd96e4fe8519da"
+
+[[package]]
 name = "sct"
 version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5041,6 +5047,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "solana_rbpf"
+version = "0.8.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1c1941b5ef0c3ce8f2ac5dd984d0fb1a97423c4ff2a02eec81e3913f02e2ac2b"
+dependencies = [
+ "byteorder",
+ "combine",
+ "hash32",
+ "libc",
+ "log",
+ "rand 0.8.5",
+ "rustc-demangle",
+ "scroll",
+ "thiserror 1.0.69",
+ "winapi",
+]
+
+[[package]]
 name = "spl-discriminator"
 version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5172,6 +5196,21 @@ dependencies = [
 
 [[package]]
 name = "spl-token"
+version = "6.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "70a0f06ac7f23dc0984931b1fe309468f14ea58e32660439c1cef19456f5d0e3"
+dependencies = [
+ "arrayref",
+ "bytemuck",
+ "num-derive",
+ "num-traits",
+ "num_enum",
+ "solana-program",
+ "thiserror 1.0.69",
+]
+
+[[package]]
+name = "spl-token"
 version = "7.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ed320a6c934128d4f7e54fe00e16b8aeaecf215799d060ae14f93378da6dc834"
@@ -5202,7 +5241,7 @@ dependencies = [
  "spl-elgamal-registry",
  "spl-memo",
  "spl-pod",
- "spl-token",
+ "spl-token 7.0.0",
  "spl-token-confidential-transfer-ciphertext-arithmetic",
  "spl-token-confidential-transfer-proof-extraction",
  "spl-token-confidential-transfer-proof-generation",
@@ -5783,7 +5822,7 @@ dependencies = [
  "solana-vote-program",
  "solana-zk-sdk",
  "spl-pod",
- "spl-token",
+ "spl-token 6.0.0",
  "spl-token-2022",
  "spl-token-group-interface",
  "spl-token-metadata-interface",
@@ -5817,6 +5856,7 @@ version = "0.0.4-rc.1"
 dependencies = [
  "agave-feature-set",
  "bincode",
+ "log",
  "serde",
  "serde_json",
  "shared_memory",
@@ -5827,6 +5867,7 @@ dependencies = [
  "solana-config-program",
  "solana-loader-v4-program",
  "solana-logger",
+ "solana-program",
  "solana-program-runtime",
  "solana-sbpf",
  "solana-sdk",
@@ -5834,7 +5875,7 @@ dependencies = [
  "solana-svm",
  "solana-system-program",
  "solana-vote-program",
- "trident-syscall-stubs-v2",
+ "trident-syscall-stubs-v2 0.0.2-rc.1",
 ]
 
 [[package]]
@@ -5857,6 +5898,19 @@ dependencies = [
  "solana-program-runtime",
  "solana-sdk",
  "solana-timings",
+]
+
+[[package]]
+name = "trident-syscall-stubs-v2"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "solana-bpf-loader-program",
+ "solana-program",
+ "solana-program-runtime",
+ "solana-sdk",
+ "solana-timings",
+ "solana_rbpf",
 ]
 
 [[package]]
