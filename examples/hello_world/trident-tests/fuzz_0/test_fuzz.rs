@@ -48,6 +48,10 @@ impl FuzzTest {
             .accounts(InitializeFnInstructionAccounts::new(author, hello_world))
             .instruction();
 
+        let forward_time = self.trident.random_from_range(1..100_000_000);
+        self.trident.forward_in_time(forward_time);
+
+        let timestamp = self.trident.get_current_timestamp();
         let res = self.trident.process_transaction(&[ix], Some("Initialize"));
 
         if res.is_success() {
@@ -58,6 +62,8 @@ impl FuzzTest {
                 assert!(hello_world_account.input == input);
             }
         }
+
+        assert_eq!(timestamp as u64, res.get_transaction_timestamp());
     }
 
     #[flow]
@@ -80,5 +86,5 @@ impl FuzzTest {
 }
 
 fn main() {
-    FuzzTest::fuzz(1000, 100);
+    FuzzTest::fuzz(10000000, 100);
 }

@@ -29,9 +29,9 @@ pub fn process_transaction(
 - `instructions` - Array of instructions to execute in the transaction
 - `log_as` - Optional name for the transaction (used in metrics and logging). If `None`, the transaction will not be logged.
 
-**Returns:** `TransactionResult` containing success/failure status and transaction logs.
+**Returns:** [`TransactionResult`](./transaction-result/index.md) containing success/failure status and transaction logs.
 
-**Description:** Executes a transaction containing one or more instructions and returns the results. Use this to test your program's instructions with various inputs. Provide a transaction name to enable metrics collection and logging for that transaction.
+**Description:** Executes a transaction containing one or more instructions and returns the results. Use this to test your program's instructions with various inputs. Provide a transaction name to enable metrics collection and logging for that transaction. See [TransactionResult](./transaction-result/index.md) for available methods to inspect the transaction outcome.
 
 ---
 
