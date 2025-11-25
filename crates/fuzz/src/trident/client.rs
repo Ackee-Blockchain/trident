@@ -2,7 +2,7 @@ use borsh::BorshDeserialize;
 use solana_sdk::instruction::Instruction;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::transaction::TransactionError;
-use trident_svm::prelude::solana_svm::transaction_processing_result::TransactionProcessingResult;
+use trident_svm::prelude::TridentTransactionProcessingResult;
 use trident_svm::processor::InstructionError;
 
 use crate::trident::transaction_result::TransactionResult;
@@ -62,10 +62,7 @@ impl Trident {
         }
         let processing_data = self.process_instructions(instructions);
 
-        // NOTE: for now we just expect that one transaction was executed
-        let tx_result = &processing_data.processing_results[0];
-
-        self.handle_tx_result(tx_result, log_as, instructions)
+        self.handle_tx_result(&processing_data, log_as, instructions)
     }
 
     /// Deploys an entrypoint program to the SVM runtime
@@ -229,7 +226,7 @@ impl Trident {
     fn process_instructions(
         &mut self,
         instructions: &[Instruction],
-    ) -> trident_svm::prelude::solana_svm::transaction_processor::LoadAndExecuteSanitizedTransactionsOutput{
+    ) -> TridentTransactionProcessingResult {
         // there should be at least 1 RW fee-payer account.
         // But we do not pay for TX currently so has to be manually updated
         // tx.message.header.num_required_signatures = 1;
@@ -335,12 +332,17 @@ impl Trident {
 
     fn handle_tx_result(
         &mut self,
-        tx_result: &TransactionProcessingResult,
+        tx_processing_result: &TridentTransactionProcessingResult,
         log_as: Option<&str>,
         instructions: &[Instruction],
     ) -> TransactionResult {
         let fuzzing_metrics = std::env::var("FUZZING_METRICS");
         let fuzzing_debug = std::env::var("TRIDENT_FUZZ_DEBUG");
+
+        // NOTE: for now we just expect that one transaction was executed
+        let tx_result = &tx_processing_result.get_result().processing_results[0];
+
+        let transaction_timestamp = tx_processing_result.get_transaction_timestamp();
 
         match tx_result {
             Ok(result) => match result {
@@ -353,7 +355,7 @@ impl Trident {
                                     .add_successful_transaction(log_as);
                             }
                         }
-                        TransactionResult::new(Ok(()), executed_transaction.execution_details.log_messages.clone().unwrap_or_default())
+                        TransactionResult::new(Ok(()), executed_transaction.execution_details.log_messages.clone().unwrap_or_default(), transaction_timestamp)
                     },
                     Err(transaction_error) => {
                         if let TransactionError::InstructionError(_error_code, instruction_error) =
@@ -414,12 +416,12 @@ impl Trident {
                                 );
                             }
                         }
-                        TransactionResult::new(Err(transaction_error.clone()), executed_transaction.execution_details.log_messages.clone().unwrap_or_default())
+                        TransactionResult::new(Err(transaction_error.clone()), executed_transaction.execution_details.log_messages.clone().unwrap_or_default(), transaction_timestamp)
                     },
                 },
                 trident_svm::prelude::solana_svm::transaction_processing_result::ProcessedTransaction::FeesOnly(_) => todo!(),
             },
-            Err(transaction_error) => TransactionResult::new(Err(transaction_error.clone()), vec![]),
+            Err(transaction_error) => TransactionResult::new(Err(transaction_error.clone()), vec![], transaction_timestamp),
         }
     }
 }

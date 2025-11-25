@@ -9,6 +9,7 @@ use trident_svm::processor::InstructionError;
 pub struct TransactionResult {
     transaction_result: solana_sdk::transaction::Result<()>,
     transaction_logs: Vec<String>,
+    transaction_timestamp: u64,
 }
 
 impl TransactionResult {
@@ -20,10 +21,12 @@ impl TransactionResult {
     pub(crate) fn new(
         transaction_result: solana_sdk::transaction::Result<()>,
         transaction_logs: Vec<String>,
+        transaction_timestamp: u64,
     ) -> Self {
         Self {
             transaction_result,
             transaction_logs,
+            transaction_timestamp,
         }
     }
 
@@ -94,5 +97,25 @@ impl TransactionResult {
     /// `true` if the transaction failed with the specified custom error code
     pub fn is_custom_error_with_code(&self, error_code: u32) -> bool {
         self.get_custom_error_code() == Some(error_code)
+    }
+
+    /// Returns the Unix timestamp when the transaction was processed.
+    ///
+    /// The timestamp corresponds to the Clock sysvar's `unix_timestamp` at execution time.
+    /// Useful for testing time-dependent logic and verifying transaction ordering.
+    ///
+    /// # Returns
+    ///
+    /// Unix timestamp in seconds
+    ///
+    /// # Example
+    ///
+    /// ```rust,ignore
+    /// let result = trident.process_transaction(&instructions, Some("test"));
+    /// let timestamp = result.get_transaction_timestamp();
+    /// assert!(timestamp >= expected_min_timestamp);
+    /// ```
+    pub fn get_transaction_timestamp(&self) -> u64 {
+        self.transaction_timestamp
     }
 }

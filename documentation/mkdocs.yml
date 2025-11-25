@@ -49,6 +49,8 @@ nav:
       - trident-api/stake-program.md
       - Address Storage:
         - trident-api/address-storage/index.md
+      - Transaction Result:
+        - trident-api/transaction-result/index.md
   - Trident Manifest:
       - trident-manifest/index.md
   - TridentSVM:
