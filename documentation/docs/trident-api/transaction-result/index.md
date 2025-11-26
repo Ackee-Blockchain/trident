@@ -46,12 +46,12 @@ pub fn is_error(&self) -> bool
 Returns the transaction logs.
 
 ```rust
-pub fn logs(&self) -> &[String]
+pub fn logs(&self) -> String
 ```
 
-**Returns:** A slice of log message strings in chronological order.
+**Returns:** A formatted string containing all log messages in chronological order.
 
-**Description:** Gets all log messages generated during transaction execution, including program logs (from `msg!()` macro), system messages, and error messages.
+**Description:** Gets all log messages generated during transaction execution, including program logs (from `msg!()` macro), system messages, and error messages, formatted as a single string.
 
 ---
 
@@ -137,9 +137,7 @@ fn test_transaction(&mut self) {
     assert!(result.is_success());
     
     // Access logs
-    for log in result.logs() {
-        println!("{}", log);
-    }
+    println!("{}", result.logs());
 }
 ```
 

@@ -49,12 +49,12 @@ impl TransactionResult {
     /// Returns the transaction logs
     ///
     /// Gets all log messages generated during transaction execution,
-    /// including program logs and system messages.
+    /// including program logs and system messages, formatted as a string.
     ///
     /// # Returns
-    /// A slice of log message strings
-    pub fn logs(&self) -> &[String] {
-        &self.transaction_logs
+    /// A formatted string containing all log messages
+    pub fn logs(&self) -> String {
+        format!("{:#?}", self.transaction_logs)
     }
     /// Returns the raw transaction result
     ///
