@@ -38,6 +38,7 @@ impl TestGenerator {
         self.create_template().await?;
         self.add_new_fuzz_test(&test_name).await?;
         self.create_trident_toml().await?;
+        self.create_vscode_settings().await?;
     }
 
     #[throws]

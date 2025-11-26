@@ -14,18 +14,11 @@ pub mod maze {
     use super::*;
 
     pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
-        // msg!("We are inside start");
-        // msg!("Data len: {:#?}", ctx.accounts.state.to_account_info());
-        // eprintln!("Data len: {:#?}", ctx.accounts.state.to_account_info());
-        // println!("Data len: {:#?}", ctx.accounts.state.to_account_info());
-
         let state = &mut ctx.accounts.state;
 
-        // let rent = Rent::get()?;
         state.x = 0;
         state.y = 0;
 
-        // msg!("We are inside end");
         Ok(())
     }
     pub fn move_north(
