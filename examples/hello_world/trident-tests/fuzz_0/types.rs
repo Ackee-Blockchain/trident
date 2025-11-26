@@ -152,11 +152,13 @@ pub mod hello_world {
 #[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
 pub struct StoreHelloWorld {
     pub input: u8,
+
+    pub timestamp: u64,
 }
 
 impl StoreHelloWorld {
-    pub fn new(input: u8) -> Self {
-        Self { input }
+    pub fn new(input: u8, timestamp: u64) -> Self {
+        Self { input, timestamp }
     }
 }
 

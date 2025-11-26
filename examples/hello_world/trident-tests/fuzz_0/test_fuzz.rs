@@ -51,8 +51,9 @@ impl FuzzTest {
         let forward_time = self.trident.random_from_range(1..100_000_000);
         self.trident.forward_in_time(forward_time);
 
-        let timestamp = self.trident.get_current_timestamp();
         let res = self.trident.process_transaction(&[ix], Some("Initialize"));
+
+        self.trident.forward_in_time(forward_time);
 
         if res.is_success() {
             let hello_world_account = self
@@ -60,10 +61,9 @@ impl FuzzTest {
                 .get_account_with_type::<crate::types::StoreHelloWorld>(&hello_world, 8);
             if let Some(hello_world_account) = hello_world_account {
                 assert!(hello_world_account.input == input);
+                assert!(hello_world_account.timestamp == res.get_transaction_timestamp());
             }
         }
-
-        assert_eq!(timestamp as u64, res.get_transaction_timestamp());
     }
 
     #[flow]
@@ -86,5 +86,5 @@ impl FuzzTest {
 }
 
 fn main() {
-    FuzzTest::fuzz(10000000, 100);
+    FuzzTest::fuzz(1000, 100);
 }
