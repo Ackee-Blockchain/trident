@@ -9,6 +9,19 @@ use std::path::Path;
 
 use crate::error::Error;
 
+/// Generates VSCode settings with rust-analyzer.linkedProjects configuration
+fn generate_vscode_settings_content() -> String {
+    format!(
+        r#"{{
+  "rust-analyzer.linkedProjects": [
+    "./Cargo.toml",
+    "{}"
+  ]
+}}"#,
+        VSCODE_TESTS_WORKSPACE_PATH
+    )
+}
+
 impl TestGenerator {
     #[throws]
     pub(crate) async fn create_test_fuzz(&self, fuzz_test_dir: &Path) {
@@ -99,5 +112,16 @@ impl TestGenerator {
         self.create_fuzz_accounts(&new_fuzz_test_dir).await?;
         self.create_cargo_toml(&trident_tests, &new_fuzz_test)
             .await?;
+    }
+
+    #[throws]
+    pub(crate) async fn create_vscode_settings(&self) {
+        let vscode_dir = construct_path!(self.root, VSCODE_DIRECTORY);
+        let settings_path = construct_path!(vscode_dir, VSCODE_SETTINGS);
+
+        create_directory_all(&vscode_dir).await?;
+
+        let content = generate_vscode_settings_content();
+        create_or_update_json_file(&self.root, &settings_path, &content).await?;
     }
 }
