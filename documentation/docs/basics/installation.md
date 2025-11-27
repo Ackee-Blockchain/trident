@@ -38,10 +38,11 @@ cargo +stable install cargo-llvm-cov --locked
     - :material-tag: = Released version
     - `-` = Not required/supported
 
-| **Version Type**                       | **Anchor**          | **Solana**       | **Rust**  | **Honggfuzz** | **AFL**   |
+| **Version Type**                       | **Anchor**          | **Solana SDK**       | **Rust**  | **Honggfuzz** | **AFL**   |
 | :------------------------------------- | :------------------ | :--------------- | :-------- | :------------ | :-------- |
-| Development :material-developer-board: | `>=0.29.0`          | `>=1.17.3`       | `1.86`    | `-`           | `-`       |
-| **Current (0.11.x)** :material-tag:    | `>=0.29.0 `         | `>=1.17.3`       | `1.86`    | `-`           | `-`       |
+| Development :material-developer-board: | `>=0.29.0`          | `2.3`            | `1.86`    | `-`           | `-`       |
+| **Current (0.12.x)** :material-tag:    | `>=0.29.0 `         | `2.3`            | `1.86`    | `-`           | `-`       |
+| **0.11.x** :material-tag:              | `>=0.29.0 `         | `>=1.17.3`       | `1.86`    | `-`           | `-`       |
 | **0.10.x** :material-tag:              | `>=0.29.0 < 0.31.0` | `>=1.17.3 < 2.1` | `nightly` | `0.5.56`      | `0.15.11` |
 | **0.9.x** :material-tag:               | `>=0.29.0 < 0.31.0` | `>=1.17.3 < 2.1` | `nightly` | `0.5.56`      | `0.15.11` |
 | **0.8.x** :material-tag:               | `0.30.1`            | `^1.17.4`        | `nightly` | `0.5.56`      | `-`       |

@@ -12,6 +12,14 @@ incremented upon a breaking change and the patch version will be incremented for
 
 **Added**
 
+**Removed**
+
+**Changed**
+
+## [0.12.0] - 2025-11-27
+
+**Added**
+
 - add support for VSCode settings integration ([425](https://github.com/Ackee-Blockchain/trident/pull/427))
 - add support for transaction timestamp ([424](https://github.com/Ackee-Blockchain/trident/pull/424))
 - add support for Token 2022 program ([391](https://github.com/Ackee-Blockchain/trident/pull/391))
