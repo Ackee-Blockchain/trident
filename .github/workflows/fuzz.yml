@@ -23,6 +23,9 @@ jobs:
       fail-fast: false
       matrix:
         test:
+          - name: "Hello World"
+            path: "examples/hello_world"
+            cache-key: "hello-world"
           - name: "Simple CPI"
             path: "examples/cpi"
             cache-key: "simple-cpi"
