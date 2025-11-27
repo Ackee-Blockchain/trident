@@ -64,9 +64,10 @@ enum Command {
         override_usage = "With fuzz subcommands you can add new fuzz test \
         template or you can run fuzz test on already initialzied one.\
         \n\n\x1b[1m\x1b[4mEXAMPLE:\x1b[0m\
-        \n    trident add\
+        \n    trident fuzz add\
         \n    trident fuzz run fuzz_0\
-        \n    trident fuzz debug \x1b[92m<FUZZ_TARGET>\x1b[0m \x1b[92m<SEED>\x1b[0m"
+        \n    trident fuzz debug \x1b[92m<FUZZ_TARGET>\x1b[0m \x1b[92m<SEED>\x1b[0m\
+        \n    trident fuzz refresh fuzz_0"
     )]
     Fuzz {
         #[clap(subcommand)]

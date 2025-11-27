@@ -1,16 +1,7 @@
-pub mod accounts_storage;
+pub mod address_storage;
 pub mod error;
-pub mod fuzz_client_impl;
-pub mod traits;
-
-pub mod trident_accounts;
-pub mod trident_pubkey;
-
-pub mod trident_rng;
-
-pub mod types;
-
 pub mod trident;
+pub mod trident_rng;
 
 pub mod fuzzing {
     /// solana_sdk
@@ -34,56 +25,35 @@ pub mod fuzzing {
     pub use super::trident_rng::TridentRng;
     pub use hex;
 
-    /// Trident traits
-    pub use super::traits::AccountsMethods;
-    pub use super::traits::FuzzClient;
-    pub use super::traits::InstructionGetters;
-    pub use super::traits::InstructionHooks;
-    pub use super::traits::InstructionSetters;
-    pub use super::traits::RemainingAccountsMethods;
-    pub use super::traits::TransactionGetters;
-    pub use super::traits::TransactionHooks;
-    pub use super::traits::TransactionPrivateMethods;
-    pub use super::traits::TransactionSetters;
-
     /// Trident derive
-    pub use trident_derive_accounts::TridentAccounts;
     pub use trident_derive_flow_executor::end;
     pub use trident_derive_flow_executor::flow;
     pub use trident_derive_flow_executor::flow_executor;
     pub use trident_derive_flow_executor::init;
     pub use trident_derive_fuzz_test_methods::FuzzTestMethods;
 
-    pub use trident_derive_instruction::TridentInstruction;
-    pub use trident_derive_remaining_accounts::TridentRemainingAccounts;
-    pub use trident_derive_transaction::TridentTransaction;
-
     /// Trident svm
     pub use trident_svm::prelude;
     pub use trident_svm::processor;
     pub use trident_svm::trident_svm::TridentSVM;
-    #[cfg(any(feature = "syscall-v1", feature = "syscall-v2"))]
+    #[cfg(feature = "syscall-v2")]
     pub use trident_svm::types::trident_entrypoint::TridentEntrypoint;
     pub use trident_svm::types::trident_program::TridentProgram;
 
     /// Accounts storages
-    pub use super::accounts_storage::account_storage::AccountsStorage;
-    pub use super::accounts_storage::AccountMetadata;
-    pub use super::accounts_storage::PdaSeeds;
+    pub use super::address_storage::AddressStorage;
+    pub use super::address_storage::PdaSeeds;
 
     /// Trident config
     pub use trident_config::TridentConfig;
 
     /// Trident
+    pub use super::trident::flow_executor::FlowExecutor;
     pub use super::trident::Trident;
     pub use trident_fuzz_metrics::TridentFuzzingData;
 
     /// Error
     pub use super::error::*;
-
-    /// Trident accounts
-    pub use crate::trident_accounts::TridentAccount;
-    pub use crate::trident_pubkey::TridentPubkey;
 
     pub use borsh;
     pub use borsh::BorshDeserialize;
@@ -95,6 +65,19 @@ pub mod fuzzing {
     // coverage
     pub use reqwest;
     pub use tokio;
+
+    #[cfg(feature = "token")]
+    pub use super::trident::AccountExtension;
+    #[cfg(feature = "token")]
+    pub use super::trident::MintExtension;
+    #[cfg(feature = "token")]
+    pub use super::trident::MintExtensionData;
+    #[cfg(feature = "token")]
+    pub use super::trident::MintWithExtensions;
+    #[cfg(feature = "token")]
+    pub use super::trident::TokenAccountExtensionData;
+    #[cfg(feature = "token")]
+    pub use super::trident::TokenAccountWithExtensions;
 
     extern "C" {
         pub fn __llvm_profile_set_filename(filename: *const i8);

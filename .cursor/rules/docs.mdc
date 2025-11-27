@@ -1,0 +1,99 @@
+---
+globs: documentation/docs/**
+alwaysApply: false
+---
+# Documentation Rules
+
+## Workflow Types
+
+### Review Workflow
+When user shares content for review:
+
+1. **Analyze** the provided content thoroughly
+2. **Make changes directly** in the target files with clear explanations
+3. **User can apply or revert** changes using Cursor's diff interface
+4. **Explain the changes made** and reasoning behind each modification
+5. **Allow selective approval** - user can accept some changes and reject others
+
+### Update Workflow  
+When user requests updates based on examples:
+
+1. **Study the provided example** to understand patterns and structure
+2. **Identify target pages** that need updates or creation
+3. **Ensure consistency** across all related documentation
+4. **Update existing pages** or create new ones as specified
+5. **Maintain uniform formatting** and style throughout
+
+## Essential Formatting
+- Use clear, descriptive titles with `#` (H1)
+- Use hierarchical headings (`##`, `###`) to organize content
+- **Always include an empty line after a colon (`:`) when followed by a list** - Required for proper MkDocs rendering
+- Use triple backticks with language specification: ```rust, ```bash, ```toml
+- Use admonitions for important information: `!!! warning "Title"`, `!!! note "Title"`
+
+## Writing Style
+- Professional, technical tone without condescension
+- Clear, concise explanations
+- Concrete examples with expected output
+- Minimal, focused examples - no bloat
+- Fewer emojis for professional tone
+
+## Code Examples
+- Complete and runnable
+- Include comments for key concepts
+- Show both input and expected output when relevant
+- Test examples before including them
+
+## File Organization
+- Use lowercase with hyphens: `getting-started.md`
+- Use `index.md` for section landing pages
+- Group related files in subdirectories
+
+## Critical List Formatting Rule
+
+**MANDATORY**: Every list preceded by a colon (`:`) MUST have an empty line between the colon and the first list item.
+
+**Correct** (empty line after colon):
+```markdown
+**Parameters:**
+
+- `program` - Description
+- `accounts` - Account information
+- `data` - Instruction data
+```
+
+**Incorrect** (no empty line):
+```markdown
+**Parameters:**
+- `program` - Description
+- `accounts` - Account information
+```
+
+**Examples of patterns requiring empty lines:**
+
+```markdown
+Available options:
+
+- Option A
+- Option B
+
+Required fields:
+
+- Field 1
+- Field 2
+
+The following steps:
+
+1. Step one
+2. Step two
+```
+
+## Review Process
+When reviewing documentation:
+
+1. **Grammar and Spelling**: Fix all errors immediately
+2. **List Formatting**: Ensure empty lines after colons before lists
+3. **Structure and Clarity**: Improve organization and readability  
+4. **Consistency**: Maintain uniform style across related pages
+5. **Authorization**: For review workflow, propose changes and wait for approval
+6. **Implementation**: For update workflow, implement changes directly while ensuring consistency

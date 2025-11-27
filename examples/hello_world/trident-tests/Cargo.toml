@@ -8,10 +8,10 @@ edition = "2021"
 
 [dependencies]
 borsh = "1.5.3"
-solana-sdk = "~2.0"
 
 [dependencies.trident-fuzz]
 path = "../../../crates/fuzz"
+features = ["all"]
 
 [[bin]]
 name = "fuzz_0"

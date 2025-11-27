@@ -10,8 +10,6 @@ Initializes Trident Workspace and generates new Fuzz Test Template. Creates the 
 project-root
 ├── trident-tests
 │   ├── fuzz_0 # particular fuzz test
-│   │   ├── instructions # instructions folder
-│   │   ├── transactions # transactions folder
 │   │   ├── test_fuzz.rs # the binary target of your fuzz test
 │   │   ├── types.rs # the types of your fuzz test
 │   │   └── fuzz_instructions.rs # the definition of your fuzz test
@@ -43,10 +41,12 @@ Show the HowTo message about writing fuzz tests.
 Run fuzz subcommands. With fuzz subcommands you can add new fuzz test template or you can run fuzz test on already initialized one.
 
 **Examples:**
+
 ```bash
 trident fuzz add
 trident fuzz run fuzz_0
 trident fuzz debug <FUZZ_TARGET> <SEED>
+trident fuzz refresh fuzz_0
 ```
 
 ### `trident fuzz add`
@@ -81,7 +81,7 @@ Runs the specified Fuzz Target using Trident's Manually Guided Fuzzing (e.g., fu
 
 #### Options
 
-- `-w, --with-exit-code` - Run the fuzzing with exit code, i.e. if it discovers crash the Trident will exit with exit code 1.
+- `-w, --with-exit-code` - Run the fuzzing with exit code, i.e. if it discovers invariant failures or panics the Trident will exit with exit code.
 
 ---
 
@@ -103,6 +103,21 @@ Debug crashes by analyzing specific crash files using the provided seed.
 
 ---
 
+### `trident fuzz refresh <fuzz_target>`
+
+Refresh an existing fuzz test by regenerating the types file based on the current program state.
+
+#### Arguments
+
+- `<fuzz_target>` - Name of the fuzz test to refresh (for example fuzz_0).
+
+#### Options
+
+- `-p, --program-name <FILE>` - Specify the name of the program for which the fuzz test will be refreshed.
+- `-s, --skip-build` - Skip building the program before refreshing the types file.
+
+---
+
 ## `trident clean`
 
 Clean build target, additionally perform `anchor clean`.
@@ -112,13 +127,24 @@ Clean build target, additionally perform `anchor clean`.
 
 ## `trident server`
 
-Starts the Trident Server, in order to make it easier to visualize the fuzzing dashboard, more info in the [dashboard](../trident-advanced/dashboard/index.md) section.
+Start HTTP server to serve fuzzing dashboards. More info in the [dashboard](../trident-advanced/dashboard/index.md) section.
+
+#### Options
+
+- `-d, --directory <DIR>` - Directory to monitor for dashboard files (default: `.fuzz-artifacts`).
+- `-p, --port <PORT>` - Port to run the server on (default: `8000`).
+- `--host <HOST>` - Host to bind the server to (default: `localhost`).
 
 ---
 
 
 ## `trident compare`
 
-Allows you to compare two fuzzing regression results. More info in the [regression](../trident-advanced/regression/index.md) section.
+Compare two regression JSON files and identify differing iteration seeds. More info in the [regression](../trident-advanced/regression/index.md) section.
+
+#### Arguments
+
+- `<FILE1>` - Path to the first regression JSON file.
+- `<FILE2>` - Path to the second regression JSON file.
 
 ---

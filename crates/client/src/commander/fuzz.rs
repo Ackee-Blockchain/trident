@@ -74,7 +74,11 @@ impl Commander {
 
     #[throws]
     pub async fn run_default(&self, target: &str, seed: Option<String>, with_exit_code: bool) {
-        let mut child = self.spawn_fuzzer(target, HashMap::new(), seed)?;
+        let mut env_vars = HashMap::new();
+        if with_exit_code {
+            env_vars.insert("TRIDENT_WITH_EXIT_CODE", "1".to_string());
+        }
+        let mut child = self.spawn_fuzzer(target, env_vars, seed)?;
         Self::handle_child(&mut child, with_exit_code).await?;
     }
 
@@ -106,7 +110,10 @@ impl Commander {
 
         coverage.clean().await?;
 
-        let env_vars = self.setup_coverage_env_vars(&coverage, config).await?;
+        let mut env_vars = self.setup_coverage_env_vars(&coverage, config).await?;
+        if with_exit_code {
+            env_vars.insert("TRIDENT_WITH_EXIT_CODE", "1".to_string());
+        }
         let mut child = self.spawn_fuzzer(target, env_vars, seed)?;
 
         coverage.notify_extension(NotificationType::Setup).await?;

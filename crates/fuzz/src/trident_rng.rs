@@ -10,6 +10,8 @@ use rand::SeedableRng;
 use sha2::Digest;
 use sha2::Sha256;
 use solana_sdk::pubkey::Pubkey;
+use solana_sdk::signature::Keypair;
+use solana_sdk::signer::Signer;
 
 pub struct TridentRng {
     seed: [u8; 32],
@@ -77,10 +79,20 @@ impl TridentRng {
     pub(crate) fn gen_pubkey(&mut self) -> Pubkey {
         let mut bytes = [0; 32];
         self.rng.fill_bytes(&mut bytes);
-        Pubkey::new_from_array(bytes)
+        solana_sdk::signer::keypair::Keypair::new_from_array(bytes).pubkey()
+    }
+
+    pub(crate) fn gen_keypair(&mut self) -> Keypair {
+        let mut bytes = [0; 32];
+        self.rng.fill_bytes(&mut bytes);
+        solana_sdk::signer::keypair::Keypair::new_from_array(bytes)
     }
 
     pub(crate) fn fill_bytes(&mut self, bytes: &mut [u8]) {
         self.rng.fill_bytes(bytes);
+    }
+
+    pub(crate) fn gen_bool(&mut self) -> bool {
+        self.rng.gen_bool(0.5)
     }
 }

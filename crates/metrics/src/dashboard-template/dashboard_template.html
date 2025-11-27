@@ -488,10 +488,6 @@
                 <div class="stat-label">Failed</div>
             </div>
             <div class="stat-card">
-                <div class="stat-value warning" id="total-invariant-failed">0</div>
-                <div class="stat-label">Invariant Failed</div>
-            </div>
-            <div class="stat-card">
                 <div class="stat-value warning" id="total-panicked">0</div>
                 <div class="stat-label">Panicked</div>
             </div>
@@ -528,10 +524,6 @@
             <div id="panic-analysis"></div>
         </div>
 
-        <div class="card full-width">
-            <h2>Invariant Check Failures</h2>
-            <div id="invariant-failures"></div>
-        </div>
 
         <div class="card full-width">
             <h2>Custom Metrics</h2>
@@ -625,21 +617,18 @@
             let totalTransactions = 0;
             let totalSuccessful = 0;
             let totalFailed = 0;
-            let totalInvariantFailed = 0;
             let totalPanicked = 0;
             
             for (const [instruction, stats] of Object.entries(data.instructions)) {
                 totalTransactions += stats.invoked || 0;
                 totalSuccessful += stats.transactions_successful || 0;
                 totalFailed += stats.transactions_failed || 0;
-                totalInvariantFailed += stats.transactions_failed_invariant || 0;
                 totalPanicked += stats.transactions_panicked || 0;
             }
             
             document.getElementById('total-transactions').textContent = totalTransactions.toLocaleString();
             document.getElementById('total-successful').textContent = totalSuccessful.toLocaleString();
             document.getElementById('total-failed').textContent = totalFailed.toLocaleString();
-            document.getElementById('total-invariant-failed').textContent = totalInvariantFailed.toLocaleString();
             document.getElementById('total-panicked').textContent = totalPanicked.toLocaleString();
         }
         
@@ -671,10 +660,6 @@
                             <div style="text-align: center;">
                                 <div style="font-size: 1.5rem; font-weight: bold; color: #ef4444;">${stats.transactions_failed.toLocaleString()}</div>
                                 <div style="color: #94a3b8; font-size: 0.9rem;">Failed</div>
-                            </div>
-                            <div style="text-align: center;">
-                                <div style="font-size: 1.5rem; font-weight: bold; color: #f59e0b;">${stats.transactions_failed_invariant.toLocaleString()}</div>
-                                <div style="color: #94a3b8; font-size: 0.9rem;">Invariant Failed</div>
                             </div>
                             <div style="text-align: center;">
                                 <div style="font-size: 1.5rem; font-weight: bold; color: #a855f7;">${stats.transactions_panicked.toLocaleString()}</div>
@@ -1164,55 +1149,6 @@
             }
         }
 
-        // Generate invariant check failures
-        function generateInvariantFailures() {
-            const container = document.getElementById('invariant-failures');
-            let html = '';
-            let totalFailures = 0;
-            
-            for (const [instruction, stats] of Object.entries(data.instructions)) {
-                const failures = stats.transactions_invariant_fails || {};
-                const failureKeys = Object.keys(failures);
-                
-                if (failureKeys.length > 0) {
-                    html += `
-                        <div style="background: #334155; border-radius: 8px; padding: 20px; margin-bottom: 16px; border-left: 4px solid #f59e0b;">
-                            <h3 style="margin: 0 0 16px 0; color: #e2e8f0; font-size: 1.1rem; display: flex; align-items: center;">
-                                <span style="background: #f59e0b; color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.9rem; margin-right: 12px;">${instruction}</span>
-                                ${failureKeys.length} failure${failureKeys.length > 1 ? 's' : ''}
-                            </h3>
-                    `;
-                    
-                    for (const [failure, failureData] of Object.entries(failures)) {
-                        totalFailures++;
-                        const failureId = `invariant-${instruction.replace(/\W/g, '_')}-${totalFailures}`;
-                        const inputsId = `invariant-inputs-${instruction.replace(/\W/g, '_')}-${totalFailures}`;
-                        html += `
-                            <div class="error-section" style="margin-left: 0; margin-bottom: 12px;">
-                                <div class="error-title">${failure}</div>
-                                <div class="error-count">Occurred ${failureData.occurrences} times | Seed: ${failureData.seed}</div>
-                                ${failureData.transaction_inputs ? `
-                                    <div class="collapsible" onclick="toggleCollapsible('${inputsId}')">
-                                        View Transaction Inputs ▼
-                                    </div>
-                                    <div id="${inputsId}" class="collapsible-content">
-                                        <div class="error-logs" style="white-space: pre-wrap;">${formatDebugString(failureData.transaction_inputs)}</div>
-                                    </div>
-                                ` : ''}
-                            </div>
-                        `;
-                    }
-                    
-                    html += '</div>';
-                }
-            }
-            
-            if (totalFailures === 0) {
-                html = '<p style="text-align: center; color: #22c55e; font-size: 1.2em;">No invariant check failures detected!</p>';
-            }
-            
-            container.innerHTML = html;
-        }
 
         // Generate custom metrics with professional layout
         function generateCustomMetrics() {
@@ -1388,7 +1324,6 @@
         generateErrorChart();
         generatePanicAnalysis();
         generateErrorDetails();
-        generateInvariantFailures();
         generateCustomMetrics();
         displayRegressionTesting();
     </script>

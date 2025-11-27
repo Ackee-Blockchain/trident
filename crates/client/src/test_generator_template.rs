@@ -9,47 +9,20 @@ use std::path::Path;
 
 use crate::error::Error;
 
+/// Generates VSCode settings with rust-analyzer.linkedProjects configuration
+fn generate_vscode_settings_content() -> String {
+    format!(
+        r#"{{
+  "rust-analyzer.linkedProjects": [
+    "./Cargo.toml",
+    "{}"
+  ]
+}}"#,
+        VSCODE_TESTS_WORKSPACE_PATH
+    )
+}
+
 impl TestGenerator {
-    #[throws]
-    pub(crate) async fn create_instructions(&self, fuzz_test_dir: &Path) {
-        let instructions = construct_path!(fuzz_test_dir, INSTRUCTIONS_DIRECTORY);
-        let instructions_mod_path = construct_path!(instructions, "mod.rs");
-        create_directory_all(&instructions).await?;
-
-        let instructions_source_codes = self.get_instructions();
-
-        for (mut name, source_code) in instructions_source_codes {
-            let source_code = Commander::format_program_code_nightly(&source_code).await?;
-            name.push_str(".rs");
-            let instruction_path = instructions.join(&name);
-            create_file(&self.root, &instruction_path, &source_code).await?;
-        }
-
-        let instructions_mod = self.get_instructions_mod();
-        let instructions_mod = Commander::format_program_code_nightly(&instructions_mod).await?;
-        create_file(&self.root, &instructions_mod_path, &instructions_mod).await?;
-    }
-
-    #[throws]
-    pub(crate) async fn create_transactions(&self, fuzz_test_dir: &Path) {
-        let transactions = construct_path!(fuzz_test_dir, TRANSACTIONS_DIRECTORY);
-        let transactions_mod_path = construct_path!(transactions, "mod.rs");
-        create_directory_all(&transactions).await?;
-
-        let transactions_source_codes = self.get_transactions();
-
-        for (mut name, source_code) in transactions_source_codes {
-            let source_code = Commander::format_program_code_nightly(&source_code).await?;
-            name.push_str(".rs");
-            let transaction_path = transactions.join(&name);
-            create_file(&self.root, &transaction_path, &source_code).await?;
-        }
-
-        let transactions_mod = self.get_transactions_mod();
-        let transactions_mod = Commander::format_program_code_nightly(&transactions_mod).await?;
-        create_file(&self.root, &transactions_mod_path, &transactions_mod).await?;
-    }
-
     #[throws]
     pub(crate) async fn create_test_fuzz(&self, fuzz_test_dir: &Path) {
         let test_fuzz = self.get_test_fuzz();
@@ -60,11 +33,11 @@ impl TestGenerator {
     }
 
     #[throws]
-    pub(crate) async fn create_custom_types(&self, fuzz_test_dir: &Path) {
-        let custom_types = self.get_custom_types();
-        let custom_types = Commander::format_program_code_nightly(&custom_types).await?;
-        let custom_types_path = construct_path!(fuzz_test_dir, TYPES_FILE_NAME);
-        create_file(&self.root, &custom_types_path, &custom_types).await?;
+    pub(crate) async fn create_types(&self, fuzz_test_dir: &Path) {
+        let types = self.get_types();
+        let types = Commander::format_program_code_nightly(&types).await?;
+        let types_path = construct_path!(fuzz_test_dir, TYPES_FILE_NAME);
+        create_file(&self.root, &types_path, &types).await?;
     }
 
     #[throws]
@@ -100,6 +73,24 @@ impl TestGenerator {
     }
 
     #[throws]
+    pub(crate) async fn refresh_types_file(&self, fuzz_test_name: &str) {
+        let fuzz_test_dir = construct_path!(self.root, TESTS_WORKSPACE_DIRECTORY, fuzz_test_name);
+        let types_path = construct_path!(fuzz_test_dir, TYPES_FILE_NAME);
+
+        let types = self.get_types();
+        let types = Commander::format_program_code_nightly(&types).await?;
+
+        // Write the file (this will overwrite if it exists)
+        std::fs::write(&types_path, &types)?;
+
+        let relative_path = types_path
+            .strip_prefix(&self.root)?
+            .to_str()
+            .unwrap_or_default();
+        println!("{FINISH} [{relative_path}] refreshed");
+    }
+
+    #[throws]
     pub(crate) async fn add_new_fuzz_test(&self, test_name: &Option<String>) {
         let trident_tests = construct_path!(self.root, TESTS_WORKSPACE_DIRECTORY);
 
@@ -115,12 +106,22 @@ impl TestGenerator {
             return;
         }
 
-        self.create_instructions(&new_fuzz_test_dir).await?;
-        self.create_transactions(&new_fuzz_test_dir).await?;
+        create_directory_all(&new_fuzz_test_dir).await?;
         self.create_test_fuzz(&new_fuzz_test_dir).await?;
-        self.create_custom_types(&new_fuzz_test_dir).await?;
+        self.create_types(&new_fuzz_test_dir).await?;
         self.create_fuzz_accounts(&new_fuzz_test_dir).await?;
         self.create_cargo_toml(&trident_tests, &new_fuzz_test)
             .await?;
+    }
+
+    #[throws]
+    pub(crate) async fn create_vscode_settings(&self) {
+        let vscode_dir = construct_path!(self.root, VSCODE_DIRECTORY);
+        let settings_path = construct_path!(vscode_dir, VSCODE_SETTINGS);
+
+        create_directory_all(&vscode_dir).await?;
+
+        let content = generate_vscode_settings_content();
+        create_or_update_json_file(&self.root, &settings_path, &content).await?;
     }
 }

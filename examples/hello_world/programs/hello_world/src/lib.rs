@@ -18,6 +18,9 @@ pub mod hello_world {
             panic!("This number is magic")
         }
 
+        let timestamp = Clock::get()?.unix_timestamp;
+        hello_world_store.timestamp = timestamp as u64;
+
         Ok(())
     }
 }
@@ -40,4 +43,5 @@ pub struct InitializeContext<'info> {
 #[account]
 pub struct StoreHelloWorld {
     pub input: u8,
+    pub timestamp: u64,
 }

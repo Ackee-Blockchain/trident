@@ -7,26 +7,19 @@ use std::collections::BTreeMap;
 use crate::transactions::custom_metrics::CustomMetricValue;
 use crate::transactions::transaction_custom_error::TransactionCustomErrorMetrics;
 use crate::transactions::transaction_error::TransactionErrorMetrics;
-use crate::transactions::transaction_invariants::TransactionInvariantMetrics;
 use crate::transactions::transaction_panics::TransactionPanicMetrics;
 use crate::types::Seed;
-// use crate::transaction_custom_error::TransactionCustomErrorMetrics;
-// use crate::transaction_error::TransactionErrorMetrics;
-// use crate::transaction_invariants::TransactionInvariantMetrics;
-// use crate::transaction_panics::TransactionPanicMetrics;
 
 #[derive(Debug, serde::Serialize, serde::Deserialize, Clone)]
 pub(crate) struct TransactionStats {
     pub(crate) transaction_invoked: u64,
     pub(crate) transaction_successful: u64,
     pub(crate) transaction_failed: u64,
-    pub(crate) transaction_failed_invariant: u64,
     pub(crate) transaction_panicked: u64,
 
     pub(crate) transactions_errors: TransactionErrorMetrics,
     pub(crate) custom_instruction_errors: TransactionCustomErrorMetrics,
     pub(crate) transactions_panics: TransactionPanicMetrics,
-    pub(crate) transactions_invariant_fails: TransactionInvariantMetrics,
 }
 
 #[derive(Debug, Default, serde::Serialize, serde::Deserialize, Clone)]
@@ -51,12 +44,10 @@ impl FuzzingStatistics {
                 transaction_invoked: 1,
                 transaction_successful: 0,
                 transaction_failed: 0,
-                transaction_failed_invariant: 0,
                 transaction_panicked: 0,
                 transactions_errors: TransactionErrorMetrics::default(),
                 custom_instruction_errors: TransactionCustomErrorMetrics::default(),
                 transactions_panics: TransactionPanicMetrics::default(),
-                transactions_invariant_fails: TransactionInvariantMetrics::default(),
             });
     }
 
@@ -95,23 +86,6 @@ impl FuzzingStatistics {
             });
     }
 
-    pub(crate) fn add_failed_invariant(
-        &mut self,
-        transaction: &str,
-        seed: &Seed,
-        error: String,
-        transaction_inputs: String,
-    ) {
-        self.transactions
-            .entry(transaction.to_string())
-            .and_modify(|iterations_stats| {
-                iterations_stats.transaction_failed_invariant += 1;
-                iterations_stats
-                    .transactions_invariant_fails
-                    .add_failed_invariant(&error, seed, transaction_inputs);
-            });
-    }
-
     pub(crate) fn add_transaction_panicked(
         &mut self,
         transaction: &str,
@@ -141,7 +115,6 @@ impl FuzzingStatistics {
             "Invoked Total",
             "Ix Success",
             "Ix Failed",
-            "Invariant Failed",
             "Instruction Panicked",
         ]);
         for (instruction, stats) in &self.transactions {
@@ -150,7 +123,6 @@ impl FuzzingStatistics {
                 stats.transaction_invoked,
                 stats.transaction_successful,
                 stats.transaction_failed,
-                stats.transaction_failed_invariant,
                 stats.transaction_panicked,
             ]);
         }
@@ -218,8 +190,6 @@ impl FuzzingStatistics {
                     existing_stats.transaction_invoked += stats.transaction_invoked;
                     existing_stats.transaction_successful += stats.transaction_successful;
                     existing_stats.transaction_failed += stats.transaction_failed;
-                    existing_stats.transaction_failed_invariant +=
-                        stats.transaction_failed_invariant;
                     existing_stats.transaction_panicked += stats.transaction_panicked;
                     existing_stats
                         .transactions_errors
@@ -230,9 +200,6 @@ impl FuzzingStatistics {
                     existing_stats
                         .transactions_panics
                         .concat(&stats.transactions_panics);
-                    existing_stats
-                        .transactions_invariant_fails
-                        .concat(&stats.transactions_invariant_fails);
                 })
                 .or_insert_with(|| stats.clone());
         }
@@ -280,7 +247,7 @@ impl FuzzingStatistics {
 
     pub(crate) fn get_exit_code(&self) -> i32 {
         for stats in self.transactions.values() {
-            if stats.transaction_failed_invariant > 0 || stats.transaction_panicked > 0 {
+            if stats.transaction_panicked > 0 {
                 return 99;
             }
         }

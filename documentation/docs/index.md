@@ -15,8 +15,8 @@ Trident is a Manually Guided Fuzzing framework for Solana. It lets you to execut
 
 Explore the various features Trident provides.
 
- - [Transaction Hooks](./trident-advanced/trident-transactions/transaction-hooks/index.md) - Create and manipulate transactions with different methods
- - [Multi-Instruction Transactions](./trident-advanced/trident-transactions/multi-instruction-transactions/index.md) - Compose fuzzed transactions with multiple instructions
+ - [Invariants and Assertions](./trident-advanced/invariants-assertions/index.md) - Validate program behavior with custom invariants and assertions
+ - [Multi-Instruction Transactions](./trident-advanced/multi-instruction-transactions/index.md) - Execute multiple instructions within a single transaction
  - [Trident Manifest](./trident-manifest/index.md) - Customize your fuzz tests with different configurations
  - [Code Coverage](./trident-advanced/code-coverage/index.md) - Track and display fuzz test code coverage
  - [Dashboard](./trident-advanced/dashboard/index.md) - A web-based interface for visualizing fuzzing session results
@@ -26,7 +26,7 @@ Explore the various features Trident provides.
 
 Check out the API and macro reference for Trident.
 
- - [Trident API & Macros](./trident-api-macro/index.md)
+ - [Trident API & Macros](./trident-api/index.md)
 
 ## Trident Examples
 

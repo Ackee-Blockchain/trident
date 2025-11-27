@@ -10,28 +10,29 @@ readme = { workspace = true }
 
 
 [features]
-all = ["vote", "stake", "token"]
-vote = ["dep:solana-vote-program"]
-stake = ["dep:solana-stake-program"]
-token = ["dep:spl-token"]
-syscalls = ["syscall-v1", "syscall-v2"]
-syscall-v1 = ["trident-svm/syscall-v1"]
+## Features for all programs
+all = ["token", "vote", "stake"]
+
+## Features for vote program
+vote = ["dep:solana-vote-interface"]
+
+## Features for stake program
+stake = ["dep:solana-stake-interface"]
+
+## Features for token program
+token = [
+    "dep:spl-token-interface",
+    "dep:spl-token-2022-interface",
+    "dep:spl-token-metadata-interface",
+    "dep:spl-token-group-interface",
+    "dep:spl-associated-token-account-interface"
+]
+
+## Features for syscalls
+syscalls = ["syscall-v2"]
 syscall-v2 = ["trident-svm/syscall-v2"]
 
 # Derive macros
-[dependencies.trident-derive-transaction]
-workspace = true
-
-[dependencies.trident-derive-instruction]
-workspace = true
-
-[dependencies.trident-derive-accounts]
-workspace = true
-
-[dependencies.trident-derive-remaining-accounts]
-workspace = true
-
-
 [dependencies.trident-derive-fuzz-test-methods]
 workspace = true
 
@@ -48,30 +49,37 @@ workspace = true
 
 # Trident-SVM
 [dependencies.trident-svm]
-version = "0.0.4"
-
+version = "0.2.0"
 
 [dependencies]
 
 # Solana
 solana-sdk = { workspace = true }
 
-# Solana additonal programs
-solana-vote-program = { version = "~2.0", optional = true }
-solana-stake-program = { version = "~2.0", optional = true }
-spl-token = { version = "5", features = ["no-entrypoint"], optional = true }
+# Solana vote program
+solana-vote-interface = { version = "2",optional = true}
 
+# Stake features
+solana-stake-interface = { version = "1",optional = true}
+
+# Token features
+spl-token-interface = { version = "1",optional = true}
+spl-token-2022-interface = { version = "1",optional = true}
+spl-token-metadata-interface = {version = "0.7",optional = true}
+spl-token-group-interface = {version = "0.6",optional = true}
+spl-associated-token-account-interface = {version = "1",optional = true}
+spl-pod = "0.5"
 
 # Misc
 thiserror = "1"
 serde = { version = "1", default-features = false }
-tokio = "1"
+tokio = { version = "1", features = ["rt", "rt-multi-thread"] }
 rand = "0.8"
 itertools = "0"
 borsh = "1.5.3"
 indicatif = "0.17"
 getrandom = "0.3"
 hex = "0.4"
-reqwest = { version = "0.11", features = ["json"] }
+reqwest = { version = "0.11", features = ["json", "blocking"] }
 sha2 = "0.10"
 

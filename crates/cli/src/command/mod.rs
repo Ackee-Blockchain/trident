@@ -79,6 +79,20 @@ fn check_fuzz_test_exists(root: &str, fuzz_test_name: &str) {
     }
 }
 
+#[throws]
+pub(crate) fn check_fuzz_test_not_exists(root: &str, fuzz_test_name: &str) {
+    let fuzz_test_dir = Path::new(&root)
+        .join(TESTS_WORKSPACE_DIRECTORY)
+        .join(fuzz_test_name);
+    if !fuzz_test_dir.exists() {
+        bail!(
+            "Fuzz test [{}/{}] does not exist",
+            TESTS_WORKSPACE_DIRECTORY,
+            fuzz_test_name
+        );
+    }
+}
+
 fn discover(target: &str) -> Result<Option<String>> {
     let _cwd = std::env::current_dir()?;
     let mut cwd_opt = Some(_cwd.as_path());

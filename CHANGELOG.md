@@ -16,6 +16,25 @@ incremented upon a breaking change and the patch version will be incremented for
 
 **Changed**
 
+## [0.12.0] - 2025-11-27
+
+**Added**
+
+- add support for VSCode settings integration ([425](https://github.com/Ackee-Blockchain/trident/pull/427))
+- add support for transaction timestamp ([424](https://github.com/Ackee-Blockchain/trident/pull/424))
+- add support for Token 2022 program ([391](https://github.com/Ackee-Blockchain/trident/pull/391))
+
+**Removed**
+
+- Removed invariants logging from all metrics as invariants are now simple assertions ([401](https://github.com/Ackee-Blockchain/trident/pull/401))
+
+**Changed**
+
+- Added custom TransactionResult containing result and logs of the transaction ([399](https://github.com/Ackee-Blockchain/trident/pull/399))
+- Support for general solana-sdk version 2.3 and higher ([388](https://github.com/Ackee-Blockchain/trident/pull/388))
+- FuzzClient trait removed and client methods moved directly to Trident struct ([386](https://github.com/Ackee-Blockchain/trident/pull/386))
+- simplify account storages to simply store only account addresses ([383](https://github.com/Ackee-Blockchain/trident/pull/383))
+
 ## [0.11.1] - 2025-10-21
 
 **Added**

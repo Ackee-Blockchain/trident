@@ -28,9 +28,18 @@ mod constants {
     pub(crate) const TRIDENT_TOML: &str = "Trident.toml";
 
     // Tests
+    /// Directory name for the Trident tests workspace
+    /// To customize: change this value and VSCODE_TESTS_WORKSPACE_PATH accordingly
     pub(crate) const TESTS_WORKSPACE_DIRECTORY: &str = "trident-tests";
-    pub(crate) const INSTRUCTIONS_DIRECTORY: &str = "instructions";
-    pub(crate) const TRANSACTIONS_DIRECTORY: &str = "transactions";
+
+    // VSCode - Paths relative to project root
+    pub(crate) const VSCODE_DIRECTORY: &str = ".vscode";
+    pub(crate) const VSCODE_SETTINGS: &str = "settings.json";
+    /// Path to the tests workspace for VSCode settings (relative to project root)
+    /// This is used in rust-analyzer.linkedProjects configuration
+    /// To customize: ensure this matches TESTS_WORKSPACE_DIRECTORY
+    /// Format: "./{TESTS_WORKSPACE_DIRECTORY}/Cargo.toml"
+    pub(crate) const VSCODE_TESTS_WORKSPACE_PATH: &str = "./trident-tests/Cargo.toml";
 
     // Fuzzing
     pub(crate) const FUZZ_ACCOUNTS_FILE_NAME: &str = "fuzz_accounts.rs";
@@ -40,4 +49,5 @@ mod constants {
     // Formatting
     pub(crate) const SKIP: &str = "\x1b[33mSkip\x1b[0m";
     pub(crate) const FINISH: &str = "\x1b[92mFinished\x1b[0m";
+    pub(crate) const UPDATED: &str = "\x1b[94mUpdated\x1b[0m";
 }
