@@ -38,7 +38,6 @@ pub mod fuzzing {
     pub use trident_svm::trident_svm::TridentSVM;
     #[cfg(feature = "syscall-v2")]
     pub use trident_svm::types::trident_entrypoint::TridentEntrypoint;
-    pub use trident_svm::types::trident_program::TridentProgram;
 
     /// Accounts storages
     pub use super::address_storage::AddressStorage;

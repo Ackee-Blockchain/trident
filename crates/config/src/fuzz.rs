@@ -19,6 +19,7 @@ pub struct Fuzz {
     pub programs: Option<Vec<_FuzzProgram>>,
     pub accounts: Option<Vec<_FuzzAccount>>,
     pub coverage: Option<Coverage>,
+    pub fork: Option<Vec<_FuzzFork>>,
 }
 
 impl Fuzz {
@@ -53,6 +54,13 @@ impl Fuzz {
     pub fn get_coverage(&self) -> Coverage {
         self.coverage.clone().unwrap_or_default()
     }
+
+    pub fn get_forks(&self) -> Vec<FuzzFork> {
+        match self.fork.as_ref() {
+            Some(forks) => forks.iter().map(FuzzFork::from).collect(),
+            None => Vec::default(),
+        }
+    }
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -66,6 +74,73 @@ pub struct _FuzzProgram {
 pub struct _FuzzAccount {
     pub address: String,
     pub filename: String,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct _FuzzFork {
+    pub address: String,
+    pub cluster: String,
+    #[serde(default)]
+    pub overwrite: bool,
+}
+
+#[derive(Debug, Clone)]
+pub struct FuzzFork {
+    pub address: Pubkey,
+    pub cluster: FuzzCluster,
+    pub overwrite: bool,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum FuzzCluster {
+    Mainnet,
+    Devnet,
+    Testnet,
+    Custom(String),
+}
+
+impl FuzzCluster {
+    pub fn parse(s: &str) -> Self {
+        match s.to_lowercase().as_str() {
+            "mainnet" | "m" => FuzzCluster::Mainnet,
+            "devnet" | "d" => FuzzCluster::Devnet,
+            "testnet" | "t" => FuzzCluster::Testnet,
+            custom => FuzzCluster::Custom(custom.to_string()),
+        }
+    }
+
+    pub fn rpc_url(&self) -> String {
+        match self {
+            FuzzCluster::Mainnet => "https://api.mainnet-beta.solana.com".to_string(),
+            FuzzCluster::Devnet => "https://api.devnet.solana.com".to_string(),
+            FuzzCluster::Testnet => "https://api.testnet.solana.com".to_string(),
+            FuzzCluster::Custom(url) => url.clone(),
+        }
+    }
+
+    pub fn as_str(&self) -> &str {
+        match self {
+            FuzzCluster::Mainnet => "mainnet-beta",
+            FuzzCluster::Devnet => "devnet",
+            FuzzCluster::Testnet => "testnet",
+            FuzzCluster::Custom(url) => url.as_str(),
+        }
+    }
+}
+
+impl From<&_FuzzFork> for FuzzFork {
+    fn from(_f: &_FuzzFork) -> Self {
+        let address = Pubkey::from_str(&_f.address)
+            .unwrap_or_else(|_| panic!("Cannot parse fork address: {}", _f.address));
+
+        let cluster = FuzzCluster::parse(&_f.cluster);
+
+        FuzzFork {
+            address,
+            cluster,
+            overwrite: _f.overwrite,
+        }
+    }
 }
 
 #[derive(Debug, Deserialize, Clone)]

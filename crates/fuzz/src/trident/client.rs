@@ -18,7 +18,6 @@ use solana_sdk::sysvar::Sysvar;
 
 #[cfg(feature = "syscall-v2")]
 use trident_svm::types::trident_entrypoint::TridentEntrypoint;
-use trident_svm::types::trident_program::TridentProgram;
 
 impl Trident {
     /// Processes a transaction containing one or more instructions
@@ -75,17 +74,6 @@ impl Trident {
     #[cfg(feature = "syscall-v2")]
     pub fn deploy_entrypoint(&mut self, _program: TridentEntrypoint) {
         self.client.deploy_entrypoint_program(&_program);
-    }
-
-    /// Deploys a binary program to the SVM runtime
-    ///
-    /// This method deploys a compiled Solana program (BPF/SBF) to the runtime,
-    /// making it available for instruction execution.
-    ///
-    /// # Arguments
-    /// * `program` - The compiled program to deploy
-    pub fn deploy_program(&mut self, program: TridentProgram) {
-        self.client.deploy_binary_program(&program);
     }
 
     /// Warps the blockchain clock to a specific epoch
