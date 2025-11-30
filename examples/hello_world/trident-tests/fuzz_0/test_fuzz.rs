@@ -27,8 +27,33 @@ impl FuzzTest {
 
     #[init]
     fn start(&mut self) {
-        // Perform any initialization here, this method will be executed
-        // at the start of each iteration
+        // Drift program
+        let account = self
+            .trident
+            .get_account(&pubkey!("dRiftyHA39MWEi3m9aunc5MzRF1JYuBsbn6VPcn33UH"));
+
+        assert!(account.executable());
+
+        let executable_data = self
+            .trident
+            .get_account(&pubkey!("7dLgmtcTavcguNoynVimF9ZNVb13FvhXVRfj2HyrDGaP"));
+
+        assert_eq!(executable_data.data().len(), 6473114);
+
+        // Jupiter program
+        let account = self
+            .trident
+            .get_account(&pubkey!("JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4"));
+
+        assert!(account.executable());
+
+        let executable_data = self
+            .trident
+            .get_account(&pubkey!("4Ec7ZxZS6Sbdg5UGSLHbAnM7GQHp2eFd4KYWRexAipQT"));
+
+        assert_eq!(executable_data.data().len(), 2892269);
+
+        // ------------------------------------------------------------
 
         let author = self.fuzz_accounts.author.insert(&mut self.trident, None);
 

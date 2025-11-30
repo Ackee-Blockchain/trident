@@ -12,3 +12,17 @@ enabled = true
 address = "FtevoQoDMv6ZB3N9Lix5Tbjs8EVuNL8vDSqG9kzaZPit"
 program = "../target/deploy/hello_world.so"
  
+
+[[fuzz.fork]]
+address = "GdeQycxZwY2Pdhi4b6i2yCFQAYGVPQCNcdFy6WPSB7zU"
+cluster = "m"
+
+
+[[fuzz.fork]]
+address = "dRiftyHA39MWEi3m9aunc5MzRF1JYuBsbn6VPcn33UH"
+cluster = "m"
+
+
+[[fuzz.fork]]
+address = "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4"
+cluster = "m"

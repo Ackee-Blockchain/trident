@@ -38,4 +38,8 @@ trident-derive-fuzz-test-methods = { path = "crates/fuzz/derive/fuzz_test_method
 
 # External dependencies
 solana-sdk = "2.3"
+solana-client = "2.3"
+solana-loader-v2-interface = "2"
+solana-loader-v3-interface = "5"
+solana-loader-v4-interface = "2"
 syn = { version = "2.0", features = ["full", "parsing", "visit"] }
