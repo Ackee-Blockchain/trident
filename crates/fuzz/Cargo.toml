@@ -49,7 +49,8 @@ workspace = true
 
 # Trident-SVM
 [dependencies.trident-svm]
-version = "0.2.0"
+git = "https://github.com/Ackee-Blockchain/trident-svm"
+branch = "remove-programs-db"
 
 [dependencies]
 
