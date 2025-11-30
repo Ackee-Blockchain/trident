@@ -5,6 +5,7 @@ use std::sync::atomic::Ordering;
 use std::sync::Arc;
 use std::thread;
 use std::time::Instant;
+use trident_config::TridentConfig;
 use trident_fuzz_metrics::TridentFuzzingData;
 
 use crate::trident::Trident;
@@ -86,6 +87,10 @@ pub trait FlowExecutor: Send + 'static + Sized {
         // Setup panic handler to capture location information when panics occur
         Self::setup_panic_handler();
 
+        // Process forked accounts BEFORE any parallel processing starts
+        // This ensures all RPC calls and cache writes happen in a single thread
+        Self::ensure_forks_processed();
+
         // Debug mode: run single iteration with provided seed (for reproducing specific failures)
         if std::env::var(config::ENV_FUZZ_DEBUG).is_ok() {
             println!("Debug mode detected: Running single iteration with provided seed");
@@ -115,6 +120,14 @@ pub trait FlowExecutor: Send + 'static + Sized {
             num_threads,
             master_seed,
         );
+    }
+
+    /// Ensures all forked accounts are processed before parallel execution starts.
+    /// This is called once at the beginning to avoid race conditions with RPC calls
+    /// and cache writes when multiple threads are spawned.
+    fn ensure_forks_processed() {
+        let config = TridentConfig::new();
+        let _ = config.fork();
     }
 
     /// Sets up a global panic handler that captures panic location information.
