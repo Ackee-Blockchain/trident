@@ -1,17 +1,24 @@
 pub mod constants;
 pub mod coverage;
+pub mod fork;
 pub mod fuzz;
 mod metrics;
+pub mod rpc_client;
 use constants::*;
 use coverage::*;
 use fuzz::*;
 pub mod utils;
 
 use serde::Deserialize;
+use solana_sdk::account::AccountSharedData;
+use solana_sdk::pubkey::Pubkey;
 use std::fs;
 use std::io;
 use thiserror::Error;
 use utils::discover_root;
+
+use crate::rpc_client::fork::load_forks_from_cache;
+use crate::rpc_client::fork::process_forks;
 mod regression;
 
 #[derive(Error, Debug)]
@@ -116,5 +123,43 @@ impl TridentConfig {
                 }
             })
             .unwrap_or_default()
+    }
+
+    pub fn forks(&self) -> Vec<fuzz::FuzzFork> {
+        self.fuzz
+            .as_ref()
+            .map(|fuzz| fuzz.get_forks())
+            .unwrap_or_default()
+    }
+
+    /// Get forked accounts from cache (silent, no RPC calls).
+    ///
+    /// This should be called after `fork()` has been executed to ensure
+    /// all accounts are cached. Used by worker threads during parallel fuzzing.
+    pub fn get_forked_accounts(&self) -> Vec<(Pubkey, AccountSharedData)> {
+        let forks = self.forks();
+        if forks.is_empty() {
+            return Vec::new();
+        }
+
+        match load_forks_from_cache(&forks) {
+            Ok(fork_results) => fork_results,
+            Err(e) => {
+                eprintln!("Warning: Failed to load forks from cache: {}", e);
+                Vec::new()
+            }
+        }
+    }
+
+    /// Process all fork entries - fetch from RPC if needed and cache them.
+    ///
+    /// This should be called ONCE in the main thread before parallel fuzzing starts.
+    pub fn fork(&self) -> Result<(), Box<dyn std::error::Error>> {
+        let forks = self.forks();
+        if forks.is_empty() {
+            return Ok(());
+        }
+
+        process_forks(&forks)
     }
 }
