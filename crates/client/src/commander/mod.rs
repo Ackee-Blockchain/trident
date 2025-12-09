@@ -67,6 +67,19 @@ impl Commander {
         }
     }
 
+    /// Build vanilla Solana program using cargo build-sbf
+    #[throws]
+    pub async fn build_solana_program(root: &Path) {
+        let mut cmd = Command::new("cargo");
+        cmd.arg("build-sbf");
+        cmd.current_dir(root);
+
+        let success = cmd.spawn()?.wait().await?.success();
+        if !success {
+            throw!(Error::BuildProgramsFailed);
+        }
+    }
+
     /// Formats program code.
     #[throws]
     pub async fn format_program_code(code: &str) -> String {

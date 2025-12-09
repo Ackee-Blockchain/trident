@@ -4,12 +4,15 @@ use clap::Subcommand;
 use fehler::throws;
 use heck::ToSnakeCase;
 use trident_client::___private::Commander;
+use trident_client::___private::ProjectType;
 use trident_client::___private::TestGenerator;
 
-use crate::command::check_anchor_initialized;
 use crate::command::check_fuzz_test_exists;
 use crate::command::check_fuzz_test_not_exists;
 use crate::command::check_trident_uninitialized;
+use crate::command::get_project_root_for_fuzz;
+use crate::command::is_anchor_project;
+use crate::command::validate_program_name_usage;
 
 #[derive(Subcommand)]
 #[allow(non_camel_case_types)]
@@ -39,6 +42,14 @@ pub(crate) enum FuzzCommand {
             help = "Skip building the program before adding new fuzz test."
         )]
         skip_build: bool,
+        #[arg(
+            long,
+            required = false,
+            num_args = 1..,
+            help = "Path(s) to IDL file(s). Specify multiple files separated by spaces. When provided, default target/idl/ directory is ignored.",
+            value_name = "FILE"
+        )]
+        idl_paths: Vec<String>,
     },
     Run {
         #[arg(
@@ -92,12 +103,31 @@ pub(crate) enum FuzzCommand {
             help = "Skip building the program before refreshing the types file."
         )]
         skip_build: bool,
+        #[arg(
+            long,
+            required = false,
+            num_args = 1..,
+            help = "Path(s) to IDL file(s). Specify multiple files separated by spaces. When provided, default target/idl/ directory is ignored.",
+            value_name = "FILE"
+        )]
+        idl_paths: Vec<String>,
     },
 }
 
 #[throws]
 pub(crate) async fn fuzz(subcmd: FuzzCommand) {
-    let root = check_anchor_initialized()?;
+    // For fuzz commands, we need to determine the root based on the subcommand
+    // Extract idl_paths early to use in get_project_root_for_fuzz
+    let idl_paths = match &subcmd {
+        FuzzCommand::Add { idl_paths, .. } => idl_paths.clone(),
+        FuzzCommand::Refresh { idl_paths, .. } => idl_paths.clone(),
+        FuzzCommand::Run { .. } | FuzzCommand::Debug { .. } => Vec::new(),
+    };
+
+    // Get project root
+    // - Anchor: directory with Anchor.toml
+    // - Vanilla: directory containing trident-tests (search upward from cwd)
+    let root = get_project_root_for_fuzz(&idl_paths)?;
 
     check_trident_uninitialized(&root)?;
 
@@ -121,29 +151,55 @@ pub(crate) async fn fuzz(subcmd: FuzzCommand) {
             program_name,
             test_name,
             skip_build,
+            idl_paths,
         } => {
             let test_name_snake = test_name.map(|name| name.to_snake_case());
 
-            let mut generator = TestGenerator::new_with_root(&root, skip_build)?;
+            // Determine project type based on whether Anchor.toml exists
+            let is_anchor = is_anchor_project()?;
+            let project_type = if is_anchor {
+                ProjectType::Anchor
+            } else {
+                ProjectType::Vanilla
+            };
+
+            // Validate program_name usage
+            validate_program_name_usage(is_anchor, &program_name)?;
+
+            let mut generator = TestGenerator::new_with_root(&root, skip_build, project_type)?;
 
             if let Some(test_name) = &test_name_snake {
                 check_fuzz_test_exists(&root, test_name)?;
             }
 
             generator
-                .add_fuzz_test(program_name, test_name_snake)
+                .add_fuzz_test(program_name, test_name_snake, idl_paths)
                 .await?;
         }
         FuzzCommand::Refresh {
             target,
             program_name,
             skip_build,
+            idl_paths,
         } => {
             check_fuzz_test_not_exists(&root, &target)?;
 
-            let mut generator = TestGenerator::new_with_root(&root, skip_build)?;
+            // Determine project type based on whether Anchor.toml exists
+            let is_anchor = is_anchor_project()?;
+            let project_type = if is_anchor {
+                ProjectType::Anchor
+            } else {
+                ProjectType::Vanilla
+            };
 
-            generator.refresh_fuzz_test(target, program_name).await?;
+            // Validate program_name usage
+            validate_program_name_usage(is_anchor, &program_name)?;
+
+            let mut generator = TestGenerator::new_with_root(&root, skip_build, project_type)?;
+
+            generator
+                .refresh_fuzz_test(target, program_name, idl_paths)
+                .await?;
         }
     };
 }

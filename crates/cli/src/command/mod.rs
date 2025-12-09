@@ -28,14 +28,88 @@ pub(crate) const TRIDENT_TOML: &str = "Trident.toml";
 pub(crate) const SKIP: &str = "\x1b[33mSkip\x1b[0m";
 pub(crate) const TESTS_WORKSPACE_DIRECTORY: &str = "trident-tests";
 
+/// Determine if this is an Anchor project by checking for Anchor.toml
 #[throws]
-fn check_anchor_initialized() -> String {
-    let root = if let Some(r) = discover(ANCHOR_TOML)? {
-        r
+fn is_anchor_project() -> bool {
+    discover(ANCHOR_TOML)?.is_some()
+}
+
+/// Get project root for init command
+/// - Anchor: Root = directory with Anchor.toml
+/// - Vanilla: Root = current directory
+#[throws]
+fn get_project_root_for_init(idl_paths: &[String]) -> String {
+    if let Some(root) = discover(ANCHOR_TOML)? {
+        // Anchor project found
+        root
+    } else if !idl_paths.is_empty() {
+        // Vanilla Solana project - use current directory as root
+        std::env::current_dir()?.to_string_lossy().to_string()
     } else {
-        bail!("It does not seem that Anchor is initialized because the Anchor.toml file was not found in any parent directory!");
-    };
-    root
+        // Neither Anchor nor custom IDLs provided
+        bail!(
+            "No Anchor.toml found in current or parent directories.\n\n\
+            For vanilla Solana programs, you must provide IDL file(s) using --idl-path:\n\
+            \x1b[92m  trident init --idl-path ./path/to/program.json\x1b[0m\n\n\
+            Note: IDLs for vanilla Solana programs must be generated using external tools\n\
+            or written manually following the Anchor IDL format."
+        );
+    }
+}
+
+/// Get project root for fuzz commands (add/refresh/run/debug)
+/// - Anchor: Root = directory with Anchor.toml
+/// - Vanilla: Root = directory containing trident-tests (search upward from cwd)
+#[throws]
+fn get_project_root_for_fuzz(idl_paths: &[String]) -> String {
+    if let Some(root) = discover(ANCHOR_TOML)? {
+        // Anchor project found
+        root
+    } else if !idl_paths.is_empty() {
+        // Vanilla Solana project - find directory containing trident-tests
+        if let Some(root) = discover_trident_root()? {
+            root
+        } else {
+            bail!(
+                "Could not find trident-tests directory.\n\
+                Please run this command from the project root or from within trident-tests directory."
+            );
+        }
+    } else {
+        // No Anchor.toml and no IDL paths - must be uninitialized
+        bail!(
+            "No Anchor.toml found in current or parent directories.\n\n\
+            For vanilla Solana programs, you must provide IDL file(s) using --idl-path:\n\
+            \x1b[92m  trident fuzz add --idl-path ./path/to/program.json\x1b[0m"
+        );
+    }
+}
+
+/// Discover the project root by finding the directory that contains trident-tests
+fn discover_trident_root() -> Result<Option<String>> {
+    let _cwd = std::env::current_dir()?;
+    let mut cwd_opt = Some(_cwd.as_path());
+
+    while let Some(cwd) = cwd_opt {
+        let trident_tests_path = cwd.join(TESTS_WORKSPACE_DIRECTORY);
+        if trident_tests_path.exists() && trident_tests_path.is_dir() {
+            return Ok(Some(cwd.to_string_lossy().to_string()));
+        }
+        cwd_opt = cwd.parent();
+    }
+
+    Ok(None)
+}
+
+/// Validate that program_name is not used with vanilla Solana projects
+#[throws]
+fn validate_program_name_usage(is_anchor: bool, program_name: &Option<String>) {
+    if !is_anchor && program_name.is_some() {
+        bail!(
+            "The --program-name option is only supported for Anchor projects.\n\
+            Vanilla Solana projects do not support selective program building."
+        );
+    }
 }
 
 #[throws]

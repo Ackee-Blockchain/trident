@@ -17,8 +17,10 @@ pub mod ___private {
     pub use super::commander::Commander;
     pub use super::commander::Error;
     pub use super::idl_loader::load_idls;
+    pub use super::idl_loader::load_idls_from_files;
     pub use super::idl_loader::IdlError;
     pub use super::server::DashboardServer;
+    pub use super::test_generator::ProjectType;
     pub use super::test_generator::TestGenerator;
 }
 

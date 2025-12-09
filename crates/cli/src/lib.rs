@@ -58,6 +58,14 @@ enum Command {
             value_name = "NAME"
         )]
         test_name: Option<String>,
+        #[arg(
+            long,
+            required = false,
+            num_args = 1..,
+            help = "Path(s) to IDL file(s). Specify multiple files separated by spaces. When provided, default target/idl/ directory is ignored.",
+            value_name = "FILE"
+        )]
+        idl_paths: Vec<String>,
     },
     #[command(
         about = "Run fuzz subcommands.",
@@ -125,7 +133,8 @@ pub async fn start() {
             skip_build,
             program_name,
             test_name,
-        } => command::init(force, skip_build, program_name, test_name).await?,
+            idl_paths,
+        } => command::init(force, skip_build, program_name, test_name, idl_paths).await?,
         Command::Clean => command::clean().await?,
         Command::Server {
             directory,

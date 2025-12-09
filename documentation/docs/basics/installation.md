@@ -8,9 +8,17 @@ Trident requires the following prerequisites:
 
     - [Rust](https://www.rust-lang.org/tools/install) (stable version)
     - [Solana CLI](https://solana.com/docs/intro/installation)
-    - [Anchor](https://www.anchor-lang.com/docs/installation)
+    - [Anchor](https://www.anchor-lang.com/docs/installation) (optional for vanilla Solana programs)
 
   Check out [supported versions](#supported-versions) for version compatibility.
+
+!!! note "Vanilla Solana Programs"
+
+    Trident supports both Anchor and vanilla Solana programs. For vanilla Solana programs:
+
+    - Anchor installation is optional
+    - You must provide IDL files via `--idl-path`
+    - Programs are built using `cargo build-sbf`
 
 ## Install Trident
 
