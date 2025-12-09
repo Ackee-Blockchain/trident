@@ -4,7 +4,9 @@ Trident CLI supports the following commands:
 
 ## `trident init`
 
-Initializes Trident Workspace and generates new Fuzz Test Template. Creates the following structure:
+Initializes Trident Workspace and generates new Fuzz Test Template. Works with both **Anchor** and **vanilla Solana** programs.
+
+Creates the following structure:
 
 ```bash
 project-root
@@ -25,8 +27,37 @@ project-root
 
 - `-f, --force` - Force Trident initialization. Trident dependencies will be updated based on the version of Trident CLI.
 - `-s, --skip-build` - Skip building the program before initializing Trident.
-- `-p, --program-name <FILE>` - Specify the name of the program for which fuzz test will be generated.
+- `-p, --program-name <FILE>` - Specify the name of the program for which fuzz test will be generated (Anchor projects only).
 - `-t, --test-name <NAME>` - Name of the fuzz test to initialize.
+- `--idl-path <FILE>...` - Path(s) to IDL file(s). Multiple files can be specified separated by spaces. Required for vanilla Solana programs.
+
+#### Anchor Projects
+
+```bash
+# Default - auto-detects Anchor.toml and uses target/idl/
+trident init
+
+# With custom IDL paths
+trident init --idl-path ./custom-idls/my_program.json
+
+# Specific program only
+trident init --program-name my_program
+```
+
+#### Vanilla Solana Projects
+
+For programs not written with Anchor, you must provide IDL file(s):
+
+```bash
+# Single program
+trident init --skip-build --idl-path ./idl/my_program.json
+
+# Multiple programs
+trident init --idl-path ./idl/program1.json ./idl/program2.json
+```
+
+!!! note "IDL Generation for Vanilla Solana"
+    Vanilla Solana programs require IDL files to be generated using external tools or written manually following the Anchor IDL format. The build command uses `cargo build-sbf` instead of `anchor build`.
 
 ---
 
@@ -51,13 +82,15 @@ trident fuzz refresh fuzz_0
 
 ### `trident fuzz add`
 
-Generate new Fuzz Test template.
+Generate new Fuzz Test template. Can be executed from the project root or from within the `trident-tests` directory.
 
 #### Options
 
-- `-p, --program-name <FILE>` - Specify the name of the program for which the fuzz test will be generated.
+- `-p, --program-name <FILE>` - Specify the name of the program for which the fuzz test will be generated (Anchor projects only).
 - `-t, --test-name <NAME>` - Name of the fuzz test to add.
 - `-s, --skip-build` - Skip building the program before adding new fuzz test.
+- `--idl-path <FILE>...` - Path(s) to IDL file(s). Multiple files can be specified separated by spaces. Required for vanilla Solana programs.
+
 
 ---
 
@@ -105,7 +138,7 @@ Debug crashes by analyzing specific crash files using the provided seed.
 
 ### `trident fuzz refresh <fuzz_target>`
 
-Refresh an existing fuzz test by regenerating the types file based on the current program state.
+Refresh an existing fuzz test by regenerating the types file based on the current program state. Can be executed from the project root or from within the `trident-tests` directory.
 
 #### Arguments
 
@@ -113,8 +146,10 @@ Refresh an existing fuzz test by regenerating the types file based on the curren
 
 #### Options
 
-- `-p, --program-name <FILE>` - Specify the name of the program for which the fuzz test will be refreshed.
+- `-p, --program-name <FILE>` - Specify the name of the program for which the fuzz test will be refreshed (Anchor projects only).
 - `-s, --skip-build` - Skip building the program before refreshing the types file.
+- `--idl-path <FILE>...` - Path(s) to IDL file(s). Multiple files can be specified separated by spaces. Required for vanilla Solana programs.
+
 
 ---
 

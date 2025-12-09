@@ -65,6 +65,103 @@ impl std::error::Error for IdlError {
     }
 }
 
+/// Loads IDL files from specific file paths
+///
+/// # Arguments
+///
+/// * `file_paths` - Vector of paths to IDL files
+/// * `program_name` - Optional program name to filter IDL files
+///
+/// # Returns
+///
+/// A Result containing a vector of parsed IDL files or an error with context
+pub fn load_idls_from_files(
+    file_paths: Vec<PathBuf>,
+    program_name: Option<String>,
+) -> Result<Vec<Idl>, IdlError> {
+    let mut idls = Vec::new();
+
+    for path in file_paths {
+        // Check if file exists
+        if !path.exists() {
+            return Err(IdlError::IoError {
+                source: std::io::Error::new(std::io::ErrorKind::NotFound, "File does not exist"),
+                path: path.clone(),
+                operation: "check file existence",
+            });
+        }
+
+        // Check if it's a file
+        if !path.is_file() {
+            return Err(IdlError::IoError {
+                source: std::io::Error::new(std::io::ErrorKind::InvalidInput, "Path is not a file"),
+                path: path.clone(),
+                operation: "validate file path",
+            });
+        }
+
+        // Check if it's a JSON file
+        if path.extension().and_then(|ext| ext.to_str()) != Some("json") {
+            return Err(IdlError::IoError {
+                source: std::io::Error::new(
+                    std::io::ErrorKind::InvalidInput,
+                    "File is not a JSON file",
+                ),
+                path: path.clone(),
+                operation: "validate file extension",
+            });
+        }
+
+        // If program_name is specified, check if this file matches
+        if let Some(ref program_name) = program_name {
+            if !path
+                .file_name()
+                .and_then(|name| name.to_str())
+                .map(|name| name.trim_end_matches(".json") == program_name.to_snake_case())
+                .unwrap_or(false)
+            {
+                continue;
+            }
+        }
+
+        // Open and read the file
+        let mut file = File::open(&path).map_err(|e| IdlError::IoError {
+            source: e,
+            path: path.clone(),
+            operation: "open file",
+        })?;
+
+        let mut json_content = String::new();
+        file.read_to_string(&mut json_content)
+            .map_err(|e| IdlError::IoError {
+                source: e,
+                path: path.clone(),
+                operation: "read file",
+            })?;
+
+        // Parse the JSON into an Idl struct
+        match serde_json::from_str::<Idl>(&json_content) {
+            Ok(parsed_idl) => {
+                idls.push(parsed_idl);
+            }
+            Err(e) => {
+                return Err(IdlError::ParseError {
+                    source: e,
+                    path: path.clone(),
+                });
+            }
+        }
+    }
+
+    if idls.is_empty() {
+        return Err(IdlError::NoIdlsFound {
+            path: "specified file paths".to_string(),
+        });
+    }
+
+    Ok(idls)
+}
+
 /// Loads IDL files from a directory
 ///
 /// # Arguments

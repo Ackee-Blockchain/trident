@@ -16,6 +16,8 @@ incremented upon a breaking change and the patch version will be incremented for
 
 **Changed**
 
+- Allow initialization for Vanilla Solana projects with IDLs ([435](https://github.com/Ackee-Blockchain/trident/pull/435))
+
 ## [0.12.0] - 2025-11-27
 
 **Added**
