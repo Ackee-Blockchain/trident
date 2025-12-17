@@ -176,7 +176,7 @@ impl Trident {
     ///
     /// # Returns
     /// The account data or a default account if not found
-    pub fn get_account(&mut self, key: &Pubkey) -> AccountSharedData {
+    pub fn get_account(&self, key: &Pubkey) -> AccountSharedData {
         trident_svm::trident_svm::TridentSVM::get_account(&self.client, key).unwrap_or_default()
     }
     /// Retrieves and deserializes account data as a specific type

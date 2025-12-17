@@ -12,6 +12,8 @@ incremented upon a breaking change and the patch version will be incremented for
 
 **Added**
 
+- add more stake program related methods ([441](https://github.com/Ackee-Blockchain/trident/pull/441))
+
 **Removed**
 
 **Changed**
