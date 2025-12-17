@@ -1,5 +1,6 @@
 use solana_sdk::instruction::Instruction;
 use solana_sdk::pubkey::Pubkey;
+use solana_sdk::rent;
 
 use crate::trident::Trident;
 
@@ -23,15 +24,21 @@ impl Trident {
     #[allow(clippy::too_many_arguments)]
     pub fn initialize_vote_account(
         &mut self,
-        from_pubkey: &Pubkey,
+        payer: &Pubkey,
         vote_pubkey: &Pubkey,
         node_pubkey: &Pubkey,
         authorized_voter: &Pubkey,
         authorized_withdrawer: &Pubkey,
         commission: u8,
-        lamports: u64,
     ) -> Vec<Instruction> {
-        let config = solana_vote_interface::instruction::CreateVoteAccountConfig::default();
+        let space = solana_vote_interface::state::VoteStateVersions::vote_state_size_of(true);
+
+        let config = solana_vote_interface::instruction::CreateVoteAccountConfig {
+            space: space as u64,
+            with_seed: None,
+        };
+
+        let minimum_rent = rent::Rent::default().minimum_balance(space);
 
         let vote_init = solana_vote_interface::state::VoteInit {
             node_pubkey: *node_pubkey,
@@ -39,11 +46,12 @@ impl Trident {
             authorized_withdrawer: *authorized_withdrawer,
             commission,
         };
+
         solana_vote_interface::instruction::create_account_with_config(
-            from_pubkey,
+            payer,
             vote_pubkey,
             &vote_init,
-            lamports,
+            minimum_rent,
             config,
         )
     }
