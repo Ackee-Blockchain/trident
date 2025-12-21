@@ -1,14 +1,20 @@
+use std::collections::HashMap;
+
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signer::Signer;
 
 use crate::trident::Trident;
 
-/// A storage container for managing and tracking public key addresses
+/// A storage container for managing and tracking unique public key addresses
 ///
 /// `AddressStorage` provides a convenient way to store and retrieve addresses during fuzz testing.
 /// It can generate random addresses or derive PDAs, and allows you to randomly select from stored addresses.
+///
+/// Internally uses a `Vec` + `HashMap` combination for O(1) insert, remove, and random access.
+/// Note: Insertion order is not preserved after removals due to swap-remove optimization.
 pub struct AddressStorage {
     addresses: Vec<Pubkey>,
+    indices: HashMap<Pubkey, usize>,
 }
 
 /// Seeds and program ID for deriving Program Derived Addresses (PDAs)
@@ -62,8 +68,10 @@ impl AddressStorage {
     /// # Returns
     /// A new `AddressStorage` with no stored addresses
     fn new() -> Self {
-        let addresses: Vec<Pubkey> = Vec::new();
-        Self { addresses }
+        Self {
+            addresses: Vec::new(),
+            indices: HashMap::new(),
+        }
     }
 
     /// Inserts a new address into storage
@@ -71,28 +79,84 @@ impl AddressStorage {
     /// Generates a new address (either a PDA or random keypair) and stores it.
     /// If PDA seeds are provided, attempts to derive a PDA. If derivation fails
     /// or no seeds are provided, generates a random keypair address.
+    /// If the address already exists, it will not be inserted again.
     ///
     /// # Arguments
     /// * `trident` - The Trident instance for random number generation
     /// * `seeds` - Optional PDA seeds for deriving a program-derived address
     ///
     /// # Returns
-    /// The newly created and stored address
+    /// The newly created address (or existing one if it was already stored)
     pub fn insert(&mut self, trident: &mut Trident, seeds: Option<PdaSeeds>) -> Pubkey {
         let address = self.get_or_create_address(seeds, trident);
-        self.addresses.push(address);
+        self.insert_unique(address);
         address
     }
 
     /// Inserts an existing address into storage
     ///
     /// Stores a pre-existing address without generating a new one.
-    /// Useful when you need to track addresses created elsewhere.
+    /// If the address already exists, it will not be inserted again.
     ///
     /// # Arguments
     /// * `address` - The address to store
-    pub fn insert_with_address(&mut self, address: Pubkey) {
+    ///
+    /// # Returns
+    /// `true` if the address was inserted, `false` if it already existed
+    pub fn insert_with_address(&mut self, address: Pubkey) -> bool {
+        self.insert_unique(address)
+    }
+
+    /// Internal helper to insert an address if it doesn't already exist
+    ///
+    /// # Returns
+    /// `true` if inserted, `false` if already present
+    fn insert_unique(&mut self, address: Pubkey) -> bool {
+        if self.indices.contains_key(&address) {
+            return false;
+        }
+        let idx = self.addresses.len();
         self.addresses.push(address);
+        self.indices.insert(address, idx);
+        true
+    }
+
+    /// Removes an address from storage
+    ///
+    /// Uses swap-remove for O(1) removal. Note that this may change
+    /// the order of elements in storage.
+    ///
+    /// # Arguments
+    /// * `address` - The address to remove
+    ///
+    /// # Returns
+    /// `true` if the address was removed, `false` if it wasn't found
+    pub fn remove(&mut self, address: &Pubkey) -> bool {
+        if let Some(idx) = self.indices.remove(address) {
+            let last_idx = self.addresses.len() - 1;
+
+            // If not removing the last element, update the swapped element's index
+            if idx != last_idx {
+                let swapped = self.addresses[last_idx];
+                self.indices.insert(swapped, idx);
+            }
+
+            self.addresses.swap_remove(idx);
+            true
+        } else {
+            false
+        }
+    }
+
+    /// Checks if an address exists in storage
+    ///
+    /// # Arguments
+    /// * `address` - The address to check
+    ///
+    /// # Returns
+    /// `true` if the address is in storage, `false` otherwise
+    pub fn contains(&self, address: &Pubkey) -> bool {
+        self.indices.contains_key(address)
     }
 
     /// Retrieves a random address from storage
@@ -216,6 +280,130 @@ impl AddressStorage {
                 trident.random_bytes(&mut secret);
                 solana_sdk::signer::keypair::Keypair::new_from_array(secret).pubkey()
             }
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn make_pubkey(byte: u8) -> Pubkey {
+        Pubkey::new_from_array([byte; 32])
+    }
+
+    #[test]
+    fn test_insert_and_contains() {
+        let mut storage = AddressStorage::default();
+        let addr1 = make_pubkey(1);
+        let addr2 = make_pubkey(2);
+
+        assert!(storage.insert_with_address(addr1));
+        assert!(storage.insert_with_address(addr2));
+
+        assert!(storage.contains(&addr1));
+        assert!(storage.contains(&addr2));
+        assert!(!storage.contains(&make_pubkey(3)));
+    }
+
+    #[test]
+    fn test_insert_uniqueness() {
+        let mut storage = AddressStorage::default();
+        let addr = make_pubkey(1);
+
+        assert!(storage.insert_with_address(addr));
+        assert!(!storage.insert_with_address(addr)); // duplicate
+        assert_eq!(storage.len(), 1);
+    }
+
+    #[test]
+    fn test_remove() {
+        let mut storage = AddressStorage::default();
+        let addr1 = make_pubkey(1);
+        let addr2 = make_pubkey(2);
+        let addr3 = make_pubkey(3);
+
+        storage.insert_with_address(addr1);
+        storage.insert_with_address(addr2);
+        storage.insert_with_address(addr3);
+
+        assert_eq!(storage.len(), 3);
+
+        assert!(storage.remove(&addr2));
+        assert_eq!(storage.len(), 2);
+        assert!(!storage.contains(&addr2));
+        assert!(storage.contains(&addr1));
+        assert!(storage.contains(&addr3));
+
+        // Remove non-existent
+        assert!(!storage.remove(&addr2));
+    }
+
+    #[test]
+    fn test_remove_last_element() {
+        let mut storage = AddressStorage::default();
+        let addr1 = make_pubkey(1);
+        let addr2 = make_pubkey(2);
+
+        storage.insert_with_address(addr1);
+        storage.insert_with_address(addr2);
+
+        // Remove last element (no swap needed)
+        assert!(storage.remove(&addr2));
+        assert_eq!(storage.len(), 1);
+        assert!(storage.contains(&addr1));
+        assert!(!storage.contains(&addr2));
+    }
+
+    #[test]
+    fn test_remove_only_element() {
+        let mut storage = AddressStorage::default();
+        let addr = make_pubkey(1);
+
+        storage.insert_with_address(addr);
+        assert!(storage.remove(&addr));
+        assert!(storage.is_empty());
+        assert!(!storage.contains(&addr));
+    }
+
+    #[test]
+    fn test_is_empty_and_len() {
+        let mut storage = AddressStorage::default();
+
+        assert!(storage.is_empty());
+        assert_eq!(storage.len(), 0);
+
+        storage.insert_with_address(make_pubkey(1));
+        assert!(!storage.is_empty());
+        assert_eq!(storage.len(), 1);
+
+        storage.insert_with_address(make_pubkey(2));
+        assert_eq!(storage.len(), 2);
+    }
+
+    #[test]
+    fn test_indices_consistency_after_multiple_removes() {
+        let mut storage = AddressStorage::default();
+        let addrs: Vec<Pubkey> = (0..5).map(make_pubkey).collect();
+
+        for addr in &addrs {
+            storage.insert_with_address(*addr);
+        }
+
+        // Remove middle elements
+        storage.remove(&addrs[1]);
+        storage.remove(&addrs[3]);
+
+        assert_eq!(storage.len(), 3);
+        assert!(storage.contains(&addrs[0]));
+        assert!(!storage.contains(&addrs[1]));
+        assert!(storage.contains(&addrs[2]));
+        assert!(!storage.contains(&addrs[3]));
+        assert!(storage.contains(&addrs[4]));
+
+        // Verify indices are still valid by checking internal consistency
+        for (idx, addr) in storage.addresses.iter().enumerate() {
+            assert_eq!(storage.indices.get(addr), Some(&idx));
         }
     }
 }
