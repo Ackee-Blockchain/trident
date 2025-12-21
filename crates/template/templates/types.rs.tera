@@ -9,6 +9,7 @@
 use borsh::BorshDeserialize;
 use borsh::BorshSerialize;
 use trident_fuzz::fuzzing::*;
+use trident_fuzz::AccountDiscriminator;
 
 // ============================================================================
 // PROGRAM MODULES
@@ -195,6 +196,75 @@ pub mod {{ program.module_name }} {
 
 {% endfor %}
 
+    // ------------------------------------------------------------------------
+    // Data Accounts (with discriminators)
+    // ------------------------------------------------------------------------
+
+{% for account in program.data_accounts %}
+    /// AccountDiscriminator implementation for {{ account.name }}
+    impl AccountDiscriminator for {{ account.name }} {
+{% if account.discriminator | length > 0 %}
+        fn discriminator() -> &'static [u8] {
+            &[{% for byte in account.discriminator %}{{ byte }}u8{% if not loop.last %}, {% endif %}{% endfor %}]
+        }
+{% else %}
+        fn discriminator() -> &'static [u8] {
+            &[0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8, 0u8]
+        }
+{% endif %}
+    }
+
+{% endfor %}
+    // ------------------------------------------------------------------------
+    // Errors
+    // ------------------------------------------------------------------------
+
+{% if program.errors | length > 0 %}
+    /// Program errors for {{ program.name }}
+    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+    #[repr(u32)]
+    pub enum {{ program.name | title | replace(from="_", to="") }}Error {
+{% for error in program.errors %}
+        /// {{ error.msg | default(value=error.name) }}
+        {{ error.name }} = {{ error.code }},
+{% endfor %}
+    }
+
+    impl {{ program.name | title | replace(from="_", to="") }}Error {
+        /// Get the error code
+        pub fn code(&self) -> u32 {
+            *self as u32
+        }
+
+        /// Get the error message
+        pub fn msg(&self) -> &'static str {
+            match self {
+{% for error in program.errors %}
+                Self::{{ error.name }} => "{{ error.msg | default(value=error.name) }}",
+{% endfor %}
+            }
+        }
+
+        /// Try to convert from error code
+        pub fn from_code(code: u32) -> Option<Self> {
+            match code {
+{% for error in program.errors %}
+                {{ error.code }} => Some(Self::{{ error.name }}),
+{% endfor %}
+                _ => None,
+            }
+        }
+    }
+
+    impl std::fmt::Display for {{ program.name | title | replace(from="_", to="") }}Error {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            write!(f, "{}: {}", self.code(), self.msg())
+        }
+    }
+
+    impl std::error::Error for {{ program.name | title | replace(from="_", to="") }}Error {}
+
+{% endif %}
     // ------------------------------------------------------------------------
     // Composite Accounts
     // ------------------------------------------------------------------------

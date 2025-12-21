@@ -22,41 +22,28 @@ pub fn get_account(&mut self, key: &Pubkey) -> AccountSharedData
 
 ### `get_account_with_type`
 
-Gets account data and converts it to a specific data type for use in your tests.
+Gets account data and converts it to a specific data type for use in your tests. The discriminator size is automatically determined from the type's `AccountDiscriminator` implementation.
 
 ```rust
-pub fn get_account_with_type<T: BorshDeserialize>(
+pub fn get_account_with_type<T: BorshDeserialize + AccountDiscriminator>(
     &mut self,
     key: &Pubkey,
-    discriminator_size: usize,
 ) -> Option<T>
 ```
 
 **Parameters:**
 
 - `key` - The public key of the account to retrieve
-- `discriminator_size` - Size of the discriminator to skip when deserializing
 
 **Returns:** Deserialized account data or None if deserialization fails.
 
 !!! note "Account Type"
 
-    Use account types contained in the `types.rs` file to get the correct type for the account.
+    Use account types contained in the `types.rs` file. These types implement `AccountDiscriminator` trait which provides the discriminator bytes from the IDL.
 
----
+!!! note "Discriminator Handling"
 
-### `set_account_custom`
-
-Sets custom account data for the specified address.
-
-```rust
-pub fn set_account_custom(&mut self, address: &Pubkey, account: &AccountSharedData)
-```
-
-**Parameters:**
-
-- `address` - The account address to set
-- `account` - The account data to set
+    This method does not verify the discriminator. It only uses the discriminator length to skip those bytes during deserialization.
 
 ---
 
@@ -177,66 +164,94 @@ pub fn find_program_address(&self, seeds: &[&[u8]], program_id: &Pubkey) -> (Pub
 
 ---
 
+## Direct Account Manipulation
+
+!!! warning "Testing Environment Only"
+
+    The following methods allow direct manipulation of account state without going through program instructions. This behavior does not reflect normal mainnet conditions where accounts can only be modified by their owning program through proper transaction execution. Use these methods for test setup and specific fuzzing scenarios only.
+
+### `set_account_with_type`
+
+Sets account data for a specific type at the specified address. The data is serialized with its discriminator prepended and stored as a rent-exempt account.
+
+```rust
+pub fn set_account_with_type<T: BorshSerialize + AccountDiscriminator>(
+    &mut self,
+    address: &Pubkey,
+    owner: &Pubkey,
+    data: &T,
+)
+```
+
+**Parameters:**
+
+- `address` - The public key where the account should be stored
+- `owner` - The program ID that will own this account
+- `data` - The account data to serialize and store
+
+!!! warning "Discriminator Compatibility"
+
+    For older Anchor versions where the IDL does not contain discriminator data, an 8-byte zero discriminator (`[0, 0, 0, 0, 0, 0, 0, 0]`) is used by default. This is typically not a problem for `get_account_with_type` as it only skips the discriminator bytes without validation. However, `set_account_with_type` will serialize this zero discriminator, which will cause issues when the program attempts to deserialize the account since it won't match the expected discriminator. Ensure your IDL contains valid discriminator data for account types you intend to set.
+
+---
+
+### `set_account_custom`
+
+Sets custom account data for the specified address.
+
+```rust
+pub fn set_account_custom(&mut self, address: &Pubkey, account: &AccountSharedData)
+```
+
+**Parameters:**
+
+- `address` - The account address to set
+- `account` - The account data to set
+
+---
+
 ## Example Usage
 
 ```rust
-use trident_fuzz::*;
+use trident_fuzz::fuzzing::*;
 
 #[flow]
 fn test_account_management(&mut self) {
-    let user_account = self.random_pubkey();
-    let token_account = self.random_pubkey();
-    let amount = self.random_from_range(1000..10000u64);
+    let user_account = self.trident.random_pubkey();
+    let token_account = self.trident.random_pubkey();
+    let program_id = Pubkey::new_unique();
     
     // Airdrop lamports to an account
-    self.airdrop(&user_account, amount);
+    self.trident.airdrop(&user_account, 10 * LAMPORTS_PER_SOL);
     
     // Get account data and verify balance
-    let account_data = self.get_account(&user_account);
-    assert_eq!(account_data.lamports(), amount);
+    let account_data = self.trident.get_account(&user_account);
     
-    // Execute a transfer and check the result
-    let ix = self.transfer(&user_account, &token_account, 500);
-    let result = self.process_transaction(&[ix], Some("transfer"));
-    assert!(result.is_success());
-    
-    // Get account with specific type (example with a custom struct)
-    if let Some(my_data) = self.get_account_with_type::<MyAccountData>(&token_account, 8) {
-        // Use the deserialized data
+    // Get account with specific type (discriminator handled automatically)
+    if let Some(my_data) = self.trident.get_account_with_type::<MyAccountData>(&token_account) {
         println!("Account data: {:?}", my_data);
     }
     
-    // Get current clock for time-based operations
-    let clock = self.get_sysvar::<Clock>();
+    // Set account with specific type (discriminator and rent handled automatically)
+    let new_data = MyAccountData::new(1000, user_account);
+    self.trident.set_account_with_type(&token_account, &program_id, &new_data);
+    
+    // Get current clock
+    let clock = self.trident.get_sysvar::<Clock>();
     println!("Current timestamp: {}", clock.unix_timestamp);
     
-    // Get the default payer for transactions
-    let payer = self.payer();
+    // Get the default payer
+    let payer = self.trident.payer();
     println!("Payer pubkey: {}", payer.pubkey());
     
-    // Work with Program Derived Addresses (PDAs)
-    let program_id = Pubkey::new_unique();
-    
-    // Find a PDA with automatic bump seed discovery
+    // Find a PDA
     let seeds = &[b"my-seed", user_account.as_ref()];
-    let (pda, bump) = self.find_program_address(seeds, &program_id);
-    println!("Found PDA: {} with bump: {}", pda, bump);
+    let (pda, bump) = self.trident.find_program_address(seeds, &program_id);
     
-    // Create a PDA with a known bump seed
+    // Create a PDA with known bump
     let seeds_with_bump = &[b"my-seed", user_account.as_ref(), &[bump]];
-    if let Some(pda_verified) = self.create_program_address(seeds_with_bump, &program_id) {
+    if let Some(pda_verified) = self.trident.create_program_address(seeds_with_bump, &program_id) {
         assert_eq!(pda, pda_verified);
     }
-    
-    // Get program data address for an upgradeable program
-    let program_data_addr = self.get_program_data_address_v3(&program_id);
-    let program_data = self.get_account(&program_data_addr);
-}
-
-// Example custom account data structure
-#[derive(BorshDeserialize, Debug)]
-struct MyAccountData {
-    value: u64,
-    authority: Pubkey,
 }
 ```

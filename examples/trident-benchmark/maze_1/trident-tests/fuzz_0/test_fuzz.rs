@@ -56,9 +56,32 @@ impl FuzzTest {
             .accounts(InitializeInstructionAccounts::new(state_author, state))
             .instruction();
 
-        let _ = self
+        let res = self
             .trident
             .process_transaction(&[init], Some("Initialize"));
+
+        assert!(res.is_success());
+
+        let state_account = self
+            .trident
+            .get_account_with_type::<State>(&state)
+            .expect("State not found");
+
+        assert!(state_account.x == 0);
+        assert!(state_account.y == 0);
+
+        let new_state = State::new(5, 5);
+
+        self.trident
+            .set_account_with_type(&state, &maze::program_id(), &new_state);
+
+        let new_state_account = self
+            .trident
+            .get_account_with_type::<State>(&state)
+            .expect("State not found");
+
+        assert!(new_state_account.x == 5);
+        assert!(new_state_account.y == 5);
     }
 
     #[flow]
@@ -72,22 +95,39 @@ impl FuzzTest {
             .get(&mut self.trident)
             .expect("Storage empty");
 
+        let x1 = self.trident.random_from_range(0..u64::MAX);
+        let x2 = self.trident.random_from_range(0..u64::MAX);
+        let x3 = self.trident.random_from_range(0..u64::MAX);
+        let x4 = self.trident.random_from_range(0..u64::MAX);
+        let x5 = self.trident.random_from_range(0..u64::MAX);
+        let x6 = self.trident.random_from_range(0..u64::MAX);
+        let x7 = self.trident.random_from_range(0..u64::MAX);
+        let x8 = self.trident.random_from_range(0..u64::MAX);
+
+        let state_before = self
+            .trident
+            .get_account_with_type::<State>(&state)
+            .expect("State not found");
+
         let move_north = maze::MoveNorthInstruction::data(MoveNorthInstructionData::new(
-            self.trident.random_from_range(0..u64::MAX),
-            self.trident.random_from_range(0..u64::MAX),
-            self.trident.random_from_range(0..u64::MAX),
-            self.trident.random_from_range(0..u64::MAX),
-            self.trident.random_from_range(0..u64::MAX),
-            self.trident.random_from_range(0..u64::MAX),
-            self.trident.random_from_range(0..u64::MAX),
-            self.trident.random_from_range(0..u64::MAX),
+            x1, x2, x3, x4, x5, x6, x7, x8,
         ))
         .accounts(MoveNorthInstructionAccounts::new(state))
         .instruction();
 
-        let _ = self
+        let res = self
             .trident
             .process_transaction(&[move_north], Some("MoveNorth"));
+
+        if res.is_success() {
+            let state_after = self
+                .trident
+                .get_account_with_type::<State>(&state)
+                .expect("State not found");
+
+            assert!(state_after.x == state_before.x);
+            assert!(state_after.y == state_before.y + 1);
+        }
     }
 
     #[flow]

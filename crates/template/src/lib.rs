@@ -3,6 +3,7 @@ use convert_case::Casing;
 use serde_json::json;
 use sha2::Digest;
 use sha2::Sha256;
+use std::collections::HashMap;
 use tera::Context;
 use tera::Tera;
 use trident_idl_spec::Idl;
@@ -140,12 +141,18 @@ impl TridentTemplates {
                 instructions_data.push(instruction_data);
             }
 
+            // Collect accounts with discriminators and errors for this program
+            let accounts_with_discriminators = self.collect_accounts_with_discriminators(idl);
+            let errors = self.collect_errors(idl);
+
             programs_data.push(json!({
                 "name": program_name,
                 "module_name": module_name,
                 "program_id": program_id,
                 "instructions": instructions_data,
-                "composite_accounts": composite_accounts
+                "composite_accounts": composite_accounts,
+                "data_accounts": accounts_with_discriminators,
+                "errors": errors
             }));
         }
 
@@ -255,6 +262,41 @@ impl TridentTemplates {
         idls.iter()
             .flat_map(|idl| &idl.types)
             .map(|type_def| self.convert_type_def_to_template_data(type_def))
+            .collect()
+    }
+
+    /// Collect accounts with discriminators for a single IDL
+    fn collect_accounts_with_discriminators(&self, idl: &Idl) -> Vec<serde_json::Value> {
+        // Build a map of type definitions by name for lookup
+        let type_map: HashMap<&str, &IdlTypeDef> =
+            idl.types.iter().map(|t| (t.name.as_str(), t)).collect();
+
+        idl.accounts
+            .iter()
+            .map(|account| {
+                let type_def = type_map.get(account.name.as_str());
+                let fields = type_def.map(|td| self.convert_type_def_to_template_data(td));
+
+                json!({
+                    "name": account.name,
+                    "discriminator": account.discriminator,
+                    "fields": fields
+                })
+            })
+            .collect()
+    }
+
+    /// Collect errors for a single IDL
+    fn collect_errors(&self, idl: &Idl) -> Vec<serde_json::Value> {
+        idl.errors
+            .iter()
+            .map(|error| {
+                json!({
+                    "code": error.code,
+                    "name": error.name,
+                    "msg": error.msg
+                })
+            })
             .collect()
     }
 

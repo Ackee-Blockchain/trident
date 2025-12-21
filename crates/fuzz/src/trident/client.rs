@@ -1,4 +1,5 @@
 use borsh::BorshDeserialize;
+use borsh::BorshSerialize;
 use solana_sdk::instruction::Instruction;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::transaction::TransactionError;
@@ -7,6 +8,7 @@ use trident_svm::processor::InstructionError;
 
 use crate::trident::transaction_result::TransactionResult;
 use crate::trident::Trident;
+use crate::AccountDiscriminator;
 
 use solana_sdk::account::AccountSharedData;
 use solana_sdk::account::ReadableAccount;
@@ -182,27 +184,71 @@ impl Trident {
     /// Retrieves and deserializes account data as a specific type
     ///
     /// This method fetches account data and attempts to deserialize it using Borsh,
-    /// skipping the specified discriminator bytes at the beginning.
+    /// automatically skipping the discriminator bytes at the beginning.
+    /// The discriminator length is determined by the type's `AccountDiscriminator` implementation.
     ///
     /// # Arguments
     /// * `key` - The public key of the account to retrieve
-    /// * `discriminator_size` - Number of bytes to skip before deserializing
     ///
     /// # Returns
     /// Some(T) if deserialization succeeds, None otherwise
-    pub fn get_account_with_type<T: BorshDeserialize>(
+    ///
+    /// # Example
+    /// ```rust,ignore
+    /// let account: Option<MyAccountType> = trident.get_account_with_type(&account_pubkey);
+    /// ```
+    pub fn get_account_with_type<T: BorshDeserialize + AccountDiscriminator>(
         &mut self,
         key: &Pubkey,
-        discriminator_size: usize,
     ) -> Option<T> {
         let account = self.get_account(key);
         let data = account.data();
+
+        let discriminator_size = T::discriminator().len();
 
         if data.len() > discriminator_size {
             T::deserialize(&mut &data[discriminator_size..]).ok()
         } else {
             None
         }
+    }
+
+    /// Sets account data for a specific type at the specified address
+    ///
+    /// This method serializes the provided data with its discriminator prepended
+    /// and stores it at the given address with the specified program as owner.
+    ///
+    /// # Arguments
+    /// * `address` - The public key where the account should be stored
+    /// * `owner` - The program ID that will own this account
+    /// * `data` - The account data to serialize and store
+    ///
+    /// # Example
+    /// ```rust,ignore
+    /// let my_data = MyAccountType::new(field1, field2);
+    /// trident.set_account_with_type(&account_pubkey, &program_id, &my_data);
+    /// ```
+    pub fn set_account_with_type<T: BorshSerialize + AccountDiscriminator>(
+        &mut self,
+        address: &Pubkey,
+        owner: &Pubkey,
+        data: &T,
+    ) {
+        // Serialize discriminator + data
+        let mut buffer = Vec::new();
+        buffer.extend_from_slice(T::discriminator());
+        data.serialize(&mut buffer)
+            .expect("Failed to serialize account data");
+
+        // Calculate rent-exempt balance
+        let rent = self.get_sysvar::<solana_sdk::rent::Rent>();
+        let lamports = rent.minimum_balance(buffer.len());
+
+        // Create rent-exempt account with serialized data
+        let mut account = AccountSharedData::new(lamports, buffer.len(), owner);
+        account.set_data_from_slice(&buffer);
+
+        self.set_account_custom(address, &account);
     }
 
     /// Gets the current Unix timestamp from the blockchain clock

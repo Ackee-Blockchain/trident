@@ -3,6 +3,15 @@ pub mod error;
 pub mod trident;
 pub mod trident_rng;
 
+/// Trait for account types that have a discriminator.
+/// Implement this trait to enable type-safe account deserialization
+/// with automatic discriminator handling.
+pub trait AccountDiscriminator {
+    /// Returns the discriminator bytes that identify this account type.
+    /// The length can vary depending on the account type.
+    fn discriminator() -> &'static [u8];
+}
+
 pub mod fuzzing {
     /// solana_sdk
     pub use solana_sdk;
@@ -54,6 +63,9 @@ pub mod fuzzing {
 
     /// Error
     pub use super::error::*;
+
+    /// Account discriminator trait
+    pub use super::AccountDiscriminator;
 
     pub use borsh;
     pub use borsh::BorshDeserialize;

@@ -424,6 +424,33 @@
       ]
     }
   ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "InputTooLong",
+      "msg": "The input is too long"
+    },
+    {
+      "code": 6001,
+      "name": "InputTooShort",
+      "msg": "The input is too short"
+    },
+    {
+      "code": 6002,
+      "name": "InvalidInput",
+      "msg": "The input is invalid"
+    },
+    {
+      "code": 6003,
+      "name": "InputTooBig",
+      "msg": "The input is too big"
+    },
+    {
+      "code": 6004,
+      "name": "InputTooSmall",
+      "msg": "The input is too small"
+    }
+  ],
   "types": [
     {
       "name": "ClassicStruct",
