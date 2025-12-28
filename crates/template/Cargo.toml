@@ -11,7 +11,7 @@ readme = { workspace = true }
 [dependencies]
 
 # Trident IDL spec
- trident-idl-spec = {git = "https://github.com/Ackee-Blockchain/trident-idl-spec", branch = "better-support"}
+ trident-idl-spec = {git = "https://github.com/Ackee-Blockchain/trident-idl-spec", branch = "master"}
 
 
 # Template engine

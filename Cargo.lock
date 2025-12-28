@@ -6517,7 +6517,7 @@ dependencies = [
 [[package]]
 name = "trident-idl-spec"
 version = "0.0.3"
-source = "git+https://github.com/Ackee-Blockchain/trident-idl-spec?branch=better-support#ab6cdad74470a7645a3f53d7583c698002238569"
+source = "git+https://github.com/Ackee-Blockchain/trident-idl-spec?branch=master#4dd2448be821bef6fc119349c134c06121048793"
 dependencies = [
  "quote",
  "serde",
