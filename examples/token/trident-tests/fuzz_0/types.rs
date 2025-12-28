@@ -9,6 +9,7 @@
 use borsh::BorshDeserialize;
 use borsh::BorshSerialize;
 use trident_fuzz::fuzzing::*;
+use trident_fuzz::AccountDiscriminator;
 
 // ============================================================================
 // PROGRAM MODULES
@@ -108,6 +109,14 @@ pub mod token {
             Instruction::new_with_bytes(program_id(), &buffer, self.to_account_metas())
         }
     }
+
+    // ------------------------------------------------------------------------
+    // Data Accounts (with discriminators)
+    // ------------------------------------------------------------------------
+
+    // ------------------------------------------------------------------------
+    // Errors
+    // ------------------------------------------------------------------------
 
     // ------------------------------------------------------------------------
     // Composite Accounts

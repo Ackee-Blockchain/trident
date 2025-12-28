@@ -80,8 +80,8 @@ fn generate_templates(
 #[throws]
 async fn verify_types(version: &AnchorVersion, templates: &TridentTemplates) {
     let idls = vec![
-        read_idl(&version, "additional_program.json")?,
-        read_idl(&version, "idl_test.json")?,
+        read_idl(version, "additional_program.json")?,
+        read_idl(version, "idl_test.json")?,
     ];
 
     let generated_files = generate_templates(templates, idls)?;
@@ -116,8 +116,8 @@ async fn verify_fuzz_accounts(version: &AnchorVersion, templates: &TridentTempla
 #[throws]
 async fn verify_test_fuzz(version: &AnchorVersion, templates: &TridentTemplates) {
     let idls = vec![
-        read_idl(&version, "additional_program.json")?,
-        read_idl(&version, "idl_test.json")?,
+        read_idl(version, "additional_program.json")?,
+        read_idl(version, "idl_test.json")?,
     ];
 
     let generated_files = generate_templates(templates, idls)?;

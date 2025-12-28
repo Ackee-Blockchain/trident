@@ -64,7 +64,7 @@ impl FuzzTest {
 
         let state_account = self
             .trident
-            .get_account_with_type::<State>(&state)
+            .get_account_with_type::<State>(&state, None)
             .expect("State not found");
 
         assert!(state_account.x == 0);
@@ -73,11 +73,11 @@ impl FuzzTest {
         let new_state = State::new(5, 5);
 
         self.trident
-            .set_account_with_type(&state, &maze::program_id(), &new_state);
+            .set_account_with_type(&state, &maze::program_id(), &new_state, None);
 
         let new_state_account = self
             .trident
-            .get_account_with_type::<State>(&state)
+            .get_account_with_type::<State>(&state, None)
             .expect("State not found");
 
         assert!(new_state_account.x == 5);
@@ -106,7 +106,7 @@ impl FuzzTest {
 
         let state_before = self
             .trident
-            .get_account_with_type::<State>(&state)
+            .get_account_with_type::<State>(&state, None)
             .expect("State not found");
 
         let move_north = maze::MoveNorthInstruction::data(MoveNorthInstructionData::new(
@@ -122,7 +122,7 @@ impl FuzzTest {
         if res.is_success() {
             let state_after = self
                 .trident
-                .get_account_with_type::<State>(&state)
+                .get_account_with_type::<State>(&state, None)
                 .expect("State not found");
 
             assert!(state_after.x == state_before.x);

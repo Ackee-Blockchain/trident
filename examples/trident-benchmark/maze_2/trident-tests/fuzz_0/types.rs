@@ -9,6 +9,7 @@
 use borsh::BorshDeserialize;
 use borsh::BorshSerialize;
 use trident_fuzz::fuzzing::*;
+use trident_fuzz::AccountDiscriminator;
 
 // ============================================================================
 // PROGRAM MODULES
@@ -599,6 +600,67 @@ pub mod maze {
             Instruction::new_with_bytes(program_id(), &buffer, self.to_account_metas())
         }
     }
+
+    // ------------------------------------------------------------------------
+    // Data Accounts (with discriminators)
+    // ------------------------------------------------------------------------
+
+    /// AccountDiscriminator implementation for State
+    impl AccountDiscriminator for State {
+        fn discriminator() -> &'static [u8] {
+            &[216u8, 146u8, 107u8, 94u8, 104u8, 75u8, 182u8, 177u8]
+        }
+    }
+
+    // ------------------------------------------------------------------------
+    // Errors
+    // ------------------------------------------------------------------------
+
+    /// Program errors for maze
+    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+    #[repr(u32)]
+    pub enum MazeError {
+        /// Attempt to move outside of the boundaries.
+        OutOfBounds = 6000,
+
+        /// Encountered a wall.
+        Wall = 6001,
+    }
+
+    impl MazeError {
+        /// Get the error code
+        pub fn code(&self) -> u32 {
+            *self as u32
+        }
+
+        /// Get the error message
+        pub fn msg(&self) -> &'static str {
+            match self {
+                Self::OutOfBounds => "Attempt to move outside of the boundaries.",
+
+                Self::Wall => "Encountered a wall.",
+            }
+        }
+
+        /// Try to convert from error code
+        pub fn from_code(code: u32) -> Option<Self> {
+            match code {
+                6000 => Some(Self::OutOfBounds),
+
+                6001 => Some(Self::Wall),
+
+                _ => None,
+            }
+        }
+    }
+
+    impl std::fmt::Display for MazeError {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            write!(f, "{}: {}", self.code(), self.msg())
+        }
+    }
+
+    impl std::error::Error for MazeError {}
 
     // ------------------------------------------------------------------------
     // Composite Accounts
