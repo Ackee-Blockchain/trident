@@ -58,7 +58,7 @@ impl FuzzTest {
         if res.is_success() {
             let hello_world_account = self
                 .trident
-                .get_account_with_type::<crate::types::StoreHelloWorld>(&hello_world, 8);
+                .get_account_with_type::<crate::types::StoreHelloWorld>(&hello_world, None);
             if let Some(hello_world_account) = hello_world_account {
                 assert!(hello_world_account.input == input);
                 assert!(hello_world_account.timestamp == res.get_transaction_timestamp());

@@ -4,6 +4,7 @@ use serde_json::json;
 use sha2::Digest;
 use sha2::Sha256;
 use std::collections::HashMap;
+use std::collections::HashSet;
 use tera::Context;
 use tera::Tera;
 use trident_idl_spec::Idl;
@@ -52,7 +53,7 @@ impl TridentTemplates {
         idls: &[Idl],
         trident_version: &str,
     ) -> Result<GeneratedFiles, TemplateError> {
-        let programs_data = self.build_programs_with_instructions_data(idls)?;
+        let programs_data = self.build_programs_data(idls)?;
 
         // Generate files
         let test_fuzz = self
@@ -89,11 +90,8 @@ impl TridentTemplates {
         })
     }
 
-    // Helper function to build programs with instructions data
-    fn build_programs_with_instructions_data(
-        &self,
-        idls: &[Idl],
-    ) -> Result<Vec<serde_json::Value>, TemplateError> {
+    /// Build programs data for template rendering
+    fn build_programs_data(&self, idls: &[Idl]) -> Result<Vec<serde_json::Value>, TemplateError> {
         let mut programs_data = Vec::new();
 
         for idl in idls.iter() {
@@ -114,14 +112,10 @@ impl TridentTemplates {
             // Process instructions and collect composite accounts (preserving IDL order)
             let mut instructions_data = Vec::new();
             let mut composite_accounts = Vec::new();
-            let mut seen_composites = std::collections::HashSet::new();
+            let mut seen_composites = HashSet::new();
 
             for instruction in &idl.instructions {
-                let instruction_data = self.build_instruction_data_with_lifetimes(
-                    instruction,
-                    program_id,
-                    &std::collections::HashMap::new(),
-                )?;
+                let instruction_data = self.build_instruction_data(instruction)?;
 
                 // Collect composite accounts for deduplication (preserving first occurrence order)
                 if let Some(composites) = instruction_data
@@ -130,7 +124,6 @@ impl TridentTemplates {
                 {
                     for composite in composites {
                         if let Some(name) = composite.get("camel_name").and_then(|v| v.as_str()) {
-                            // Only add if not already seen (preserves first occurrence and IDL order)
                             if seen_composites.insert(name.to_string()) {
                                 composite_accounts.push(composite.clone());
                             }
@@ -141,25 +134,96 @@ impl TridentTemplates {
                 instructions_data.push(instruction_data);
             }
 
-            // Collect accounts with discriminators and errors for this program
-            let accounts_with_discriminators = self.collect_accounts_with_discriminators(idl);
-            let errors = self.collect_errors(idl);
-
             programs_data.push(json!({
                 "name": program_name,
                 "module_name": module_name,
                 "program_id": program_id,
                 "instructions": instructions_data,
                 "composite_accounts": composite_accounts,
-                "data_accounts": accounts_with_discriminators,
-                "errors": errors
+                "data_accounts": self.collect_accounts_with_discriminators(idl),
+                "errors": self.collect_errors(idl)
             }));
         }
 
         Ok(programs_data)
     }
 
-    // Helper function to process data fields
+    /// Build instruction data for template
+    fn build_instruction_data(
+        &self,
+        instruction: &IdlInstruction,
+    ) -> Result<serde_json::Value, TemplateError> {
+        let name = &instruction.name;
+        let camel_name = name.to_case(Case::UpperCamel);
+        let snake_name = name.to_case(Case::Snake);
+
+        let discriminator = if instruction.discriminator.is_empty() {
+            self.generate_discriminator(name)
+        } else {
+            instruction.discriminator.clone()
+        };
+
+        let (accounts, composite_accounts) = self.process_accounts(&instruction.accounts);
+
+        Ok(json!({
+            "name": name,
+            "camel_name": camel_name,
+            "snake_name": snake_name,
+            "discriminator": discriminator,
+            "accounts": accounts,
+            "composite_accounts": composite_accounts,
+            "data_fields": self.process_data_fields(&instruction.args)
+        }))
+    }
+
+    /// Process accounts from instruction
+    fn process_accounts(
+        &self,
+        accounts: &[trident_idl_spec::IdlInstructionAccountItem],
+    ) -> (Vec<serde_json::Value>, Vec<serde_json::Value>) {
+        let mut main_accounts = Vec::new();
+        let mut composite_accounts = Vec::new();
+
+        for account in accounts {
+            match account {
+                trident_idl_spec::IdlInstructionAccountItem::Single(acc) => {
+                    main_accounts.push(json!({
+                        "name": acc.name,
+                        "is_signer": acc.signer,
+                        "is_writable": acc.writable,
+                        "address": acc.address,
+                        "is_composite": false,
+                        "composite_type_name": null
+                    }));
+                }
+                trident_idl_spec::IdlInstructionAccountItem::Composite(comp) => {
+                    let camel_name = comp.name.to_case(Case::UpperCamel);
+
+                    main_accounts.push(json!({
+                        "name": comp.name,
+                        "is_signer": false,
+                        "is_writable": false,
+                        "address": null,
+                        "is_composite": true,
+                        "composite_type_name": camel_name
+                    }));
+
+                    let (comp_accounts, nested_composites) = self.process_accounts(&comp.accounts);
+
+                    composite_accounts.push(json!({
+                        "name": comp.name,
+                        "camel_name": camel_name,
+                        "accounts": comp_accounts,
+                        "nested_composites": nested_composites
+                    }));
+                }
+            }
+        }
+
+        (main_accounts, composite_accounts)
+    }
+
+    /// Process data fields for instruction
     fn process_data_fields(&self, args: &[trident_idl_spec::IdlField]) -> Vec<serde_json::Value> {
         args.iter()
             .map(|field| {
@@ -171,8 +235,7 @@ impl TridentTemplates {
             .collect()
     }
 
-    #[allow(clippy::only_used_in_recursion)]
-    /// Simple type conversion
+    /// Convert IDL type to Rust type string
     fn idl_type_to_rust(&self, idl_type: &IdlType) -> String {
         match idl_type {
             IdlType::Bool => "bool".to_string(),
@@ -211,7 +274,7 @@ impl TridentTemplates {
         }
     }
 
-    /// Generate discriminator
+    /// Generate discriminator from instruction name
     fn generate_discriminator(&self, name: &str) -> Vec<u8> {
         let preimage = format!("global:{}", name.to_case(Case::Snake));
         let mut hasher = Sha256::new();
@@ -219,7 +282,7 @@ impl TridentTemplates {
         hasher.finalize()[..8].to_vec()
     }
 
-    /// Collect all accounts for fuzz_accounts (preserving IDL order and deterministic)
+    /// Collect all accounts for fuzz_accounts template
     fn collect_all_accounts(&self, idls: &[Idl]) -> Vec<serde_json::Value> {
         let mut accounts = Vec::new();
         for idl in idls {
@@ -228,8 +291,8 @@ impl TridentTemplates {
             }
         }
 
-        // Deduplicate while preserving order (keep first occurrence)
-        let mut seen = std::collections::HashSet::new();
+        // Deduplicate while preserving order
+        let mut seen = HashSet::new();
         accounts.retain(|name| seen.insert(name.clone()));
 
         accounts
@@ -238,7 +301,6 @@ impl TridentTemplates {
             .collect()
     }
 
-    #[allow(clippy::only_used_in_recursion)]
     fn collect_accounts_recursive(
         &self,
         accounts: &[trident_idl_spec::IdlInstructionAccountItem],
@@ -257,25 +319,50 @@ impl TridentTemplates {
         }
     }
 
-    /// Collect custom types
+    /// Collect custom types from IDLs
     fn collect_custom_types(&self, idls: &[Idl]) -> Vec<serde_json::Value> {
-        idls.iter()
-            .flat_map(|idl| &idl.types)
-            .map(|type_def| self.convert_type_def_to_template_data(type_def))
-            .collect()
+        let mut custom_types = Vec::new();
+        let mut seen_names = HashSet::new();
+
+        for idl in idls {
+            // Collect types from the `types` field
+            for type_def in &idl.types {
+                if seen_names.insert(type_def.name.clone()) {
+                    custom_types.push(self.convert_type_def_to_template_data(type_def));
+                }
+            }
+
+            // Collect account types from older IDLs with `ty` field
+            for account in &idl.accounts {
+                if let Some(ty) = &account.ty {
+                    if seen_names.insert(account.name.clone()) {
+                        custom_types
+                            .push(self.convert_type_def_ty_to_template_data(&account.name, ty));
+                    }
+                }
+            }
+        }
+
+        custom_types
     }
 
-    /// Collect accounts with discriminators for a single IDL
+    /// Collect accounts with discriminators
     fn collect_accounts_with_discriminators(&self, idl: &Idl) -> Vec<serde_json::Value> {
-        // Build a map of type definitions by name for lookup
         let type_map: HashMap<&str, &IdlTypeDef> =
             idl.types.iter().map(|t| (t.name.as_str(), t)).collect();
 
         idl.accounts
             .iter()
             .map(|account| {
-                let type_def = type_map.get(account.name.as_str());
-                let fields = type_def.map(|td| self.convert_type_def_to_template_data(td));
+                let fields = type_map
+                    .get(account.name.as_str())
+                    .map(|td| self.convert_type_def_to_template_data(td))
+                    .or_else(|| {
+                        account
+                            .ty
+                            .as_ref()
+                            .map(|ty| self.convert_type_def_ty_to_template_data(&account.name, ty))
+                    });
 
                 json!({
                     "name": account.name,
@@ -286,7 +373,7 @@ impl TridentTemplates {
             .collect()
     }
 
-    /// Collect errors for a single IDL
+    /// Collect errors from IDL
     fn collect_errors(&self, idl: &Idl) -> Vec<serde_json::Value> {
         idl.errors
             .iter()
@@ -300,17 +387,26 @@ impl TridentTemplates {
             .collect()
     }
 
-    /// Convert IDL type definition to template data (simplified)
+    /// Convert type definition to template data
     fn convert_type_def_to_template_data(&self, type_def: &IdlTypeDef) -> serde_json::Value {
-        match &type_def.ty {
+        self.convert_type_def_ty_to_template_data(&type_def.name, &type_def.ty)
+    }
+
+    /// Convert type definition body to template data
+    fn convert_type_def_ty_to_template_data(
+        &self,
+        name: &str,
+        ty: &IdlTypeDefTy,
+    ) -> serde_json::Value {
+        match ty {
             IdlTypeDefTy::Struct { fields } => json!({
                 "type": "struct",
-                "name": type_def.name,
+                "name": name,
                 "fields": fields.as_ref().map(|f| self.convert_fields_to_template_data(f))
             }),
             IdlTypeDefTy::Enum { variants } => json!({
                 "type": "enum",
-                "name": type_def.name,
+                "name": name,
                 "variants": variants.iter().map(|v| json!({
                     "name": v.name,
                     "fields": v.fields.as_ref().map(|f| self.convert_fields_to_template_data(f))
@@ -318,12 +414,12 @@ impl TridentTemplates {
             }),
             IdlTypeDefTy::Type { .. } => json!({
                 "type": "type_alias",
-                "name": type_def.name
+                "name": name
             }),
         }
     }
 
-    /// Helper to convert fields to template data
+    /// Convert fields to template data
     fn convert_fields_to_template_data(
         &self,
         fields: &trident_idl_spec::IdlDefinedFields,
@@ -344,144 +440,6 @@ impl TridentTemplates {
                 })).collect::<Vec<_>>()
             }),
         }
-    }
-
-    /// Extract seeds from PDA seeds
-    fn extract_seeds(
-        &self,
-        seeds: &[trident_idl_spec::IdlSeed],
-    ) -> (Vec<String>, Vec<String>, Vec<String>) {
-        let mut static_seeds = Vec::new();
-        let mut account_seeds = Vec::new();
-        let mut arg_seeds = Vec::new();
-
-        for seed in seeds {
-            match seed {
-                trident_idl_spec::IdlSeed::Const(const_seed) => {
-                    // Convert byte array to Rust byte array literal
-                    let bytes_str = format!(
-                        "[{}]",
-                        const_seed
-                            .value
-                            .iter()
-                            .map(|b| format!("{}u8", b))
-                            .collect::<Vec<_>>()
-                            .join(", ")
-                    );
-                    static_seeds.push(bytes_str);
-                }
-                trident_idl_spec::IdlSeed::Account(account_seed) => {
-                    // Account reference for PDA seeds
-                    account_seeds.push(account_seed.path.clone());
-                }
-                trident_idl_spec::IdlSeed::Arg(arg_seed) => {
-                    // Argument reference for PDA seeds
-                    arg_seeds.push(arg_seed.path.clone());
-                }
-            }
-        }
-
-        (static_seeds, account_seeds, arg_seeds)
-    }
-
-    /// Build instruction data
-    fn build_instruction_data_with_lifetimes(
-        &self,
-        instruction: &IdlInstruction,
-        program_id: &str,
-        _composite_lifetime_map: &std::collections::HashMap<String, bool>,
-    ) -> Result<serde_json::Value, TemplateError> {
-        let name = &instruction.name;
-        let camel_name = name.to_case(Case::UpperCamel);
-        let snake_name = name.to_case(Case::Snake);
-
-        let discriminator = if instruction.discriminator.is_empty() {
-            self.generate_discriminator(name)
-        } else {
-            instruction.discriminator.clone()
-        };
-
-        let (accounts, composite_accounts) =
-            self.process_accounts_with_lifetimes(&instruction.accounts);
-        let data_fields = self.process_data_fields(&instruction.args);
-
-        Ok(json!({
-            "name": name,
-            "camel_name": camel_name,
-            "snake_name": snake_name,
-            "program_id": program_id,
-            "discriminator": discriminator,
-            "accounts": accounts,
-            "composite_accounts": composite_accounts,
-            "data_fields": data_fields,
-            "needs_lifetime": false
-        }))
-    }
-
-    #[allow(clippy::only_used_in_recursion)]
-    fn process_accounts_with_lifetimes(
-        &self,
-        accounts: &[trident_idl_spec::IdlInstructionAccountItem],
-    ) -> (Vec<serde_json::Value>, Vec<serde_json::Value>) {
-        let mut main_accounts = Vec::new();
-        let mut composite_accounts = Vec::new();
-
-        for account in accounts {
-            match account {
-                trident_idl_spec::IdlInstructionAccountItem::Single(acc) => {
-                    let has_pda_seeds = acc.pda.is_some();
-                    let (static_seeds, account_seeds, arg_seeds) = if let Some(pda) = &acc.pda {
-                        self.extract_seeds(&pda.seeds)
-                    } else {
-                        (Vec::new(), Vec::new(), Vec::new())
-                    };
-
-                    main_accounts.push(json!({
-                        "name": acc.name,
-                        "is_signer": acc.signer,
-                        "is_writable": acc.writable,
-                        "address": acc.address,
-                        "is_composite": false,
-                        "composite_type_name": null,
-                        "has_pda_seeds": has_pda_seeds,
-                        "composite_needs_lifetime": false,
-                        "static_seeds": static_seeds,
-                        "account_seeds": account_seeds,
-                        "arg_seeds": arg_seeds
-                    }));
-                }
-                trident_idl_spec::IdlInstructionAccountItem::Composite(comp) => {
-                    let camel_name = comp.name.to_case(Case::UpperCamel);
-
-                    // Add to main accounts as composite reference
-                    main_accounts.push(json!({
-                        "name": comp.name,
-                        "is_signer": false,
-                        "is_writable": false,
-                        "address": null,
-                        "is_composite": true,
-                        "composite_type_name": camel_name,
-                        "has_pda_seeds": false,
-                        "composite_needs_lifetime": false
-                    }));
-
-                    // Process composite account itself
-                    let (comp_accounts, nested_composites) =
-                        self.process_accounts_with_lifetimes(&comp.accounts);
-
-                    composite_accounts.push(json!({
-                        "name": comp.name,
-                        "camel_name": camel_name,
-                        "accounts": comp_accounts,
-                        "nested_composites": nested_composites,
-                        "needs_lifetime": false
-                    }));
-                }
-            }
-        }
-
-        // Preserve original IDL order - account order is critical for Solana programs
-        (main_accounts, composite_accounts)
     }
 }
 

@@ -185,26 +185,40 @@ impl Trident {
     ///
     /// This method fetches account data and attempts to deserialize it using Borsh,
     /// automatically skipping the discriminator bytes at the beginning.
-    /// The discriminator length is determined by the type's `AccountDiscriminator` implementation.
+    /// The discriminator length is determined by the type's `AccountDiscriminator` implementation,
+    /// unless overridden.
+    ///
+    /// Note: This method does not verify the discriminator, it only skips those bytes
+    /// during deserialization.
     ///
     /// # Arguments
     /// * `key` - The public key of the account to retrieve
+    /// * `discriminator_size_override` - Optional override for discriminator size to skip.
+    ///   If `None`, uses the length from the type's `AccountDiscriminator` implementation.
     ///
     /// # Returns
     /// Some(T) if deserialization succeeds, None otherwise
     ///
     /// # Example
     /// ```rust,ignore
-    /// let account: Option<MyAccountType> = trident.get_account_with_type(&account_pubkey);
+    /// // Use discriminator from AccountDiscriminator trait
+    /// let account: Option<MyAccountType> = trident.get_account_with_type(&pubkey, None);
+    ///
+    /// // Override discriminator size (e.g., for non-Anchor accounts)
+    /// let account: Option<MyAccountType> = trident.get_account_with_type(&pubkey, Some(0));
     /// ```
     pub fn get_account_with_type<T: BorshDeserialize + AccountDiscriminator>(
         &mut self,
         key: &Pubkey,
+        discriminator_size_override: Option<usize>,
     ) -> Option<T> {
         let account = self.get_account(key);
         let data = account.data();
 
-        let discriminator_size = T::discriminator().len();
+        let discriminator_size = match discriminator_size_override {
+            Some(size) => size,
+            None => T::discriminator().len(),
+        };
 
         if data.len() > discriminator_size {
             T::deserialize(&mut &data[discriminator_size..]).ok()
@@ -217,26 +231,38 @@ impl Trident {
     ///
     /// This method serializes the provided data with its discriminator prepended
     /// and stores it at the given address with the specified program as owner.
+    /// The account is automatically made rent-exempt.
     ///
     /// # Arguments
     /// * `address` - The public key where the account should be stored
     /// * `owner` - The program ID that will own this account
     /// * `data` - The account data to serialize and store
+    /// * `discriminator_override` - Optional custom discriminator bytes to use.
+    ///   If `None`, uses the discriminator from the type's `AccountDiscriminator` implementation.
     ///
     /// # Example
     /// ```rust,ignore
+    /// // Use discriminator from AccountDiscriminator trait
     /// let my_data = MyAccountType::new(field1, field2);
-    /// trident.set_account_with_type(&account_pubkey, &program_id, &my_data);
+    /// trident.set_account_with_type(&pubkey, &program_id, &my_data, None);
+    ///
+    /// // Override with custom discriminator
+    /// trident.set_account_with_type(&pubkey, &program_id, &my_data, Some(&[1, 2, 3, 4, 5, 6, 7, 8]));
     /// ```
     pub fn set_account_with_type<T: BorshSerialize + AccountDiscriminator>(
         &mut self,
         address: &Pubkey,
         owner: &Pubkey,
         data: &T,
+        discriminator_override: Option<&[u8]>,
     ) {
+        let discriminator_override = match discriminator_override {
+            Some(discriminator) => discriminator,
+            None => T::discriminator(),
+        };
         // Serialize discriminator + data
         let mut buffer = Vec::new();
-        buffer.extend_from_slice(T::discriminator());
+        buffer.extend_from_slice(discriminator_override);
         data.serialize(&mut buffer)
             .expect("Failed to serialize account data");
 

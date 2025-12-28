@@ -11,6 +11,142 @@ use borsh::BorshSerialize;
 use trident_fuzz::fuzzing::*;
 use trident_fuzz::AccountDiscriminator;
 
+{# ============================================================================ #}
+{# MACROS                                                                       #}
+{# ============================================================================ #}
+
+{# Macro: Generate AccountMeta assignment based on writable/signer flags #}
+{# prefix: either "self.accounts" for instructions or "self" for composites #}
+{% macro account_meta(account, prefix) %}
+{% if account.is_composite %}
+{{ prefix }}.{{ account.name }}.set_from_accounts(accounts.{{ account.name }});
+{% else %}
+{% if account.address %}
+{% if account.is_writable and account.is_signer %}
+{{ prefix }}.{{ account.name }} = AccountMeta::new(pubkey!("{{ account.address }}"), true);
+{% elif account.is_signer %}
+{{ prefix }}.{{ account.name }} = AccountMeta::new_readonly(pubkey!("{{ account.address }}"), true);
+{% elif account.is_writable %}
+{{ prefix }}.{{ account.name }} = AccountMeta::new(pubkey!("{{ account.address }}"), false);
+{% else %}
+{{ prefix }}.{{ account.name }} = AccountMeta::new_readonly(pubkey!("{{ account.address }}"), false);
+{% endif %}
+{% else %}
+{% if account.is_writable and account.is_signer %}
+{{ prefix }}.{{ account.name }} = AccountMeta::new(accounts.{{ account.name }}, true);
+{% elif account.is_signer %}
+{{ prefix }}.{{ account.name }} = AccountMeta::new_readonly(accounts.{{ account.name }}, true);
+{% elif account.is_writable %}
+{{ prefix }}.{{ account.name }} = AccountMeta::new(accounts.{{ account.name }}, false);
+{% else %}
+{{ prefix }}.{{ account.name }} = AccountMeta::new_readonly(accounts.{{ account.name }}, false);
+{% endif %}
+{% endif %}
+{% endif %}
+{% endmacro account_meta %}
+
+{# Macro: Generate struct fields for AccountMetas #}
+{% macro account_metas_fields(accounts) %}
+{% for account in accounts %}
+{% if account.is_composite %}
+        pub {{ account.name }}: {{ account.composite_type_name }}InstructionAccountMetas,
+{% else %}
+        pub {{ account.name }}: AccountMeta,
+{% endif %}
+{% endfor %}
+{% endmacro account_metas_fields %}
+
+{# Macro: Generate struct fields for Accounts (Pubkeys) #}
+{% macro accounts_fields(accounts) %}
+{% for account in accounts %}
+{% if not account.address %}
+{% if account.is_composite %}
+        pub {{ account.name }}: {{ account.composite_type_name }}InstructionAccounts,
+{% else %}
+        pub {{ account.name }}: Pubkey,
+{% endif %}
+{% endif %}
+{% endfor %}
+{% endmacro accounts_fields %}
+
+{# Macro: Generate constructor parameters #}
+{% macro accounts_new_params(accounts) %}
+{% for account in accounts %}
+{% if not account.address %}
+{% if account.is_composite %}
+            {{ account.name }}: {{ account.composite_type_name }}InstructionAccounts,
+{% else %}
+            {{ account.name }}: Pubkey,
+{% endif %}
+{% endif %}
+{% endfor %}
+{% endmacro accounts_new_params %}
+
+{# Macro: Generate constructor body #}
+{% macro accounts_new_body(accounts) %}
+{% for account in accounts %}
+{% if not account.address %}
+                {{ account.name }},
+{% endif %}
+{% endfor %}
+{% endmacro accounts_new_body %}
+
+{# Macro: Generate to_account_metas implementation #}
+{# prefix: either "self.accounts" for instructions or "self" for composites #}
+{% macro to_account_metas(accounts, prefix) %}
+{% for account in accounts %}
+{% if account.is_composite %}
+            metas.extend({{ prefix }}.{{ account.name }}.to_account_metas());
+{% else %}
+            metas.push({{ prefix }}.{{ account.name }}.clone());
+{% endif %}
+{% endfor %}
+{% endmacro to_account_metas %}
+
+{# Macro: Generate set_from_accounts implementation #}
+{% macro set_from_accounts(accounts, prefix) %}
+{% for account in accounts %}
+{{ self::account_meta(account=account, prefix=prefix) }}
+{% endfor %}
+{% endmacro set_from_accounts %}
+
+{# Macro: Generate composite account structs #}
+{# show_comment: true for top-level composites, false for nested #}
+{% macro composite_structs(composite, show_comment) %}
+{% if show_comment %}    /// Composite Account: {{ composite.name }}
+{% endif %}    #[derive(Debug, Clone, Default)]
+    pub struct {{ composite.camel_name }}InstructionAccountMetas {
+{{ self::account_metas_fields(accounts=composite.accounts) }}
+    }
+
+    impl {{ composite.camel_name }}InstructionAccountMetas {
+        fn to_account_metas(&self) -> Vec<AccountMeta> {
+            let mut metas = Vec::new();
+{{ self::to_account_metas(accounts=composite.accounts, prefix="self") }}
+            metas
+        }
+
+        fn set_from_accounts(&mut self, accounts: {{ composite.camel_name }}InstructionAccounts) {
+{{ self::set_from_accounts(accounts=composite.accounts, prefix="self") }}
+        }
+    }
+
+    #[derive(Debug, Clone)]
+    pub struct {{ composite.camel_name }}InstructionAccounts {
+{{ self::accounts_fields(accounts=composite.accounts) }}
+    }
+
+    impl {{ composite.camel_name }}InstructionAccounts {
+        pub fn new(
+{{ self::accounts_new_params(accounts=composite.accounts) }}
+        ) -> Self {
+            Self {
+{{ self::accounts_new_body(accounts=composite.accounts) }}
+            }
+        }
+    }
+{% endmacro composite_structs %}
+
 // ============================================================================
 // PROGRAM MODULES
 // ============================================================================
@@ -50,47 +186,21 @@ pub mod {{ program.module_name }} {
     /// Account metadata for {{ instruction.camel_name }} instruction
     #[derive(Debug, Clone, Default)]
     pub struct {{ instruction.camel_name }}InstructionAccountMetas {
-        {% for account in instruction.accounts %}
-        {% if account.is_composite %}
-        pub {{ account.name }}: {{ account.composite_type_name }}InstructionAccountMetas,
-        {% else %}
-        pub {{ account.name }}: AccountMeta,
-        {% endif %}
-        {% endfor %}
+{{ self::account_metas_fields(accounts=instruction.accounts) }}
     }
 
     /// Account pubkeys for {{ instruction.camel_name }} instruction
     #[derive(Debug, Clone)]
     pub struct {{ instruction.camel_name }}InstructionAccounts {
-    {% for account in instruction.accounts %}
-    {% if not account.address %}
-    {% if account.is_composite %}
-    pub {{ account.name }}: {{ account.composite_type_name }}InstructionAccounts,
-    {% else %}
-    pub {{ account.name }}: Pubkey,
-    {% endif %}
-    {% endif %}
-    {% endfor %}
-}
+{{ self::accounts_fields(accounts=instruction.accounts) }}
+    }
 
     impl {{ instruction.camel_name }}InstructionAccounts {
         pub fn new(
-        {% for account in instruction.accounts %}
-        {% if not account.address %}
-        {% if account.is_composite %}
-            {{ account.name }}: {{ account.composite_type_name }}InstructionAccounts,
-        {% else %}
-            {{ account.name }}: Pubkey,
-        {% endif %}
-        {% endif %}
-        {% endfor %}
+{{ self::accounts_new_params(accounts=instruction.accounts) }}
         ) -> Self {
             Self {
-            {% for account in instruction.accounts %}
-            {% if not account.address %}
-                {{ account.name }},
-            {% endif %}
-            {% endfor %}
+{{ self::accounts_new_body(accounts=instruction.accounts) }}
             }
         }
     }
@@ -98,101 +208,68 @@ pub mod {{ program.module_name }} {
     /// Instruction data for {{ instruction.camel_name }}
     #[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
     pub struct {{ instruction.camel_name }}InstructionData {
-    {% for field in instruction.data_fields %}
-    pub {{ field.name }}: {{ field.rust_type }},
-    {% endfor %}
-}
+{% for field in instruction.data_fields %}
+        pub {{ field.name }}: {{ field.rust_type }},
+{% endfor %}
+    }
 
     impl {{ instruction.camel_name }}InstructionData {
         pub fn new(
-        {% for field in instruction.data_fields %}
+{% for field in instruction.data_fields %}
             {{ field.name }}: {{ field.rust_type }},
-        {% endfor %}
+{% endfor %}
         ) -> Self {
             Self {
-            {% for field in instruction.data_fields %}
+{% for field in instruction.data_fields %}
                 {{ field.name }},
-            {% endfor %}
+{% endfor %}
             }
         }
     }
 
     /// Implementation for {{ instruction.camel_name }}Instruction
     impl {{ instruction.camel_name }}Instruction {
-    fn discriminator() -> [u8; 8] {
-        [{% for byte in instruction.discriminator %}{{ byte }}u8{% if not loop.last %}, {% endif %}{% endfor %}]
-    }
+        fn discriminator() -> [u8; 8] {
+            [{% for byte in instruction.discriminator %}{{ byte }}u8{% if not loop.last %}, {% endif %}{% endfor %}]
+        }
 
-    pub fn data(data: {{ instruction.camel_name }}InstructionData) -> Self {
-        Self {
-            accounts: {{ instruction.camel_name }}InstructionAccountMetas::default(),
-            data,
-            remaining_accounts: Vec::new(),
+        pub fn data(data: {{ instruction.camel_name }}InstructionData) -> Self {
+            Self {
+                accounts: {{ instruction.camel_name }}InstructionAccountMetas::default(),
+                data,
+                remaining_accounts: Vec::new(),
+            }
+        }
+
+        pub fn accounts(mut self, accounts: {{ instruction.camel_name }}InstructionAccounts) -> Self {
+{% for account in instruction.accounts %}
+{{ self::account_meta(account=account, prefix="self.accounts") }}
+{% endfor %}
+            self
+        }
+
+        pub fn remaining_accounts(mut self, accounts: Vec<AccountMeta>) -> Self {
+            self.remaining_accounts = accounts;
+            self
+        }
+
+        fn to_account_metas(&self) -> Vec<AccountMeta> {
+            let mut metas = Vec::new();
+{{ self::to_account_metas(accounts=instruction.accounts, prefix="self.accounts") }}
+            metas.extend(self.remaining_accounts.clone());
+            metas
+        }
+
+        pub fn instruction(&self) -> Instruction {
+            let mut buffer: Vec<u8> = Vec::new();
+
+            buffer.extend_from_slice(&Self::discriminator());
+
+            self.data.serialize(&mut buffer).unwrap();
+
+            Instruction::new_with_bytes(program_id(), &buffer, self.to_account_metas())
         }
     }
-
-    pub fn accounts(
-        mut self,
-        accounts: {{ instruction.camel_name }}InstructionAccounts,
-    ) -> Self {
-        {% for account in instruction.accounts %}
-        {% if not account.address %}
-        {% if account.is_composite %}
-        self.accounts.{{ account.name }}.set_from_accounts(accounts.{{ account.name }});
-        {% else %}
-        {% if account.is_writable and account.is_signer %}
-        self.accounts.{{ account.name }} = AccountMeta::new(accounts.{{ account.name }}, true);
-        {% elif account.is_signer %}
-        self.accounts.{{ account.name }} = AccountMeta::new_readonly(accounts.{{ account.name }}, true);
-        {% elif account.is_writable %}
-        self.accounts.{{ account.name }} = AccountMeta::new(accounts.{{ account.name }}, false);
-        {% else %}
-        self.accounts.{{ account.name }} = AccountMeta::new_readonly(accounts.{{ account.name }}, false);
-        {% endif %}
-        {% endif %}
-        {% else %}
-        {% if account.is_writable and account.is_signer %}
-        self.accounts.{{ account.name }} = AccountMeta::new(pubkey!("{{ account.address }}"), true);
-        {% elif account.is_signer %}
-        self.accounts.{{ account.name }} = AccountMeta::new_readonly(pubkey!("{{ account.address }}"), true);
-        {% elif account.is_writable %}
-        self.accounts.{{ account.name }} = AccountMeta::new(pubkey!("{{ account.address }}"), false);
-        {% else %}
-        self.accounts.{{ account.name }} = AccountMeta::new_readonly(pubkey!("{{ account.address }}"), false);
-        {% endif %}
-        {% endif %}
-        {% endfor %}
-        self
-    }
-
-    pub fn remaining_accounts(mut self, accounts: Vec<AccountMeta>) -> Self {
-        self.remaining_accounts = accounts;
-        self
-    }
-
-    fn to_account_metas(&self) -> Vec<AccountMeta> {
-        let mut metas = Vec::new();
-        {% for account in instruction.accounts %}
-        {% if account.is_composite %}
-        metas.extend(self.accounts.{{ account.name }}.to_account_metas());
-        {% else %}
-        metas.push(self.accounts.{{ account.name }}.clone());
-        {% endif %}
-        {% endfor %}
-        metas.extend(self.remaining_accounts.clone());
-        metas
-    }
-
-    pub fn instruction(&self) -> Instruction {
-        let mut buffer: Vec<u8> = Vec::new();
-
-        buffer.extend_from_slice(&Self::discriminator());
-
-        self.data.serialize(&mut buffer).unwrap();
-
-        Instruction::new_with_bytes(program_id(), &buffer, self.to_account_metas())
-    }
-}
 
 {% endfor %}
 
@@ -269,201 +346,13 @@ pub mod {{ program.module_name }} {
     // Composite Accounts
     // ------------------------------------------------------------------------
 
-    {% for composite in program.composite_accounts %}
-    /// Composite Account: {{ composite.name }}
-    #[derive(Debug, Clone, Default)]
-    pub struct {{ composite.camel_name }}InstructionAccountMetas {
-        {% for account in composite.accounts %}
-        {% if account.is_composite %}
-        pub {{ account.name }}: {{ account.composite_type_name }}InstructionAccountMetas,
-        {% else %}
-        pub {{ account.name }}: AccountMeta,
-        {% endif %}
-        {% endfor %}
-    }
+{% for composite in program.composite_accounts %}
+{{ self::composite_structs(composite=composite, show_comment=true) }}
 
-    impl {{ composite.camel_name }}InstructionAccountMetas {
-        fn to_account_metas(&self) -> Vec<AccountMeta> {
-            let mut metas = Vec::new();
-            {% for account in composite.accounts %}
-            {% if account.is_composite %}
-            metas.extend(self.{{ account.name }}.to_account_metas());
-            {% else %}
-            metas.push(self.{{ account.name }}.clone());
-            {% endif %}
-            {% endfor %}
-            metas
-        }
-
-        fn set_from_accounts(&mut self, accounts: {{ composite.camel_name }}InstructionAccounts) {
-            {% for account in composite.accounts %}
-            {% if not account.address %}
-            {% if account.is_composite %}
-            self.{{ account.name }}.set_from_accounts(accounts.{{ account.name }});
-            {% else %}
-            {% if account.is_writable and account.is_signer %}
-            self.{{ account.name }} = AccountMeta::new(accounts.{{ account.name }}, true);
-            {% elif account.is_signer %}
-            self.{{ account.name }} = AccountMeta::new_readonly(accounts.{{ account.name }}, true);
-            {% elif account.is_writable %}
-            self.{{ account.name }} = AccountMeta::new(accounts.{{ account.name }}, false);
-            {% else %}
-            self.{{ account.name }} = AccountMeta::new_readonly(accounts.{{ account.name }}, false);
-            {% endif %}
-            {% endif %}
-            {% else %}
-            {% if account.is_composite %}
-            self.{{ account.name }}.set_from_accounts(accounts.{{ account.name }});
-            {% else %}
-            {% if account.is_writable and account.is_signer %}
-            self.{{ account.name }} = AccountMeta::new(pubkey!("{{ account.address }}"), true);
-            {% elif account.is_signer %}
-            self.{{ account.name }} = AccountMeta::new_readonly(pubkey!("{{ account.address }}"), true);
-            {% elif account.is_writable %}
-            self.{{ account.name }} = AccountMeta::new(pubkey!("{{ account.address }}"), false);
-            {% else %}
-            self.{{ account.name }} = AccountMeta::new_readonly(pubkey!("{{ account.address }}"), false);
-            {% endif %}
-            {% endif %}
-            {% endif %}
-            {% endfor %}
-        }
-    }
-
-    #[derive(Debug, Clone)]
-    pub struct {{ composite.camel_name }}InstructionAccounts {
-        {% for account in composite.accounts %}
-        {% if not account.address %}
-        {% if account.is_composite %}
-        pub {{ account.name }}: {{ account.composite_type_name }}InstructionAccounts,
-        {% else %}
-        pub {{ account.name }}: Pubkey,
-        {% endif %}
-        {% endif %}
-        {% endfor %}
-    }
-
-    impl {{ composite.camel_name }}InstructionAccounts {
-        pub fn new(
-        {% for account in composite.accounts %}
-        {% if not account.address %}
-        {% if account.is_composite %}
-            {{ account.name }}: {{ account.composite_type_name }}InstructionAccounts,
-        {% else %}
-            {{ account.name }}: Pubkey,
-        {% endif %}
-        {% endif %}
-        {% endfor %}
-        ) -> Self {
-            Self {
-            {% for account in composite.accounts %}
-            {% if not account.address %}
-                {{ account.name }},
-            {% endif %}
-            {% endfor %}
-            }
-        }
-    }
-
-
-    {% for nested_composite in composite.nested_composites %}
-    #[derive(Debug, Clone, Default)]
-    pub struct {{ nested_composite.camel_name }}InstructionAccountMetas {
-        {% for account in nested_composite.accounts %}
-        {% if account.is_composite %}
-        pub {{ account.name }}: {{ account.composite_type_name }}InstructionAccountMetas,
-        {% else %}
-        pub {{ account.name }}: AccountMeta,
-        {% endif %}
-        {% endfor %}
-    }
-
-    impl {{ nested_composite.camel_name }}InstructionAccountMetas {
-        fn to_account_metas(&self) -> Vec<AccountMeta> {
-            let mut metas = Vec::new();
-            {% for account in nested_composite.accounts %}
-            {% if account.is_composite %}
-            metas.extend(self.{{ account.name }}.to_account_metas());
-            {% else %}
-            metas.push(self.{{ account.name }}.clone());
-            {% endif %}
-            {% endfor %}
-            metas
-        }
-
-        fn set_from_accounts(&mut self, accounts: {{ nested_composite.camel_name }}InstructionAccounts) {
-            {% for account in nested_composite.accounts %}
-            {% if not account.address %}
-            {% if account.is_composite %}
-            self.{{ account.name }}.set_from_accounts(accounts.{{ account.name }});
-            {% else %}
-            {% if account.is_writable and account.is_signer %}
-            self.{{ account.name }} = AccountMeta::new(accounts.{{ account.name }}, true);
-            {% elif account.is_signer %}
-            self.{{ account.name }} = AccountMeta::new_readonly(accounts.{{ account.name }}, true);
-            {% elif account.is_writable %}
-            self.{{ account.name }} = AccountMeta::new(accounts.{{ account.name }}, false);
-            {% else %}
-            self.{{ account.name }} = AccountMeta::new_readonly(accounts.{{ account.name }}, false);
-            {% endif %}
-            {% endif %}
-            {% else %}
-            {% if account.is_composite %}
-            self.{{ account.name }}.set_from_accounts(accounts.{{ account.name }});
-            {% else %}
-            {% if account.is_writable and account.is_signer %}
-            self.{{ account.name }} = AccountMeta::new(pubkey!("{{ account.address }}"), true);
-            {% elif account.is_signer %}
-            self.{{ account.name }} = AccountMeta::new_readonly(pubkey!("{{ account.address }}"), true);
-            {% elif account.is_writable %}
-            self.{{ account.name }} = AccountMeta::new(pubkey!("{{ account.address }}"), false);
-            {% else %}
-            self.{{ account.name }} = AccountMeta::new_readonly(pubkey!("{{ account.address }}"), false);
-            {% endif %}
-            {% endif %}
-            {% endif %}
-            {% endfor %}
-        }
-    }
-
-    #[derive(Debug, Clone)]
-    pub struct {{ nested_composite.camel_name }}InstructionAccounts {
-        {% for account in nested_composite.accounts %}
-        {% if not account.address %}
-        {% if account.is_composite %}
-        pub {{ account.name }}: {{ account.composite_type_name }}InstructionAccounts,
-        {% else %}
-        pub {{ account.name }}: Pubkey,
-        {% endif %}
-        {% endif %}
-        {% endfor %}
-    }
-
-    impl {{ nested_composite.camel_name }}InstructionAccounts {
-        pub fn new(
-        {% for account in nested_composite.accounts %}
-        {% if not account.address %}
-        {% if account.is_composite %}
-            {{ account.name }}: {{ account.composite_type_name }}InstructionAccounts,
-        {% else %}
-            {{ account.name }}: Pubkey,
-        {% endif %}
-        {% endif %}
-        {% endfor %}
-        ) -> Self {
-            Self {
-            {% for account in nested_composite.accounts %}
-            {% if not account.address %}
-                {{ account.name }},
-            {% endif %}
-            {% endfor %}
-            }
-        }
-    }
-
-
-    {% endfor %}
-    {% endfor %}
+{% for nested_composite in composite.nested_composites %}
+{{ self::composite_structs(composite=nested_composite, show_comment=false) }}
+{% endfor %}
+{% endfor %}
 
 }
 {% endfor %}
@@ -488,33 +377,32 @@ pub struct {{ custom_type.name }} {
     pub field_{{ loop.index0 }}: {{ field.rust_type }},
 {% endfor %}
 {% endif %}
-
 {% endif %}
 }
 
 {% if custom_type.fields %}
 impl {{ custom_type.name }} {
     pub fn new(
-    {% if custom_type.fields.type == "named" %}
-    {% for field in custom_type.fields.fields %}
+{% if custom_type.fields.type == "named" %}
+{% for field in custom_type.fields.fields %}
         {{ field.name }}: {{ field.rust_type }},
-    {% endfor %}
-    {% elif custom_type.fields.type == "tuple" %}
-    {% for field in custom_type.fields.fields %}
+{% endfor %}
+{% elif custom_type.fields.type == "tuple" %}
+{% for field in custom_type.fields.fields %}
         field_{{ loop.index0 }}: {{ field.rust_type }},
-    {% endfor %}
-    {% endif %}
+{% endfor %}
+{% endif %}
     ) -> Self {
         Self {
-        {% if custom_type.fields.type == "named" %}
-        {% for field in custom_type.fields.fields %}
+{% if custom_type.fields.type == "named" %}
+{% for field in custom_type.fields.fields %}
             {{ field.name }},
-        {% endfor %}
-        {% elif custom_type.fields.type == "tuple" %}
-        {% for field in custom_type.fields.fields %}
+{% endfor %}
+{% elif custom_type.fields.type == "tuple" %}
+{% for field in custom_type.fields.fields %}
             field_{{ loop.index0 }},
-        {% endfor %}
-        {% endif %}
+{% endfor %}
+{% endif %}
         }
     }
 }
@@ -550,4 +438,3 @@ pub enum {{ custom_type.name }} {
 // ============================================================================
 // END OF GENERATED FILE
 // ============================================================================
-

@@ -22,18 +22,20 @@ pub fn get_account(&mut self, key: &Pubkey) -> AccountSharedData
 
 ### `get_account_with_type`
 
-Gets account data and converts it to a specific data type for use in your tests. The discriminator size is automatically determined from the type's `AccountDiscriminator` implementation.
+Gets account data and converts it to a specific data type for use in your tests. The discriminator size is automatically determined from the type's `AccountDiscriminator` implementation, unless overridden.
 
 ```rust
 pub fn get_account_with_type<T: BorshDeserialize + AccountDiscriminator>(
     &mut self,
     key: &Pubkey,
+    discriminator_size_override: Option<usize>,
 ) -> Option<T>
 ```
 
 **Parameters:**
 
 - `key` - The public key of the account to retrieve
+- `discriminator_size_override` - Optional override for discriminator size to skip. If `None`, uses the length from the type's `AccountDiscriminator` implementation.
 
 **Returns:** Deserialized account data or None if deserialization fails.
 
@@ -180,6 +182,7 @@ pub fn set_account_with_type<T: BorshSerialize + AccountDiscriminator>(
     address: &Pubkey,
     owner: &Pubkey,
     data: &T,
+    discriminator_override: Option<&[u8]>,
 )
 ```
 
@@ -188,10 +191,11 @@ pub fn set_account_with_type<T: BorshSerialize + AccountDiscriminator>(
 - `address` - The public key where the account should be stored
 - `owner` - The program ID that will own this account
 - `data` - The account data to serialize and store
+- `discriminator_override` - Optional custom discriminator bytes to use. If `None`, uses the discriminator from the type's `AccountDiscriminator` implementation.
 
 !!! warning "Discriminator Compatibility"
 
-    For older Anchor versions where the IDL does not contain discriminator data, an 8-byte zero discriminator (`[0, 0, 0, 0, 0, 0, 0, 0]`) is used by default. This is typically not a problem for `get_account_with_type` as it only skips the discriminator bytes without validation. However, `set_account_with_type` will serialize this zero discriminator, which will cause issues when the program attempts to deserialize the account since it won't match the expected discriminator. Ensure your IDL contains valid discriminator data for account types you intend to set.
+    For older Anchor versions where the IDL does not contain discriminator data, an 8-byte zero discriminator (`[0, 0, 0, 0, 0, 0, 0, 0]`) is used by default. This is typically not a problem for `get_account_with_type` as it only skips the discriminator bytes without validation. However, `set_account_with_type` will serialize this zero discriminator, which will cause issues when the program attempts to deserialize the account since it won't match the expected discriminator. Use `discriminator_override` to provide the correct discriminator if your IDL lacks this data.
 
 ---
 
@@ -228,13 +232,13 @@ fn test_account_management(&mut self) {
     let account_data = self.trident.get_account(&user_account);
     
     // Get account with specific type (discriminator handled automatically)
-    if let Some(my_data) = self.trident.get_account_with_type::<MyAccountData>(&token_account) {
+    if let Some(my_data) = self.trident.get_account_with_type::<MyAccountData>(&token_account, None) {
         println!("Account data: {:?}", my_data);
     }
     
     // Set account with specific type (discriminator and rent handled automatically)
     let new_data = MyAccountData::new(1000, user_account);
-    self.trident.set_account_with_type(&token_account, &program_id, &new_data);
+    self.trident.set_account_with_type(&token_account, &program_id, &new_data, None);
     
     // Get current clock
     let clock = self.trident.get_sysvar::<Clock>();
