@@ -9,6 +9,7 @@
 use borsh::BorshDeserialize;
 use borsh::BorshSerialize;
 use trident_fuzz::fuzzing::*;
+use trident_fuzz::AccountDiscriminator;
 
 // ============================================================================
 // PROGRAM MODULES
@@ -108,6 +109,14 @@ pub mod additional_program {
             Instruction::new_with_bytes(program_id(), &buffer, self.to_account_metas())
         }
     }
+
+    // ------------------------------------------------------------------------
+    // Data Accounts (with discriminators)
+    // ------------------------------------------------------------------------
+
+    // ------------------------------------------------------------------------
+    // Errors
+    // ------------------------------------------------------------------------
 
     // ------------------------------------------------------------------------
     // Composite Accounts
@@ -682,6 +691,123 @@ pub mod idl_test {
             Instruction::new_with_bytes(program_id(), &buffer, self.to_account_metas())
         }
     }
+
+    // ------------------------------------------------------------------------
+    // Data Accounts (with discriminators)
+    // ------------------------------------------------------------------------
+
+    /// AccountDiscriminator implementation for ClassicStructAccount
+    impl AccountDiscriminator for ClassicStructAccount {
+        fn discriminator() -> &'static [u8] {
+            &[10u8, 204u8, 168u8, 207u8, 9u8, 6u8, 242u8, 89u8]
+        }
+    }
+
+    /// AccountDiscriminator implementation for DataAccount
+    impl AccountDiscriminator for DataAccount {
+        fn discriminator() -> &'static [u8] {
+            &[85u8, 240u8, 182u8, 158u8, 76u8, 7u8, 18u8, 233u8]
+        }
+    }
+
+    /// AccountDiscriminator implementation for NestedStructAccount
+    impl AccountDiscriminator for NestedStructAccount {
+        fn discriminator() -> &'static [u8] {
+            &[83u8, 54u8, 74u8, 216u8, 227u8, 166u8, 36u8, 8u8]
+        }
+    }
+
+    /// AccountDiscriminator implementation for OptionalFieldsAccount
+    impl AccountDiscriminator for OptionalFieldsAccount {
+        fn discriminator() -> &'static [u8] {
+            &[106u8, 159u8, 212u8, 74u8, 108u8, 186u8, 212u8, 251u8]
+        }
+    }
+
+    /// AccountDiscriminator implementation for TupleStructAccount
+    impl AccountDiscriminator for TupleStructAccount {
+        fn discriminator() -> &'static [u8] {
+            &[178u8, 81u8, 243u8, 166u8, 161u8, 145u8, 202u8, 99u8]
+        }
+    }
+
+    /// AccountDiscriminator implementation for UnitStructAccount
+    impl AccountDiscriminator for UnitStructAccount {
+        fn discriminator() -> &'static [u8] {
+            &[24u8, 221u8, 246u8, 80u8, 62u8, 247u8, 138u8, 203u8]
+        }
+    }
+
+    // ------------------------------------------------------------------------
+    // Errors
+    // ------------------------------------------------------------------------
+
+    /// Program errors for idl_test
+    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+    #[repr(u32)]
+    pub enum IdltestError {
+        /// The input is too long
+        InputTooLong = 6000,
+
+        /// The input is too short
+        InputTooShort = 6001,
+
+        /// The input is invalid
+        InvalidInput = 6002,
+
+        /// The input is too big
+        InputTooBig = 6003,
+
+        /// The input is too small
+        InputTooSmall = 6004,
+    }
+
+    impl IdltestError {
+        /// Get the error code
+        pub fn code(&self) -> u32 {
+            *self as u32
+        }
+
+        /// Get the error message
+        pub fn msg(&self) -> &'static str {
+            match self {
+                Self::InputTooLong => "The input is too long",
+
+                Self::InputTooShort => "The input is too short",
+
+                Self::InvalidInput => "The input is invalid",
+
+                Self::InputTooBig => "The input is too big",
+
+                Self::InputTooSmall => "The input is too small",
+            }
+        }
+
+        /// Try to convert from error code
+        pub fn from_code(code: u32) -> Option<Self> {
+            match code {
+                6000 => Some(Self::InputTooLong),
+
+                6001 => Some(Self::InputTooShort),
+
+                6002 => Some(Self::InvalidInput),
+
+                6003 => Some(Self::InputTooBig),
+
+                6004 => Some(Self::InputTooSmall),
+
+                _ => None,
+            }
+        }
+    }
+
+    impl std::fmt::Display for IdltestError {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            write!(f, "{}: {}", self.code(), self.msg())
+        }
+    }
+
+    impl std::error::Error for IdltestError {}
 
     // ------------------------------------------------------------------------
     // Composite Accounts

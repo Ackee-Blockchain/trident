@@ -1,6 +1,7 @@
 use anyhow::Error;
 use fehler::throws;
 use pretty_assertions::assert_str_eq;
+use std::fmt::Display;
 use std::fs;
 use std::io::Read;
 use std::path::Path;
@@ -9,25 +10,60 @@ use trident_client::___private::Commander;
 use trident_idl_spec::Idl;
 use trident_template::TridentTemplates;
 
-#[throws]
-#[tokio::test]
-async fn test_types_generation() {
-    let templates = setup_templates()?;
-    verify_types(&templates).await?;
+pub enum AnchorVersion {
+    V29,
+    V31,
+}
+
+impl Display for AnchorVersion {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            AnchorVersion::V29 => write!(f, "29"),
+            AnchorVersion::V31 => write!(f, "31"),
+        }
+    }
 }
 
 #[throws]
 #[tokio::test]
-async fn test_fuzz_accounts_generation() {
+async fn test_types_generation_29() {
     let templates = setup_templates()?;
-    verify_fuzz_accounts(&templates).await?;
+    verify_types(&AnchorVersion::V29, &templates).await?;
 }
 
 #[throws]
 #[tokio::test]
-async fn test_test_fuzz_generation() {
+async fn test_fuzz_accounts_generation_29() {
     let templates = setup_templates()?;
-    verify_test_fuzz(&templates).await?;
+    verify_fuzz_accounts(&AnchorVersion::V29, &templates).await?;
+}
+
+#[throws]
+#[tokio::test]
+async fn test_test_fuzz_generation_29() {
+    let templates = setup_templates()?;
+    verify_test_fuzz(&AnchorVersion::V29, &templates).await?;
+}
+
+#[throws]
+#[tokio::test]
+async fn test_fuzz_accounts_generation_31() {
+    let templates = setup_templates()?;
+    verify_fuzz_accounts(&AnchorVersion::V31, &templates).await?;
+}
+
+#[throws]
+#[tokio::test]
+async fn test_test_fuzz_generation_31() {
+    let templates = setup_templates()?;
+    verify_test_fuzz(&AnchorVersion::V31, &templates).await?;
+}
+
+#[throws]
+#[tokio::test]
+async fn test_types_generation_31() {
+    let templates = setup_templates()?;
+    verify_types(&AnchorVersion::V31, &templates).await?;
 }
 
 // Helper function to generate templates with proper error handling
@@ -42,16 +78,15 @@ fn generate_templates(
 }
 
 #[throws]
-async fn verify_types(templates: &TridentTemplates) {
+async fn verify_types(version: &AnchorVersion, templates: &TridentTemplates) {
     let idls = vec![
-        read_idl("additional_program.json")?,
-        read_idl("idl_test.json")?,
+        read_idl(version, "additional_program.json")?,
+        read_idl(version, "idl_test.json")?,
     ];
 
     let generated_files = generate_templates(templates, idls)?;
-
     let generated_types = &generated_files.types;
-    let expected_types_path = construct_path("fuzz_template/types.rs");
+    let expected_types_path = construct_path(&format!("fuzz_template/{}/types.rs", version));
     let expected_types = fs::read_to_string(&expected_types_path)?;
     let formatted_types = Commander::format_program_code_nightly(generated_types).await?;
 
@@ -59,16 +94,15 @@ async fn verify_types(templates: &TridentTemplates) {
 }
 
 #[throws]
-async fn verify_fuzz_accounts(templates: &TridentTemplates) {
+async fn verify_fuzz_accounts(version: &AnchorVersion, templates: &TridentTemplates) {
     let idls = vec![
-        read_idl("additional_program.json")?,
-        read_idl("idl_test.json")?,
+        read_idl(version, "additional_program.json")?,
+        read_idl(version, "idl_test.json")?,
     ];
 
     let generated_files = generate_templates(templates, idls)?;
-
     let generated_fuzz = &generated_files.fuzz_accounts;
-    let expected_fuzz_path = construct_path("fuzz_template/fuzz_accounts.rs");
+    let expected_fuzz_path = construct_path(&format!("fuzz_template/{}/fuzz_accounts.rs", version));
     let expected_fuzz = fs::read_to_string(&expected_fuzz_path)?;
     let formatted_fuzz = Commander::format_program_code_nightly(generated_fuzz).await?;
 
@@ -80,16 +114,16 @@ async fn verify_fuzz_accounts(templates: &TridentTemplates) {
 }
 
 #[throws]
-async fn verify_test_fuzz(templates: &TridentTemplates) {
+async fn verify_test_fuzz(version: &AnchorVersion, templates: &TridentTemplates) {
     let idls = vec![
-        read_idl("additional_program.json")?,
-        read_idl("idl_test.json")?,
+        read_idl(version, "additional_program.json")?,
+        read_idl(version, "idl_test.json")?,
     ];
 
     let generated_files = generate_templates(templates, idls)?;
-
     let generated_test_fuzz = &generated_files.test_fuzz;
-    let expected_test_fuzz_path = construct_path("fuzz_template/test_fuzz.rs");
+    let expected_test_fuzz_path =
+        construct_path(&format!("fuzz_template/{}/test_fuzz.rs", version));
     let expected_test_fuzz = fs::read_to_string(&expected_test_fuzz_path)?;
     let formatted_test_fuzz = Commander::format_program_code_nightly(generated_test_fuzz).await?;
 
@@ -101,11 +135,11 @@ async fn verify_test_fuzz(templates: &TridentTemplates) {
 }
 
 #[throws]
-fn read_idl(idl_name: &str) -> Idl {
+fn read_idl(version: &AnchorVersion, idl_name: &str) -> Idl {
     let current_dir = std::env::current_dir()?;
     let anchor_idl_path: PathBuf = [
         current_dir.as_ref(),
-        Path::new(&format!("tests/anchor_idl/{}", idl_name)),
+        Path::new(&format!("tests/anchor_idl/{}/{}", version, idl_name)),
     ]
     .iter()
     .collect();

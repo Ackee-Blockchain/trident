@@ -101,3 +101,17 @@ pub struct NestedInnerInitialize<'info> {
     )]
     pub deployer: Signer<'info>,
 }
+
+#[error_code]
+pub enum IdTestError {
+    #[msg("The input is too long")]
+    InputTooLong,
+    #[msg("The input is too short")]
+    InputTooShort,
+    #[msg("The input is invalid")]
+    InvalidInput,
+    #[msg("The input is too big")]
+    InputTooBig,
+    #[msg("The input is too small")]
+    InputTooSmall,
+}

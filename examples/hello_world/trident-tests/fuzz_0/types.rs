@@ -9,6 +9,7 @@
 use borsh::BorshDeserialize;
 use borsh::BorshSerialize;
 use trident_fuzz::fuzzing::*;
+use trident_fuzz::AccountDiscriminator;
 
 // ============================================================================
 // PROGRAM MODULES
@@ -138,6 +139,21 @@ pub mod hello_world {
             Instruction::new_with_bytes(program_id(), &buffer, self.to_account_metas())
         }
     }
+
+    // ------------------------------------------------------------------------
+    // Data Accounts (with discriminators)
+    // ------------------------------------------------------------------------
+
+    /// AccountDiscriminator implementation for StoreHelloWorld
+    impl AccountDiscriminator for StoreHelloWorld {
+        fn discriminator() -> &'static [u8] {
+            &[83u8, 177u8, 231u8, 18u8, 221u8, 42u8, 241u8, 254u8]
+        }
+    }
+
+    // ------------------------------------------------------------------------
+    // Errors
+    // ------------------------------------------------------------------------
 
     // ------------------------------------------------------------------------
     // Composite Accounts

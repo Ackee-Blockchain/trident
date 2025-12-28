@@ -1,0 +1,11 @@
+{
+  "version": "0.1.0",
+  "name": "additional_program",
+  "instructions": [
+    {
+      "name": "initialize",
+      "accounts": [],
+      "args": []
+    }
+  ]
+}
