@@ -53,7 +53,8 @@ workspace = true
 
 # Trident-SVM
 [dependencies.trident-svm]
-version = "0.2.0"
+# version = "0.2.0"
+path = "/Users/andrej/solana/trident/trident-svm"
 
 [dependencies]
 

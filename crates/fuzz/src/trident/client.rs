@@ -2,6 +2,7 @@ use borsh::BorshDeserialize;
 use solana_sdk::instruction::Instruction;
 use solana_sdk::pubkey::Pubkey;
 use solana_sdk::transaction::TransactionError;
+use trident_svm::prelude::TracedTransactionResult;
 use trident_svm::prelude::TridentTransactionProcessingResult;
 use trident_svm::processor::InstructionError;
 
@@ -61,8 +62,14 @@ impl Trident {
             );
         }
         let processing_data = self.process_instructions(instructions);
+        TransactionResult::new(
+            processing_data.result,
+            processing_data.logs,
+            processing_data.transaction_timestamp,
+            processing_data.traces,
+        )
 
-        self.handle_tx_result(&processing_data, log_as, instructions)
+        // self.handle_tx_result(&processing_data, log_as, instructions)
     }
 
     /// Deploys an entrypoint program to the SVM runtime
@@ -223,10 +230,7 @@ impl Trident {
         panic!("Not yet implemented for TridentSVM");
     }
 
-    fn process_instructions(
-        &mut self,
-        instructions: &[Instruction],
-    ) -> TridentTransactionProcessingResult {
+    fn process_instructions(&mut self, instructions: &[Instruction]) -> TracedTransactionResult {
         // there should be at least 1 RW fee-payer account.
         // But we do not pay for TX currently so has to be manually updated
         // tx.message.header.num_required_signatures = 1;
@@ -236,7 +240,8 @@ impl Trident {
             Some(&self.payer().pubkey()),
         );
 
-        self.client.process_transaction_with_settle(tx)
+        // self.client.process_transaction_with_settle(tx)
+        self.client.execute_transaction_with_traces(tx)
     }
 
     /// Retrieves a system variable (sysvar) of the specified type
@@ -330,98 +335,98 @@ impl Trident {
         Pubkey::find_program_address(seeds, program_id)
     }
 
-    fn handle_tx_result(
-        &mut self,
-        tx_processing_result: &TridentTransactionProcessingResult,
-        log_as: Option<&str>,
-        instructions: &[Instruction],
-    ) -> TransactionResult {
-        let fuzzing_metrics = std::env::var("FUZZING_METRICS");
-        let fuzzing_debug = std::env::var("TRIDENT_FUZZ_DEBUG");
+    // fn handle_tx_result(
+    //     &mut self,
+    //     tx_processing_result: &TridentTransactionProcessingResult,
+    //     log_as: Option<&str>,
+    //     instructions: &[Instruction],
+    // ) -> TransactionResult {
+    //     let fuzzing_metrics = std::env::var("FUZZING_METRICS");
+    //     let fuzzing_debug = std::env::var("TRIDENT_FUZZ_DEBUG");
 
-        // NOTE: for now we just expect that one transaction was executed
-        let tx_result = &tx_processing_result.get_result().processing_results[0];
+    //     // NOTE: for now we just expect that one transaction was executed
+    //     let tx_result = &tx_processing_result.get_result().processing_results[0];
 
-        let transaction_timestamp = tx_processing_result.get_transaction_timestamp();
+    //     let transaction_timestamp = tx_processing_result.get_transaction_timestamp();
 
-        match tx_result {
-            Ok(result) => match result {
-                trident_svm::prelude::solana_svm::transaction_processing_result::ProcessedTransaction::Executed(executed_transaction) => match &executed_transaction.execution_details.status {
-                    Ok(_) => {
-                        // Record successful execution
-                        if fuzzing_metrics.is_ok() && log_as.is_some() {
-                            if let Some(log_as) = log_as {
-                                self.fuzzing_data
-                                    .add_successful_transaction(log_as);
-                            }
-                        }
-                        TransactionResult::new(Ok(()), executed_transaction.execution_details.log_messages.clone().unwrap_or_default(), transaction_timestamp)
-                    },
-                    Err(transaction_error) => {
-                        if let TransactionError::InstructionError(_error_code, instruction_error) =
-                            &transaction_error
-                        {
-                            match instruction_error {
-                                InstructionError::ProgramFailedToComplete => {
-                                    if fuzzing_metrics.is_ok() {
-                                        if fuzzing_debug.is_ok() {
-                                            trident_svm::prelude::trident_svm_log::log_message(
-                                                "TRANSACTION PANICKED",
-                                                trident_svm::prelude::Level::Error,
-                                            );
-                                        }
-                                        if log_as.is_some() {
-                                            let rng = self.rng.get_seed();
-                                            // TODO format instructions
-                                            let tx = format!("{:#?}", instructions);
-                                            self.fuzzing_data.add_transaction_panicked(
-                                                log_as.unwrap(),
-                                                rng,
-                                                instruction_error.to_string(),
-                                                executed_transaction.execution_details.log_messages.clone(),
-                                                tx,
-                                            );
-                                        }
-                                    }
-                                }
-                                InstructionError::Custom(error_code) => {
-                                    if fuzzing_metrics.is_ok() && log_as.is_some() {
-                                        if let Some(log_as) = log_as {
-                                            self.fuzzing_data.add_custom_instruction_error(
-                                                log_as,
-                                                error_code,
-                                                executed_transaction.execution_details.log_messages.clone(),
-                                            );
-                                        }
-                                    }
-                                }
-                                _ => {
-                                    if fuzzing_metrics.is_ok() && log_as.is_some() {
-                                        if let Some(log_as) = log_as {
-                                            self.fuzzing_data.add_failed_transaction(
-                                                log_as,
-                                                    instruction_error.to_string(),
-                                                    executed_transaction.execution_details.log_messages.clone(),
-                                                );
-                                        }
-                                    }
-                                }
-                            }
-                        } else if fuzzing_metrics.is_ok() && log_as.is_some() {
-                            if let Some(log_as) = log_as {
-                            self.fuzzing_data.add_failed_transaction(
-                                log_as,
-                                    transaction_error.to_string(),
-                                    executed_transaction.execution_details.log_messages.clone(),
-                                );
-                            }
-                        }
-                        TransactionResult::new(Err(transaction_error.clone()), executed_transaction.execution_details.log_messages.clone().unwrap_or_default(), transaction_timestamp)
-                    },
-                },
-                trident_svm::prelude::solana_svm::transaction_processing_result::ProcessedTransaction::FeesOnly(_) => todo!(),
-            },
-            Err(transaction_error) => TransactionResult::new(Err(transaction_error.clone()), vec![], transaction_timestamp),
-        }
-    }
+    //     match tx_result {
+    //         Ok(result) => match result {
+    //             trident_svm::prelude::solana_svm::transaction_processing_result::ProcessedTransaction::Executed(executed_transaction) => match &executed_transaction.execution_details.status {
+    //                 Ok(_) => {
+    //                     // Record successful execution
+    //                     if fuzzing_metrics.is_ok() && log_as.is_some() {
+    //                         if let Some(log_as) = log_as {
+    //                             self.fuzzing_data
+    //                                 .add_successful_transaction(log_as);
+    //                         }
+    //                     }
+    //                     TransactionResult::new(Ok(()), executed_transaction.execution_details.log_messages.clone().unwrap_or_default(), transaction_timestamp, None)
+    //                 },
+    //                 Err(transaction_error) => {
+    //                     if let TransactionError::InstructionError(_error_code, instruction_error) =
+    //                         &transaction_error
+    //                     {
+    //                         match instruction_error {
+    //                             InstructionError::ProgramFailedToComplete => {
+    //                                 if fuzzing_metrics.is_ok() {
+    //                                     if fuzzing_debug.is_ok() {
+    //                                         trident_svm::prelude::trident_svm_log::log_message(
+    //                                             "TRANSACTION PANICKED",
+    //                                             trident_svm::prelude::Level::Error,
+    //                                         );
+    //                                     }
+    //                                     if log_as.is_some() {
+    //                                         let rng = self.rng.get_seed();
+    //                                         // TODO format instructions
+    //                                         let tx = format!("{:#?}", instructions);
+    //                                         self.fuzzing_data.add_transaction_panicked(
+    //                                             log_as.unwrap(),
+    //                                             rng,
+    //                                             instruction_error.to_string(),
+    //                                             executed_transaction.execution_details.log_messages.clone(),
+    //                                             tx,
+    //                                         );
+    //                                     }
+    //                                 }
+    //                             }
+    //                             InstructionError::Custom(error_code) => {
+    //                                 if fuzzing_metrics.is_ok() && log_as.is_some() {
+    //                                     if let Some(log_as) = log_as {
+    //                                         self.fuzzing_data.add_custom_instruction_error(
+    //                                             log_as,
+    //                                             error_code,
+    //                                             executed_transaction.execution_details.log_messages.clone(),
+    //                                         );
+    //                                     }
+    //                                 }
+    //                             }
+    //                             _ => {
+    //                                 if fuzzing_metrics.is_ok() && log_as.is_some() {
+    //                                     if let Some(log_as) = log_as {
+    //                                         self.fuzzing_data.add_failed_transaction(
+    //                                             log_as,
+    //                                                 instruction_error.to_string(),
+    //                                                 executed_transaction.execution_details.log_messages.clone(),
+    //                                             );
+    //                                     }
+    //                                 }
+    //                             }
+    //                         }
+    //                     } else if fuzzing_metrics.is_ok() && log_as.is_some() {
+    //                         if let Some(log_as) = log_as {
+    //                         self.fuzzing_data.add_failed_transaction(
+    //                             log_as,
+    //                                 transaction_error.to_string(),
+    //                                 executed_transaction.execution_details.log_messages.clone(),
+    //                             );
+    //                         }
+    //                     }
+    //                     TransactionResult::new(Err(transaction_error.clone()), executed_transaction.execution_details.log_messages.clone().unwrap_or_default(), transaction_timestamp, None)
+    //                 },
+    //             },
+    //             trident_svm::prelude::solana_svm::transaction_processing_result::ProcessedTransaction::FeesOnly(_) => todo!(),
+    //         },
+    //         Err(transaction_error) => TransactionResult::new(Err(transaction_error.clone()), vec![], transaction_timestamp, None),
+    //     }
+    // }
 }

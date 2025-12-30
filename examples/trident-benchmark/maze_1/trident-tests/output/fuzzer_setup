@@ -1,0 +1,6 @@
+# environment variables:
+AFL_CUSTOM_INFO_PROGRAM=target/release/fuzz_0
+AFL_CUSTOM_INFO_PROGRAM_ARGV=
+AFL_CUSTOM_INFO_OUT=output
+# command line:
+'/Users/andrej/.local/share/afl.rs/rustc-1.91.0-f8297e3/afl.rs-0.17.0/afl/bin/afl-fuzz' '-c0' '-n' '-i' 'seeds' '-o' 'output' 'target/release/fuzz_0'

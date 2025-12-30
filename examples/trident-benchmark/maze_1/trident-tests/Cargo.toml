@@ -12,6 +12,8 @@ edition = "2021"
 
 [dependencies]
 borsh = "1.5.3"
+afl = "*"
+libc = "0.2"  # For AFL shared memory access
 
 [dependencies.trident-fuzz]
 path = "../../../../crates/fuzz"

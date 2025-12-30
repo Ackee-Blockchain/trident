@@ -1,5 +1,5 @@
 use solana_sdk::transaction::TransactionError;
-use trident_svm::processor::InstructionError;
+use trident_svm::{processor::InstructionError, types::ExecutionTraces};
 
 /// Result of a transaction execution containing both the result and logs
 ///
@@ -10,6 +10,7 @@ pub struct TransactionResult {
     transaction_result: solana_sdk::transaction::Result<()>,
     transaction_logs: Vec<String>,
     transaction_timestamp: u64,
+    execution_traces: ExecutionTraces,
 }
 
 impl TransactionResult {
@@ -22,11 +23,13 @@ impl TransactionResult {
         transaction_result: solana_sdk::transaction::Result<()>,
         transaction_logs: Vec<String>,
         transaction_timestamp: u64,
+        execution_traces: ExecutionTraces,
     ) -> Self {
         Self {
             transaction_result,
             transaction_logs,
             transaction_timestamp,
+            execution_traces,
         }
     }
 
@@ -117,5 +120,15 @@ impl TransactionResult {
     /// ```
     pub fn get_transaction_timestamp(&self) -> u64 {
         self.transaction_timestamp
+    }
+
+    /// Returns the execution traces
+    ///
+    /// Gets the execution traces from the transaction execution.
+    ///
+    /// # Returns
+    /// A reference to the execution traces
+    pub fn get_execution_traces(&self) -> &ExecutionTraces {
+        &self.execution_traces
     }
 }
