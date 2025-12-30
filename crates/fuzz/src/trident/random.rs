@@ -4,6 +4,8 @@ use solana_sdk::pubkey::Pubkey;
 use solana_sdk::signature::Keypair;
 
 use crate::trident::Trident;
+use crate::trident_rng::BiasedValue;
+use crate::trident_rng::LogUniform;
 
 impl Trident {
     /// Generates a random value within the specified range
@@ -98,5 +100,57 @@ impl Trident {
     /// ```
     pub fn random_keypair(&mut self) -> Keypair {
         self.rng.gen_keypair()
+    }
+
+    /// Generates a random value with log-uniform distribution
+    ///
+    /// Problem with uniform: if you sample u64 uniformly, there are only 1000
+    /// numbers below 1000, but 9 quintillion above 2^63. So 99.99% of samples
+    /// are astronomically large - you'll almost never see small values.
+    ///
+    /// Log-uniform gives equal probability to each order of magnitude:
+    /// range 1-10 is as likely as 1M-10M or 1B-10B. This ensures you actually
+    /// test small, medium, AND large values.
+    ///
+    /// Supported types: u8, u16, u32, u64, u128, i8, i16, i32, i64, i128
+    ///
+    /// # Returns
+    /// A random value of type T with log-uniform distribution
+    ///
+    /// # Example
+    /// ```rust, ignore
+    /// let amount: u64 = trident.random_log_uniform();
+    /// let balance: u128 = trident.random_log_uniform();
+    /// ```
+    pub fn random_log_uniform<T: LogUniform>(&mut self) -> T {
+        self.rng.gen_log_uniform()
+    }
+
+    /// Generates a random value with a biased distribution optimized for fuzzing
+    ///
+    /// Most bugs occur at boundaries and edge cases. This method combines
+    /// four strategies to maximize bug-finding while maintaining exploration:
+    /// - 25%: Exact edge cases (0, 1, MAX, MIN, powers of 2, type boundaries)
+    /// - 25%: Near edge cases (±5% offset to catch off-by-one errors)
+    /// - 25%: Log-uniform (covers all magnitudes fairly)
+    /// - 25%: Uniform random (ensures full range exploration)
+    ///
+    /// The percentage-based offset scales with value size, so it works correctly
+    /// for all types: ±5% of 100 is ±5, ±5% of u64::MAX is huge.
+    ///
+    /// This is the recommended default for numeric fuzzing inputs.
+    ///
+    /// Supported types: u8, u16, u32, u64, u128, i8, i16, i32, i64, i128
+    ///
+    /// # Returns
+    /// A random value optimized for finding edge-case bugs
+    ///
+    /// # Example
+    /// ```rust, ignore
+    /// let amount: u64 = trident.random_biased();
+    /// let index: u32 = trident.random_biased();
+    /// ```
+    pub fn random_biased<T: BiasedValue>(&mut self) -> T {
+        self.rng.gen_biased()
     }
 }
