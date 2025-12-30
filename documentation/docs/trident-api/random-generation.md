@@ -6,7 +6,7 @@ These methods provide functionality for generating random data in your fuzz test
 
 ### `random_from_range`
 
-Generates a random number within the specified range.
+Generates a random number within the specified range using **uniform distribution**.
 
 ```rust
 pub fn random_from_range<T, R>(&mut self, range: R) -> T
@@ -21,7 +21,71 @@ where
 
 **Returns:** Random value within the specified range.
 
-**Description:** Generates a random value of the specified type within the given range. Supports various numeric types.
+**Description:** Generates a random value of the specified type within the given range using uniform distribution (all values have equal probability). Supports various numeric types.
+
+---
+
+### `random_log_uniform`
+
+Generates a random number with **log-uniform distribution**.
+
+```rust
+pub fn random_log_uniform<T: LogUniform>(&mut self) -> T
+```
+
+**Supported types:** `u8`, `u16`, `u32`, `u64`, `u128`, `i8`, `i16`, `i32`, `i64`, `i128`
+
+**Returns:** Random value with log-uniform distribution.
+
+**Description:** With uniform distribution on u64, there are only 1000 numbers below 1000, but 9 quintillion above 2^63 - so 99.99% of samples are astronomically large. Log-uniform fixes this by giving equal probability to each **order of magnitude**: the range 1-10 is as likely as 1M-10M or 1B-10B. This ensures you actually test small, medium, AND large values.
+
+**Example:**
+
+```rust
+// Equal probability of getting values in ranges:
+// 0-255, 256-65535, 65536-4294967295, etc.
+let amount: u64 = trident.random_log_uniform();
+```
+
+---
+
+### `random_biased`
+
+Generates a random number with a **biased distribution optimized for fuzzing**.
+
+```rust
+pub fn random_biased<T: BiasedValue>(&mut self) -> T
+```
+
+**Supported types:** `u8`, `u16`, `u32`, `u64`, `u128`, `i8`, `i16`, `i32`, `i64`, `i128`
+
+**Returns:** Random value with bias toward edge cases and interesting values.
+
+**Description:** Combines multiple strategies for maximum bug-finding potential:
+
+| Probability | Strategy | Description |
+|-------------|----------|-------------|
+| 25% | Exact interesting | Boundaries (0, MAX), powers of 2, type limits |
+| 25% | Near interesting | ±5% offset from interesting values |
+| 25% | Log-uniform | Equal probability per magnitude |
+| 25% | Uniform random | Full range exploration |
+
+The "near interesting" offset scales with the value (percentage-based), so it works appropriately for all numeric types. This is the **recommended method** for generating random numbers in fuzz tests.
+
+**Example:**
+
+```rust
+// High chance of edge cases, good magnitude coverage, some randomness
+let amount: u64 = trident.random_biased();
+let index: u32 = trident.random_biased();
+```
+
+**Interesting values include:**
+
+- Boundary values: `0`, `1`, `MAX`, `MIN`
+- Near-boundary: `MAX-1`, `MIN+1`
+- Powers of 2: `2`, `4`, `8`, `16`, `32`, `64`, `128`, `256`...
+- Type transitions: `127/128`, `255/256`, `32767/32768`, `65535/65536`...
 
 ---
 
@@ -116,13 +180,20 @@ fn test_token_operations_with_random_data(&mut self) {
     let authority = self.random_keypair();
     let signer = self.random_keypair();
     
-    // Generate random amounts for financial operations
-    let transfer_amount = self.random_from_range(1..1_000_000u64);
+    // Generate random amounts - three distribution options:
+    
+    // 1. Uniform: equal probability in range (good for bounded values)
     let fee_basis_points = self.random_from_range(0..10000u16);
+    
+    // 2. Log-uniform: equal probability per magnitude (good for wide ranges)
+    let transfer_amount: u64 = self.random_log_uniform();
+    
+    // 3. Biased: optimized for fuzzing (recommended for most cases)
+    let deposit_amount: u64 = self.random_biased();
     
     // Generate random configuration values
     let decimals = self.random_from_range(0..9u8);
-    let commission = self.random_from_range(0..100u8);
+    let commission: u8 = self.random_biased(); // catches edge cases like 0, 127, 128, 255
     
     // Generate random string data for metadata
     let token_name = self.random_string(20);

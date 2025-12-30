@@ -12,6 +12,7 @@ incremented upon a breaking change and the patch version will be incremented for
 
 **Added**
 
+- add new random generation methods ([444](https://github.com/Ackee-Blockchain/trident/pull/444))
 - add `AccountDiscriminator` trait to derive discriminator for account types ([443](https://github.com/Ackee-Blockchain/trident/pull/443))
 - add more stake program related methods ([441](https://github.com/Ackee-Blockchain/trident/pull/441))
 - add remove functionality to AddressStorage ([442](https://github.com/Ackee-Blockchain/trident/pull/442))

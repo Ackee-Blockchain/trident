@@ -95,14 +95,14 @@ impl FuzzTest {
             .get(&mut self.trident)
             .expect("Storage empty");
 
-        let x1 = self.trident.random_from_range(0..u64::MAX);
-        let x2 = self.trident.random_from_range(0..u64::MAX);
-        let x3 = self.trident.random_from_range(0..u64::MAX);
-        let x4 = self.trident.random_from_range(0..u64::MAX);
-        let x5 = self.trident.random_from_range(0..u64::MAX);
-        let x6 = self.trident.random_from_range(0..u64::MAX);
-        let x7 = self.trident.random_from_range(0..u64::MAX);
-        let x8 = self.trident.random_from_range(0..u64::MAX);
+        let x1 = self.trident.random_log_uniform();
+        let x2 = self.trident.random_log_uniform();
+        let x3 = self.trident.random_log_uniform();
+        let x4 = self.trident.random_log_uniform();
+        let x5 = self.trident.random_log_uniform();
+        let x6 = self.trident.random_log_uniform();
+        let x7 = self.trident.random_log_uniform();
+        let x8 = self.trident.random_log_uniform();
 
         let state_before = self
             .trident
@@ -142,14 +142,14 @@ impl FuzzTest {
             .expect("Storage empty");
 
         let move_north = maze::MoveSouthInstruction::data(MoveSouthInstructionData::new(
-            self.trident.random_from_range(0..u64::MAX),
-            self.trident.random_from_range(0..u64::MAX),
-            self.trident.random_from_range(0..u64::MAX),
-            self.trident.random_from_range(0..u64::MAX),
-            self.trident.random_from_range(0..u64::MAX),
-            self.trident.random_from_range(0..u64::MAX),
-            self.trident.random_from_range(0..u64::MAX),
-            self.trident.random_from_range(0..u64::MAX),
+            self.trident.random_log_uniform(),
+            self.trident.random_log_uniform(),
+            self.trident.random_log_uniform(),
+            self.trident.random_log_uniform(),
+            self.trident.random_log_uniform(),
+            self.trident.random_log_uniform(),
+            self.trident.random_log_uniform(),
+            self.trident.random_log_uniform(),
         ))
         .accounts(MoveSouthInstructionAccounts::new(state))
         .instruction();
@@ -171,14 +171,14 @@ impl FuzzTest {
             .expect("Storage empty");
 
         let move_north = maze::MoveEastInstruction::data(MoveEastInstructionData::new(
-            self.trident.random_from_range(0..u64::MAX),
-            self.trident.random_from_range(0..u64::MAX),
-            self.trident.random_from_range(0..u64::MAX),
-            self.trident.random_from_range(0..u64::MAX),
-            self.trident.random_from_range(0..u64::MAX),
-            self.trident.random_from_range(0..u64::MAX),
-            self.trident.random_from_range(0..u64::MAX),
-            self.trident.random_from_range(0..u64::MAX),
+            self.trident.random_log_uniform(),
+            self.trident.random_log_uniform(),
+            self.trident.random_log_uniform(),
+            self.trident.random_log_uniform(),
+            self.trident.random_log_uniform(),
+            self.trident.random_log_uniform(),
+            self.trident.random_log_uniform(),
+            self.trident.random_log_uniform(),
         ))
         .accounts(MoveEastInstructionAccounts::new(state))
         .instruction();
@@ -200,14 +200,14 @@ impl FuzzTest {
             .expect("Storage empty");
 
         let move_north = maze::MoveWestInstruction::data(MoveWestInstructionData::new(
-            self.trident.random_from_range(0..u64::MAX),
-            self.trident.random_from_range(0..u64::MAX),
-            self.trident.random_from_range(0..u64::MAX),
-            self.trident.random_from_range(0..u64::MAX),
-            self.trident.random_from_range(0..u64::MAX),
-            self.trident.random_from_range(0..u64::MAX),
-            self.trident.random_from_range(0..u64::MAX),
-            self.trident.random_from_range(0..u64::MAX),
+            self.trident.random_log_uniform(),
+            self.trident.random_log_uniform(),
+            self.trident.random_log_uniform(),
+            self.trident.random_log_uniform(),
+            self.trident.random_log_uniform(),
+            self.trident.random_log_uniform(),
+            self.trident.random_log_uniform(),
+            self.trident.random_log_uniform(),
         ))
         .accounts(MoveWestInstructionAccounts::new(state))
         .instruction();

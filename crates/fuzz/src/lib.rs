@@ -31,6 +31,8 @@ pub mod fuzzing {
     pub use solana_sdk::transaction::TransactionError;
 
     /// Trident RNG
+    pub use super::trident_rng::BiasedValue;
+    pub use super::trident_rng::LogUniform;
     pub use super::trident_rng::TridentRng;
     pub use hex;
 
