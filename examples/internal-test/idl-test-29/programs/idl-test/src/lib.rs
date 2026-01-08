@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use anchor_lang::prelude::*;
 
 mod data_accounts;
@@ -7,8 +9,6 @@ use crate::data_accounts::*;
 use crate::types::*;
 
 declare_id!("HtD1eaPZ1JqtxcirNtYt3aAhUMoJWZ2Ddtzu4NDZCrhN");
-
-pub const DEPLOYER_ADDRESS: Pubkey = pubkey!("HtD1eaPZ1JqtxcirNtYt3aAhUMoJWZ2Ddtzu4NDZCrhN");
 
 #[program]
 pub mod idl_test {
@@ -97,7 +97,7 @@ pub struct NestedInnerInitialize<'info> {
     pub system_program: Program<'info, System>,
     #[account(
         mut,
-        address = crate::DEPLOYER_ADDRESS
+        address = Pubkey::from_str("HtD1eaPZ1JqtxcirNtYt3aAhUMoJWZ2Ddtzu4NDZCrhN").unwrap()
     )]
     pub deployer: Signer<'info>,
 }

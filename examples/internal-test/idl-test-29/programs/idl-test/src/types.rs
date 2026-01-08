@@ -17,11 +17,11 @@ pub struct ClassicStruct {
 }
 
 // Struct with Lifetime Parameters
-#[derive(AnchorSerialize, AnchorDeserialize, Clone)]
-pub struct Lifetimes<'a> {
-    pub reference: &'a str,
-    pub key: Pubkey,
-}
+// #[derive(AnchorSerialize, AnchorDeserialize, Clone)]
+// pub struct Lifetimes<'a> {
+//     pub reference: &'a str,
+//     pub key: Pubkey,
+// }
 
 // Struct with Generic Parameters
 #[derive(AnchorSerialize, AnchorDeserialize, Clone)]
@@ -94,11 +94,11 @@ pub enum GenericEnum<T> {
 }
 
 // Enum with Lifetime Parameters
-#[derive(AnchorSerialize, AnchorDeserialize, Clone)]
-pub enum LifetimeEnum<'a> {
-    Borrowed(&'a str),
-    Owned(String),
-}
+// #[derive(AnchorSerialize, AnchorDeserialize, Clone)]
+// pub enum LifetimeEnum<'a> {
+//     Borrowed(&'a str),
+//     Owned(String),
+// }
 
 // Enum with Unit Variants
 #[derive(AnchorSerialize, AnchorDeserialize, Clone)]

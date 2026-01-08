@@ -3,9 +3,8 @@ use fehler::throws;
 use pretty_assertions::assert_str_eq;
 use std::fmt::Display;
 use std::fs;
-use std::io::Read;
-use std::path::Path;
 use std::path::PathBuf;
+use trident_client::___private::load_idls;
 use trident_client::___private::Commander;
 use trident_idl_spec::Idl;
 use trident_template::TridentTemplates;
@@ -79,10 +78,8 @@ fn generate_templates(
 
 #[throws]
 async fn verify_types(version: &AnchorVersion, templates: &TridentTemplates) {
-    let idls = vec![
-        read_idl(version, "additional_program.json")?,
-        read_idl(version, "idl_test.json")?,
-    ];
+    let mut idls = load_idls(construct_path(&format!("anchor_idl/{}/", version)), None)?;
+    idls.sort_by(|a, b| a.metadata.name.cmp(&b.metadata.name));
 
     let generated_files = generate_templates(templates, idls)?;
     let generated_types = &generated_files.types;
@@ -95,10 +92,8 @@ async fn verify_types(version: &AnchorVersion, templates: &TridentTemplates) {
 
 #[throws]
 async fn verify_fuzz_accounts(version: &AnchorVersion, templates: &TridentTemplates) {
-    let idls = vec![
-        read_idl(version, "additional_program.json")?,
-        read_idl(version, "idl_test.json")?,
-    ];
+    let mut idls = load_idls(construct_path(&format!("anchor_idl/{}/", version)), None)?;
+    idls.sort_by(|a, b| a.metadata.name.cmp(&b.metadata.name));
 
     let generated_files = generate_templates(templates, idls)?;
     let generated_fuzz = &generated_files.fuzz_accounts;
@@ -115,10 +110,8 @@ async fn verify_fuzz_accounts(version: &AnchorVersion, templates: &TridentTempla
 
 #[throws]
 async fn verify_test_fuzz(version: &AnchorVersion, templates: &TridentTemplates) {
-    let idls = vec![
-        read_idl(version, "additional_program.json")?,
-        read_idl(version, "idl_test.json")?,
-    ];
+    let mut idls = load_idls(construct_path(&format!("anchor_idl/{}/", version)), None)?;
+    idls.sort_by(|a, b| a.metadata.name.cmp(&b.metadata.name));
 
     let generated_files = generate_templates(templates, idls)?;
     let generated_test_fuzz = &generated_files.test_fuzz;
@@ -132,28 +125,6 @@ async fn verify_test_fuzz(version: &AnchorVersion, templates: &TridentTemplates)
         expected_test_fuzz,
         "Test fuzz does not match"
     );
-}
-
-#[throws]
-fn read_idl(version: &AnchorVersion, idl_name: &str) -> Idl {
-    let current_dir = std::env::current_dir()?;
-    let anchor_idl_path: PathBuf = [
-        current_dir.as_ref(),
-        Path::new(&format!("tests/anchor_idl/{}/{}", version, idl_name)),
-    ]
-    .iter()
-    .collect();
-
-    let mut idl_file = std::fs::File::open(&anchor_idl_path)?;
-    let mut json_content = String::new();
-    idl_file.read_to_string(&mut json_content)?;
-
-    match serde_json::from_str::<Idl>(&json_content) {
-        Ok(parsed_idl) => parsed_idl,
-        Err(e) => {
-            panic!("Failed to parse {}: {}", anchor_idl_path.display(), e);
-        }
-    }
 }
 
 // Helper function to construct paths relative to CARGO_MANIFEST_DIR

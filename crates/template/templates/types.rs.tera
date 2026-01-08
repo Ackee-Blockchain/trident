@@ -354,86 +354,85 @@ pub mod {{ program.module_name }} {
 {% endfor %}
 {% endfor %}
 
-}
-{% endfor %}
+    // ------------------------------------------------------------------------
+    // Custom Types
+    // ------------------------------------------------------------------------
 
-// ============================================================================
-// CUSTOM TYPES
-// ============================================================================
-
-{% if custom_types %}
-{% for custom_type in custom_types %}
+{% if program.custom_types %}
+{% for custom_type in program.custom_types %}
 {% if custom_type.type == "struct" %}
-/// Custom struct: {{ custom_type.name }}
-#[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
-pub struct {{ custom_type.name }} {
+    /// Custom struct: {{ custom_type.name }}
+    #[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
+    pub struct {{ custom_type.name }} {
 {% if custom_type.fields %}
 {% if custom_type.fields.type == "named" %}
 {% for field in custom_type.fields.fields %}
-    pub {{ field.name }}: {{ field.rust_type }},
+        pub {{ field.name }}: {{ field.rust_type }},
 {% endfor %}
 {% elif custom_type.fields.type == "tuple" %}
 {% for field in custom_type.fields.fields %}
-    pub field_{{ loop.index0 }}: {{ field.rust_type }},
+        pub field_{{ loop.index0 }}: {{ field.rust_type }},
 {% endfor %}
 {% endif %}
 {% endif %}
-}
+    }
 
 {% if custom_type.fields %}
-impl {{ custom_type.name }} {
-    pub fn new(
+    impl {{ custom_type.name }} {
+        pub fn new(
 {% if custom_type.fields.type == "named" %}
 {% for field in custom_type.fields.fields %}
-        {{ field.name }}: {{ field.rust_type }},
+            {{ field.name }}: {{ field.rust_type }},
 {% endfor %}
 {% elif custom_type.fields.type == "tuple" %}
 {% for field in custom_type.fields.fields %}
-        field_{{ loop.index0 }}: {{ field.rust_type }},
+            field_{{ loop.index0 }}: {{ field.rust_type }},
 {% endfor %}
 {% endif %}
-    ) -> Self {
-        Self {
+        ) -> Self {
+            Self {
 {% if custom_type.fields.type == "named" %}
 {% for field in custom_type.fields.fields %}
-            {{ field.name }},
+                {{ field.name }},
 {% endfor %}
 {% elif custom_type.fields.type == "tuple" %}
 {% for field in custom_type.fields.fields %}
-            field_{{ loop.index0 }},
+                field_{{ loop.index0 }},
 {% endfor %}
 {% endif %}
+            }
         }
     }
-}
 {% endif %}
 {% elif custom_type.type == "enum" %}
-/// Custom enum: {{ custom_type.name }}
-#[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
-pub enum {{ custom_type.name }} {
+    /// Custom enum: {{ custom_type.name }}
+    #[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
+    pub enum {{ custom_type.name }} {
 {% for variant in custom_type.variants %}
 {% if variant.fields %}
 {% if variant.fields.type == "named" %}
-    {{ variant.name }} {
+        {{ variant.name }} {
 {% for field in variant.fields.fields %}
-        {{ field.name }}: {{ field.rust_type }},
+            {{ field.name }}: {{ field.rust_type }},
 {% endfor %}
-    },
+        },
 {% elif variant.fields.type == "tuple" %}
-    {{ variant.name }}({% for field in variant.fields.fields %}{{ field.rust_type }}{% if not loop.last %}, {% endif %}{% endfor %}),
+        {{ variant.name }}({% for field in variant.fields.fields %}{{ field.rust_type }}{% if not loop.last %}, {% endif %}{% endfor %}),
 {% endif %}
 {% else %}
-    {{ variant.name }},
+        {{ variant.name }},
 {% endif %}
 {% endfor %}
-}
+    }
 {% elif custom_type.type == "type_alias" %}
-/// Type alias: {{ custom_type.name }} (not implemented)
-// Type alias for {{ custom_type.name }} not implemented
+    /// Type alias: {{ custom_type.name }} (not implemented)
+    // Type alias for {{ custom_type.name }} not implemented
 {% endif %}
 
 {% endfor %}
 {% endif %}
+}
+{% endfor %}
 
 // ============================================================================
 // END OF GENERATED FILE

@@ -141,7 +141,13 @@ pub fn load_idls_from_files(
 
         // Parse the JSON into an Idl struct
         match serde_json::from_str::<Idl>(&json_content) {
-            Ok(parsed_idl) => {
+            Ok(mut parsed_idl) => {
+                // If metadata.name is empty, use file name (without .json) as fallback
+                if parsed_idl.metadata.name.is_empty() {
+                    if let Some(file_stem) = path.file_stem().and_then(|s| s.to_str()) {
+                        parsed_idl.metadata.name = file_stem.to_string();
+                    }
+                }
                 idls.push(parsed_idl);
             }
             Err(e) => {
@@ -224,7 +230,13 @@ pub fn load_idls(dir_path: PathBuf, program_name: Option<String>) -> Result<Vec<
 
             // Parse the string of data into an Idl struct
             match serde_json::from_str::<Idl>(&json_content) {
-                Ok(parsed_idl) => {
+                Ok(mut parsed_idl) => {
+                    // If metadata.name is empty, use file name (without .json) as fallback
+                    if parsed_idl.metadata.name.is_empty() {
+                        if let Some(file_stem) = path.file_stem().and_then(|s| s.to_str()) {
+                            parsed_idl.metadata.name = file_stem.to_string();
+                        }
+                    }
                     idls.push(parsed_idl);
                 }
                 Err(e) => {
