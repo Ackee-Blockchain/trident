@@ -66,8 +66,7 @@ impl TridentTemplates {
         let types = self.tera.render(
             "types.rs",
             &Context::from_serialize(json!({
-                "programs": programs_data,
-                "custom_types": self.collect_custom_types(idls)
+                "programs": programs_data
             }))?,
         )?;
         let trident_toml = self.tera.render(
@@ -141,7 +140,8 @@ impl TridentTemplates {
                 "instructions": instructions_data,
                 "composite_accounts": composite_accounts,
                 "data_accounts": self.collect_accounts_with_discriminators(idl),
-                "errors": self.collect_errors(idl)
+                "errors": self.collect_errors(idl),
+                "custom_types": self.collect_custom_types_for_program(idl)
             }));
         }
 
@@ -322,26 +322,23 @@ impl TridentTemplates {
         }
     }
 
-    /// Collect custom types from IDLs
-    fn collect_custom_types(&self, idls: &[Idl]) -> Vec<serde_json::Value> {
+    /// Collect custom types for a single program/IDL
+    fn collect_custom_types_for_program(&self, idl: &Idl) -> Vec<serde_json::Value> {
         let mut custom_types = Vec::new();
         let mut seen_names = HashSet::new();
 
-        for idl in idls {
-            // Collect types from the `types` field
-            for type_def in &idl.types {
-                if seen_names.insert(type_def.name.clone()) {
-                    custom_types.push(self.convert_type_def_to_template_data(type_def));
-                }
+        // Collect types from the `types` field
+        for type_def in &idl.types {
+            if seen_names.insert(type_def.name.clone()) {
+                custom_types.push(self.convert_type_def_to_template_data(type_def));
             }
+        }
 
-            // Collect account types from older IDLs with `ty` field
-            for account in &idl.accounts {
-                if let Some(ty) = &account.ty {
-                    if seen_names.insert(account.name.clone()) {
-                        custom_types
-                            .push(self.convert_type_def_ty_to_template_data(&account.name, ty));
-                    }
+        // Collect account types from older IDLs with `ty` field
+        for account in &idl.accounts {
+            if let Some(ty) = &account.ty {
+                if seen_names.insert(account.name.clone()) {
+                    custom_types.push(self.convert_type_def_ty_to_template_data(&account.name, ty));
                 }
             }
         }

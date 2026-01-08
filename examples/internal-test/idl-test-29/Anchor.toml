@@ -1,8 +1,7 @@
 [toolchain]
-anchor_version = "0.31.1"
 
 [features]
-resolution = true
+seeds = false
 skip-lint = false
 
 [programs.localnet]

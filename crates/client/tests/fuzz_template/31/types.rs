@@ -121,6 +121,10 @@ pub mod additional_program {
     // ------------------------------------------------------------------------
     // Composite Accounts
     // ------------------------------------------------------------------------
+
+    // ------------------------------------------------------------------------
+    // Custom Types
+    // ------------------------------------------------------------------------
 }
 
 // ----------------------------------------------------------------------------
@@ -954,360 +958,360 @@ pub mod idl_test {
             }
         }
     }
-}
 
-// ============================================================================
-// CUSTOM TYPES
-// ============================================================================
+    // ------------------------------------------------------------------------
+    // Custom Types
+    // ------------------------------------------------------------------------
 
-/// Custom struct: ClassicStruct
-#[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
-pub struct ClassicStruct {
-    pub field1: u8,
+    /// Custom struct: ClassicStruct
+    #[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
+    pub struct ClassicStruct {
+        pub field1: u8,
 
-    pub field2: u16,
+        pub field2: u16,
 
-    pub field3: Pubkey,
-}
+        pub field3: Pubkey,
+    }
 
-impl ClassicStruct {
-    pub fn new(field1: u8, field2: u16, field3: Pubkey) -> Self {
-        Self {
-            field1,
+    impl ClassicStruct {
+        pub fn new(field1: u8, field2: u16, field3: Pubkey) -> Self {
+            Self {
+                field1,
 
-            field2,
+                field2,
 
-            field3,
+                field3,
+            }
         }
     }
-}
 
-/// Custom struct: ClassicStructAccount
-#[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
-pub struct ClassicStructAccount {
-    pub field1: u8,
+    /// Custom struct: ClassicStructAccount
+    #[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
+    pub struct ClassicStructAccount {
+        pub field1: u8,
 
-    pub field2: u16,
+        pub field2: u16,
 
-    pub field3: Pubkey,
-}
+        pub field3: Pubkey,
+    }
 
-impl ClassicStructAccount {
-    pub fn new(field1: u8, field2: u16, field3: Pubkey) -> Self {
-        Self {
-            field1,
+    impl ClassicStructAccount {
+        pub fn new(field1: u8, field2: u16, field3: Pubkey) -> Self {
+            Self {
+                field1,
 
-            field2,
+                field2,
 
-            field3,
+                field3,
+            }
         }
     }
-}
 
-/// Custom struct: DataAccount
-#[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
-pub struct DataAccount {
-    pub unit_struct: UnitStruct,
+    /// Custom struct: DataAccount
+    #[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
+    pub struct DataAccount {
+        pub unit_struct: UnitStruct,
 
-    pub tuple_struct: TupleStruct,
+        pub tuple_struct: TupleStruct,
 
-    pub classic_struct: ClassicStruct,
+        pub classic_struct: ClassicStruct,
 
-    pub generic_struct: GenericStruct,
+        pub generic_struct: GenericStruct,
 
-    pub optional_fields: OptionalFields,
+        pub optional_fields: OptionalFields,
 
-    pub default_struct: DefaultStruct,
+        pub default_struct: DefaultStruct,
 
-    pub nested_struct: NestedStruct,
+        pub nested_struct: NestedStruct,
 
-    pub simple_enum: SimpleEnum,
+        pub simple_enum: SimpleEnum,
 
-    pub data_enum: DataEnum,
+        pub data_enum: DataEnum,
 
-    pub multi_data_enum: MultiDataEnum,
+        pub multi_data_enum: MultiDataEnum,
 
-    pub named_fields_enum: NamedFieldsEnum,
+        pub named_fields_enum: NamedFieldsEnum,
 
-    pub generic_enum: GenericEnum,
+        pub generic_enum: GenericEnum,
 
-    pub unit_variants: UnitVariants,
-}
+        pub unit_variants: UnitVariants,
+    }
 
-impl DataAccount {
-    pub fn new(
-        unit_struct: UnitStruct,
+    impl DataAccount {
+        pub fn new(
+            unit_struct: UnitStruct,
 
-        tuple_struct: TupleStruct,
+            tuple_struct: TupleStruct,
 
-        classic_struct: ClassicStruct,
+            classic_struct: ClassicStruct,
 
-        generic_struct: GenericStruct,
+            generic_struct: GenericStruct,
 
-        optional_fields: OptionalFields,
+            optional_fields: OptionalFields,
 
-        default_struct: DefaultStruct,
+            default_struct: DefaultStruct,
 
-        nested_struct: NestedStruct,
+            nested_struct: NestedStruct,
 
-        simple_enum: SimpleEnum,
+            simple_enum: SimpleEnum,
 
-        data_enum: DataEnum,
+            data_enum: DataEnum,
 
-        multi_data_enum: MultiDataEnum,
+            multi_data_enum: MultiDataEnum,
 
-        named_fields_enum: NamedFieldsEnum,
+            named_fields_enum: NamedFieldsEnum,
 
-        generic_enum: GenericEnum,
+            generic_enum: GenericEnum,
 
-        unit_variants: UnitVariants,
-    ) -> Self {
-        Self {
-            unit_struct,
+            unit_variants: UnitVariants,
+        ) -> Self {
+            Self {
+                unit_struct,
 
-            tuple_struct,
+                tuple_struct,
 
-            classic_struct,
+                classic_struct,
 
-            generic_struct,
+                generic_struct,
 
-            optional_fields,
+                optional_fields,
 
-            default_struct,
+                default_struct,
 
-            nested_struct,
+                nested_struct,
 
-            simple_enum,
+                simple_enum,
 
-            data_enum,
+                data_enum,
 
-            multi_data_enum,
+                multi_data_enum,
 
-            named_fields_enum,
+                named_fields_enum,
 
-            generic_enum,
+                generic_enum,
 
-            unit_variants,
+                unit_variants,
+            }
         }
     }
-}
 
-/// Custom enum: DataEnum
-#[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
-pub enum DataEnum {
-    Integer(i32),
+    /// Custom enum: DataEnum
+    #[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
+    pub enum DataEnum {
+        Integer(i32),
 
-    Float(f64),
+        Float(f64),
 
-    Text(String),
+        Text(String),
 
-    Pubkey(Pubkey),
-}
+        Pubkey(Pubkey),
+    }
 
-/// Custom struct: DefaultStruct
-#[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
-pub struct DefaultStruct {
-    pub field1: u8,
+    /// Custom struct: DefaultStruct
+    #[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
+    pub struct DefaultStruct {
+        pub field1: u8,
 
-    pub field2: u16,
+        pub field2: u16,
 
-    pub field3: Pubkey,
-}
+        pub field3: Pubkey,
+    }
 
-impl DefaultStruct {
-    pub fn new(field1: u8, field2: u16, field3: Pubkey) -> Self {
-        Self {
-            field1,
+    impl DefaultStruct {
+        pub fn new(field1: u8, field2: u16, field3: Pubkey) -> Self {
+            Self {
+                field1,
 
-            field2,
+                field2,
 
-            field3,
+                field3,
+            }
         }
     }
-}
 
-/// Custom enum: GenericEnum
-#[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
-pub enum GenericEnum {
-    Value(T),
+    /// Custom enum: GenericEnum
+    #[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
+    pub enum GenericEnum {
+        Value(T),
 
-    None,
-}
-
-/// Custom struct: GenericStruct
-#[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
-pub struct GenericStruct {
-    pub value: T,
-
-    pub key: Pubkey,
-}
-
-impl GenericStruct {
-    pub fn new(value: T, key: Pubkey) -> Self {
-        Self { value, key }
+        None,
     }
-}
 
-/// Custom enum: MultiDataEnum
-#[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
-pub enum MultiDataEnum {
-    Pair(i32, i32),
+    /// Custom struct: GenericStruct
+    #[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
+    pub struct GenericStruct {
+        pub value: T,
 
-    Triple(i32, i32, i32),
-
-    Pubkey(Pubkey, Pubkey),
-}
-
-/// Custom enum: NamedFieldsEnum
-#[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
-pub enum NamedFieldsEnum {
-    Point { x: f64, y: f64 },
-
-    Circle { radius: f64 },
-
-    Pubkey { pubkey1: Pubkey, pubkey2: Pubkey },
-}
-
-/// Custom struct: NestedStruct
-#[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
-pub struct NestedStruct {
-    pub inner: ClassicStruct,
-
-    pub key: Pubkey,
-}
-
-impl NestedStruct {
-    pub fn new(inner: ClassicStruct, key: Pubkey) -> Self {
-        Self { inner, key }
+        pub key: Pubkey,
     }
-}
 
-/// Custom struct: NestedStructAccount
-#[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
-pub struct NestedStructAccount {
-    pub inner: ClassicStructAccount,
-}
-
-impl NestedStructAccount {
-    pub fn new(inner: ClassicStructAccount) -> Self {
-        Self { inner }
-    }
-}
-
-/// Custom struct: OptionalFields
-#[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
-pub struct OptionalFields {
-    pub field1: Option<u8>,
-
-    pub field2: Option<u16>,
-
-    pub field3: Option<Pubkey>,
-}
-
-impl OptionalFields {
-    pub fn new(field1: Option<u8>, field2: Option<u16>, field3: Option<Pubkey>) -> Self {
-        Self {
-            field1,
-
-            field2,
-
-            field3,
+    impl GenericStruct {
+        pub fn new(value: T, key: Pubkey) -> Self {
+            Self { value, key }
         }
     }
-}
 
-/// Custom struct: OptionalFieldsAccount
-#[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
-pub struct OptionalFieldsAccount {
-    pub field1: Option<u8>,
+    /// Custom enum: MultiDataEnum
+    #[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
+    pub enum MultiDataEnum {
+        Pair(i32, i32),
 
-    pub field2: Option<u16>,
+        Triple(i32, i32, i32),
 
-    pub field3: Option<Pubkey>,
-}
+        Pubkey(Pubkey, Pubkey),
+    }
 
-impl OptionalFieldsAccount {
-    pub fn new(field1: Option<u8>, field2: Option<u16>, field3: Option<Pubkey>) -> Self {
-        Self {
-            field1,
+    /// Custom enum: NamedFieldsEnum
+    #[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
+    pub enum NamedFieldsEnum {
+        Point { x: f64, y: f64 },
 
-            field2,
+        Circle { radius: f64 },
 
-            field3,
+        Pubkey { pubkey1: Pubkey, pubkey2: Pubkey },
+    }
+
+    /// Custom struct: NestedStruct
+    #[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
+    pub struct NestedStruct {
+        pub inner: ClassicStruct,
+
+        pub key: Pubkey,
+    }
+
+    impl NestedStruct {
+        pub fn new(inner: ClassicStruct, key: Pubkey) -> Self {
+            Self { inner, key }
         }
     }
-}
 
-/// Custom enum: SimpleEnum
-#[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
-pub enum SimpleEnum {
-    Variant1,
+    /// Custom struct: NestedStructAccount
+    #[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
+    pub struct NestedStructAccount {
+        pub inner: ClassicStructAccount,
+    }
 
-    Variant2,
-
-    Pubkey,
-}
-
-/// Custom struct: TupleStruct
-#[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
-pub struct TupleStruct {
-    pub field_0: u8,
-
-    pub field_1: u16,
-
-    pub field_2: Pubkey,
-}
-
-impl TupleStruct {
-    pub fn new(field_0: u8, field_1: u16, field_2: Pubkey) -> Self {
-        Self {
-            field_0,
-
-            field_1,
-
-            field_2,
+    impl NestedStructAccount {
+        pub fn new(inner: ClassicStructAccount) -> Self {
+            Self { inner }
         }
     }
-}
 
-/// Custom struct: TupleStructAccount
-#[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
-pub struct TupleStructAccount {
-    pub field_0: u8,
+    /// Custom struct: OptionalFields
+    #[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
+    pub struct OptionalFields {
+        pub field1: Option<u8>,
 
-    pub field_1: u16,
+        pub field2: Option<u16>,
 
-    pub field_2: Pubkey,
-}
+        pub field3: Option<Pubkey>,
+    }
 
-impl TupleStructAccount {
-    pub fn new(field_0: u8, field_1: u16, field_2: Pubkey) -> Self {
-        Self {
-            field_0,
+    impl OptionalFields {
+        pub fn new(field1: Option<u8>, field2: Option<u16>, field3: Option<Pubkey>) -> Self {
+            Self {
+                field1,
 
-            field_1,
+                field2,
 
-            field_2,
+                field3,
+            }
         }
     }
-}
 
-/// Custom struct: UnitStruct
-#[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
-pub struct UnitStruct {}
+    /// Custom struct: OptionalFieldsAccount
+    #[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
+    pub struct OptionalFieldsAccount {
+        pub field1: Option<u8>,
 
-/// Custom struct: UnitStructAccount
-#[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
-pub struct UnitStructAccount {}
+        pub field2: Option<u16>,
 
-/// Custom enum: UnitVariants
-#[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
-pub enum UnitVariants {
-    VariantA,
+        pub field3: Option<Pubkey>,
+    }
 
-    VariantB,
+    impl OptionalFieldsAccount {
+        pub fn new(field1: Option<u8>, field2: Option<u16>, field3: Option<Pubkey>) -> Self {
+            Self {
+                field1,
 
-    VariantC,
+                field2,
+
+                field3,
+            }
+        }
+    }
+
+    /// Custom enum: SimpleEnum
+    #[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
+    pub enum SimpleEnum {
+        Variant1,
+
+        Variant2,
+
+        Pubkey,
+    }
+
+    /// Custom struct: TupleStruct
+    #[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
+    pub struct TupleStruct {
+        pub field_0: u8,
+
+        pub field_1: u16,
+
+        pub field_2: Pubkey,
+    }
+
+    impl TupleStruct {
+        pub fn new(field_0: u8, field_1: u16, field_2: Pubkey) -> Self {
+            Self {
+                field_0,
+
+                field_1,
+
+                field_2,
+            }
+        }
+    }
+
+    /// Custom struct: TupleStructAccount
+    #[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
+    pub struct TupleStructAccount {
+        pub field_0: u8,
+
+        pub field_1: u16,
+
+        pub field_2: Pubkey,
+    }
+
+    impl TupleStructAccount {
+        pub fn new(field_0: u8, field_1: u16, field_2: Pubkey) -> Self {
+            Self {
+                field_0,
+
+                field_1,
+
+                field_2,
+            }
+        }
+    }
+
+    /// Custom struct: UnitStruct
+    #[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
+    pub struct UnitStruct {}
+
+    /// Custom struct: UnitStructAccount
+    #[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
+    pub struct UnitStructAccount {}
+
+    /// Custom enum: UnitVariants
+    #[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
+    pub enum UnitVariants {
+        VariantA,
+
+        VariantB,
+
+        VariantC,
+    }
 }
 
 // ============================================================================
