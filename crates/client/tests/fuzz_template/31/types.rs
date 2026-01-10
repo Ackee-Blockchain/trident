@@ -964,7 +964,7 @@ pub mod idl_test {
     // ------------------------------------------------------------------------
 
     /// Custom struct: ClassicStruct
-    #[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
+    #[derive(Debug, BorshDeserialize, BorshSerialize, Clone, PartialEq)]
     pub struct ClassicStruct {
         pub field1: u8,
 
@@ -986,7 +986,7 @@ pub mod idl_test {
     }
 
     /// Custom struct: ClassicStructAccount
-    #[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
+    #[derive(Debug, BorshDeserialize, BorshSerialize, Clone, PartialEq)]
     pub struct ClassicStructAccount {
         pub field1: u8,
 
@@ -1008,7 +1008,7 @@ pub mod idl_test {
     }
 
     /// Custom struct: DataAccount
-    #[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
+    #[derive(Debug, BorshDeserialize, BorshSerialize, Clone, PartialEq)]
     pub struct DataAccount {
         pub unit_struct: UnitStruct,
 
@@ -1096,7 +1096,7 @@ pub mod idl_test {
     }
 
     /// Custom enum: DataEnum
-    #[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
+    #[derive(Debug, BorshDeserialize, BorshSerialize, Clone, PartialEq)]
     pub enum DataEnum {
         Integer(i32),
 
@@ -1108,7 +1108,7 @@ pub mod idl_test {
     }
 
     /// Custom struct: DefaultStruct
-    #[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
+    #[derive(Debug, BorshDeserialize, BorshSerialize, Clone, PartialEq)]
     pub struct DefaultStruct {
         pub field1: u8,
 
@@ -1130,7 +1130,7 @@ pub mod idl_test {
     }
 
     /// Custom enum: GenericEnum
-    #[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
+    #[derive(Debug, BorshDeserialize, BorshSerialize, Clone, PartialEq)]
     pub enum GenericEnum {
         Value(T),
 
@@ -1138,7 +1138,7 @@ pub mod idl_test {
     }
 
     /// Custom struct: GenericStruct
-    #[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
+    #[derive(Debug, BorshDeserialize, BorshSerialize, Clone, PartialEq)]
     pub struct GenericStruct {
         pub value: T,
 
@@ -1152,7 +1152,7 @@ pub mod idl_test {
     }
 
     /// Custom enum: MultiDataEnum
-    #[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
+    #[derive(Debug, BorshDeserialize, BorshSerialize, Clone, PartialEq)]
     pub enum MultiDataEnum {
         Pair(i32, i32),
 
@@ -1162,7 +1162,7 @@ pub mod idl_test {
     }
 
     /// Custom enum: NamedFieldsEnum
-    #[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
+    #[derive(Debug, BorshDeserialize, BorshSerialize, Clone, PartialEq)]
     pub enum NamedFieldsEnum {
         Point { x: f64, y: f64 },
 
@@ -1172,7 +1172,7 @@ pub mod idl_test {
     }
 
     /// Custom struct: NestedStruct
-    #[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
+    #[derive(Debug, BorshDeserialize, BorshSerialize, Clone, PartialEq)]
     pub struct NestedStruct {
         pub inner: ClassicStruct,
 
@@ -1186,7 +1186,7 @@ pub mod idl_test {
     }
 
     /// Custom struct: NestedStructAccount
-    #[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
+    #[derive(Debug, BorshDeserialize, BorshSerialize, Clone, PartialEq)]
     pub struct NestedStructAccount {
         pub inner: ClassicStructAccount,
     }
@@ -1198,7 +1198,7 @@ pub mod idl_test {
     }
 
     /// Custom struct: OptionalFields
-    #[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
+    #[derive(Debug, BorshDeserialize, BorshSerialize, Clone, PartialEq)]
     pub struct OptionalFields {
         pub field1: Option<u8>,
 
@@ -1220,7 +1220,7 @@ pub mod idl_test {
     }
 
     /// Custom struct: OptionalFieldsAccount
-    #[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
+    #[derive(Debug, BorshDeserialize, BorshSerialize, Clone, PartialEq)]
     pub struct OptionalFieldsAccount {
         pub field1: Option<u8>,
 
@@ -1242,7 +1242,7 @@ pub mod idl_test {
     }
 
     /// Custom enum: SimpleEnum
-    #[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
+    #[derive(Debug, BorshDeserialize, BorshSerialize, Clone, PartialEq)]
     pub enum SimpleEnum {
         Variant1,
 
@@ -1252,7 +1252,7 @@ pub mod idl_test {
     }
 
     /// Custom struct: TupleStruct
-    #[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
+    #[derive(Debug, BorshDeserialize, BorshSerialize, Clone, PartialEq)]
     pub struct TupleStruct {
         pub field_0: u8,
 
@@ -1274,7 +1274,7 @@ pub mod idl_test {
     }
 
     /// Custom struct: TupleStructAccount
-    #[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
+    #[derive(Debug, BorshDeserialize, BorshSerialize, Clone, PartialEq)]
     pub struct TupleStructAccount {
         pub field_0: u8,
 
@@ -1296,15 +1296,15 @@ pub mod idl_test {
     }
 
     /// Custom struct: UnitStruct
-    #[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
+    #[derive(Debug, BorshDeserialize, BorshSerialize, Clone, PartialEq)]
     pub struct UnitStruct {}
 
     /// Custom struct: UnitStructAccount
-    #[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
+    #[derive(Debug, BorshDeserialize, BorshSerialize, Clone, PartialEq)]
     pub struct UnitStructAccount {}
 
     /// Custom enum: UnitVariants
-    #[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
+    #[derive(Debug, BorshDeserialize, BorshSerialize, Clone, PartialEq)]
     pub enum UnitVariants {
         VariantA,
 

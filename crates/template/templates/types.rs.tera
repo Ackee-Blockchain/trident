@@ -362,7 +362,7 @@ pub mod {{ program.module_name }} {
 {% for custom_type in program.custom_types %}
 {% if custom_type.type == "struct" %}
     /// Custom struct: {{ custom_type.name }}
-    #[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
+    #[derive(Debug, BorshDeserialize, BorshSerialize, Clone, PartialEq)]
     pub struct {{ custom_type.name }} {
 {% if custom_type.fields %}
 {% if custom_type.fields.type == "named" %}
@@ -406,7 +406,7 @@ pub mod {{ program.module_name }} {
 {% endif %}
 {% elif custom_type.type == "enum" %}
     /// Custom enum: {{ custom_type.name }}
-    #[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
+    #[derive(Debug, BorshDeserialize, BorshSerialize, Clone, PartialEq)]
     pub enum {{ custom_type.name }} {
 {% for variant in custom_type.variants %}
 {% if variant.fields %}
