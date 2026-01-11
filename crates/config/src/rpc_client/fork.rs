@@ -80,20 +80,25 @@ pub(crate) fn fetch_from_rpc(
     let account = fetch_account(&client, address, cluster)?;
     let owner = *account.owner();
 
-    // Handle different account types
+    // Handle different account types based on loader
     match owner {
+        solana_sdk::bpf_loader_deprecated::ID => {
+            eprintln!("  Detected v1 loader (deprecated), loading as regular account");
+            Ok(vec![(*address, account)])
+        }
+
         solana_sdk::bpf_loader::ID => {
-            eprintln!("BPF Loader v2 not supported. Skipping: {}", address);
-            Ok(vec![])
+            eprintln!("  Detected v2 loader (bpf_loader), loading as regular account");
+            Ok(vec![(*address, account)])
         }
 
         solana_sdk::bpf_loader_upgradeable::ID => {
-            eprintln!("  Detected v3 upgradeable program");
+            eprintln!("  Detected v3 loader (upgradeable)");
             fetch_v3_program(&client, address, account, cluster)
         }
 
         solana_sdk::loader_v4::ID => {
-            eprintln!("  Warning: v4 loader not fully supported");
+            eprintln!("  Detected v4 loader (not fully supported)");
             Ok(vec![(*address, account)])
         }
 

@@ -161,11 +161,6 @@ impl Trident {
                 if let Some(program_data_pubkey) = Self::get_program_data_address(account) {
                     // This is a program account, load it properly with its data
                     if let Some(program_data_account) = forked_map.get(&program_data_pubkey) {
-                        eprintln!(
-                            "Loading forked v3 program: {} (data: {})",
-                            pubkey, program_data_pubkey
-                        );
-
                         // Extract the actual program bytecode from the program data account
                         let program_data = Self::extract_program_data(program_data_account);
 

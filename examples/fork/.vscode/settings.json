@@ -1,0 +1,6 @@
+{
+  "rust-analyzer.linkedProjects": [
+    "./Cargo.toml",
+    "./trident-tests/Cargo.toml"
+  ]
+}
