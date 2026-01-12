@@ -7,6 +7,10 @@ This section contains advanced customization options for Trident.
 - [Invariants and Assertions](./invariants-assertions/index.md) - Validate program behavior with custom invariants and assertions
 - [Multi-Instruction Transactions](./multi-instruction-transactions/index.md) - Execute multiple instructions in a single transaction
 
+## External State
+
+- [Forking](./forking/index.md) - Fork accounts from mainnet, devnet, or testnet for testing
+
 ## Analysis & Visualization
 
 - [Code Coverage](./code-coverage/index.md) - Measure code coverage of the fuzzed program

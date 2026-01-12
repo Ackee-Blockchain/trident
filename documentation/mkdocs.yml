@@ -29,6 +29,9 @@ nav:
             - trident-advanced/invariants-assertions/index.md
           - Multi-Instruction Transactions:
             - trident-advanced/multi-instruction-transactions/index.md
+      - External State:
+          - Forking:
+            - trident-advanced/forking/index.md
       - Analysis & Visualization:
           - Code Coverage:
             - trident-advanced/code-coverage/index.md

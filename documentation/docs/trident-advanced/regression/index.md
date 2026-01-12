@@ -29,7 +29,7 @@ Trident enables regression testing by allowing you to specify which accounts sho
     }
     ```
 
-3. Enable the regression test in the [Trident manifest](../../trident-manifest/index.md#fuzzing-metrics) by setting:
+3. Enable the regression test in the [Trident manifest](../../trident-manifest/index.md#regression) by setting:
 
     ```toml
     [fuzz.regression]

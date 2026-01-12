@@ -32,6 +32,14 @@ hide:
 
     [CPI with Metaplex Metadata Program](https://github.com/Ackee-Blockchain/trident/tree/develop/examples/metaplex)
 
+-   :material-source-fork:{ .lg .middle } __Forking__
+
+    ---
+
+    Fork accounts from mainnet, devnet, or testnet to test against real-world state.
+
+    [Fork Example](https://github.com/Ackee-Blockchain/trident/tree/develop/examples/fork)
+
 -   :material-google-analytics:{ .lg .middle } __Benchmarking__
 
     ---
