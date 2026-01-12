@@ -1,0 +1,32 @@
+[fuzz.metrics]
+enabled = true
+
+
+[[fuzz.programs]]
+address = "9nGj2iwXYhaQktGxiJgJ5aGBhfSb5ubYXxc1bZy4MD2k"
+program = "../target/deploy/fork.so"
+ 
+
+[[fuzz.fork]]
+address = "moontUzsdepotRGe5xsfip7vLPTJnVuafqdUWexVnPM"
+cluster = "m"
+
+
+[[fuzz.fork]]
+address = "KLend2g3cP87fffoy8q1mQqGKjrxjC8boSyAYavgmjD"
+cluster = "m"
+
+
+[[fuzz.fork]]
+address = "JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4"
+cluster = "m"
+
+
+[[fuzz.fork]]
+address = "vBoNdEvzMrSai7is21XgVYik65mqtaKXuSdMBJ1xkW4"
+cluster = "m"
+
+
+[[fuzz.fork]]
+address = "So11111111111111111111111111111111111111112"
+cluster = "m"

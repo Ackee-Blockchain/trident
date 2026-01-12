@@ -26,30 +26,43 @@ jobs:
           - name: "Hello World"
             path: "examples/hello_world"
             cache-key: "hello-world"
+            command: "trident fuzz run fuzz_0"
           - name: "Simple CPI"
             path: "examples/cpi"
             cache-key: "simple-cpi"
+            command: "trident fuzz run fuzz_0"
           - name: "Trident Benchmark Maze 0"
             path: "examples/trident-benchmark/maze_0"
             cache-key: "maze-0"
+            command: "trident fuzz run fuzz_0"
           - name: "Trident Benchmark Maze 1"
             path: "examples/trident-benchmark/maze_1"
             cache-key: "maze-1"
+            command: "trident fuzz run fuzz_0"
           - name: "Trident Benchmark Maze 2"
             path: "examples/trident-benchmark/maze_2"
             cache-key: "maze-2"
+            command: "trident fuzz run fuzz_0"
           - name: "Trident Benchmark Maze 3"
             path: "examples/trident-benchmark/maze_3"
             cache-key: "maze-3"
+            command: "trident fuzz run fuzz_0"
           - name: "Trident Benchmark Maze 4"
             path: "examples/trident-benchmark/maze_4"
             cache-key: "maze-4"
+            command: "trident fuzz run fuzz_0"
           - name: "Metaplex CPI"
             path: "examples/metaplex"
             cache-key: "metaplex"
+            command: "trident fuzz run fuzz_0"
           - name: "Token"
             path: "examples/token"
             cache-key: "token"
+            command: "trident fuzz run fuzz_0"
+          - name: "Fork"
+            path: "examples/fork"
+            cache-key: "fork"
+            command: "trident fuzz run fuzz_0 --with-exit-code"
     
     steps:
       - uses: actions/checkout@v3
@@ -87,7 +100,7 @@ jobs:
 
       - name: Run Fuzz Test
         working-directory: ${{ matrix.test.path }}/trident-tests
-        run: trident fuzz run fuzz_0
+        run: ${{ matrix.test.command }}
 
 
   checks:

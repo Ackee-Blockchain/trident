@@ -16,7 +16,7 @@ Features:
 
 ## Viewing the Dashboard
 
-1. Enable the dashboard in the [Trident manifest](../../trident-manifest/index.md#fuzzing-metrics) by setting `dashboard = true`:
+1. Enable the dashboard in the [Trident manifest](../../trident-manifest/index.md#metrics) by setting `dashboard = true`:
 
     ```toml
     [fuzz.metrics]
