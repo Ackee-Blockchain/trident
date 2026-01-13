@@ -29,8 +29,8 @@ project-root
 ├── trident-tests
 │   ├── .fuzz-artifacts         # Fuzzing artifacts (dashboard, metrics, etc.)
 │   ├── fuzz_0                  # Your first fuzz test
-│   │   ├── test_fuzz.rs        # Main fuzz test logic
 │   │   ├── fuzz_accounts.rs    # Account addresses storage
+│   │   ├── test_fuzz.rs        # Main fuzz test logic
 │   │   └── types.rs            # IDL-like generated types
 │   ├── fuzz_1                  # Additional fuzz tests
 │   ├── fuzz_X                  # Multiple fuzz tests supported
