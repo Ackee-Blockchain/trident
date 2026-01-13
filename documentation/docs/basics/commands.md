@@ -12,9 +12,9 @@ Creates the following structure:
 project-root
 ├── trident-tests
 │   ├── fuzz_0 # particular fuzz test
-│   │   ├── fuzz_accounts.rs # storage for all account addresses used in fuzz testing
-│   │   ├── test_fuzz.rs # your fuzz test
-│   │   └── types.rs # the types of your fuzz test
+│   │   ├── fuzz_accounts.rs # Account addresses storage
+│   │   ├── test_fuzz.rs # Main fuzz test logic
+│   │   └── types.rs # IDL-like generated types
 │   ├── fuzz_1
 │   ├── fuzz_X # possible multiple fuzz tests
 │   ├── target
