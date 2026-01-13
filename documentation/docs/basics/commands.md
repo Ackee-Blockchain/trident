@@ -4,7 +4,7 @@ Trident CLI supports the following commands:
 
 ## `trident init`
 
-Initializes Trident Workspace and generates new Fuzz Test Template. Works with both **Anchor** and **vanilla Solana** programs.
+Initializes Trident Workspace and generates a new Fuzz Test Template. Works with both **Anchor** and **vanilla Solana** programs.
 
 Creates the following structure:
 
@@ -12,12 +12,12 @@ Creates the following structure:
 project-root
 ├── trident-tests
 │   ├── fuzz_0 # particular fuzz test
-│   │   ├── test_fuzz.rs # the binary target of your fuzz test
-│   │   ├── types.rs # the types of your fuzz test
-│   │   └── fuzz_instructions.rs # the definition of your fuzz test
+│   │   ├── fuzz_accounts.rs # Account addresses storage
+│   │   ├── test_fuzz.rs # Main fuzz test logic
+│   │   └── types.rs # IDL-like generated types
 │   ├── fuzz_1
 │   ├── fuzz_X # possible multiple fuzz tests
-│   ├── fuzzing # compilations and crashes folder
+│   ├── target
 │   ├── Cargo.toml
 │   └── Trident.toml # Configuration file located in trident-tests directory
 └── ...
