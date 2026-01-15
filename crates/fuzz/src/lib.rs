@@ -66,6 +66,14 @@ pub mod fuzzing {
     pub use reqwest;
     pub use tokio;
 
+    /// SPL Token Program ID
+    #[cfg(feature = "token")]
+    pub const SPL_TOKEN_ID: Pubkey = spl_token_interface::ID;
+
+    /// SPL Token-2022 Program ID
+    #[cfg(feature = "token")]
+    pub const SPL_TOKEN_2022_ID: Pubkey = spl_token_2022_interface::ID;
+
     #[cfg(feature = "token")]
     pub use super::trident::AccountExtension;
     #[cfg(feature = "token")]
