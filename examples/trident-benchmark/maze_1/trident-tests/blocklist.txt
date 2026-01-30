@@ -1,0 +1,8 @@
+# Block all harness/trident code from instrumentation
+src:*test_fuzz*
+src:*trident*
+src:*fuzz*
+src:*solana*
+src:*anchor*
+fun:main
+fun:*fuzz*

@@ -15,7 +15,7 @@ impl Trident {
         self.fuzzing_data.add_master_seed(&hex::encode(seed));
     }
 
-    pub(crate) fn next_iteration(&mut self) {
+    pub fn next_iteration(&mut self) {
         self.client.clear_accounts();
         self.rng.rotate_seed();
     }

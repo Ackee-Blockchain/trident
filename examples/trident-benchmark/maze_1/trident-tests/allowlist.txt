@@ -1,0 +1,2 @@
+# Empty allowlist - match nothing, so harness is not instrumented
+# All coverage comes from sBPF traces via traces_to_coverage_map()

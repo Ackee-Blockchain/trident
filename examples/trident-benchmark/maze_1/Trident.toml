@@ -1,4 +1,0 @@
-# For the detailed description of the parameters, see: https://ackee.xyz/trident/docs/latest/features/trident-manifest/
-
-[fuzz]
-fuzzing_with_stats = true
