@@ -12,7 +12,7 @@ use crate::trident_rng::TridentRng;
 mod client;
 pub mod flow_executor;
 mod system;
-mod transaction_result;
+pub mod transaction_result;
 
 mod metrics;
 mod random;
