@@ -7756,7 +7756,8 @@ dependencies = [
 [[package]]
 name = "trident-svm"
 version = "0.3.0-rc.1"
-source = "git+https://github.com/Ackee-Blockchain/trident-svm?branch=develop#2b55765b8b20eef47d11f47089a7d062777eda29"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "dea70bb441e24c0c56bc8294407a826f413ba9d5eec8115f88e7d751c0004692"
 dependencies = [
  "bincode",
  "log",
