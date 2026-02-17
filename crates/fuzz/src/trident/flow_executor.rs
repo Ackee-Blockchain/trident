@@ -493,7 +493,7 @@ pub trait FlowExecutor: Send + 'static + Sized {
             .unwrap_or(0);
 
         // Collect coverage at specified intervals
-        if loopcount > 0 && current_iteration > 0 && current_iteration % loopcount == 0 {
+        if loopcount > 0 && current_iteration > 0 && current_iteration.is_multiple_of(loopcount) {
             // Call the macro-generated LLVM method to write coverage data
             fuzzer.handle_llvm_coverage(current_iteration);
 

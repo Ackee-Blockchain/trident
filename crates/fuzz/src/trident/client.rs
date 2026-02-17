@@ -430,12 +430,12 @@ impl Trident {
                                                 trident_svm::prelude::Level::Error,
                                             );
                                         }
-                                        if log_as.is_some() {
+                                        if let Some(log_as) = log_as {
                                             let rng = self.rng.get_seed();
                                             // TODO format instructions
                                             let tx = format!("{:#?}", instructions);
                                             self.fuzzing_data.add_transaction_panicked(
-                                                log_as.unwrap(),
+                                                log_as,
                                                 rng,
                                                 instruction_error.to_string(),
                                                 executed_transaction.execution_details.log_messages.clone(),
