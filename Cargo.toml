@@ -43,3 +43,6 @@ solana-loader-v2-interface = "2"
 solana-loader-v3-interface = "5"
 solana-loader-v4-interface = "2"
 syn = { version = "2.0", features = ["full", "parsing", "visit"] }
+
+# Trident IDL spec
+trident-idl-spec = "0.0.3"

@@ -7746,7 +7746,8 @@ dependencies = [
 [[package]]
 name = "trident-idl-spec"
 version = "0.0.3"
-source = "git+https://github.com/Ackee-Blockchain/trident-idl-spec?branch=master#4dd2448be821bef6fc119349c134c06121048793"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cfa9aa18f106639d0b65f680f7cbf27560ae8a35fdcad4bf5cfd2326dd706d16"
 dependencies = [
  "quote",
  "serde",
