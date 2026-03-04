@@ -1,0 +1,33 @@
+name: "Install Solana"
+description: "Installs Solana CLI tools at a specified version"
+inputs:
+  solana-version:
+    description: "Solana version to install (e.g., v2.2.16)"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Cache Solana CLI
+      id: cache-solana
+      uses: actions/cache@v4
+      with:
+        path: ~/.local/share/solana/install
+        key: solana-${{ inputs.solana-version }}-${{ runner.os }}
+
+    - name: Install Solana CLI
+      if: steps.cache-solana.outputs.cache-hit != 'true'
+      shell: bash
+      run: |
+        sh -c "$(curl -sSfL https://release.anza.xyz/${{ inputs.solana-version }}/install)"
+
+    - name: Add Solana to PATH
+      shell: bash
+      run: |
+        echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
+
+    - name: Verify Solana Installation
+      shell: bash
+      run: |
+        export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
+        solana --version
