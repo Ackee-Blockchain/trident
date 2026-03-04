@@ -4,6 +4,7 @@ use clap::Subcommand;
 use fehler::throws;
 use heck::ToSnakeCase;
 use trident_client::___private::Commander;
+use trident_client::___private::ExitCodeMode;
 use trident_client::___private::ProjectType;
 use trident_client::___private::TestGenerator;
 
@@ -58,12 +59,13 @@ pub(crate) enum FuzzCommand {
         )]
         target: String,
         #[arg(
-            short,
-            long,
+            short = 'e',
+            long = "exit-code",
             required = false,
-            help = "Run the fuzzing with exit code, i.e. if it discovers invariant failures or panics the Trident will exit with exit code."
+            value_name = "MODE",
+            help = "Exit with non-zero code on failures. Modes: 'all' (any failure), 'invariants' (only fuzz test assertions), 'panics' (only program panics)."
         )]
-        with_exit_code: bool,
+        exit_code: Option<ExitCodeMode>,
         #[arg(
             required = false,
             help = "Master seed used for fuzzing, if not provided it will be generated randomly."
@@ -134,12 +136,12 @@ pub(crate) async fn fuzz(subcmd: FuzzCommand) {
     match subcmd {
         FuzzCommand::Run {
             target,
-            with_exit_code,
+            exit_code,
             seed,
         } => {
             let commander = Commander::new(&root);
 
-            commander.run(target, with_exit_code, seed).await?;
+            commander.run(target, exit_code, seed).await?;
         }
         FuzzCommand::Debug { target, seed } => {
             let commander = Commander::new(&root);

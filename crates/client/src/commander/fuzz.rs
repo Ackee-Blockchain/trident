@@ -1,5 +1,6 @@
 use crate::coverage::Coverage;
 use crate::coverage::NotificationType;
+use crate::exit_code::ExitCodeMode;
 use crate::utils::generate_unique_fuzz_filename;
 use fehler::throw;
 use fehler::throws;
@@ -13,7 +14,12 @@ use super::Error;
 
 impl Commander {
     #[throws]
-    pub async fn run(&self, target: String, with_exit_code: bool, seed: Option<String>) {
+    pub async fn run(
+        &self,
+        target: String,
+        exit_code_mode: Option<ExitCodeMode>,
+        seed: Option<String>,
+    ) {
         let config = TridentConfig::new();
 
         if config.get_metrics() {
@@ -65,21 +71,26 @@ impl Commander {
 
         let coverage_config = config.get_coverage();
         if coverage_config.get_enable() {
-            self.run_with_coverage(&target, &config, coverage_config, seed, with_exit_code)
+            self.run_with_coverage(&target, &config, coverage_config, seed, exit_code_mode)
                 .await?;
         } else {
-            self.run_default(&target, seed, with_exit_code).await?;
+            self.run_default(&target, seed, exit_code_mode).await?;
         }
     }
 
     #[throws]
-    pub async fn run_default(&self, target: &str, seed: Option<String>, with_exit_code: bool) {
+    pub async fn run_default(
+        &self,
+        target: &str,
+        seed: Option<String>,
+        exit_code_mode: Option<ExitCodeMode>,
+    ) {
         let mut env_vars = HashMap::new();
-        if with_exit_code {
-            env_vars.insert("TRIDENT_WITH_EXIT_CODE", "1".to_string());
+        if let Some(mode) = exit_code_mode {
+            env_vars.insert("TRIDENT_EXIT_CODE_MODE", mode.to_env_value().to_string());
         }
         let mut child = self.spawn_fuzzer(target, env_vars, seed)?;
-        Self::handle_child(&mut child, with_exit_code).await?;
+        Self::handle_child(&mut child, exit_code_mode.is_some()).await?;
     }
 
     #[throws]
@@ -89,7 +100,7 @@ impl Commander {
         config: &TridentConfig,
         coverage_config: CoverageConfig,
         seed: Option<String>,
-        with_exit_code: bool,
+        exit_code_mode: Option<ExitCodeMode>,
     ) {
         if let Err(err) = coverage_config.validate() {
             throw!(Error::Anyhow(anyhow::anyhow!(err)));
@@ -111,13 +122,13 @@ impl Commander {
         coverage.clean().await?;
 
         let mut env_vars = self.setup_coverage_env_vars(&coverage, config).await?;
-        if with_exit_code {
-            env_vars.insert("TRIDENT_WITH_EXIT_CODE", "1".to_string());
+        if let Some(mode) = exit_code_mode {
+            env_vars.insert("TRIDENT_EXIT_CODE_MODE", mode.to_env_value().to_string());
         }
         let mut child = self.spawn_fuzzer(target, env_vars, seed)?;
 
         coverage.notify_extension(NotificationType::Setup).await?;
-        Self::handle_child(&mut child, with_exit_code).await?;
+        Self::handle_child(&mut child, exit_code_mode.is_some()).await?;
 
         coverage.generate_report().await?;
     }
