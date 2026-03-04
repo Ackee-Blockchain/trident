@@ -497,7 +497,8 @@ pub trait FlowExecutor: Send + 'static + Sized {
 
             // Handle any panics that occurred (invariant/assertion failures in fuzz tests)
             if let Err(panic_err) = panic_result {
-                let panic_msg = Self::handle_panic(&panic_err, &mut fuzzer, Some(&invariant_failed));
+                let panic_msg =
+                    Self::handle_panic(&panic_err, &mut fuzzer, Some(&invariant_failed));
                 progress_bar.println(panic_msg);
             }
 
