@@ -114,7 +114,27 @@ Runs the specified Fuzz Target using Trident's Manually Guided Fuzzing (e.g., fu
 
 #### Options
 
-- `-w, --with-exit-code` - Run the fuzzing with exit code, i.e. if it discovers invariant failures or panics the Trident will exit with exit code.
+- `-e, --exit-code <MODE>` - Exit with non-zero code on failures. Available modes:
+
+    - `all` - Exit non-zero on any failure (program panics or invariant failures)
+    - `invariants` - Exit non-zero only on fuzz test assertion/invariant failures
+    - `panics` - Exit non-zero only on program panics (program failed to complete)
+
+**Examples:**
+
+```bash
+# Run without exit code handling
+trident fuzz run fuzz_0
+
+# Exit non-zero on any failure
+trident fuzz run fuzz_0 --exit-code all
+
+# Exit non-zero only on invariant failures (useful in CI to catch assertion bugs)
+trident fuzz run fuzz_0 -e invariants
+
+# Exit non-zero only on program panics (useful to detect unhandled errors)
+trident fuzz run fuzz_0 -e panics
+```
 
 ---
 

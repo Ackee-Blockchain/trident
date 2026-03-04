@@ -6,6 +6,7 @@
 mod commander;
 mod coverage;
 mod error;
+mod exit_code;
 mod idl_loader;
 mod server;
 mod test_generator;
@@ -16,6 +17,7 @@ mod utils;
 pub mod ___private {
     pub use super::commander::Commander;
     pub use super::commander::Error;
+    pub use super::exit_code::ExitCodeMode;
     pub use super::idl_loader::load_idls;
     pub use super::idl_loader::load_idls_from_files;
     pub use super::idl_loader::IdlError;

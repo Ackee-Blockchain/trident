@@ -34,7 +34,42 @@ mod config {
     pub const ENV_FUZZ_DEBUG: &str = "TRIDENT_FUZZ_DEBUG";
     pub const ENV_FUZZ_SEED: &str = "TRIDENT_FUZZ_SEED";
     pub const ENV_FUZZING_METRICS: &str = "FUZZING_METRICS";
-    pub const ENV_WITH_EXIT_CODE: &str = "TRIDENT_WITH_EXIT_CODE";
+    pub const ENV_EXIT_CODE_MODE: &str = "TRIDENT_EXIT_CODE_MODE";
+}
+
+/// Specifies which type of failures should cause a non-zero exit code.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ExitCodeMode {
+    /// Exit non-zero on any failure (program panics or invariant failures)
+    All,
+    /// Exit non-zero only on invariant/assert failures in fuzz tests
+    Invariants,
+    /// Exit non-zero only on program panics (program failed to complete)
+    Panics,
+}
+
+impl ExitCodeMode {
+    /// Parse from environment variable value
+    pub fn from_env() -> Option<Self> {
+        std::env::var(config::ENV_EXIT_CODE_MODE).ok().map(|s| {
+            match s.to_lowercase().as_str() {
+                "all" => ExitCodeMode::All,
+                "invariants" => ExitCodeMode::Invariants,
+                "panics" => ExitCodeMode::Panics,
+                _ => ExitCodeMode::All, // Default to All for backwards compatibility
+            }
+        })
+    }
+
+    /// Check if this mode should trigger exit code for invariant failures
+    pub fn triggers_on_invariants(&self) -> bool {
+        matches!(self, ExitCodeMode::All | ExitCodeMode::Invariants)
+    }
+
+    /// Check if this mode should trigger exit code for program panics
+    pub fn triggers_on_panics(&self) -> bool {
+        matches!(self, ExitCodeMode::All | ExitCodeMode::Panics)
+    }
 }
 
 /// Trait for executing fuzzing flows in the Trident framework
@@ -156,15 +191,15 @@ pub trait FlowExecutor: Send + 'static + Sized {
             .unwrap_or_else(|| "unknown panic".to_string())
     }
 
-    /// Handles a caught panic by logging it and updating the panic tracking flag.
+    /// Handles a caught panic (invariant/assertion failure) by logging it and updating the tracking flag.
     /// Returns the formatted panic message for display.
     fn handle_panic(
         panic_err: &Box<dyn std::any::Any + Send>,
         fuzzer: &mut Self,
-        panic_occurred: Option<&Arc<AtomicBool>>,
+        invariant_failed: Option<&Arc<AtomicBool>>,
     ) -> String {
-        // Mark that a panic occurred (for exit code handling)
-        if let Some(flag) = panic_occurred {
+        // Mark that an invariant/assertion failure occurred (for exit code handling)
+        if let Some(flag) = invariant_failed {
             flag.store(true, Ordering::Relaxed);
         }
 
@@ -180,23 +215,35 @@ pub trait FlowExecutor: Send + 'static + Sized {
         )
     }
 
-    /// Determines the exit code based on panic status and configuration.
-    /// Returns 99 if with_exit_code is enabled and panics occurred, otherwise uses metrics exit code.
+    /// Determines the exit code based on panic status, program panics, and exit code mode.
+    ///
+    /// - `exit_code_mode`: The mode specifying which failures trigger non-zero exit
+    /// - `invariant_failed`: True if fuzz test assertions/invariants failed (caught panics)
+    /// - `fuzzing_data`: Contains program panic information (transaction_panicked > 0)
+    ///
+    /// Returns 99 if the specified failure type occurred, 0 otherwise.
     fn determine_exit_code(
-        with_exit_code: bool,
-        panic_occurred: bool,
+        exit_code_mode: Option<ExitCodeMode>,
+        invariant_failed: bool,
         fuzzing_data: &TridentFuzzingData,
     ) -> i32 {
-        if with_exit_code {
-            // When exit code mode is enabled, return 99 if any panics occurred
-            if panic_occurred || fuzzing_data.get_exit_code() != 0 {
-                99
-            } else {
-                0
-            }
+        let Some(mode) = exit_code_mode else {
+            // No exit code mode specified - use metrics exit code (program panics only)
+            return fuzzing_data.get_exit_code();
+        };
+
+        let program_panicked = fuzzing_data.get_exit_code() != 0;
+
+        let should_fail = match mode {
+            ExitCodeMode::All => invariant_failed || program_panicked,
+            ExitCodeMode::Invariants => invariant_failed,
+            ExitCodeMode::Panics => program_panicked,
+        };
+
+        if should_fail {
+            99
         } else {
-            // Otherwise, use the exit code from metrics (which may be 0 or 99)
-            fuzzing_data.get_exit_code()
+            0
         }
     }
 
@@ -253,8 +300,8 @@ pub trait FlowExecutor: Send + 'static + Sized {
     fn fuzz_single_threaded(iterations: u64, flow_calls_per_iteration: u64) {
         let mut fuzzer = Self::new();
         let is_debug_mode = std::env::var(config::ENV_FUZZ_DEBUG).is_ok();
-        let with_exit_code = std::env::var(config::ENV_WITH_EXIT_CODE).is_ok();
-        let mut panic_occurred = false; // Simple bool since we're single-threaded
+        let exit_code_mode = ExitCodeMode::from_env();
+        let mut invariant_failed = false; // Tracks fuzz test assertion/invariant failures
 
         // Configure debug seed if in debug mode
         if is_debug_mode {
@@ -291,9 +338,9 @@ pub trait FlowExecutor: Send + 'static + Sized {
                 let _ = fuzzer.execute_flows(flow_calls_per_iteration);
             }));
 
-            // Handle any panics that occurred
+            // Handle any panics that occurred (invariant/assertion failures in fuzz tests)
             if let Err(panic_err) = panic_result {
-                panic_occurred = true;
+                invariant_failed = true;
                 let panic_msg = Self::handle_panic(&panic_err, &mut fuzzer, None);
 
                 // Display panic message via progress bar or stderr
@@ -328,9 +375,9 @@ pub trait FlowExecutor: Send + 'static + Sized {
         Self::output_metrics_if_enabled(&fuzzing_data);
 
         // Exit with appropriate code if exit code mode is enabled
-        if with_exit_code {
+        if exit_code_mode.is_some() {
             let exit_code =
-                Self::determine_exit_code(with_exit_code, panic_occurred, &fuzzing_data);
+                Self::determine_exit_code(exit_code_mode, invariant_failed, &fuzzing_data);
             std::process::exit(exit_code);
         }
     }
@@ -345,8 +392,8 @@ pub trait FlowExecutor: Send + 'static + Sized {
     ) {
         let iterations_per_thread = iterations / num_threads as u64;
         let total_flow_calls = iterations * flow_calls_per_iteration;
-        let with_exit_code = std::env::var(config::ENV_WITH_EXIT_CODE).is_ok();
-        let panic_occurred = Arc::new(AtomicBool::new(false)); // Shared across threads
+        let exit_code_mode = ExitCodeMode::from_env();
+        let invariant_failed = Arc::new(AtomicBool::new(false)); // Tracks fuzz test assertion failures
 
         // Setup shared progress bar
         let main_pb = indicatif::ProgressBar::new(total_flow_calls);
@@ -371,7 +418,7 @@ pub trait FlowExecutor: Send + 'static + Sized {
             }
 
             let main_pb_clone = main_pb.clone();
-            let panic_occurred_clone = panic_occurred.clone();
+            let invariant_failed_clone = invariant_failed.clone();
             let handle = thread::spawn(move || -> TridentFuzzingData {
                 Self::run_thread_workload(
                     master_seed,
@@ -379,7 +426,7 @@ pub trait FlowExecutor: Send + 'static + Sized {
                     thread_iterations,
                     flow_calls_per_iteration,
                     main_pb_clone,
-                    panic_occurred_clone,
+                    invariant_failed_clone,
                 )
             });
 
@@ -411,8 +458,8 @@ pub trait FlowExecutor: Send + 'static + Sized {
 
         // Determine and set exit code
         let exit_code = Self::determine_exit_code(
-            with_exit_code,
-            panic_occurred.load(Ordering::Relaxed),
+            exit_code_mode,
+            invariant_failed.load(Ordering::Relaxed),
             &fuzzing_data,
         );
 
@@ -430,7 +477,7 @@ pub trait FlowExecutor: Send + 'static + Sized {
         thread_iterations: u64,
         flow_calls_per_iteration: u64,
         progress_bar: indicatif::ProgressBar,
-        panic_occurred: Arc<AtomicBool>,
+        invariant_failed: Arc<AtomicBool>,
     ) -> TridentFuzzingData {
         let mut fuzzer = Self::new();
         fuzzer
@@ -448,9 +495,10 @@ pub trait FlowExecutor: Send + 'static + Sized {
                 let _ = fuzzer.execute_flows(flow_calls_per_iteration);
             }));
 
-            // Handle any panics that occurred
+            // Handle any panics that occurred (invariant/assertion failures in fuzz tests)
             if let Err(panic_err) = panic_result {
-                let panic_msg = Self::handle_panic(&panic_err, &mut fuzzer, Some(&panic_occurred));
+                let panic_msg =
+                    Self::handle_panic(&panic_err, &mut fuzzer, Some(&invariant_failed));
                 progress_bar.println(panic_msg);
             }
 
