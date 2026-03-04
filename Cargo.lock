@@ -7631,7 +7631,7 @@ dependencies = [
 
 [[package]]
 name = "trident-cli"
-version = "0.13.0-rc.1"
+version = "0.13.0-rc.2"
 dependencies = [
  "anyhow",
  "clap",
@@ -7645,7 +7645,7 @@ dependencies = [
 
 [[package]]
 name = "trident-client"
-version = "0.13.0-rc.1"
+version = "0.13.0-rc.2"
 dependencies = [
  "anyhow",
  "axum",
@@ -7673,7 +7673,7 @@ dependencies = [
 
 [[package]]
 name = "trident-config"
-version = "0.13.0-rc.1"
+version = "0.13.0-rc.2"
 dependencies = [
  "anyhow",
  "base64 0.22.1",
@@ -7693,7 +7693,7 @@ dependencies = [
 
 [[package]]
 name = "trident-derive-flow-executor"
-version = "0.13.0-rc.1"
+version = "0.13.0-rc.2"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -7703,7 +7703,7 @@ dependencies = [
 
 [[package]]
 name = "trident-derive-fuzz-test-methods"
-version = "0.13.0-rc.1"
+version = "0.13.0-rc.2"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -7713,7 +7713,7 @@ dependencies = [
 
 [[package]]
 name = "trident-fuzz"
-version = "0.13.0-rc.1"
+version = "0.13.0-rc.2"
 dependencies = [
  "bincode",
  "borsh 1.6.0",
@@ -7746,7 +7746,7 @@ dependencies = [
 
 [[package]]
 name = "trident-fuzz-metrics"
-version = "0.13.0-rc.1"
+version = "0.13.0-rc.2"
 dependencies = [
  "hex",
  "prettytable",
@@ -7813,7 +7813,7 @@ dependencies = [
 
 [[package]]
 name = "trident-syn"
-version = "0.13.0-rc.1"
+version = "0.13.0-rc.2"
 dependencies = [
  "petgraph",
  "proc-macro2",
@@ -7835,7 +7835,7 @@ dependencies = [
 
 [[package]]
 name = "trident-template"
-version = "0.13.0-rc.1"
+version = "0.13.0-rc.2"
 dependencies = [
  "convert_case 0.6.0",
  "serde",
