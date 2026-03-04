@@ -12,7 +12,7 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  SOLANA_VERSION: "v2.2.16"
+  SOLANA_VERSION: "v3.1.8"
   RUST_VERSION: "1.86"
 
 jobs:
@@ -27,42 +27,54 @@ jobs:
             path: "examples/hello_world"
             cache-key: "hello-world"
             command: "trident fuzz run fuzz_0"
+            build: "cargo build-sbf --arch v2" 
           - name: "Simple CPI"
             path: "examples/cpi"
             cache-key: "simple-cpi"
             command: "trident fuzz run fuzz_0"
+            build: |
+              cargo build-sbf --manifest-path programs/callee/Cargo.toml --arch v2
+              cargo build-sbf --manifest-path programs/cpi/Cargo.toml --arch v2
           - name: "Trident Benchmark Maze 0"
             path: "examples/trident-benchmark/maze_0"
             cache-key: "maze-0"
             command: "trident fuzz run fuzz_0"
+            build: "cargo build-sbf --arch v2"
           - name: "Trident Benchmark Maze 1"
             path: "examples/trident-benchmark/maze_1"
             cache-key: "maze-1"
             command: "trident fuzz run fuzz_0"
+            build: "cargo build-sbf --arch v2"
           - name: "Trident Benchmark Maze 2"
             path: "examples/trident-benchmark/maze_2"
             cache-key: "maze-2"
             command: "trident fuzz run fuzz_0"
+            build: "cargo build-sbf --arch v2"
           - name: "Trident Benchmark Maze 3"
             path: "examples/trident-benchmark/maze_3"
             cache-key: "maze-3"
             command: "trident fuzz run fuzz_0"
+            build: "cargo build-sbf --arch v2"
           - name: "Trident Benchmark Maze 4"
             path: "examples/trident-benchmark/maze_4"
             cache-key: "maze-4"
             command: "trident fuzz run fuzz_0"
+            build: "cargo build-sbf --arch v2"
           - name: "Metaplex CPI"
             path: "examples/metaplex"
             cache-key: "metaplex"
             command: "trident fuzz run fuzz_0"
+            build: "cargo build-sbf --arch v2"
           - name: "Token"
             path: "examples/token"
             cache-key: "token"
             command: "trident fuzz run fuzz_0"
+            build: "cargo build-sbf --arch v2"
           - name: "Fork"
             path: "examples/fork"
             cache-key: "fork"
             command: "trident fuzz run fuzz_0 --with-exit-code"
+            build: "cargo build-sbf --arch v2"
     
     steps:
       - uses: actions/checkout@v3
@@ -72,12 +84,15 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y build-essential libudev-dev protobuf-compiler libprotobuf-dev
         shell: bash
 
-      - uses: hubbleprotocol/solana-setup-action@v0.5
-        id: solana-setup
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+
+      - name: Setup Solana
+        uses: ./.github/actions/setup-solana
         with:
           solana-version: ${{ env.SOLANA_VERSION }}
-          rust-version: ${{ env.RUST_VERSION }}
-          rust-shared-key: "trident-testing"
 
       - name: Rust Cache
         id: rust-cache
@@ -96,7 +111,7 @@ jobs:
 
       - name: Build Solana Program
         working-directory: ${{ matrix.test.path }}
-        run: cargo build-sbf
+        run: ${{ matrix.test.build }}
 
       - name: Run Fuzz Test
         working-directory: ${{ matrix.test.path }}/trident-tests
