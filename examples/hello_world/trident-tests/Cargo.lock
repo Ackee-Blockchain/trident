@@ -3059,7 +3059,7 @@ dependencies = [
  "serde_urlencoded",
  "sync_wrapper 1.0.2",
  "tokio",
- "tokio-rustls",
+ "tokio-rustls 0.26.4",
  "tower",
  "tower-http",
  "tower-service",
@@ -3079,7 +3079,7 @@ dependencies = [
  "anyhow",
  "async-trait",
  "http 1.4.0",
- "reqwest 0.12.24",
+ "reqwest 0.12.28",
  "serde",
  "thiserror 1.0.69",
  "tower-service",
@@ -4950,7 +4950,7 @@ dependencies = [
  "futures",
  "indicatif",
  "log",
- "reqwest 0.12.24",
+ "reqwest 0.12.28",
  "reqwest-middleware",
  "semver",
  "serde",
@@ -4985,7 +4985,7 @@ checksum = "2dbc138685c79d88a766a8fd825057a74ea7a21e1dd7f8de275ada899540fff7"
 dependencies = [
  "anyhow",
  "jsonrpc-core",
- "reqwest 0.12.24",
+ "reqwest 0.12.28",
  "reqwest-middleware",
  "serde",
  "serde_derive",
@@ -6738,7 +6738,7 @@ dependencies = [
 
 [[package]]
 name = "trident-config"
-version = "0.12.0"
+version = "0.13.0-rc.2"
 dependencies = [
  "anyhow",
  "base64 0.22.1",
@@ -6758,7 +6758,7 @@ dependencies = [
 
 [[package]]
 name = "trident-derive-flow-executor"
-version = "0.12.0"
+version = "0.13.0-rc.2"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -6768,7 +6768,7 @@ dependencies = [
 
 [[package]]
 name = "trident-derive-fuzz-test-methods"
-version = "0.12.0"
+version = "0.13.0-rc.2"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -6778,8 +6778,9 @@ dependencies = [
 
 [[package]]
 name = "trident-fuzz"
-version = "0.12.0"
+version = "0.13.0-rc.2"
 dependencies = [
+ "bincode",
  "borsh 1.6.0",
  "getrandom 0.3.4",
  "hex",
@@ -6789,6 +6790,7 @@ dependencies = [
  "reqwest 0.11.27",
  "serde",
  "sha2 0.10.9",
+ "solana-loader-v3-interface",
  "solana-sdk",
  "solana-stake-interface",
  "solana-vote-interface",
@@ -6809,7 +6811,7 @@ dependencies = [
 
 [[package]]
 name = "trident-fuzz-metrics"
-version = "0.12.0"
+version = "0.13.0-rc.2"
 dependencies = [
  "hex",
  "prettytable",
@@ -6821,8 +6823,9 @@ dependencies = [
 
 [[package]]
 name = "trident-svm"
-version = "0.2.0"
-source = "git+https://github.com/Ackee-Blockchain/trident-svm?branch=remove-programs-db#8a3033619a7e7e3275a8ab895b78c54bd808d28e"
+version = "0.3.0-rc.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a7e850c21b2c402bb75c2feca8468a1a7da8c263e8cf8831cdcfaeaa8415387a"
 dependencies = [
  "bincode",
  "log",
@@ -6860,7 +6863,7 @@ dependencies = [
 
 [[package]]
 name = "trident-syn"
-version = "0.12.0"
+version = "0.13.0-rc.2"
 dependencies = [
  "petgraph",
  "proc-macro2",
@@ -7658,3 +7661,31 @@ name = "zmij"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e6d6085d62852e35540689d1f97ad663e3971fc19cf5eceab364d62c646ea167"
+
+[[package]]
+name = "zstd"
+version = "0.13.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e91ee311a569c327171651566e07972200e76fcfe2242a4fa446149a3881c08a"
+dependencies = [
+ "zstd-safe",
+]
+
+[[package]]
+name = "zstd-safe"
+version = "7.2.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8f49c4d5f0abb602a93fb8736af2a4f4dd9512e36f7f570d66e65ff867ed3b9d"
+dependencies = [
+ "zstd-sys",
+]
+
+[[package]]
+name = "zstd-sys"
+version = "2.0.16+zstd.1.5.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "91e19ebc2adc8f83e43039e79776e3fda8ca919132d68a1fed6a5faca2683748"
+dependencies = [
+ "cc",
+ "pkg-config",
+]

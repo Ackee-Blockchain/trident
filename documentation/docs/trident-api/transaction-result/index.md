@@ -1,6 +1,6 @@
 # TransactionResult
 
-The `TransactionResult` struct encapsulates the outcome of executing a transaction in the Trident fuzzing environment. It provides methods to inspect transaction success/failure status, access logs, and extract error information.
+The `TransactionResult` struct encapsulates the outcome of executing a transaction in the Trident fuzzing environment. It provides methods to inspect transaction success/failure status, access logs, extract error information, and read Solana return data.
 
 ## Overview
 
@@ -10,6 +10,7 @@ The `TransactionResult` struct encapsulates the outcome of executing a transacti
 - Log messages generated during execution
 - Custom program error codes
 - Transaction timestamp
+- Return data emitted by the executed program
 
 ## Core Methods
 
@@ -115,6 +116,23 @@ pub fn get_transaction_timestamp(&self) -> u64
 **Returns:** Unix timestamp in seconds.
 
 **Description:** The timestamp corresponds to the Clock sysvar's `unix_timestamp` at execution time. Useful for testing time-dependent logic and verifying transaction ordering.
+
+---
+
+### `get_return_data`
+
+Returns the raw Solana return data for the transaction, if any program emitted it via `set_return_data`.
+
+```rust
+pub fn get_return_data(&self) -> Option<&TransactionReturnData>
+```
+
+**Returns:**
+
+- `Some(&TransactionReturnData)` - If a program emitted return data during execution
+- `None` - If no return data was set
+
+**Description:** The returned value contains the emitting `program_id` and the raw returned `data` bytes.
 
 ---
 

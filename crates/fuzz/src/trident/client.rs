@@ -7,6 +7,7 @@ use trident_svm::prelude::TridentTransactionProcessingResult;
 use trident_svm::processor::InstructionError;
 
 use crate::trident::transaction_result::TransactionResult;
+use crate::trident::transaction_result::TransactionReturnData;
 use crate::trident::Trident;
 use crate::AccountDiscriminator;
 
@@ -408,6 +409,14 @@ impl Trident {
             Ok(result) => match result {
                 trident_svm::prelude::solana_svm::transaction_processing_result::ProcessedTransaction::Executed(executed_transaction) => match &executed_transaction.execution_details.status {
                     Ok(_) => {
+                        let transaction_return_data = executed_transaction
+                            .execution_details
+                            .return_data
+                            .clone()
+                            .map(|return_data| TransactionReturnData {
+                                program_id: return_data.program_id,
+                                data: return_data.data,
+                            });
                         // Record successful execution
                         if fuzzing_metrics.is_ok() && log_as.is_some() {
                             if let Some(log_as) = log_as {
@@ -415,9 +424,26 @@ impl Trident {
                                     .add_successful_transaction(log_as);
                             }
                         }
-                        TransactionResult::new(Ok(()), executed_transaction.execution_details.log_messages.clone().unwrap_or_default(), transaction_timestamp)
+                        TransactionResult::new(
+                            Ok(()),
+                            executed_transaction
+                                .execution_details
+                                .log_messages
+                                .clone()
+                                .unwrap_or_default(),
+                            transaction_timestamp,
+                            transaction_return_data,
+                        )
                     },
                     Err(transaction_error) => {
+                        let transaction_return_data = executed_transaction
+                            .execution_details
+                            .return_data
+                            .clone()
+                            .map(|return_data| TransactionReturnData {
+                                program_id: return_data.program_id,
+                                data: return_data.data,
+                            });
                         if let TransactionError::InstructionError(_error_code, instruction_error) =
                             &transaction_error
                         {
@@ -476,12 +502,23 @@ impl Trident {
                                 );
                             }
                         }
-                        TransactionResult::new(Err(transaction_error.clone()), executed_transaction.execution_details.log_messages.clone().unwrap_or_default(), transaction_timestamp)
+                        TransactionResult::new(
+                            Err(transaction_error.clone()),
+                            executed_transaction
+                                .execution_details
+                                .log_messages
+                                .clone()
+                                .unwrap_or_default(),
+                            transaction_timestamp,
+                            transaction_return_data,
+                        )
                     },
                 },
                 trident_svm::prelude::solana_svm::transaction_processing_result::ProcessedTransaction::FeesOnly(_) => todo!(),
             },
-            Err(transaction_error) => TransactionResult::new(Err(transaction_error.clone()), vec![], transaction_timestamp),
+            Err(transaction_error) => {
+                TransactionResult::new(Err(transaction_error.clone()), vec![], transaction_timestamp, None)
+            }
         }
     }
 }

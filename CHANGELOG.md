@@ -18,6 +18,7 @@ incremented upon a breaking change and the patch version will be incremented for
 - add more stake program related methods ([441](https://github.com/Ackee-Blockchain/trident/pull/441))
 - add remove functionality to AddressStorage ([442](https://github.com/Ackee-Blockchain/trident/pull/442))
 - add support for exit code mode ([454](https://github.com/Ackee-Blockchain/trident/pull/454))
+- add support for return data ([456](https://github.com/Ackee-Blockchain/trident/pull/456))
 
 **Removed**
 
