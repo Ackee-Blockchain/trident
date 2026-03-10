@@ -125,8 +125,18 @@ impl FuzzTest {
                 .get_account_with_type::<State>(&state, None)
                 .expect("State not found");
 
-            assert!(state_after.x == state_before.x);
-            assert!(state_after.y == state_before.y + 1);
+            invariant!(
+                state_after.x == state_before.x,
+                "X should not change: expected {}, got {}",
+                state_before.x,
+                state_after.x
+            );
+            invariant!(
+                state_after.y == state_before.y + 1,
+                "Y should increase by 1: expected {}, got {}",
+                state_before.y + 1,
+                state_after.y
+            );
         }
     }
 

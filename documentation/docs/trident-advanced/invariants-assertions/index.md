@@ -1,6 +1,26 @@
 # Invariants and Assertions
 
-Invariants are conditions that must always hold true for your program to be considered correct. In Trident, you validate program behavior by capturing account states before and after transactions, then checking the expected changes with custom invariant methods.
+Invariants are conditions that must always hold true for your program to be considered correct. In Trident, you validate program behavior by capturing account states before and after transactions, then checking the expected changes using the `invariant!` macro.
+
+## The `invariant!` Macro
+
+Use the `invariant!` macro to define intentional invariant checks. When an invariant fails:
+
+- It is counted and collected separately from unexpected panics
+- Fuzzing continues to find more issues
+- All failures are reported at the end with their seeds for reproduction
+
+```rust
+// Simple condition
+invariant!(balance_after == balance_before - amount);
+
+// With custom message
+invariant!(balance > 0, "Balance must be positive");
+invariant!(a == b, "Expected {} but got {}", a, b);
+```
+
+!!! note "Invariants vs Regular Panics"
+    Regular panics (like `unwrap()` on `None` or index out of bounds) are treated as bugs in your fuzz test and will crash immediately. Only `invariant!` failures are collected and allow fuzzing to continue.
 
 ## How Invariants Work
 
@@ -9,7 +29,7 @@ The validation pattern in Trident follows these steps:
 1. **Capture state before transaction**
 2. **Execute the transaction**  
 3. **Capture state after transaction**
-4. **Validate changes with invariant methods**
+4. **Validate changes with `invariant!`**
 
 ## Basic Example
 
@@ -36,12 +56,6 @@ impl FuzzTest {
                 .expect("Account not found");
             
             self.transfer_invariant(balance_before, balance_after, 100);
-        } else {
-            // Handle expected failures
-            assert!(
-                result.is_custom_error_with_code(6001_u32),
-                "Expected insufficient funds error"
-            );
         }
     }
     
@@ -51,10 +65,11 @@ impl FuzzTest {
         after: UserAccount,
         amount: u64,
     ) {
-        assert_eq!(
-            after.balance, 
+        invariant!(
+            after.balance == before.balance - amount,
+            "Balance should decrease by transfer amount: expected {}, got {}",
             before.balance - amount,
-            "Balance should decrease by transfer amount"
+            after.balance
         );
     }
 }
@@ -66,15 +81,16 @@ impl FuzzTest {
 - **Validate State Changes**: Ensure account modifications are correct
 - **Test Edge Cases**: Verify behavior under various conditions
 - **Prevent Regressions**: Catch bugs introduced by code changes
+- **Continue Fuzzing**: Find multiple issues in a single run
 
 ## Writing Invariant Methods
 
 Invariant methods should:
 
 - Take before/after states as parameters
-- Use descriptive assertion messages
+- Use descriptive messages with `invariant!`
 - Focus on one specific behavior
-- Handle both success and failure cases
+- Include relevant values in error messages
 
 ```rust
 fn token_mint_invariant(
@@ -83,12 +99,29 @@ fn token_mint_invariant(
     mint_after: MintAccount,
     minted_amount: u64,
 ) {
-    assert_eq!(
-        mint_after.supply,
-        mint_before.supply + minted_amount,
-        "Token supply should increase by minted amount"
+    invariant!(
+        mint_after.supply == mint_before.supply + minted_amount,
+        "Token supply should increase by minted amount: {} + {} != {}",
+        mint_before.supply,
+        minted_amount,
+        mint_after.supply
     );
 }
+```
+
+## Exit Code Modes
+
+When running fuzz tests in CI/CD, use `--exit-code` to control which failures cause non-zero exit:
+
+```bash
+# Exit non-zero on any failure
+trident fuzz run fuzz_0 --exit-code all
+
+# Exit non-zero only on invariant failures
+trident fuzz run fuzz_0 --exit-code invariants
+
+# Exit non-zero only on program panics
+trident fuzz run fuzz_0 --exit-code panics
 ```
 
 For more complex examples and patterns, see the [Trident Examples](../../trident-examples/trident-examples.md) page.
