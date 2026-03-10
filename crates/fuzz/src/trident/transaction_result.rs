@@ -1,5 +1,13 @@
+use solana_sdk::pubkey::Pubkey;
 use solana_sdk::transaction::TransactionError;
 use trident_svm::processor::InstructionError;
+
+/// Return data emitted by a Solana program during transaction execution.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct TransactionReturnData {
+    pub program_id: Pubkey,
+    pub data: Vec<u8>,
+}
 
 /// Result of a transaction execution containing both the result and logs
 ///
@@ -10,6 +18,7 @@ pub struct TransactionResult {
     transaction_result: solana_sdk::transaction::Result<()>,
     transaction_logs: Vec<String>,
     transaction_timestamp: u64,
+    transaction_return_data: Option<TransactionReturnData>,
 }
 
 impl TransactionResult {
@@ -22,11 +31,13 @@ impl TransactionResult {
         transaction_result: solana_sdk::transaction::Result<()>,
         transaction_logs: Vec<String>,
         transaction_timestamp: u64,
+        transaction_return_data: Option<TransactionReturnData>,
     ) -> Self {
         Self {
             transaction_result,
             transaction_logs,
             transaction_timestamp,
+            transaction_return_data,
         }
     }
 
@@ -117,5 +128,17 @@ impl TransactionResult {
     /// ```
     pub fn get_transaction_timestamp(&self) -> u64 {
         self.transaction_timestamp
+    }
+
+    /// Returns the raw return data emitted during transaction execution.
+    ///
+    /// When a program calls `set_return_data`, Solana stores the emitting program ID
+    /// together with the returned bytes. This accessor exposes that data to Trident users.
+    ///
+    /// # Returns
+    ///
+    /// `Some(&TransactionReturnData)` if a program returned data, `None` otherwise.
+    pub fn get_return_data(&self) -> Option<&TransactionReturnData> {
+        self.transaction_return_data.as_ref()
     }
 }

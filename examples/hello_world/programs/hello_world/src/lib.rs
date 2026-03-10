@@ -6,7 +6,7 @@ declare_id!("FtevoQoDMv6ZB3N9Lix5Tbjs8EVuNL8vDSqG9kzaZPit");
 pub mod hello_world {
     use super::*;
 
-    pub fn initialize_fn(ctx: Context<InitializeContext>, input: u8) -> Result<()> {
+    pub fn initialize_fn(ctx: Context<InitializeContext>, input: u8) -> Result<u8> {
         msg!(
             "Hello World address: {}",
             ctx.accounts.hello_world_account.key()
@@ -21,7 +21,7 @@ pub mod hello_world {
         let timestamp = Clock::get()?.unix_timestamp;
         hello_world_store.timestamp = timestamp as u64;
 
-        Ok(())
+        Ok(5)
     }
 }
 

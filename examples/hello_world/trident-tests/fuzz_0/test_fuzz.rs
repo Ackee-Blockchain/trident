@@ -88,6 +88,11 @@ impl FuzzTest {
                 assert!(hello_world_account.input == input);
                 assert!(hello_world_account.timestamp == res.get_transaction_timestamp());
             }
+
+            let returned_value = res.get_return_data().unwrap();
+
+            assert!(returned_value.program_id.eq(&hello_world::program_id()));
+            assert!(returned_value.data.eq(&[5]));
         }
     }
 
