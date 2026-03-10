@@ -254,4 +254,8 @@ impl TridentFuzzingData {
     pub fn get_exit_code(&self) -> i32 {
         self.metrics.get_exit_code()
     }
+
+    pub fn get_program_panic_count(&self) -> u64 {
+        self.metrics.get_program_panic_count()
+    }
 }

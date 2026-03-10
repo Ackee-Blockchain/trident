@@ -182,8 +182,11 @@ pub trait FlowExecutor: Send + 'static + Sized {
     }
 
     /// Extracts the panic message from a panic payload.
-    /// Panics can have either &str or String payloads, so we handle both cases.
+    /// Handles InvariantViolation, &str, and String payloads.
     fn extract_panic_message(panic_err: &Box<dyn std::any::Any + Send>) -> String {
+        if let Some(inv) = panic_err.downcast_ref::<crate::invariant::InvariantViolation>() {
+            return inv.0.clone();
+        }
         panic_err
             .downcast_ref::<&str>()
             .map(|s| s.to_string())
@@ -302,6 +305,8 @@ pub trait FlowExecutor: Send + 'static + Sized {
         let is_debug_mode = std::env::var(config::ENV_FUZZ_DEBUG).is_ok();
         let exit_code_mode = ExitCodeMode::from_env();
         let mut invariant_failed = false; // Tracks fuzz test assertion/invariant failures
+        let mut invariant_failure_count: u64 = 0;
+        let mut panic_messages: Vec<String> = Vec::new();
 
         // Configure debug seed if in debug mode
         if is_debug_mode {
@@ -338,16 +343,26 @@ pub trait FlowExecutor: Send + 'static + Sized {
                 let _ = fuzzer.execute_flows(flow_calls_per_iteration);
             }));
 
-            // Handle any panics that occurred (invariant/assertion failures in fuzz tests)
+            // Handle panics - only catch InvariantViolation, re-throw others
             if let Err(panic_err) = panic_result {
-                invariant_failed = true;
-                let panic_msg = Self::handle_panic(&panic_err, &mut fuzzer, None);
+                if panic_err
+                    .downcast_ref::<crate::invariant::InvariantViolation>()
+                    .is_some()
+                {
+                    // Intentional invariant failure - count it, continue fuzzing
+                    invariant_failed = true;
+                    invariant_failure_count += 1;
+                    let panic_msg = Self::handle_panic(&panic_err, &mut fuzzer, None);
 
-                // Display panic message via progress bar or stderr
-                if let Some(ref pb) = pb {
-                    pb.println(panic_msg);
+                    // In debug mode print immediately, otherwise collect for end
+                    if is_debug_mode {
+                        eprintln!("{}", panic_msg);
+                    } else {
+                        panic_messages.push(panic_msg);
+                    }
                 } else {
-                    eprintln!("{}", panic_msg);
+                    // Unexpected panic (bug in fuzz test) - re-throw it
+                    std::panic::resume_unwind(panic_err);
                 }
             }
 
@@ -358,16 +373,34 @@ pub trait FlowExecutor: Send + 'static + Sized {
             // Handle coverage profiling if enabled
             Self::handle_coverage_if_enabled(&mut fuzzer, i + 1);
 
-            // Update progress bar
+            // Update progress bar with live stats
             if let Some(ref pb) = pb {
                 pb.inc(flow_calls_per_iteration);
-                pb.set_message(format!("Iteration {}/{} completed", i + 1, iterations));
+                let program_panics = fuzzer
+                    .trident_mut()
+                    .get_fuzzing_data()
+                    .get_program_panic_count();
+                pb.set_message(format!(
+                    "Iteration {}/{} | Invariant failures: {} | Program panics: {}",
+                    i + 1,
+                    iterations,
+                    invariant_failure_count,
+                    program_panics
+                ));
             }
         }
 
         // Finalize progress bar
         if let Some(pb) = pb {
             pb.finish_with_message("Fuzzing completed!");
+        }
+
+        // Print collected invariant failure messages
+        if !panic_messages.is_empty() {
+            eprintln!("\n--- Invariant Failures ({}) ---", panic_messages.len());
+            for msg in &panic_messages {
+                eprintln!("{}", msg);
+            }
         }
 
         // Generate metrics if enabled
@@ -390,10 +423,15 @@ pub trait FlowExecutor: Send + 'static + Sized {
         num_threads: usize,
         master_seed: [u8; 32],
     ) {
+        use std::sync::atomic::AtomicU64;
+        use std::sync::Mutex;
+
         let iterations_per_thread = iterations / num_threads as u64;
         let total_flow_calls = iterations * flow_calls_per_iteration;
         let exit_code_mode = ExitCodeMode::from_env();
         let invariant_failed = Arc::new(AtomicBool::new(false)); // Tracks fuzz test assertion failures
+        let invariant_failure_count = Arc::new(AtomicU64::new(0));
+        let panic_messages: Arc<Mutex<Vec<String>>> = Arc::new(Mutex::new(Vec::new()));
 
         // Setup shared progress bar
         let main_pb = indicatif::ProgressBar::new(total_flow_calls);
@@ -405,8 +443,8 @@ pub trait FlowExecutor: Send + 'static + Sized {
             .progress_chars("#>-"),
         );
         main_pb.set_message(format!(
-            "Fuzzing with {} threads - {} iterations with {} flow calls each",
-            num_threads, iterations, flow_calls_per_iteration
+            "Fuzzing with {} threads | Invariant failures: 0 | Program panics: 0",
+            num_threads
         ));
 
         // Spawn worker threads
@@ -419,6 +457,8 @@ pub trait FlowExecutor: Send + 'static + Sized {
 
             let main_pb_clone = main_pb.clone();
             let invariant_failed_clone = invariant_failed.clone();
+            let invariant_count_clone = invariant_failure_count.clone();
+            let panic_messages_clone = panic_messages.clone();
             let handle = thread::spawn(move || -> TridentFuzzingData {
                 Self::run_thread_workload(
                     master_seed,
@@ -427,6 +467,8 @@ pub trait FlowExecutor: Send + 'static + Sized {
                     flow_calls_per_iteration,
                     main_pb_clone,
                     invariant_failed_clone,
+                    invariant_count_clone,
+                    panic_messages_clone,
                 )
             });
 
@@ -456,6 +498,16 @@ pub trait FlowExecutor: Send + 'static + Sized {
 
         main_pb.finish_with_message("Parallel fuzzing completed!");
 
+        // Print collected invariant failure messages
+        let messages = panic_messages.lock().unwrap();
+        if !messages.is_empty() {
+            eprintln!("\n--- Invariant Failures ({}) ---", messages.len());
+            for msg in messages.iter() {
+                eprintln!("{}", msg);
+            }
+        }
+        drop(messages);
+
         // Determine and set exit code
         let exit_code = Self::determine_exit_code(
             exit_code_mode,
@@ -469,6 +521,7 @@ pub trait FlowExecutor: Send + 'static + Sized {
         std::process::exit(exit_code);
     }
 
+    #[allow(clippy::too_many_arguments)]
     /// Runs the fuzzing workload for a single thread.
     /// This is extracted to reduce complexity in fuzz_parallel.
     fn run_thread_workload(
@@ -478,6 +531,8 @@ pub trait FlowExecutor: Send + 'static + Sized {
         flow_calls_per_iteration: u64,
         progress_bar: indicatif::ProgressBar,
         invariant_failed: Arc<AtomicBool>,
+        invariant_failure_count: Arc<std::sync::atomic::AtomicU64>,
+        panic_messages: Arc<std::sync::Mutex<Vec<String>>>,
     ) -> TridentFuzzingData {
         let mut fuzzer = Self::new();
         fuzzer
@@ -495,11 +550,23 @@ pub trait FlowExecutor: Send + 'static + Sized {
                 let _ = fuzzer.execute_flows(flow_calls_per_iteration);
             }));
 
-            // Handle any panics that occurred (invariant/assertion failures in fuzz tests)
+            // Handle panics - only catch InvariantViolation, re-throw others
             if let Err(panic_err) = panic_result {
-                let panic_msg =
-                    Self::handle_panic(&panic_err, &mut fuzzer, Some(&invariant_failed));
-                progress_bar.println(panic_msg);
+                if panic_err
+                    .downcast_ref::<crate::invariant::InvariantViolation>()
+                    .is_some()
+                {
+                    // Intentional invariant failure - count it, continue fuzzing
+                    let panic_msg =
+                        Self::handle_panic(&panic_err, &mut fuzzer, Some(&invariant_failed));
+                    invariant_failure_count.fetch_add(1, Ordering::Relaxed);
+                    if let Ok(mut messages) = panic_messages.lock() {
+                        messages.push(panic_msg);
+                    }
+                } else {
+                    // Unexpected panic (bug in fuzz test) - re-throw it
+                    std::panic::resume_unwind(panic_err);
+                }
             }
 
             // Prepare for next iteration
@@ -519,6 +586,15 @@ pub trait FlowExecutor: Send + 'static + Sized {
 
             if should_update {
                 progress_bar.inc(local_counter);
+                let inv_count = invariant_failure_count.load(Ordering::Relaxed);
+                let prog_panics = fuzzer
+                    .trident_mut()
+                    .get_fuzzing_data()
+                    .get_program_panic_count();
+                progress_bar.set_message(format!(
+                    "Invariant failures: {} | Program panics: {}",
+                    inv_count, prog_panics
+                ));
                 local_counter = 0;
                 last_update = Instant::now();
             }

@@ -1,5 +1,6 @@
 pub mod address_storage;
 pub mod error;
+pub mod invariant;
 pub mod trident;
 pub mod trident_rng;
 
@@ -66,6 +67,10 @@ pub mod fuzzing {
 
     /// Error
     pub use super::error::*;
+
+    /// Invariant checking
+    pub use super::invariant;
+    pub use super::invariant::InvariantViolation;
 
     /// Account discriminator trait
     pub use super::AccountDiscriminator;
