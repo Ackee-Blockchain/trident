@@ -253,4 +253,11 @@ impl FuzzingStatistics {
         }
         0
     }
+
+    pub(crate) fn get_program_panic_count(&self) -> u64 {
+        self.transactions
+            .values()
+            .map(|stats| stats.transaction_panicked)
+            .sum()
+    }
 }

@@ -538,6 +538,9 @@ mod tests {
             .await
             .unwrap();
 
+        // Keep TempDir alive across post-await checks to avoid eager drop in async state machine.
+        assert!(temp_dir.path().exists());
+
         // Verify no backup was created
         let backup_path = settings_path.with_extension("json.backup");
         assert!(!backup_path.exists());
@@ -573,6 +576,9 @@ mod tests {
         create_or_update_json_file(&root, &settings_path, new_content)
             .await
             .unwrap();
+
+        // Keep TempDir alive across post-await checks to avoid eager drop in async state machine.
+        assert!(temp_dir.path().exists());
 
         // Verify no backup was created
         let backup_path = settings_path.with_extension("json.backup");

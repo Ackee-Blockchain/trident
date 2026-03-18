@@ -85,8 +85,18 @@ impl FuzzTest {
                 .trident
                 .get_account_with_type::<crate::types::StoreHelloWorld>(&hello_world, None);
             if let Some(hello_world_account) = hello_world_account {
-                assert!(hello_world_account.input == input);
-                assert!(hello_world_account.timestamp == res.get_transaction_timestamp());
+                invariant!(
+                    hello_world_account.input == input,
+                    "Input mismatch: expected {}, got {}",
+                    input,
+                    hello_world_account.input
+                );
+                invariant!(
+                    hello_world_account.timestamp == res.get_transaction_timestamp(),
+                    "Timestamp mismatch: expected {}, got {}",
+                    res.get_transaction_timestamp(),
+                    hello_world_account.timestamp
+                );
             }
 
             let returned_value = res.get_return_data().unwrap();

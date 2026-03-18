@@ -27,8 +27,8 @@ pub enum Error {
     BuildProgramsFailed,
     #[error("fuzzing failed")]
     FuzzingFailed,
-    #[error("Fuzzing found failing invariants or unhandled panics")]
-    FuzzingFailedInvariantOrPanic,
+    #[error("Fuzzing failed due to exit-code policy (invariants/all)")]
+    FuzzingFailedPolicy,
     #[error("Coverage error: {0}")]
     Coverage(#[from] crate::coverage::CoverageError),
     #[error("Cannot find the trident-tests directory in the current workspace")]
@@ -120,26 +120,31 @@ impl Commander {
     }
 
     /// Manages a child process in an async context, specifically for monitoring fuzzing tasks.
-    /// Waits for the process to exit or a Ctrl+C signal. Prints an error message if the process
-    /// exits with an error, and sleeps briefly on Ctrl+C. Throws `Error::FuzzingFailed` on errors.
+    /// Waits for the process to exit or a Ctrl+C signal.
+    ///
+    /// Exit-code semantics:
+    /// - `0`: success
+    /// - `99`: policy failure from fuzz runner (only treated as error when policy is enabled)
+    /// - other non-zero: runtime failure (always treated as error)
     ///
     /// # Arguments
     /// * `child` - A mutable reference to a `Child` process.
+    /// * `policy_enabled` - True when `--exit-code` policy is active.
     ///
     /// # Errors
-    /// * Throws `Error::FuzzingFailed` if waiting on the child process fails.
+    /// * Throws `Error::FuzzingFailed` or `Error::FuzzingFailedPolicy` on failure.
     #[throws]
-    async fn handle_child(child: &mut Child, with_exit_code: bool) {
+    async fn handle_child(child: &mut Child, policy_enabled: bool) {
         tokio::select! {
             res = child.wait() =>
                 match res {
                     Ok(status) => match status.code() {
                         Some(code) => {
-                            match (code, with_exit_code) {
-                                (0, _) => {} // fuzzing did not find any failing invariants or panics and we dont care about exit code
-                                (99, true) => throw!(Error::FuzzingFailedInvariantOrPanic), // fuzzing found failing invariants or panics and we care about exit code
-                                (99, false) => {} // fuzzing found failing invariants or panics and we dont care about exit code
-                                (_, _) => throw!(Error::FuzzingFailed), // fuzzing failed for some other reason so we care about exit code
+                            match (code, policy_enabled) {
+                                (0, _) => {}
+                                (99, true) => throw!(Error::FuzzingFailedPolicy),
+                                (99, false) => {}
+                                (_, _) => throw!(Error::FuzzingFailed),
                             }
                         }
                         None => throw!(Error::FuzzingFailed),
