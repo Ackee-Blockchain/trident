@@ -1,4 +1,3 @@
-use std::io::IsTerminal;
 use std::panic::catch_unwind;
 use std::panic::AssertUnwindSafe;
 use std::sync::atomic::AtomicBool;
@@ -10,6 +9,7 @@ use std::time::Instant;
 use trident_config::TridentConfig;
 use trident_fuzz_metrics::TridentFuzzingData;
 
+use crate::trident::progress;
 use crate::trident::Trident;
 
 // Thread-local storage for panic location information.
@@ -61,13 +61,6 @@ impl ExitCodeMode {
     }
 }
 
-/// Events sent from worker threads to the UI/controller thread in parallel fuzzing.
-enum WorkerEvent {
-    ProgressDelta(u64),
-    InvariantFailure(String),
-    ProgramPanicsDelta(u64),
-}
-
 /// Final process exit outcomes for a fuzzing run.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum FuzzRunExit {
@@ -112,86 +105,6 @@ fn determine_exit_outcome(input: ExitDecisionInput) -> FuzzRunExit {
     } else {
         FuzzRunExit::Success
     }
-}
-
-fn colors_enabled() -> bool {
-    std::io::stderr().is_terminal() && std::env::var_os("NO_COLOR").is_none()
-}
-
-fn paint_red(text: &str) -> String {
-    if colors_enabled() {
-        format!("\x1b[31m{}\x1b[0m", text)
-    } else {
-        text.to_string()
-    }
-}
-
-fn paint_bold_yellow(text: &str) -> String {
-    if colors_enabled() {
-        format!("\x1b[1;33m{}\x1b[0m", text)
-    } else {
-        text.to_string()
-    }
-}
-
-fn paint_cyan(text: &str) -> String {
-    if colors_enabled() {
-        format!("\x1b[36m{}\x1b[0m", text)
-    } else {
-        text.to_string()
-    }
-}
-
-fn paint_magenta(text: &str) -> String {
-    if colors_enabled() {
-        format!("\x1b[35m{}\x1b[0m", text)
-    } else {
-        text.to_string()
-    }
-}
-
-fn format_invariant_line(text: &str) -> String {
-    const PREFIX: &str = "Assertion failed at ";
-    const SEED_PREFIX: &str = " (seed: ";
-
-    if !colors_enabled() {
-        return text.to_string();
-    }
-
-    // Expected format from handle_panic:
-    // "Assertion failed at <location>: <message> (seed: <seed>)"
-    if let Some(location_start) = text.strip_prefix(PREFIX) {
-        if let Some(seed_idx) = location_start.rfind(SEED_PREFIX) {
-            let before_seed = &location_start[..seed_idx];
-            let seed_with_suffix = &location_start[seed_idx + SEED_PREFIX.len()..];
-            if let Some(seed) = seed_with_suffix.strip_suffix(')') {
-                if let Some(separator_idx) = before_seed.find(": ") {
-                    let location = &before_seed[..separator_idx];
-                    let message = &before_seed[separator_idx + 2..];
-                    return format!(
-                        "{} {}{}: {}{}{}{}",
-                        paint_red("!"),
-                        PREFIX,
-                        paint_cyan(location),
-                        message,
-                        SEED_PREFIX,
-                        paint_magenta(seed),
-                        ")"
-                    );
-                }
-            }
-        }
-    }
-
-    // Fallback to accent-only if line doesn't match expected format.
-    format!("{} {}", paint_red("!"), text)
-}
-
-/// Final aggregated runtime summary produced by the UI/controller thread.
-struct ParallelRunSummary {
-    invariant_failures: u64,
-    program_panics: u64,
-    panic_messages: Vec<String>,
 }
 
 /// Trait for executing fuzzing flows in the Trident framework
@@ -406,6 +319,9 @@ pub trait FlowExecutor: Send + 'static + Sized {
         let mut invariant_failed = false; // Tracks fuzz test assertion/invariant failures
         let mut invariant_failure_count: u64 = 0;
         let mut panic_messages: Vec<String> = Vec::new();
+        let total_flow_calls = iterations * flow_calls_per_iteration;
+        let mut completed_flow_calls = 0u64;
+        let start_time = Instant::now();
 
         // Configure debug seed if in debug mode
         if is_debug_mode {
@@ -419,20 +335,11 @@ pub trait FlowExecutor: Send + 'static + Sized {
         let pb = if is_debug_mode {
             None
         } else {
-            let total_flow_calls = iterations * flow_calls_per_iteration;
-            let pb = indicatif::ProgressBar::new(total_flow_calls);
-            pb.set_style(
-                indicatif::ProgressStyle::with_template(
-                    "{spinner:.green} [{elapsed_precise}] [{wide_bar:.cyan/blue}] {pos}/{len} ({percent}%) [{eta_precise}] {msg}"
-                )
-                .unwrap()
-                .progress_chars("#>-"),
-            );
-            pb.set_message(format!(
-                "Fuzzing {} iterations with {} flow calls each...",
-                iterations, flow_calls_per_iteration
-            ));
-            Some(pb)
+            Some(progress::create_single_progress_bar(
+                total_flow_calls,
+                iterations,
+                flow_calls_per_iteration,
+            ))
         };
 
         // Main fuzzing loop: execute flows, catch panics, and track progress
@@ -455,7 +362,7 @@ pub trait FlowExecutor: Send + 'static + Sized {
 
                     // In debug mode print immediately, otherwise collect for end
                     if is_debug_mode {
-                        eprintln!("{}", format_invariant_line(&panic_msg));
+                        eprintln!("{}", progress::format_invariant_line(&panic_msg));
                     } else {
                         panic_messages.push(panic_msg);
                     }
@@ -475,16 +382,19 @@ pub trait FlowExecutor: Send + 'static + Sized {
             // Update progress bar with live stats
             if let Some(ref pb) = pb {
                 pb.inc(flow_calls_per_iteration);
+                completed_flow_calls += flow_calls_per_iteration;
                 let program_panics = fuzzer
                     .trident_mut()
                     .get_fuzzing_data()
                     .get_program_panic_count();
-                pb.set_message(format!(
-                    "Iteration {}/{} | Invariant failures: {} | Program panics: {}",
+                pb.set_message(progress::format_live_status_single(
                     i + 1,
                     iterations,
+                    completed_flow_calls,
+                    total_flow_calls,
                     invariant_failure_count,
-                    program_panics
+                    program_panics,
+                    start_time.elapsed(),
                 ));
             }
         }
@@ -498,13 +408,13 @@ pub trait FlowExecutor: Send + 'static + Sized {
         if !panic_messages.is_empty() {
             eprintln!(
                 "\n{}",
-                paint_bold_yellow(&format!(
+                progress::paint_bold_yellow(&format!(
                     "--- Invariant Failures ({}) ---",
                     panic_messages.len()
                 ))
             );
             for msg in &panic_messages {
-                eprintln!("{}", format_invariant_line(msg));
+                eprintln!("{}", progress::format_invariant_line(msg));
             }
         }
 
@@ -536,56 +446,12 @@ pub trait FlowExecutor: Send + 'static + Sized {
         let remainder_iterations = iterations % num_threads as u64;
         let total_flow_calls = iterations * flow_calls_per_iteration;
         let exit_code_mode = ExitCodeMode::from_env();
-        let (event_tx, event_rx) = mpsc::channel::<WorkerEvent>();
-
-        // Setup shared progress bar
-        let main_pb = indicatif::ProgressBar::new(total_flow_calls);
-        main_pb.set_style(
-            indicatif::ProgressStyle::with_template(
-                "Overall: {spinner:.green} [{elapsed_precise}] [{wide_bar:.cyan/blue}] {pos}/{len} ({percent}%) [{eta_precise}] {msg}"
-            )
-            .unwrap()
-            .progress_chars("#>-"),
-        );
-        main_pb.set_message(format!(
-            "Fuzzing with {} threads | Invariant failures: 0 | Program panics: 0",
-            num_threads
-        ));
+        let (event_tx, event_rx) = mpsc::channel::<progress::WorkerEvent>();
 
         // Single UI/controller owner: consumes worker events, updates progress bar,
         // and builds global live counters + invariant messages.
-        let ui_handle = thread::spawn(move || -> ParallelRunSummary {
-            let mut invariant_failures = 0u64;
-            let mut program_panics = 0u64;
-            let mut panic_messages = Vec::new();
-
-            while let Ok(event) = event_rx.recv() {
-                match event {
-                    WorkerEvent::ProgressDelta(delta) => {
-                        main_pb.inc(delta);
-                    }
-                    WorkerEvent::InvariantFailure(message) => {
-                        invariant_failures += 1;
-                        panic_messages.push(message);
-                    }
-                    WorkerEvent::ProgramPanicsDelta(delta) => {
-                        program_panics += delta;
-                    }
-                }
-
-                main_pb.set_message(format!(
-                    "Invariant failures: {} | Program panics: {}",
-                    invariant_failures, program_panics
-                ));
-            }
-
-            main_pb.finish_with_message("Parallel fuzzing completed!");
-            ParallelRunSummary {
-                invariant_failures,
-                program_panics,
-                panic_messages,
-            }
-        });
+        let ui_handle =
+            progress::spawn_parallel_ui_controller(event_rx, num_threads, total_flow_calls);
 
         // Spawn worker threads
         let mut handles = Vec::new();
@@ -658,23 +524,25 @@ pub trait FlowExecutor: Send + 'static + Sized {
         }
 
         // Get final aggregated runtime summary from the controller thread.
-        let run_summary = ui_handle.join().unwrap_or_else(|_| ParallelRunSummary {
-            invariant_failures: 0,
-            program_panics: 0,
-            panic_messages: Vec::new(),
-        });
+        let run_summary = ui_handle
+            .join()
+            .unwrap_or_else(|_| progress::ParallelRunSummary {
+                invariant_failures: 0,
+                program_panics: 0,
+                panic_messages: Vec::new(),
+            });
 
         // Print collected invariant failure messages
         if !run_summary.panic_messages.is_empty() {
             eprintln!(
                 "\n{}",
-                paint_bold_yellow(&format!(
+                progress::paint_bold_yellow(&format!(
                     "--- Invariant Failures ({}) ---",
                     run_summary.panic_messages.len()
                 ))
             );
             for msg in &run_summary.panic_messages {
-                eprintln!("{}", format_invariant_line(msg));
+                eprintln!("{}", progress::format_invariant_line(msg));
             }
         }
 
@@ -750,7 +618,10 @@ pub trait FlowExecutor: Send + 'static + Sized {
     }
 }
 
-fn send_worker_event(event_tx: &mpsc::Sender<WorkerEvent>, event: WorkerEvent) -> bool {
+fn send_worker_event(
+    event_tx: &mpsc::Sender<progress::WorkerEvent>,
+    event: progress::WorkerEvent,
+) -> bool {
     event_tx.send(event).is_ok()
 }
 
@@ -762,7 +633,7 @@ fn run_thread_workload_impl<E: FlowExecutor>(
     thread_id: usize,
     thread_iterations: u64,
     flow_calls_per_iteration: u64,
-    event_tx: mpsc::Sender<WorkerEvent>,
+    event_tx: mpsc::Sender<progress::WorkerEvent>,
 ) -> TridentFuzzingData {
     let mut fuzzer = E::new();
     fuzzer
@@ -789,7 +660,10 @@ fn run_thread_workload_impl<E: FlowExecutor>(
             {
                 // Intentional invariant failure - count it, continue fuzzing
                 let panic_msg = E::handle_panic(&panic_err, &mut fuzzer, None);
-                if !send_worker_event(&event_tx, WorkerEvent::InvariantFailure(panic_msg)) {
+                if !send_worker_event(
+                    &event_tx,
+                    progress::WorkerEvent::InvariantFailure(panic_msg),
+                ) {
                     return fuzzer.trident_mut().get_fuzzing_data();
                 }
             } else {
@@ -814,7 +688,10 @@ fn run_thread_workload_impl<E: FlowExecutor>(
             || i == thread_iterations - 1; // Always update on last iteration
 
         if should_update {
-            if !send_worker_event(&event_tx, WorkerEvent::ProgressDelta(local_counter)) {
+            if !send_worker_event(
+                &event_tx,
+                progress::WorkerEvent::ProgressDelta(local_counter),
+            ) {
                 return fuzzer.trident_mut().get_fuzzing_data();
             }
             let thread_prog_panics = fuzzer
@@ -823,7 +700,10 @@ fn run_thread_workload_impl<E: FlowExecutor>(
                 .get_program_panic_count();
             let new_panics = thread_prog_panics.saturating_sub(local_observed_program_panics);
             if new_panics > 0 {
-                if !send_worker_event(&event_tx, WorkerEvent::ProgramPanicsDelta(new_panics)) {
+                if !send_worker_event(
+                    &event_tx,
+                    progress::WorkerEvent::ProgramPanicsDelta(new_panics),
+                ) {
                     return fuzzer.trident_mut().get_fuzzing_data();
                 }
                 local_observed_program_panics = thread_prog_panics;
@@ -834,7 +714,11 @@ fn run_thread_workload_impl<E: FlowExecutor>(
     }
 
     // Ensure any remaining progress is reported
-    if local_counter > 0 && !send_worker_event(&event_tx, WorkerEvent::ProgressDelta(local_counter))
+    if local_counter > 0
+        && !send_worker_event(
+            &event_tx,
+            progress::WorkerEvent::ProgressDelta(local_counter),
+        )
     {
         return fuzzer.trident_mut().get_fuzzing_data();
     }
@@ -846,7 +730,10 @@ fn run_thread_workload_impl<E: FlowExecutor>(
         .get_program_panic_count();
     let final_new_panics = final_thread_prog_panics.saturating_sub(local_observed_program_panics);
     if final_new_panics > 0
-        && !send_worker_event(&event_tx, WorkerEvent::ProgramPanicsDelta(final_new_panics))
+        && !send_worker_event(
+            &event_tx,
+            progress::WorkerEvent::ProgramPanicsDelta(final_new_panics),
+        )
     {
         return fuzzer.trident_mut().get_fuzzing_data();
     }
