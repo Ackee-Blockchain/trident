@@ -20,7 +20,7 @@ impl Commander {
         exit_code_mode: Option<ExitCodeMode>,
         seed: Option<String>,
     ) {
-        let config = TridentConfig::new();
+        let config = TridentConfig::try_new()?;
 
         if config.get_metrics() {
             std::env::set_var("FUZZING_METRICS", "true");
@@ -184,7 +184,7 @@ impl Commander {
 
     #[throws]
     pub async fn run_debug(&self, target: String, seed: String) {
-        let config = TridentConfig::new();
+        let config = TridentConfig::try_new()?;
 
         if config.get_metrics() {
             if config.get_metrics_json() {

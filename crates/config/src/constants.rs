@@ -1,5 +1,6 @@
 // tomls
 pub(crate) const TRIDENT_TOML: &str = "Trident.toml";
+pub(crate) const TESTS_WORKSPACE_DIRECTORY: &str = "trident-tests";
 
 // fuzz
 pub(crate) const DEFAULT_LOOPCOUNT: u64 = 0;

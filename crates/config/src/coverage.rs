@@ -5,6 +5,7 @@ use crate::constants::DEFAULT_COVERAGE_SERVER_PORT;
 use crate::constants::DEFAULT_LOOPCOUNT;
 
 #[derive(Debug, Deserialize, Clone)]
+#[serde(deny_unknown_fields)]
 pub struct Coverage {
     pub enable: Option<bool>,
     pub server_port: Option<u16>,

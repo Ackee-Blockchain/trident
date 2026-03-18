@@ -109,11 +109,24 @@ impl Trident {
     }
 
     fn new_client() -> TridentSVM {
-        let config = TridentConfig::new();
+        let config = match TridentConfig::try_new() {
+            Ok(config) => config,
+            Err(e) => {
+                eprintln!("Invalid Trident.toml configuration: {}", e);
+                std::process::exit(1);
+            }
+        };
         let mut genesis_accounts = Vec::new();
 
         // Add programs from config
-        for program in config.programs() {
+        let programs = match config.try_programs() {
+            Ok(programs) => programs,
+            Err(e) => {
+                eprintln!("Invalid Trident.toml configuration: {}", e);
+                std::process::exit(1);
+            }
+        };
+        for program in programs {
             let accounts = TridentAccountSharedData::loader_v3_program(
                 program.address,
                 &program.data,
@@ -123,7 +136,14 @@ impl Trident {
         }
 
         // Add regular accounts from config
-        for account_config in config.accounts() {
+        let accounts = match config.try_accounts() {
+            Ok(accounts) => accounts,
+            Err(e) => {
+                eprintln!("Invalid Trident.toml configuration: {}", e);
+                std::process::exit(1);
+            }
+        };
+        for account_config in accounts {
             let account = TridentAccountSharedData::new(
                 account_config.pubkey,
                 account_config.account.clone(),

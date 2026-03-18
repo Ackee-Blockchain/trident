@@ -11,6 +11,7 @@ use trident_client::___private::TestGenerator;
 use crate::command::check_fuzz_test_exists;
 use crate::command::check_fuzz_test_not_exists;
 use crate::command::check_trident_uninitialized;
+use crate::command::ensure_running_from_trident_tests;
 use crate::command::get_project_root_for_fuzz;
 use crate::command::is_anchor_project;
 use crate::command::validate_program_name_usage;
@@ -139,11 +140,13 @@ pub(crate) async fn fuzz(subcmd: FuzzCommand) {
             exit_code,
             seed,
         } => {
+            ensure_running_from_trident_tests(&root)?;
             let commander = Commander::new(&root);
 
             commander.run(target, exit_code, seed).await?;
         }
         FuzzCommand::Debug { target, seed } => {
+            ensure_running_from_trident_tests(&root)?;
             let commander = Commander::new(&root);
 
             commander.run_debug(target, seed).await?;

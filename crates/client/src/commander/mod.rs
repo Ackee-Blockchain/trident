@@ -19,9 +19,9 @@ mod fuzz;
 
 #[derive(Error, Debug)]
 pub enum Error {
-    #[error("{0:?}")]
+    #[error("{0}")]
     Io(#[from] io::Error),
-    #[error("{0:?}")]
+    #[error("{0}")]
     Utf8(#[from] FromUtf8Error),
     #[error("build programs failed")]
     BuildProgramsFailed,
@@ -33,8 +33,10 @@ pub enum Error {
     Coverage(#[from] crate::coverage::CoverageError),
     #[error("Cannot find the trident-tests directory in the current workspace")]
     BadWorkspace,
-    #[error("{0:?}")]
+    #[error("{0}")]
     Anyhow(#[from] anyhow::Error),
+    #[error("Invalid Trident.toml configuration: {0}")]
+    Config(#[from] trident_config::Error),
 }
 
 /// `Commander` allows you to start localnet, build programs,
