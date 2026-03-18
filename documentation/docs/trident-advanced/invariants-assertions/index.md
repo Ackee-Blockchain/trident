@@ -119,9 +119,11 @@ trident fuzz run fuzz_0 --exit-code all
 
 # Exit non-zero only on invariant failures
 trident fuzz run fuzz_0 --exit-code invariants
-
-# Exit non-zero only on program panics
-trident fuzz run fuzz_0 --exit-code panics
 ```
+
+Notes:
+
+- Without `--exit-code`, invariant failures and program panics are reported but do not force a non-zero process exit.
+- Unexpected fuzz-test panics (for example `unwrap()` on `None`) are always treated as runtime errors and fail the run.
 
 For more complex examples and patterns, see the [Trident Examples](../../trident-examples/trident-examples.md) page.

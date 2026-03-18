@@ -63,7 +63,7 @@ pub(crate) enum FuzzCommand {
             long = "exit-code",
             required = false,
             value_name = "MODE",
-            help = "Exit with non-zero code on failures. Modes: 'all' (any failure), 'invariants' (only fuzz test assertions), 'panics' (only program panics)."
+            help = "Exit with non-zero code on failures. Modes: 'all' (any failure), 'invariants' (only custom invariant/assert failures)."
         )]
         exit_code: Option<ExitCodeMode>,
         #[arg(

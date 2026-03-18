@@ -118,7 +118,9 @@ Runs the specified Fuzz Target using Trident's Manually Guided Fuzzing (e.g., fu
 
     - `all` - Exit non-zero on any failure (program panics or invariant failures)
     - `invariants` - Exit non-zero only on fuzz test assertion/invariant failures
-    - `panics` - Exit non-zero only on program panics (program failed to complete)
+
+Without `--exit-code`, Trident does not fail the process on invariant failures or program panics.  
+Unexpected fuzz-test panics (for example `unwrap()` on `None`) are always treated as runtime errors and fail the run.
 
 **Examples:**
 
@@ -131,9 +133,6 @@ trident fuzz run fuzz_0 --exit-code all
 
 # Exit non-zero only on invariant failures (useful in CI to catch assertion bugs)
 trident fuzz run fuzz_0 -e invariants
-
-# Exit non-zero only on program panics (useful to detect unhandled errors)
-trident fuzz run fuzz_0 -e panics
 ```
 
 ---
