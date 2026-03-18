@@ -15,6 +15,7 @@ mod system;
 pub mod transaction_result;
 
 mod metrics;
+mod progress;
 mod random;
 mod seed;
 #[cfg(feature = "stake")]
