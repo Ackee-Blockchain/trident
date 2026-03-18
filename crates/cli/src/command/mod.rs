@@ -140,6 +140,16 @@ fn check_trident_uninitialized(root: &str) {
 }
 
 #[throws]
+fn ensure_running_from_trident_tests(root: &str) {
+    let trident_tests_dir = Path::new(root).join(TESTS_WORKSPACE_DIRECTORY);
+    let current_dir = std::env::current_dir()?;
+
+    if !current_dir.starts_with(&trident_tests_dir) {
+        bail!("Run this command from trident-tests.",);
+    }
+}
+
+#[throws]
 fn check_fuzz_test_exists(root: &str, fuzz_test_name: &str) {
     let fuzz_test_dir = Path::new(&root)
         .join(TESTS_WORKSPACE_DIRECTORY)

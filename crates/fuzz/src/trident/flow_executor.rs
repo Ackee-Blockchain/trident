@@ -283,8 +283,17 @@ pub trait FlowExecutor: Send + 'static + Sized {
     /// This is called once at the beginning to avoid race conditions with RPC calls
     /// and cache writes when multiple threads are spawned.
     fn ensure_forks_processed() {
-        let config = TridentConfig::new();
-        let _ = config.fork();
+        let config = match TridentConfig::try_new() {
+            Ok(config) => config,
+            Err(e) => {
+                eprintln!("Invalid Trident.toml configuration: {}", e);
+                std::process::exit(FuzzRunExit::RuntimeFailure.code());
+            }
+        };
+        if let Err(e) = config.fork() {
+            eprintln!("Failed to process fork entries from Trident.toml: {}", e);
+            std::process::exit(FuzzRunExit::RuntimeFailure.code());
+        }
     }
 
     /// Sets up a global panic handler that captures panic location information.
