@@ -60,8 +60,6 @@ pub mod fuzzing {
 
     /// Trident
     pub use super::trident::flow_executor::FlowExecutor;
-    pub use super::trident::transaction_result::TransactionResult;
-    pub use super::trident::transaction_result::TransactionReturnData;
     pub use super::trident::Trident;
     pub use trident_fuzz_metrics::TridentFuzzingData;
 

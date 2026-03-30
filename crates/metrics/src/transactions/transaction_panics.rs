@@ -11,7 +11,7 @@ pub(crate) struct TransactionPanicMetrics {
 pub(crate) struct TransactionPanicMetricsMetadata {
     occurrences: u64,
     seed: String,
-    logs: Option<Vec<String>>,
+    logs: Option<String>,
     instruction_inputs: String,
 }
 
@@ -20,7 +20,7 @@ impl TransactionPanicMetrics {
         &mut self,
         panic: &str,
         seed: &Seed,
-        logs: Option<Vec<String>>,
+        logs: Option<String>,
         instruction_inputs: String,
     ) {
         self.panics

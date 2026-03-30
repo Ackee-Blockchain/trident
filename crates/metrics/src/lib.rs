@@ -44,7 +44,7 @@ impl TridentFuzzingData {
         &mut self,
         transaction_name: &str,
         error: String,
-        logs: Option<Vec<String>>,
+        logs: Option<String>,
     ) {
         self.metrics
             .add_failed_transaction(transaction_name, error, logs);
@@ -55,7 +55,7 @@ impl TridentFuzzingData {
         transaction_name: &str,
         seed: Seed,
         panic: String,
-        logs: Option<Vec<String>>,
+        logs: Option<String>,
         instruction_inputs: String,
     ) {
         self.metrics.add_transaction_panicked(
