@@ -533,12 +533,14 @@ mod tests {
   ]
 }"#;
 
+        // Pin temp_dir across the await so the async state machine won't drop it early.
+        let _guard = &temp_dir;
+
         // Should not create a backup for empty file
         create_or_update_json_file(&root, &settings_path, new_content)
             .await
             .unwrap();
 
-        // Keep TempDir alive across post-await checks to avoid eager drop in async state machine.
         assert!(temp_dir.path().exists());
 
         // Verify no backup was created
@@ -572,12 +574,14 @@ mod tests {
   ]
 }"#;
 
+        // Pin temp_dir across the await so the async state machine won't drop it early.
+        let _guard = &temp_dir;
+
         // Should not create a backup for whitespace-only file
         create_or_update_json_file(&root, &settings_path, new_content)
             .await
             .unwrap();
 
-        // Keep TempDir alive across post-await checks to avoid eager drop in async state machine.
         assert!(temp_dir.path().exists());
 
         // Verify no backup was created

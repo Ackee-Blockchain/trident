@@ -1,16 +1,19 @@
-# TransactionResult
+# TridentTransactionResult
 
-The `TransactionResult` struct encapsulates the outcome of executing a transaction in the Trident fuzzing environment. It provides methods to inspect transaction success/failure status, access logs, extract error information, and read Solana return data.
+The `TridentTransactionResult` struct encapsulates the outcome of executing a transaction in the Trident fuzzing environment. It provides methods to inspect transaction success/failure status, access logs, extract error information, inspect CPI inner instructions, and read Solana return data.
 
 ## Overview
 
-`TransactionResult` is returned by [`process_transaction`](../index.md#process_transaction) and provides access to:
+`TridentTransactionResult` is returned by [`process_transaction`](../index.md#process_transaction) and provides access to:
 
 - Transaction success/failure status
+- Raw transaction error via `status()`
 - Log messages generated during execution
-- Custom program error codes
-- Transaction timestamp
+- Compute units consumed
+- Inner instructions (resolved CPIs with actual pubkeys)
 - Return data emitted by the executed program
+- Transaction timestamp
+- Detection of program panics (`ProgramFailedToComplete`)
 
 ## Core Methods
 
@@ -28,23 +31,23 @@ pub fn is_success(&self) -> bool
 
 ---
 
-### `is_error`
+### `status`
 
-Returns `true` if the transaction failed with an error.
+Returns a reference to the raw transaction result.
 
 ```rust
-pub fn is_error(&self) -> bool
+pub fn status(&self) -> &Result<(), TransactionError>
 ```
 
-**Returns:** `true` if the transaction failed, `false` if it succeeded.
+**Returns:** A reference to the `Result<(), TransactionError>` from the transaction execution.
 
-**Description:** A failed transaction indicates that one or more instructions encountered an error during execution.
+**Description:** Provides direct access to the underlying Solana transaction result type for advanced error handling and pattern matching on specific `TransactionError` variants.
 
 ---
 
 ### `logs`
 
-Returns the transaction logs.
+Returns the transaction logs as a formatted string.
 
 ```rust
 pub fn logs(&self) -> String
@@ -52,79 +55,54 @@ pub fn logs(&self) -> String
 
 **Returns:** A formatted string containing all log messages in chronological order.
 
-**Description:** Gets all log messages generated during transaction execution, including program logs (from `msg!()` macro), system messages, and error messages, formatted as a single string.
+**Description:** Gets all log messages generated during transaction execution, including program logs (from `msg!()` macro), system messages, and error messages.
 
 ---
 
-### `get_result`
+### `compute_units_consumed`
 
-Returns the raw transaction result.
+Returns the number of compute units consumed by the transaction.
 
 ```rust
-pub fn get_result(&self) -> &solana_sdk::transaction::Result<()>
+pub fn compute_units_consumed(&self) -> u64
 ```
 
-**Returns:** A reference to the `Result<(), TransactionError>` from the transaction execution.
+**Returns:** The total compute units consumed during execution.
 
-**Description:** Provides direct access to the underlying Solana transaction result type for advanced error handling.
+**Description:** Useful for monitoring program efficiency and ensuring transactions stay within compute budget limits.
 
 ---
 
-### `get_custom_error_code`
+### `inner_instructions`
 
-Extracts the custom error code if the transaction failed with a custom error.
+Returns the resolved inner instructions (CPIs) for the transaction.
 
 ```rust
-pub fn get_custom_error_code(&self) -> Option<u32>
+pub fn inner_instructions(&self) -> Option<&ResolvedInnerInstructionsList>
 ```
 
 **Returns:**
 
-- `Some(error_code)` - If the transaction failed with a custom program error
-- `None` - For other error types or successful transactions
+- `Some(&ResolvedInnerInstructionsList)` - If the transaction produced inner instructions
+- `None` - If no inner instructions were generated
 
-**Description:** If the transaction failed due to a program's custom error, this method returns the numeric error code.
+**Description:** Inner instructions represent cross-program invocations (CPIs) made during transaction execution. Unlike raw Solana inner instructions that use index-based references, these are **resolved** with actual `Pubkey` values for the program and accounts involved.
 
----
+Each `ResolvedInnerInstruction` contains:
 
-### `is_custom_error_with_code`
-
-Checks if the transaction failed with a specific custom error code.
-
-```rust
-pub fn is_custom_error_with_code(&self, error_code: u32) -> bool
-```
-
-**Parameters:**
-
-- `error_code` - The expected custom error code
-
-**Returns:** `true` if the transaction failed with the specified custom error code.
-
-**Description:** Convenience method to check if the transaction failed with a particular program-defined error code.
+- `program_id: Pubkey` - The program that was invoked
+- `accounts: Vec<Pubkey>` - The accounts passed to the CPI
+- `data: Vec<u8>` - The instruction data
+- `stack_height: u8` - The CPI depth level
 
 ---
 
-### `get_transaction_timestamp`
-
-Returns the Unix timestamp when the transaction was processed.
-
-```rust
-pub fn get_transaction_timestamp(&self) -> u64
-```
-
-**Returns:** Unix timestamp in seconds.
-
-**Description:** The timestamp corresponds to the Clock sysvar's `unix_timestamp` at execution time. Useful for testing time-dependent logic and verifying transaction ordering.
-
----
-
-### `get_return_data`
+### `return_data`
 
 Returns the raw Solana return data for the transaction, if any program emitted it via `set_return_data`.
 
 ```rust
-pub fn get_return_data(&self) -> Option<&TransactionReturnData>
+pub fn return_data(&self) -> Option<&TransactionReturnData>
 ```
 
 **Returns:**
@@ -136,52 +114,114 @@ pub fn get_return_data(&self) -> Option<&TransactionReturnData>
 
 ---
 
+### `transaction_timestamp`
+
+Returns the Unix timestamp when the transaction was processed.
+
+```rust
+pub fn transaction_timestamp(&self) -> i64
+```
+
+**Returns:** Unix timestamp in seconds.
+
+**Description:** The timestamp corresponds to the Clock sysvar's `unix_timestamp` at execution time. Useful for testing time-dependent logic and verifying transaction ordering.
+
+---
+
+### `is_program_failed_to_complete`
+
+Checks if the transaction failed because a program panicked or aborted.
+
+```rust
+pub fn is_program_failed_to_complete(&self) -> bool
+```
+
+**Returns:** `true` if the transaction error is `TransactionError::InstructionError(_, InstructionError::ProgramFailedToComplete)`.
+
+**Description:** This typically indicates the on-chain program panicked during execution (e.g., due to an `unwrap()` on an invalid value or an explicit `panic!()`). Trident uses this internally for metrics to track program panics separately from other transaction failures.
+
+---
+
 ## Example Usage
 
 ### Basic Transaction Verification
 
 ```rust
-use trident_fuzz::*;
-
 #[flow]
 fn test_transaction(&mut self) {
     let ix = your_program::instruction::initialize(
-        self.payer().pubkey(),
+        self.trident.payer().pubkey(),
     );
-    
-    let result = self.process_transaction(&[ix], Some("initialize"));
-    
-    // Check if transaction succeeded
-    assert!(result.is_success());
-    
+
+    let result = self.trident.process_transaction(&[ix], Some("initialize"));
+
+    if result.is_success() {
+        // transaction succeeded, check state
+    }
+
     // Access logs
     println!("{}", result.logs());
 }
 ```
 
-### Error Handling
+### Error Handling with Status
 
 ```rust
-use trident_fuzz::*;
-
 #[flow]
 fn test_error_handling(&mut self) {
     let ix = your_program::instruction::transfer(
-        self.payer().pubkey(),
+        self.trident.payer().pubkey(),
         recipient,
         amount,
     );
-    
-    let result = self.process_transaction(&[ix], Some("transfer"));
-    
-    // Check for specific custom error
-    if result.is_custom_error_with_code(6000) {
-        println!("Transaction failed with InsufficientFunds error");
+
+    let result = self.trident.process_transaction(&[ix], Some("transfer"));
+
+    match result.status() {
+        Ok(()) => {
+            // transaction succeeded
+        }
+        Err(transaction_error) => {
+            println!("Transaction failed: {}", transaction_error);
+        }
     }
-    
-    // Or extract error code
-    if let Some(error_code) = result.get_custom_error_code() {
-        println!("Custom error code: {}", error_code);
+}
+```
+
+### Inspecting Compute Units
+
+```rust
+#[flow]
+fn test_compute_budget(&mut self) {
+    let result = self.trident.process_transaction(&[ix], Some("heavy_compute"));
+
+    let cu = result.compute_units_consumed();
+    println!("Compute units used: {}", cu);
+
+    invariant!(
+        cu < 200_000,
+        "Transaction consumed too many compute units: {}",
+        cu
+    );
+}
+```
+
+### Inspecting Inner Instructions (CPIs)
+
+```rust
+#[flow]
+fn test_cpi_calls(&mut self) {
+    let result = self.trident.process_transaction(&[ix], Some("with_cpi"));
+
+    if let Some(inner_ixs) = result.inner_instructions() {
+        for (i, top_level_cpis) in inner_ixs.iter().enumerate() {
+            for cpi in top_level_cpis {
+                println!(
+                    "Instruction {} CPI -> program: {}, stack_height: {}",
+                    i, cpi.program_id, cpi.stack_height
+                );
+            }
+        }
     }
 }
 ```
@@ -189,15 +229,16 @@ fn test_error_handling(&mut self) {
 ### Timestamp Verification
 
 ```rust
-use trident_fuzz::*;
-
 #[flow]
 fn test_timestamp(&mut self) {
-    let result = self.process_transaction(&instructions, Some("test"));
-    let timestamp = result.get_transaction_timestamp();
-    
-    // Verify transaction occurred after a specific time
-    assert!(timestamp >= expected_min_timestamp);
+    let result = self.trident.process_transaction(&[ix], Some("test"));
+    let timestamp = result.transaction_timestamp();
+
+    invariant!(
+        timestamp >= expected_min_timestamp,
+        "Transaction timestamp {} is before expected {}",
+        timestamp,
+        expected_min_timestamp
+    );
 }
 ```
-

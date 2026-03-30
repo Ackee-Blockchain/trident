@@ -12,6 +12,7 @@ incremented upon a breaking change and the patch version will be incremented for
 
 **Added**
 
+- add invariant macros for better invariant checking and error handling ([461](https://github.com/Ackee-Blockchain/trident/pull/461))
 - introduce simple Fork Testing allowing forking and caching programs and accounts from desired clusters ([434](https://github.com/Ackee-Blockchain/trident/pull/434))
 - add new random generation methods ([444](https://github.com/Ackee-Blockchain/trident/pull/444))
 - add `AccountDiscriminator` trait to derive discriminator for account types ([443](https://github.com/Ackee-Blockchain/trident/pull/443))
@@ -24,6 +25,7 @@ incremented upon a breaking change and the patch version will be incremented for
 
 **Changed**
 
+- move transaction result to trident-svm crate ([461](https://github.com/Ackee-Blockchain/trident/pull/461))
 - Allow initialization for Vanilla Solana projects with IDLs ([435](https://github.com/Ackee-Blockchain/trident/pull/435))
 - improve invariant handling and exit-code behavior in fuzzing ([457](https://github.com/Ackee-Blockchain/trident/pull/457))
 

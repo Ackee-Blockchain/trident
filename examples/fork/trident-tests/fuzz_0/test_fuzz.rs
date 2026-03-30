@@ -1,5 +1,5 @@
 use fuzz_accounts::*;
-use trident_fuzz::fuzzing::*;
+use trident_fuzz::{fuzzing::*, invariant_eq};
 mod fuzz_accounts;
 mod types;
 use types::*;
