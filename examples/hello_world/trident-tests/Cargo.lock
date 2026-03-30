@@ -59,6 +59,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "agave-precompiles"
+version = "2.3.13"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d60d73657792af7f2464e9181d13c3979e94bb09841d9ffa014eef4ef0492b77"
+dependencies = [
+ "agave-feature-set",
+ "bincode",
+ "digest 0.10.7",
+ "ed25519-dalek",
+ "libsecp256k1",
+ "openssl",
+ "sha3",
+ "solana-ed25519-program",
+ "solana-message",
+ "solana-precompile-error",
+ "solana-pubkey",
+ "solana-sdk-ids",
+ "solana-secp256k1-program",
+ "solana-secp256r1-program",
+]
+
+[[package]]
 name = "ahash"
 version = "0.8.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1988,15 +2010,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "itertools"
-version = "0.14.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2b192c782037fadd9cfa75548310488aabdbf3d2da73885b31bd0abd03351285"
-dependencies = [
- "either",
-]
-
-[[package]]
 name = "itoa"
 version = "1.0.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2515,6 +2528,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d05e27ee213611ffe7d6348b942e8f942b37114c00cc03cec254295a4a17852e"
 
 [[package]]
+name = "openssl-src"
+version = "300.5.5+3.5.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3f1787d533e03597a7934fd0a765f0d28e94ecc5fb7789f8053b1e699a56f709"
+dependencies = [
+ "cc",
+]
+
+[[package]]
 name = "openssl-sys"
 version = "0.9.111"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2522,6 +2544,7 @@ checksum = "82cab2d520aa75e3c58898289429321eb788c3106963d0dc886ec7a5f4adc321"
 dependencies = [
  "cc",
  "libc",
+ "openssl-src",
  "pkg-config",
  "vcpkg",
 ]
@@ -6738,7 +6761,7 @@ dependencies = [
 
 [[package]]
 name = "trident-config"
-version = "0.13.0-rc.2"
+version = "0.13.0-rc.3"
 dependencies = [
  "anyhow",
  "base64 0.22.1",
@@ -6758,7 +6781,7 @@ dependencies = [
 
 [[package]]
 name = "trident-derive-flow-executor"
-version = "0.13.0-rc.2"
+version = "0.13.0-rc.3"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -6768,7 +6791,7 @@ dependencies = [
 
 [[package]]
 name = "trident-derive-fuzz-test-methods"
-version = "0.13.0-rc.2"
+version = "0.13.0-rc.3"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -6778,14 +6801,14 @@ dependencies = [
 
 [[package]]
 name = "trident-fuzz"
-version = "0.13.0-rc.2"
+version = "0.13.0-rc.3"
 dependencies = [
  "bincode",
  "borsh 1.6.0",
  "getrandom 0.3.4",
  "hex",
  "indicatif",
- "itertools 0.14.0",
+ "itertools 0.10.5",
  "rand 0.8.5",
  "reqwest 0.11.27",
  "serde",
@@ -6811,7 +6834,7 @@ dependencies = [
 
 [[package]]
 name = "trident-fuzz-metrics"
-version = "0.13.0-rc.2"
+version = "0.13.0-rc.3"
 dependencies = [
  "hex",
  "prettytable",
@@ -6823,10 +6846,11 @@ dependencies = [
 
 [[package]]
 name = "trident-svm"
-version = "0.3.0-rc.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a7e850c21b2c402bb75c2feca8468a1a7da8c263e8cf8831cdcfaeaa8415387a"
+version = "0.3.0-rc.3"
+source = "git+https://github.com/Ackee-Blockchain/trident-svm?branch=develop#775588320f1c3d7b08f0127731db1884ee12cc7e"
 dependencies = [
+ "agave-feature-set",
+ "agave-precompiles",
  "bincode",
  "log",
  "serde",
@@ -6844,6 +6868,8 @@ dependencies = [
  "solana-keypair",
  "solana-loader-v3-interface",
  "solana-logger",
+ "solana-message",
+ "solana-precompile-error",
  "solana-program-runtime",
  "solana-pubkey",
  "solana-rent",
@@ -6858,12 +6884,13 @@ dependencies = [
  "solana-sysvar",
  "solana-sysvar-id",
  "solana-transaction",
+ "solana-transaction-context",
  "solana-transaction-error",
 ]
 
 [[package]]
 name = "trident-syn"
-version = "0.13.0-rc.2"
+version = "0.13.0-rc.3"
 dependencies = [
  "petgraph",
  "proc-macro2",

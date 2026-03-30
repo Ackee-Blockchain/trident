@@ -59,18 +59,18 @@ impl FuzzTest {
             .trident
             .process_transaction(&ixs, Some("Empty extensions"));
 
-        assert!(
+        invariant!(
             res.is_success(),
             "Empty extensions failed: {:#?}",
-            res.get_result()
+            res.status()
         );
 
         let res = self.trident.get_mint(mint2022).expect("Failed to get mint");
 
-        assert!(res.extensions.is_empty());
-        assert!(res.mint.freeze_authority.is_none());
-        assert!(res.mint.decimals == 7);
-        assert!(res.mint.supply == 0);
+        invariant!(res.extensions.is_empty());
+        invariant!(res.mint.freeze_authority.is_none());
+        invariant!(res.mint.decimals == 7);
+        invariant!(res.mint.supply == 0);
     }
 
     #[flow]
@@ -107,15 +107,15 @@ impl FuzzTest {
             .trident
             .process_transaction(&ixs, Some("Pausable extension"));
 
-        assert!(
+        invariant!(
             res.is_success(),
             "Pausable extension failed: {:#?}",
-            res.get_result()
+            res.status()
         );
 
         let res = self.trident.get_mint(mint2022).expect("Failed to get mint");
 
-        assert!(res.extensions.len() == 1);
+        invariant!(res.extensions.len() == 1);
     }
 
     #[flow]
@@ -153,15 +153,15 @@ impl FuzzTest {
             .trident
             .process_transaction(&ixs, Some("ScaledUiAmount extension"));
 
-        assert!(
+        invariant!(
             res.is_success(),
             "ScaledUiAmount extension failed: {:#?}",
-            res.get_result()
+            res.status()
         );
 
         let res = self.trident.get_mint(mint2022).expect("Failed to get mint");
 
-        assert!(res.extensions.len() == 1);
+        invariant!(res.extensions.len() == 1);
     }
 
     #[flow]
@@ -211,18 +211,18 @@ impl FuzzTest {
             .trident
             .process_transaction(&ixs, Some("MetadataPointer + TokenMetadata extensions"));
 
-        assert!(
+        invariant!(
             res.is_success(),
             "MetadataPointer + TokenMetadata extensions failed: {:#?}",
-            res.get_result()
+            res.status()
         );
 
         let res = self.trident.get_mint(mint2022).expect("Failed to get mint");
 
-        assert!(res.extensions.len() == 2);
-        assert!(res.mint.decimals == 5);
-        assert!(res.mint.supply == 0);
-        assert!(res.mint.is_initialized);
+        invariant!(res.extensions.len() == 2);
+        invariant!(res.mint.decimals == 5);
+        invariant!(res.mint.supply == 0);
+        invariant!(res.mint.is_initialized);
     }
 
     #[flow]
@@ -262,15 +262,15 @@ impl FuzzTest {
             .trident
             .process_transaction(&ixs, Some("TransferFeeConfig extension"));
 
-        assert!(
+        invariant!(
             res.is_success(),
             "TransferFeeConfig extension failed: {:#?}",
-            res.get_result()
+            res.status()
         );
 
         let res = self.trident.get_mint(mint2022).expect("Failed to get mint");
 
-        assert!(res.extensions.len() == 1);
+        invariant!(res.extensions.len() == 1);
     }
 
     #[flow]
@@ -307,15 +307,15 @@ impl FuzzTest {
             .trident
             .process_transaction(&ixs, Some("MintCloseAuthority extension"));
 
-        assert!(
+        invariant!(
             res.is_success(),
             "MintCloseAuthority extension failed: {:#?}",
-            res.get_result()
+            res.status()
         );
 
         let res = self.trident.get_mint(mint2022).expect("Failed to get mint");
 
-        assert!(res.extensions.len() == 1);
+        invariant!(res.extensions.len() == 1);
     }
 
     #[flow]
@@ -354,15 +354,15 @@ impl FuzzTest {
             .trident
             .process_transaction(&ixs, Some("InterestBearingConfig extension"));
 
-        assert!(
+        invariant!(
             res.is_success(),
             "InterestBearingConfig extension failed: {:#?}",
-            res.get_result()
+            res.status()
         );
 
         let res = self.trident.get_mint(mint2022).expect("Failed to get mint");
 
-        assert!(res.extensions.len() == 1);
+        invariant!(res.extensions.len() == 1);
     }
 
     #[flow]
@@ -398,15 +398,15 @@ impl FuzzTest {
             .trident
             .process_transaction(&ixs, Some("NonTransferable extension"));
 
-        assert!(
+        invariant!(
             res.is_success(),
             "NonTransferable extension failed: {:#?}",
-            res.get_result()
+            res.status()
         );
 
         let res = self.trident.get_mint(mint2022).expect("Failed to get mint");
 
-        assert!(res.extensions.len() == 1);
+        invariant!(res.extensions.len() == 1);
     }
 
     #[flow]
@@ -443,15 +443,15 @@ impl FuzzTest {
             .trident
             .process_transaction(&ixs, Some("PermanentDelegate extension"));
 
-        assert!(
+        invariant!(
             res.is_success(),
             "PermanentDelegate extension failed: {:#?}",
-            res.get_result()
+            res.status()
         );
 
         let res = self.trident.get_mint(mint2022).expect("Failed to get mint");
 
-        assert!(res.extensions.len() == 1);
+        invariant!(res.extensions.len() == 1);
     }
 
     #[flow]
@@ -489,15 +489,15 @@ impl FuzzTest {
             .trident
             .process_transaction(&ixs, Some("TransferHook extension"));
 
-        assert!(
+        invariant!(
             res.is_success(),
             "TransferHook extension failed: {:#?}",
-            res.get_result()
+            res.status()
         );
 
         let res = self.trident.get_mint(mint2022).expect("Failed to get mint");
 
-        assert!(res.extensions.len() == 1);
+        invariant!(res.extensions.len() == 1);
     }
 
     #[flow]
@@ -542,15 +542,15 @@ impl FuzzTest {
             .trident
             .process_transaction(&ixs, Some("TransferFeeConfig + Pausable extension"));
 
-        assert!(
+        invariant!(
             res.is_success(),
             "TransferFeeConfig + Pausable extension failed: {:#?}",
-            res.get_result()
+            res.status()
         );
 
         let res = self.trident.get_mint(mint2022).expect("Failed to get mint");
 
-        assert!(res.extensions.len() == 2);
+        invariant!(res.extensions.len() == 2);
     }
 
     #[flow]
@@ -606,15 +606,15 @@ impl FuzzTest {
             Some("TransferFeeConfig + MetadataPointer + TokenMetadata extension"),
         );
 
-        assert!(
+        invariant!(
             res.is_success(),
             "TransferFeeConfig + MetadataPointer + TokenMetadata extension failed: {:#?}",
-            res.get_result()
+            res.status()
         );
 
         let res = self.trident.get_mint(mint2022).expect("Failed to get mint");
 
-        assert!(res.extensions.len() == 3);
+        invariant!(res.extensions.len() == 3);
     }
 
     #[flow]
@@ -660,15 +660,15 @@ impl FuzzTest {
             .trident
             .process_transaction(&ixs, Some("GroupPointer + TokenGroup extension"));
 
-        assert!(
+        invariant!(
             res.is_success(),
             "GroupPointer + TokenGroup extension failed: {:#?}",
-            res.get_result()
+            res.status()
         );
 
         let res = self.trident.get_mint(mint2022).expect("Failed to get mint");
 
-        assert!(res.extensions.len() == 2);
+        invariant!(res.extensions.len() == 2);
 
         // ===== MEMBER MINT CREATION =====
 
@@ -700,10 +700,10 @@ impl FuzzTest {
             Some("GroupMemberPointer + TokenGroupMember extension"),
         );
 
-        assert!(
+        invariant!(
             res.is_success(),
             "GroupMemberPointer + TokenGroupMember extension failed: {:#?}",
-            res.get_result()
+            res.status()
         );
 
         let res = self
@@ -711,7 +711,7 @@ impl FuzzTest {
             .get_mint(group_member_mint2022)
             .expect("Failed to get mint");
 
-        assert!(res.extensions.len() == 2);
+        invariant!(res.extensions.len() == 2);
     }
 
     #[flow]
@@ -787,15 +787,15 @@ impl FuzzTest {
             .trident
             .process_transaction(&ixs, Some("Multiple extensions"));
 
-        assert!(
+        invariant!(
             res.is_success(),
             "GroupPointer + TokenGroup + MetadataPointer + TokenMetadata + Pausable + TransferFeeConfig + ScaledUiAmount + MintCloseAuthority extension failed: {:#?}",
-            res.get_result()
+            res.status()
         );
 
         let res = self.trident.get_mint(mint2022).expect("Failed to get mint");
 
-        assert!(res.extensions.len() == 9);
+        invariant!(res.extensions.len() == 9);
 
         let token_account2022_1 = self
             .fuzz_accounts
@@ -821,15 +821,15 @@ impl FuzzTest {
             Some("ImmutableOwner + CpiGuard + MemoTransfer extension"),
         );
 
-        assert!(
+        invariant!(
             res.is_success(),
             "TokenAccount creation failed: {:#?}",
-            res.get_result()
+            res.status()
         );
 
         let res = self.trident.get_token_account(token_account2022_1).unwrap();
 
-        assert!(res.extensions.len() == 5);
+        invariant!(res.extensions.len() == 5);
 
         let ix = self.trident.mint_to_2022(
             &token_account2022_1,
@@ -840,7 +840,7 @@ impl FuzzTest {
 
         let res = self.trident.process_transaction(&[ix], Some("Mint to"));
 
-        assert!(res.is_success(), "Mint to failed: {:#?}", res.get_result());
+        invariant!(res.is_success(), "Mint to failed: {:#?}", res.status());
 
         let ixs = self.trident.initialize_associated_token_account_2022(
             &payer,
@@ -853,10 +853,10 @@ impl FuzzTest {
             .trident
             .process_transaction(&ixs, Some("ImmutableOwner + CpiGuard extension"));
 
-        assert!(
+        invariant!(
             res.is_success(),
             "Associated token account creation failed: {:#?}",
-            res.get_result()
+            res.status()
         );
 
         let associated_token_account = self.trident.get_associated_token_address(
@@ -874,7 +874,7 @@ impl FuzzTest {
             .get_token_account(associated_token_account)
             .unwrap();
 
-        assert!(res.extensions.len() == 4);
+        invariant!(res.extensions.len() == 4);
 
         let ix = self.trident.transfer_checked(
             &token_account2022_1,
@@ -890,10 +890,10 @@ impl FuzzTest {
             .trident
             .process_transaction(&[ix], Some("Transfer checked token"));
 
-        assert!(
+        invariant!(
             res.is_success(),
             "Transfer checked token failed: {:#?}",
-            res.get_result()
+            res.status()
         );
 
         let res = self
@@ -901,7 +901,7 @@ impl FuzzTest {
             .get_token_account(associated_token_account)
             .unwrap();
 
-        assert!(res.account.amount == 999999999999999900);
+        invariant!(res.account.amount == 999999999999999900);
     }
 
     #[flow]
@@ -929,19 +929,19 @@ impl FuzzTest {
             .trident
             .process_transaction(&ixs, Some("Initialize SPL token mint"));
 
-        assert!(
+        invariant!(
             res.is_success(),
             "Initialize mint failed: {:#?}",
-            res.get_result()
+            res.status()
         );
 
         let mint_data = self.trident.get_mint(mint).expect("Failed to get mint");
 
-        assert!(mint_data.mint.is_initialized);
-        assert!(mint_data.mint.decimals == 5);
-        assert!(mint_data.mint.supply == 0);
-        assert!(mint_data.mint.freeze_authority.is_none());
-        assert!(mint_data.extensions.is_empty());
+        invariant!(mint_data.mint.is_initialized);
+        invariant!(mint_data.mint.decimals == 5);
+        invariant!(mint_data.mint.supply == 0);
+        invariant!(mint_data.mint.freeze_authority.is_none());
+        invariant!(mint_data.extensions.is_empty());
 
         let token_account = self
             .fuzz_accounts
@@ -956,18 +956,18 @@ impl FuzzTest {
             .trident
             .process_transaction(&ixs, Some("Initialize SPL token token account"));
 
-        assert!(
+        invariant!(
             res.is_success(),
             "Initialize token account failed: {:#?}",
-            res.get_result()
+            res.status()
         );
 
         let res = self.trident.get_token_account(token_account).unwrap();
 
-        assert!(res.extensions.is_empty());
-        assert!(res.account.amount == 0);
-        assert!(res.account.mint == mint);
-        assert!(res.account.owner == author);
+        invariant!(res.extensions.is_empty());
+        invariant!(res.account.amount == 0);
+        invariant!(res.account.mint == mint);
+        invariant!(res.account.owner == author);
 
         let ix = self
             .trident
@@ -977,10 +977,10 @@ impl FuzzTest {
             .trident
             .process_transaction(&[ix], Some("Initialize associated SPL token account"));
 
-        assert!(
+        invariant!(
             res.is_success(),
             "Create associated token account failed: {:#?}",
-            res.get_result()
+            res.status()
         );
 
         let associated_token_account = self.trident.get_associated_token_address(
@@ -994,10 +994,10 @@ impl FuzzTest {
             .get_token_account(associated_token_account)
             .unwrap();
 
-        assert!(res.extensions.is_empty());
-        assert!(res.account.amount == 0);
-        assert!(res.account.mint == mint);
-        assert!(res.account.owner == author);
+        invariant!(res.extensions.is_empty());
+        invariant!(res.account.amount == 0);
+        invariant!(res.account.mint == mint);
+        invariant!(res.account.owner == author);
     }
 
     #[end]

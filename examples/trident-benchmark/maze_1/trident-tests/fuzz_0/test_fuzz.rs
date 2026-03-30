@@ -60,15 +60,15 @@ impl FuzzTest {
             .trident
             .process_transaction(&[init], Some("Initialize"));
 
-        assert!(res.is_success());
+        invariant!(res.is_success());
 
         let state_account = self
             .trident
             .get_account_with_type::<State>(&state, None)
             .expect("State not found");
 
-        assert!(state_account.x == 0);
-        assert!(state_account.y == 0);
+        invariant!(state_account.x == 0);
+        invariant!(state_account.y == 0);
 
         let new_state = State::new(5, 5);
 
@@ -80,8 +80,8 @@ impl FuzzTest {
             .get_account_with_type::<State>(&state, None)
             .expect("State not found");
 
-        assert!(new_state_account.x == 5);
-        assert!(new_state_account.y == 5);
+        invariant!(new_state_account.x == 5);
+        invariant!(new_state_account.y == 5);
     }
 
     #[flow]
