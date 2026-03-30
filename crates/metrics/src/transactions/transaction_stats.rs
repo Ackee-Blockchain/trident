@@ -60,7 +60,7 @@ impl FuzzingStatistics {
         &mut self,
         transaction: &str,
         error: String,
-        logs: Option<Vec<String>>,
+        logs: Option<String>,
     ) {
         self.transactions
             .entry(transaction.to_string())
@@ -91,7 +91,7 @@ impl FuzzingStatistics {
         transaction: &str,
         seed: Seed,
         panic: String,
-        logs: Option<Vec<String>>,
+        logs: Option<String>,
         instruction_inputs: String,
     ) {
         self.transactions

@@ -1,5 +1,5 @@
 use fuzz_accounts::*;
-use trident_fuzz::fuzzing::*;
+use trident_fuzz::{fuzzing::*, invariant_eq};
 mod fuzz_accounts;
 mod types;
 use types::*;
@@ -32,26 +32,26 @@ impl FuzzTest {
             .trident
             .get_account(&pubkey!("dRiftyHA39MWEi3m9aunc5MzRF1JYuBsbn6VPcn33UH"));
 
-        assert!(account.executable());
+        invariant!(account.executable());
 
         let executable_data = self
             .trident
             .get_account(&pubkey!("7dLgmtcTavcguNoynVimF9ZNVb13FvhXVRfj2HyrDGaP"));
 
-        assert!(!executable_data.data().is_empty());
+        invariant!(!executable_data.data().is_empty());
 
         // Jupiter program
         let account = self
             .trident
             .get_account(&pubkey!("JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4"));
 
-        assert!(account.executable());
+        invariant!(account.executable());
 
         let executable_data = self
             .trident
             .get_account(&pubkey!("4Ec7ZxZS6Sbdg5UGSLHbAnM7GQHp2eFd4KYWRexAipQT"));
 
-        assert!(!executable_data.data().is_empty());
+        invariant!(!executable_data.data().is_empty());
 
         // ------------------------------------------------------------
 
@@ -85,24 +85,26 @@ impl FuzzTest {
                 .trident
                 .get_account_with_type::<crate::types::StoreHelloWorld>(&hello_world, None);
             if let Some(hello_world_account) = hello_world_account {
-                invariant!(
-                    hello_world_account.input == input,
+                invariant_eq!(
+                    hello_world_account.input,
+                    input,
                     "Input mismatch: expected {}, got {}",
                     input,
                     hello_world_account.input
                 );
-                invariant!(
-                    hello_world_account.timestamp == res.get_transaction_timestamp(),
+                invariant_eq!(
+                    hello_world_account.timestamp,
+                    res.transaction_timestamp() as u64,
                     "Timestamp mismatch: expected {}, got {}",
-                    res.get_transaction_timestamp(),
+                    res.transaction_timestamp(),
                     hello_world_account.timestamp
                 );
+
+                let returned_value = res.return_data().unwrap();
+
+                invariant!(returned_value.program_id.eq(&hello_world::program_id()));
+                invariant!(returned_value.data.eq(&[5]));
             }
-
-            let returned_value = res.get_return_data().unwrap();
-
-            assert!(returned_value.program_id.eq(&hello_world::program_id()));
-            assert!(returned_value.data.eq(&[5]));
         }
     }
 

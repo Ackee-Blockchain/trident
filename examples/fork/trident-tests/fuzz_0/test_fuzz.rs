@@ -1,5 +1,5 @@
 use fuzz_accounts::*;
-use trident_fuzz::fuzzing::*;
+use trident_fuzz::{fuzzing::*, invariant_eq};
 mod fuzz_accounts;
 mod types;
 use types::*;
@@ -38,7 +38,11 @@ impl FuzzTest {
             .get_mint(pubkey!("So11111111111111111111111111111111111111112"))
             .expect("Wrapped SOL not found");
 
-        assert_eq!(wrapped_sol.mint.decimals, 9);
+        invariant_eq!(
+            wrapped_sol.mint.decimals,
+            9,
+            "Wrapped SOL decimals should be 9"
+        );
 
         let init_ix = fork::InitializeInstruction::data(fork::InitializeInstructionData::new())
             .accounts(fork::InitializeInstructionAccounts::new(
@@ -51,7 +55,7 @@ impl FuzzTest {
             .trident
             .process_transaction(&[init_ix], Some("Initialize"));
 
-        assert!(res.is_success());
+        invariant!(res.is_success());
     }
 
     #[flow]

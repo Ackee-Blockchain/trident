@@ -12,7 +12,6 @@ use crate::trident_rng::TridentRng;
 mod client;
 pub mod flow_executor;
 mod system;
-pub mod transaction_result;
 
 mod metrics;
 mod progress;

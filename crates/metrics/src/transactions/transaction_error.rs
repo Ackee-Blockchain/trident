@@ -8,11 +8,11 @@ pub(crate) struct TransactionErrorMetrics {
 #[derive(Debug, serde::Serialize, serde::Deserialize, Clone, Default)]
 pub(crate) struct TransactionErrorMetricsMetadata {
     occurrences: u64,
-    logs: Option<Vec<String>>,
+    logs: Option<String>,
 }
 
 impl TransactionErrorMetrics {
-    pub(crate) fn add_error(&mut self, error: &str, logs: Option<Vec<String>>) {
+    pub(crate) fn add_error(&mut self, error: &str, logs: Option<String>) {
         self.errors
             .entry(error.to_string())
             .and_modify(|metadata| metadata.occurrences += 1)

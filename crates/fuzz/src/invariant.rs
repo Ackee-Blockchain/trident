@@ -36,3 +36,26 @@ macro_rules! invariant {
         }
     };
 }
+
+/// Checks if two expressions are equal and panics with `InvariantViolation` if not.
+///
+/// Use this macro to check if two expressions are equal.
+/// When the expressions are not equal, it will be counted and collected separately
+/// from unexpected panics (bugs in fuzz test code).
+///
+/// # Examples
+///
+/// ```ignore
+/// // Simple condition check
+/// invariant_eq!(balance_after, balance_before - amount);
+/// invariant_eq!(account.is_initialized, true, "Account is not initialized");
+/// ```
+#[macro_export]
+macro_rules! invariant_eq {
+    ($a:expr, $b:expr) => {
+        invariant!($a == $b);
+    };
+    ($a:expr, $b:expr, $($msg:tt)*) => {
+        invariant!($a == $b, $($msg)*);
+    };
+}
