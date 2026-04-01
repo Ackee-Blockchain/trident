@@ -29,6 +29,9 @@ nav:
             - trident-advanced/invariants-assertions/index.md
           - Multi-Instruction Transactions:
             - trident-advanced/multi-instruction-transactions/index.md
+      - Debugging:
+          - Printers:
+            - trident-advanced/printers/index.md
       - External State:
           - Forking:
             - trident-advanced/forking/index.md
@@ -50,6 +53,7 @@ nav:
       - trident-api/token-2022.md
       - trident-api/vote-program.md
       - trident-api/stake-program.md
+      - trident-api/printers.md
       - Invariant Macros:
         - trident-api/invariants.md
       - Address Storage:

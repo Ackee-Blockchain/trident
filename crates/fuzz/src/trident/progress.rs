@@ -1,3 +1,4 @@
+use std::cell::RefCell;
 use std::io::IsTerminal;
 use std::sync::mpsc;
 use std::thread;
@@ -9,6 +10,30 @@ pub(crate) enum WorkerEvent {
     ProgressDelta(u64),
     InvariantFailure(String),
     ProgramPanicsDelta(u64),
+    UserLog(String),
+}
+
+thread_local! {
+    static USER_LOG_TX: RefCell<Option<mpsc::Sender<WorkerEvent>>> = const { RefCell::new(None) };
+}
+
+pub(crate) fn set_user_log_sender(tx: mpsc::Sender<WorkerEvent>) {
+    USER_LOG_TX.with(|cell| {
+        *cell.borrow_mut() = Some(tx);
+    });
+}
+
+/// Prints a message safely, routing through the progress bar channel in parallel mode
+/// to avoid garbling the progress bar output.
+pub fn send_user_log(msg: String) {
+    USER_LOG_TX.with(|cell| {
+        let guard = cell.borrow();
+        if let Some(ref tx) = *guard {
+            let _ = tx.send(WorkerEvent::UserLog(msg));
+        } else {
+            eprintln!("{}", msg);
+        }
+    });
 }
 
 /// Final aggregated runtime summary produced by the UI/controller thread.
@@ -263,6 +288,9 @@ pub(crate) fn spawn_parallel_ui_controller(
                 }
                 WorkerEvent::ProgramPanicsDelta(delta) => {
                     program_panics += delta;
+                }
+                WorkerEvent::UserLog(msg) => {
+                    main_pb.println(&msg);
                 }
             }
 

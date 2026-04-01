@@ -262,3 +262,24 @@ macro_rules! invariant_lte {
         }
     };
 }
+
+/// Progress-bar-safe print macro. Use this instead of `println!` or `eprintln!`
+/// inside fuzz flows to avoid garbled output in parallel mode.
+///
+/// In parallel mode, the output is routed through the progress bar channel
+/// so it never mixes with the progress bar or with prints from other threads.
+/// In single-thread mode, it falls back to `eprintln!`.
+///
+/// # Examples
+///
+/// ```ignore
+/// tprintln!("balance: {}", balance);
+/// tprintln!("account: {:#?}", account_data);
+/// tprintln!("before: {}, after: {}", before.amount, after.amount);
+/// ```
+#[macro_export]
+macro_rules! tlog {
+    ($($arg:tt)*) => {
+        $crate::trident::progress::send_user_log(format!($($arg)*))
+    };
+}

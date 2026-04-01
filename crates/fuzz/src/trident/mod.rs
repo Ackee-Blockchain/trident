@@ -14,7 +14,8 @@ pub mod flow_executor;
 mod system;
 
 mod metrics;
-mod progress;
+mod print;
+pub mod progress;
 mod random;
 mod seed;
 #[cfg(feature = "stake")]
