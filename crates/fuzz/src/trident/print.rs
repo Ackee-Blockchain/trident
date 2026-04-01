@@ -102,7 +102,10 @@ impl Trident {
             red(&format!("FAILED: {}", err))
         };
         out.push_str(&format!("  Status:    {}\n", status_str));
-        out.push_str(&format!("  CU used:   {}\n", result.compute_units_consumed()));
+        out.push_str(&format!(
+            "  CU used:   {}\n",
+            result.compute_units_consumed()
+        ));
         out.push_str(&format!(
             "  Timestamp: {}\n",
             result.transaction_timestamp()
@@ -180,7 +183,10 @@ impl Trident {
             return;
         }
 
-        out.push_str(&format!("  Owner:      {}\n", cyan(&account.owner().to_string())));
+        out.push_str(&format!(
+            "  Owner:      {}\n",
+            cyan(&account.owner().to_string())
+        ));
 
         let lamports = account.lamports();
         let sol = lamports as f64 / 1_000_000_000.0;
@@ -194,8 +200,14 @@ impl Trident {
             out.push_str(&format!("  Lamports:   {}\n", cyan(&lamports.to_string())));
         }
 
-        out.push_str(&format!("  Data:       {} bytes\n", cyan(&account.data().len().to_string())));
-        out.push_str(&format!("  Executable: {}\n", cyan(&account.executable().to_string())));
+        out.push_str(&format!(
+            "  Data:       {} bytes\n",
+            cyan(&account.data().len().to_string())
+        ));
+        out.push_str(&format!(
+            "  Executable: {}\n",
+            cyan(&account.executable().to_string())
+        ));
 
         progress::send_user_log(out);
     }
@@ -227,24 +239,41 @@ impl Trident {
 
         let owner = account.owner();
         out.push_str(&format!("  Owner:      {}\n", cyan(&owner.to_string())));
-        out.push_str(&format!("  Executable: {}\n", cyan(&account.executable().to_string())));
-        out.push_str(&format!("  Lamports:   {}\n", cyan(&account.lamports().to_string())));
-        out.push_str(&format!("  Data:       {} bytes\n", cyan(&account.data().len().to_string())));
+        out.push_str(&format!(
+            "  Executable: {}\n",
+            cyan(&account.executable().to_string())
+        ));
+        out.push_str(&format!(
+            "  Lamports:   {}\n",
+            cyan(&account.lamports().to_string())
+        ));
+        out.push_str(&format!(
+            "  Data:       {} bytes\n",
+            cyan(&account.data().len().to_string())
+        ));
 
         if *owner == solana_sdk::bpf_loader_upgradeable::ID {
             self.print_program_v3(&account, &mut out);
         } else if *owner == solana_sdk::loader_v4::ID {
             Self::print_program_v4(&account, &mut out);
         } else if *owner == solana_sdk::bpf_loader::ID {
-            out.push_str(&format!("  Loader:     {}\n", cyan("BPF Loader v2 (non-upgradeable)")));
-            out.push_str(&format!("  ELF:        {} bytes {}\n",
+            out.push_str(&format!(
+                "  Loader:     {}\n",
+                cyan("BPF Loader v2 (non-upgradeable)")
+            ));
+            out.push_str(&format!(
+                "  ELF:        {} bytes {}\n",
                 cyan(&account.data().len().to_string()),
                 dim("(not shown)"),
             ));
         } else if *owner == solana_sdk::native_loader::ID {
-            out.push_str(&format!("  Loader:     {}\n", cyan("Native Loader (built-in)")));
+            out.push_str(&format!(
+                "  Loader:     {}\n",
+                cyan("Native Loader (built-in)")
+            ));
         } else {
-            out.push_str(&format!("  {}\n",
+            out.push_str(&format!(
+                "  {}\n",
                 yellow(&format!("Unknown program owner: {}", owner)),
             ));
         }
@@ -260,11 +289,16 @@ impl Trident {
         use solana_loader_v3_interface::state::UpgradeableLoaderState;
         use solana_sdk::account::ReadableAccount;
 
-        out.push_str(&format!("  Loader:     {}\n", cyan("BPF Loader v3 (upgradeable)")));
+        out.push_str(&format!(
+            "  Loader:     {}\n",
+            cyan("BPF Loader v3 (upgradeable)")
+        ));
 
         let state: Result<UpgradeableLoaderState, _> = bincode::deserialize(account.data());
         match state {
-            Ok(UpgradeableLoaderState::Program { programdata_address }) => {
+            Ok(UpgradeableLoaderState::Program {
+                programdata_address,
+            }) => {
                 out.push_str(&format!(
                     "  ProgramData: {}\n",
                     cyan(&programdata_address.to_string()),
@@ -272,18 +306,18 @@ impl Trident {
 
                 let pd_account = self.get_account(&programdata_address);
                 if pd_account.data().is_empty() {
-                    out.push_str(&format!(
-                        "  {}\n",
-                        yellow("ProgramData account not found"),
-                    ));
+                    out.push_str(&format!("  {}\n", yellow("ProgramData account not found"),));
                     return;
                 }
 
                 out.push('\n');
-                out.push_str(&format!("  {}\n", dim(&format!(
-                    "── ProgramData ({}) ──",
-                    short_pubkey(&programdata_address),
-                ))));
+                out.push_str(&format!(
+                    "  {}\n",
+                    dim(&format!(
+                        "── ProgramData ({}) ──",
+                        short_pubkey(&programdata_address),
+                    ))
+                ));
 
                 let pd_state: Result<UpgradeableLoaderState, _> =
                     bincode::deserialize(pd_account.data());
@@ -299,13 +333,19 @@ impl Trident {
                         };
                         out.push_str(&format!("  Authority:  {}\n", cyan(&auth_str)));
                         const PROGRAM_DATA_METADATA_SIZE: usize = 45;
-                        let elf_len = pd_account.data().len().saturating_sub(PROGRAM_DATA_METADATA_SIZE);
+                        let elf_len = pd_account
+                            .data()
+                            .len()
+                            .saturating_sub(PROGRAM_DATA_METADATA_SIZE);
                         out.push_str(&format!(
                             "  ELF:        {} bytes {}\n",
                             cyan(&elf_len.to_string()),
                             dim("(not shown)"),
                         ));
-                        out.push_str(&format!("  Lamports:   {}\n", cyan(&pd_account.lamports().to_string())));
+                        out.push_str(&format!(
+                            "  Lamports:   {}\n",
+                            cyan(&pd_account.lamports().to_string())
+                        ));
                     }
                     _ => {
                         out.push_str(&format!(
@@ -335,12 +375,10 @@ impl Trident {
         }
     }
 
-    fn print_program_v4(
-        account: &solana_sdk::account::AccountSharedData,
-        out: &mut String,
-    ) {
+    fn print_program_v4(account: &solana_sdk::account::AccountSharedData, out: &mut String) {
         use solana_sdk::account::ReadableAccount;
-        use solana_sdk::loader_v4::{LoaderV4State, LoaderV4Status};
+        use solana_sdk::loader_v4::LoaderV4State;
+        use solana_sdk::loader_v4::LoaderV4Status;
 
         out.push_str(&format!("  Loader:     {}\n", cyan("Loader v4")));
 
@@ -355,10 +393,12 @@ impl Trident {
         }
 
         // SAFETY: LoaderV4State is #[repr(C)], Copy, and we verified the buffer is large enough.
-        let state: &LoaderV4State =
-            unsafe { &*(data.as_ptr() as *const LoaderV4State) };
+        let state: &LoaderV4State = unsafe { &*(data.as_ptr() as *const LoaderV4State) };
 
-        out.push_str(&format!("  Slot:       {}\n", cyan(&state.slot.to_string())));
+        out.push_str(&format!(
+            "  Slot:       {}\n",
+            cyan(&state.slot.to_string())
+        ));
 
         let status_str = match state.status {
             LoaderV4Status::Retracted => "Retracted (maintenance)",
@@ -387,7 +427,9 @@ impl Trident {
 }
 
 #[cfg(feature = "token")]
-use crate::trident::token2022::{MintExtensionData, TokenAccountExtensionData};
+use crate::trident::token2022::MintExtensionData;
+#[cfg(feature = "token")]
+use crate::trident::token2022::TokenAccountExtensionData;
 
 #[cfg(feature = "token")]
 fn pod_pubkey(p: &spl_pod::optional_keys::OptionalNonZeroPubkey) -> String {
@@ -402,14 +444,22 @@ fn pod_pubkey(p: &spl_pod::optional_keys::OptionalNonZeroPubkey) -> String {
 fn format_token_extension(ext: &TokenAccountExtensionData) -> String {
     match ext {
         TokenAccountExtensionData::TransferFeeAmount(e) => {
-            format!("TransferFeeAmount: withheld = {}", u64::from(e.withheld_amount))
+            format!(
+                "TransferFeeAmount: withheld = {}",
+                u64::from(e.withheld_amount)
+            )
         }
         TokenAccountExtensionData::ImmutableOwner(_) => "ImmutableOwner".to_string(),
-        TokenAccountExtensionData::NonTransferableAccount(_) => "NonTransferableAccount".to_string(),
+        TokenAccountExtensionData::NonTransferableAccount(_) => {
+            "NonTransferableAccount".to_string()
+        }
         TokenAccountExtensionData::TransferHookAccount(_) => "TransferHookAccount".to_string(),
         TokenAccountExtensionData::PausableAccount(_) => "PausableAccount".to_string(),
         TokenAccountExtensionData::MemoTransfer(e) => {
-            format!("MemoTransfer: require_incoming = {}", bool::from(e.require_incoming_transfer_memos))
+            format!(
+                "MemoTransfer: require_incoming = {}",
+                bool::from(e.require_incoming_transfer_memos)
+            )
         }
         TokenAccountExtensionData::CpiGuard(e) => {
             format!("CpiGuard: lock = {}", bool::from(e.lock_cpi))
@@ -425,7 +475,10 @@ fn format_mint_extension(ext: &MintExtensionData) -> String {
             let bp = u16::from(e.newer_transfer_fee.transfer_fee_basis_points);
             let max = u64::from(e.newer_transfer_fee.maximum_fee);
             let bp_pct = bp as f64 / 100.0;
-            format!("TransferFeeConfig: {}% ({} bps), max_fee = {}", bp_pct, bp, max)
+            format!(
+                "TransferFeeConfig: {}% ({} bps), max_fee = {}",
+                bp_pct, bp, max
+            )
         }
         MintExtensionData::MintCloseAuthority(e) => {
             format!("MintCloseAuthority: {}", pod_pubkey(&e.close_authority))
@@ -442,7 +495,10 @@ fn format_mint_extension(ext: &MintExtensionData) -> String {
         }
         MintExtensionData::NonTransferable(_) => "NonTransferable".to_string(),
         MintExtensionData::InterestBearingConfig(e) => {
-            format!("InterestBearingConfig: rate = {} bps", i16::from(e.current_rate))
+            format!(
+                "InterestBearingConfig: rate = {} bps",
+                i16::from(e.current_rate)
+            )
         }
         MintExtensionData::PermanentDelegate(e) => {
             format!("PermanentDelegate: {}", pod_pubkey(&e.delegate))
@@ -464,7 +520,10 @@ fn format_mint_extension(ext: &MintExtensionData) -> String {
         }
         MintExtensionData::Pausable(_) => "Pausable".to_string(),
         MintExtensionData::TokenMetadata(e) => {
-            let mut s = format!("TokenMetadata: name = \"{}\", symbol = \"{}\"", e.name, e.symbol);
+            let mut s = format!(
+                "TokenMetadata: name = \"{}\", symbol = \"{}\"",
+                e.name, e.symbol
+            );
             if !e.uri.is_empty() {
                 s.push_str(&format!(", uri = \"{}\"", e.uri));
             }
@@ -475,12 +534,17 @@ fn format_mint_extension(ext: &MintExtensionData) -> String {
             s
         }
         MintExtensionData::TokenGroup(e) => {
-            format!("TokenGroup: size = {}/{}", u64::from(e.size), u64::from(e.max_size))
+            format!(
+                "TokenGroup: size = {}/{}",
+                u64::from(e.size),
+                u64::from(e.max_size)
+            )
         }
         MintExtensionData::TokenGroupMember(e) => {
             format!(
                 "TokenGroupMember: group = {}, member_number = {}",
-                e.group, u64::from(e.member_number)
+                e.group,
+                u64::from(e.member_number)
             )
         }
         MintExtensionData::Unknown(t) => format!("Unknown({:?})", t),
@@ -510,7 +574,10 @@ impl Trident {
                 let acc = &token_acc.account;
                 out.push_str(&format!("  Mint:      {}\n", cyan(&acc.mint.to_string())));
                 out.push_str(&format!("  Owner:     {}\n", cyan(&acc.owner.to_string())));
-                out.push_str(&format!("  Amount:    {}\n", green(&acc.amount.to_string())));
+                out.push_str(&format!(
+                    "  Amount:    {}\n",
+                    green(&acc.amount.to_string())
+                ));
 
                 let delegate_str = match acc.delegate {
                     solana_sdk::program_option::COption::Some(d) => {
@@ -524,7 +591,11 @@ impl Trident {
                 out.push_str(&format!("  State:     {}\n", dim(&state_str)));
 
                 if !token_acc.extensions.is_empty() {
-                    out.push_str(&format!("  {} ({})\n", cyan("Extensions"), token_acc.extensions.len()));
+                    out.push_str(&format!(
+                        "  {} ({})\n",
+                        cyan("Extensions"),
+                        token_acc.extensions.len()
+                    ));
                     for ext in &token_acc.extensions {
                         out.push_str(&format!("    {}\n", dim(&format_token_extension(ext))));
                     }
@@ -576,7 +647,11 @@ impl Trident {
                 out.push_str(&format!("  Freeze:    {}\n", dim(&freeze_str)));
 
                 if !mint_data.extensions.is_empty() {
-                    out.push_str(&format!("  {} ({})\n", cyan("Extensions"), mint_data.extensions.len()));
+                    out.push_str(&format!(
+                        "  {} ({})\n",
+                        cyan("Extensions"),
+                        mint_data.extensions.len()
+                    ));
                     for ext in &mint_data.extensions {
                         out.push_str(&format!("    {}\n", dim(&format_mint_extension(ext))));
                     }
