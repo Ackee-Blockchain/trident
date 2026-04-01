@@ -16,7 +16,10 @@ invariant!(balance_after == balance_before - amount);
 
 // With custom message
 invariant!(balance > 0, "Balance must be positive");
-invariant!(a == b, "Expected {} but got {}", a, b);
+
+// Comparison macros (auto-display values on failure)
+invariant_eq!(balance_after, balance_before - amount);
+invariant_gt!(balance, 0, "Balance must be positive");
 ```
 
 !!! note "Invariants vs Regular Panics"
@@ -125,5 +128,13 @@ Notes:
 
 - Without `--exit-code`, invariant failures and program panics are reported but do not force a non-zero process exit.
 - Unexpected fuzz-test panics (for example `unwrap()` on `None`) are always treated as runtime errors and fail the run.
+
+## Available Macros
+
+Beyond the basic `invariant!` macro shown above, Trident provides a full family of comparison macros that automatically display values on failure.
+
+See the [Invariant Macros API Reference](../../trident-api/invariants.md) for signatures, failure messages, and examples.
+
+---
 
 For more complex examples and patterns, see the [Trident Examples](../../trident-examples/trident-examples.md) page.

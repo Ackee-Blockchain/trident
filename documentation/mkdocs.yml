@@ -50,6 +50,8 @@ nav:
       - trident-api/token-2022.md
       - trident-api/vote-program.md
       - trident-api/stake-program.md
+      - Invariant Macros:
+        - trident-api/invariants.md
       - Address Storage:
         - trident-api/address-storage/index.md
       - Transaction Result:
