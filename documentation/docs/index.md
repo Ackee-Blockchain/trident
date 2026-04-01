@@ -17,6 +17,8 @@ Explore the various features Trident provides.
 
  - [Invariants and Assertions](./trident-advanced/invariants-assertions/index.md) - Validate program behavior with custom invariants and assertions
  - [Multi-Instruction Transactions](./trident-advanced/multi-instruction-transactions/index.md) - Execute multiple instructions within a single transaction
+ - [Forking](./trident-advanced/forking/index.md) - Fork on-chain state for fuzzing against real program data
+ - [Printers](./trident-advanced/printers/index.md) - Debug with formatted output for accounts, transactions, and programs
  - [Trident Manifest](./trident-manifest/index.md) - Customize your fuzz tests with different configurations
  - [Code Coverage](./trident-advanced/code-coverage/index.md) - Track and display fuzz test code coverage
  - [Dashboard](./trident-advanced/dashboard/index.md) - A web-based interface for visualizing fuzzing session results

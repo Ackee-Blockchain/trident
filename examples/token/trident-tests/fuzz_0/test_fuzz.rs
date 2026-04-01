@@ -787,6 +787,8 @@ impl FuzzTest {
             .trident
             .process_transaction(&ixs, Some("Multiple extensions"));
 
+        self.trident.print_mint_account(mint2022);
+
         invariant!(
             res.is_success(),
             "GroupPointer + TokenGroup + MetadataPointer + TokenMetadata + Pausable + TransferFeeConfig + ScaledUiAmount + MintCloseAuthority extension failed: {:#?}",
@@ -815,6 +817,8 @@ impl FuzzTest {
                 },
             ],
         );
+
+        self.trident.print_token_account(token_account2022_1);
 
         let res = self.trident.process_transaction(
             &ixs,

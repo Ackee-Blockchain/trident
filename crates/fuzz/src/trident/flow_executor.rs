@@ -640,6 +640,8 @@ fn run_thread_workload_impl<E: FlowExecutor>(
         .trident_mut()
         .set_master_seed_and_thread_id(master_seed, thread_id);
 
+    progress::set_user_log_sender(event_tx.clone());
+
     // Track progress updates to avoid excessive bar updates
     let mut last_update = Instant::now();
     let mut local_counter = 0u64;

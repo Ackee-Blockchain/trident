@@ -93,6 +93,10 @@ pub fn get_last_blockhash(&self) -> Hash
 
 - **[System Program Methods](./system-program.md)** - Account creation, allocation, assignment, and SOL transfers
 
+### Debugging
+
+- **[Printers](./printers.md)** - Print formatted account data, transaction results, and program details
+
 ### Feature-Gated Methods
 
 - **[SPL Token Methods](./spl-token.md)** - Available with `token` feature
