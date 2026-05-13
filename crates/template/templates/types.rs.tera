@@ -5,6 +5,8 @@
 
 #![allow(dead_code)]
 #![allow(unused_imports)]
+#![allow(clippy::too_many_arguments)]
+#![allow(clippy::vec_init_then_push)]
 
 use borsh::BorshDeserialize;
 use borsh::BorshSerialize;
