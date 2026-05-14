@@ -7850,8 +7850,9 @@ dependencies = [
 
 [[package]]
 name = "trident-svm"
-version = "0.3.0-rc.3"
-source = "git+https://github.com/Ackee-Blockchain/trident-svm?branch=develop#9e702fded53d42115afda9ccdd2b79975ab6ced5"
+version = "0.3.0-rc.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "66a5b80da954bfbcb5051f1c96928879d898325b525618fe6c1aab4cf4431a2b"
 dependencies = [
  "agave-feature-set",
  "agave-precompiles",
