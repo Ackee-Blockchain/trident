@@ -802,26 +802,55 @@
         }
         
         // Format Solana logs with syntax highlighting
+        function escapeHtml(text) {
+            return String(text)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function normalizeLogsToLines(logs) {
+            if (logs === undefined || logs === null) return [];
+            if (Array.isArray(logs)) return logs;
+
+            // In metrics JSON, some logs are serialized as a single string.
+            if (typeof logs === 'string') {
+                const normalized = logs.replace(/\\n/g, '\n');
+                return normalized.split(/\r?\n/).filter(line => line.length > 0);
+            }
+
+            // Fallback: stringify unexpected shapes.
+            try {
+                return [JSON.stringify(logs, null, 2)];
+            } catch (_) {
+                return [String(logs)];
+            }
+        }
+
         function formatSolanaLogs(logs) {
-            if (!logs || logs.length === 0) return 'No logs available';
+            const lines = normalizeLogsToLines(logs);
+            if (lines.length === 0) return 'No logs available';
             
-            return logs.map(log => {
-                let formattedLog = log.replace(/\\n/g, '\n'); // Handle escaped newlines
+            return lines.map(log => {
+                const rawLog = String(log).replace(/\\n/g, '\n'); // Handle escaped newlines
+                let formattedLog = escapeHtml(rawLog);
                 
                 // Color different types of log lines
-                if (formattedLog.includes('Program') && formattedLog.includes('invoke')) {
+                if (rawLog.includes('Program') && rawLog.includes('invoke')) {
                     formattedLog = `<span class="log-invoke">${formattedLog}</span>`;
-                } else if (formattedLog.includes('Program') && formattedLog.includes('success')) {
+                } else if (rawLog.includes('Program') && rawLog.includes('success')) {
                     formattedLog = `<span class="log-success">${formattedLog}</span>`;
-                } else if (formattedLog.includes('Program') && formattedLog.includes('failed')) {
+                } else if (rawLog.includes('Program') && rawLog.includes('failed')) {
                     formattedLog = `<span class="log-failed">${formattedLog}</span>`;
-                } else if (formattedLog.includes('Program log:')) {
+                } else if (rawLog.includes('Program log:')) {
                     formattedLog = `<span class="log-message">${formattedLog}</span>`;
-                } else if (formattedLog.includes('consumed') && formattedLog.includes('compute units')) {
+                } else if (rawLog.includes('consumed') && rawLog.includes('compute units')) {
                     formattedLog = `<span class="log-compute">${formattedLog}</span>`;
-                } else if (formattedLog.includes('Program') && formattedLog.includes('error')) {
+                } else if (rawLog.includes('Program') && rawLog.includes('error')) {
                     formattedLog = `<span class="log-error">${formattedLog}</span>`;
-                } else if (formattedLog.startsWith('Program ')) {
+                } else if (rawLog.startsWith('Program ')) {
                     formattedLog = `<span class="log-program">${formattedLog}</span>`;
                 }
                 
